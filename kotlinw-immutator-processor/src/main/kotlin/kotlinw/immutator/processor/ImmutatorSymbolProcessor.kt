@@ -50,6 +50,7 @@ import kotlinw.immutator.internal.ImmutableObject
 import kotlinw.immutator.internal.MutableObject
 import kotlinw.immutator.internal.MutableObjectImplementor
 import kotlinw.immutator.internal.MutableObjectState
+import kotlinw.immutator.util.ImmutableBox
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
@@ -138,9 +139,11 @@ class ImmutatorSymbolProcessor(
             )
         }
 
-        if (classDeclaration.abstractProperties.isEmpty()) {
+        if (classDeclaration.abstractProperties.isEmpty() && classDeclaration.getSealedSubclasses().toList()
+                .isEmpty()
+        ) {
             throw ImmutatorException(
-                "An interface annotated with $annotationDisplayName must have at least one declared abstract property.",
+                "An interface annotated with $annotationDisplayName must have at least one declared abstract property or have sub-interfaces.",
                 classDeclaration
             )
         }
@@ -160,20 +163,20 @@ class ImmutatorSymbolProcessor(
             )
         }
 
-        var hasInvalidPropertyType = false
-        classDeclaration.abstractProperties.forEach {
-            if (it.type.resolve().propertyType == PropertyType.Unsupported) {
-                hasInvalidPropertyType = true
-                logger.error("Invalid property of unsupported type.", it)
-            }
-        }
-
-        if (hasInvalidPropertyType) {
-            throw ImmutatorException(
-                "Only properties of supported immutable types are allowed in $annotationDisplayName annotated interfaces.",
-                classDeclaration
-            )
-        }
+//        var hasInvalidPropertyType = false
+//        classDeclaration.abstractProperties.forEach {
+//            if (it.type.resolve().propertyType == PropertyType.Unsupported) {
+//                hasInvalidPropertyType = true
+//                logger.error("Invalid property of unsupported type.", it)
+//            }
+//        }
+//
+//        if (hasInvalidPropertyType) {
+//            throw ImmutatorException(
+//                "Only properties of supported immutable types are allowed in $annotationDisplayName annotated interfaces.",
+//                classDeclaration
+//            )
+//        }
 
         val definitionInterfaceName = classDeclaration.toClassName()
         val generatedFile = FileSpec.builder(
@@ -726,10 +729,12 @@ internal val KSClassDeclaration.isEnumClass: Boolean
 
 internal val KSType.isImmutable: Boolean
     get() =
-        arguments.all {
-            (it.variance in supportedVariances) && (it.type?.resolve()?.isImmutable ?: false)
-        } &&
-                (declaration.asClassDeclaration?.isImmutable ?: false)
+        declaration.qualifiedName?.asString() == ImmutableBox::class.qualifiedName || (
+                arguments.all {
+                    (it.variance in supportedVariances) && (it.type?.resolve()?.isImmutable ?: false)
+                } &&
+                        (declaration.asClassDeclaration?.isImmutable ?: false)
+                )
 
 private val KSClassDeclaration.isImmutable: Boolean
     get() {
