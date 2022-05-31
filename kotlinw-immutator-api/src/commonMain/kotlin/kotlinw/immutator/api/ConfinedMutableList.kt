@@ -1,5 +1,7 @@
 package kotlinw.immutator.api
 
+import kotlinw.immutator.internal.ImmutableObject
+import kotlinw.immutator.internal.MutableObject
 import kotlinx.collections.immutable.ImmutableList
 
 interface ConfinedMutableList<ElementMutableType, ElementImmutableType> :
@@ -10,4 +12,4 @@ interface ConfinedMutableList<ElementMutableType, ElementImmutableType> :
 
 fun <ElementMutableType, ElementImmutableType : ImmutableObject<ElementMutableType>>
         ConfinedMutableList<ElementMutableType, ElementImmutableType>.add(element: ElementImmutableType): Boolean =
-    add(element.toMutable())
+    add(element._immutator_convertToMutable())

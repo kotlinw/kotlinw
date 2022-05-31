@@ -1,18 +1,17 @@
 package kotlinw.immutator.internal
 
 import kotlinw.immutator.api.ConfinedMutableList
-import kotlinw.immutator.api.ImmutableObject
-import kotlinw.immutator.api.MutableObject
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.datetime.LocalDate
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
-interface MutableObjectImplementor<MutableType: MutableObject<ImmutableType>, ImmutableType> : MutableObject<ImmutableType> {
-    val _isModified: Boolean
+interface MutableObjectImplementor<MutableType : MutableObject<ImmutableType>, ImmutableType> :
+    MutableObject<ImmutableType> {
+    @Suppress("PropertyName")
+    val _immutator_isModified: Boolean
 }
 
 data class MutableValuePropertyState(
@@ -24,7 +23,7 @@ class MutableReferencePropertyState(initialValue: MutableObjectImplementor<*, *>
 
     private var _isModified: Boolean = false
 
-    val isModified get() = _isModified || _currentValue?._isModified ?: false
+    val isModified get() = _isModified || _currentValue?._immutator_isModified ?: false
 
     var currentValue
         get() = _currentValue
@@ -121,7 +120,7 @@ fun <
     PropertyDelegateProvider<HostMutableType, ReadWriteProperty<HostMutableType, PropertyMutableType>> { mutableType, kProperty ->
         objectState.registerReferenceProperty(
             kProperty.name,
-            sourceValue.toMutable()
+            sourceValue._immutator_convertToMutable()
         )
 
         object : ReadWriteProperty<HostMutableType, PropertyMutableType> {
@@ -147,7 +146,7 @@ fun <
     PropertyDelegateProvider<HostMutableType, ReadWriteProperty<HostMutableType, PropertyMutableType?>> { mutableType, kProperty ->
         objectState.registerReferenceProperty(
             kProperty.name,
-            sourceValue?.toMutable()
+            sourceValue?._immutator_convertToMutable()
         )
 
         object : ReadWriteProperty<HostMutableType, PropertyMutableType?> {
@@ -176,8 +175,8 @@ fun <
         objectState.registerListProperty(
             kProperty.name,
             sourceValue,
-            { it.toMutable() },
-            { it.toImmutable() }
+            { it._immutator_convertToMutable() },
+            { it._immutator_convertToImmutable() }
         )
 
         ReadOnlyProperty { _, property ->

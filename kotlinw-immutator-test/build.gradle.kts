@@ -22,6 +22,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":kotlinw-immutator-api"))
+
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.serialization.json)
@@ -40,10 +41,11 @@ kotlin {
             }
         }
         val jvmTest by getting {
-            kotlin.srcDir("build/generated/ksp/jvmTest/kotlin")
+            kotlin.srcDir("build/generated/ksp/jvm/jvmTest/kotlin")
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation("ch.qos.logback:logback-classic:1.2.5")
+                implementation(project(":kotlinw-immutator-processor"))
             }
         }
 //        val jsMain by getting {
@@ -57,4 +59,5 @@ dependencies {
     add("kspMetadata", project(":kotlinw-immutator-processor"))
     add("kspJvm", project(":kotlinw-immutator-processor"))
     add("kspJvmTest", project(":kotlinw-immutator-processor"))
+    // ksp("")
 }

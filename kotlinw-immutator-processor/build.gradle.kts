@@ -8,7 +8,7 @@ kotlin {
         implementation(project(":kotlinw-immutator-api"))
 
         implementation("com.google.devtools.ksp:symbol-processing-api:1.6.10-1.0.4")
-        implementation("com.squareup:kotlinpoet-ksp:1.10.2")
+        implementation("com.squareup:kotlinpoet-ksp:1.11.0")
 
         implementation(kotlin("stdlib-jdk8"))
         testImplementation(kotlin("test-junit5"))

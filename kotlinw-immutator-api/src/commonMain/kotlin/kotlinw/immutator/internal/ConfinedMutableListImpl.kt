@@ -17,11 +17,10 @@ internal class ConfinedMutableListImpl<ElementMutableType, ElementImmutableType>
 
     private var _isMutated = false
 
-    // TODO avoid runtime type checking by implementing a specific ConfinedMutableListOfImmutableElements which need no _isModified checks for each element
-    override val _isModified get() = _isMutated || persistentList.any { it is MutableObjectImplementor<*, *> && it._isModified }
+    override val _immutator_isModified get() = _isMutated || persistentList.any { it is MutableObjectImplementor<*, *> && it._immutator_isModified }
 
-    override fun toImmutable(): ImmutableList<ElementImmutableType> =
-        if (_isModified) {
+    override fun _immutator_convertToImmutable(): ImmutableList<ElementImmutableType> =
+        if (_immutator_isModified) {
             persistentList.map { it.toImmutable() }.toImmutableList()
         } else {
             initialList
@@ -81,7 +80,7 @@ internal class ConfinedMutableListImpl<ElementMutableType, ElementImmutableType>
     override fun subList(fromIndex: Int, toIndex: Int) = unsupportedMutationOperation()
 
     override fun <T> mutate(mutator: (MutableList<ElementMutableType>) -> T): T {
-        _isMutated = true // TODO optimalize
+        _isMutated = true // TODO optimize
 
         data class MutationResult<T>(val value: T)
 

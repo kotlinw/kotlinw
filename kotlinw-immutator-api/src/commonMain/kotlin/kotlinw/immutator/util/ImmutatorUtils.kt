@@ -1,17 +1,18 @@
 package kotlinw.immutator.util
 
-import kotlinw.immutator.api.ImmutableObject
-import kotlinw.immutator.api.MutableObject
-import kotlinx.datetime.LocalDate
+import kotlinw.immutator.internal.ImmutableObject
+import kotlinw.immutator.internal.MutableObject
 
 inline fun <ImmutableType : ImmutableObject<MutableType>, MutableType : MutableObject<ImmutableType>> ImmutableType.mutate(
     mutator: (MutableType) -> Unit
 ): ImmutableType =
-    toMutable().let { mutable ->
+    _immutator_convertToMutable().let { mutable ->
         mutator(mutable)
-        mutable.toImmutable()
+        mutable._immutator_convertToImmutable()
     }
 
-fun LocalDate.toImmutable() = this
+fun <ImmutableType : ImmutableObject<MutableType>, MutableType : MutableObject<ImmutableType>> ImmutableType.toMutable(): MutableType =
+    _immutator_convertToMutable()
 
-fun String.toImmutable() = this
+fun <ImmutableType : ImmutableObject<MutableType>, MutableType : MutableObject<ImmutableType>> MutableType.toImmutable(): ImmutableType =
+    _immutator_convertToImmutable()
