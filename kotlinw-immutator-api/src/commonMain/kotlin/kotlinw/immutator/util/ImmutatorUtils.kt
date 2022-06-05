@@ -10,9 +10,3 @@ inline fun <ImmutableType : ImmutableObject<MutableType>, MutableType : MutableO
         mutator(mutable)
         mutable._immutator_convertToImmutable()
     }
-
-fun <ImmutableType : ImmutableObject<MutableType>, MutableType : MutableObject<ImmutableType>> ImmutableType.toMutable(): MutableType =
-    _immutator_convertToMutable()
-
-fun <ImmutableType : ImmutableObject<MutableType>, MutableType : MutableObject<ImmutableType>> MutableType.toImmutable(): ImmutableType =
-    _immutator_convertToImmutable()

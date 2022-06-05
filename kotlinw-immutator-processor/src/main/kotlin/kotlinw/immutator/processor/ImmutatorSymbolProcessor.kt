@@ -1,4 +1,4 @@
-@file:OptIn(KotlinPoetKspPreview::class, KspExperimental::class)
+@file:OptIn(KotlinPoetKspPreview::class, KspExperimental::class, KotlinPoetKspPreview::class)
 
 package kotlinw.immutator.processor
 
@@ -43,9 +43,9 @@ import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
-import kotlinw.immutator.api.Immutate
+import kotlinw.immutator.annotation.Immutable
+import kotlinw.immutator.annotation.Immutate
 import kotlinw.immutator.api.ConfinedMutableList
-import kotlinw.immutator.api.Immutable
 import kotlinw.immutator.internal.ImmutableObject
 import kotlinw.immutator.internal.MutableObject
 import kotlinw.immutator.internal.MutableObjectImplementor
@@ -55,15 +55,19 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty1
 
 class ImmutatorException(override val message: String, val ksNode: KSNode, override val cause: Throwable? = null) :
     RuntimeException(message, cause)
+
+internal val annotationQualifiedName = Immutate::class.qualifiedName!!
 
 @KotlinPoetKspPreview
 class ImmutatorSymbolProcessor(
@@ -71,8 +75,6 @@ class ImmutatorSymbolProcessor(
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
-    private val annotationQualifiedName = Immutate::class.qualifiedName!!
-
     private val annotationSimpleName = Immutate::class.simpleName!!
 
     private val annotationDisplayName = "@$annotationSimpleName"
@@ -85,31 +87,74 @@ class ImmutatorSymbolProcessor(
 
     private val isModifiedPropertyName = MutableObjectImplementor<*, *>::_immutator_isModified.name
 
+    private lateinit var knownSubclasses: ImmutableMap<String, List<KSClassDeclaration>>
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver
             .getSymbolsWithAnnotation(annotationQualifiedName)
             .toList()
 
+        symbols
+            .filter { it !is KSClassDeclaration || it.qualifiedName == null }
+            .forEach {
+                logger.error("Invalid annotated element, expected class declaration with qualified name: $it")
+            }
+
+        val validSymbols = symbols
+            .filterIsInstance<KSClassDeclaration>()
+            .filter { it.qualifiedName != null }
+            .filter { it.validate() }
+            .toList()
+
         val invalidSymbols = symbols.filter { !it.validate() }.toList()
 
-        symbols
-            .filter { it.validate() }
-            .forEach { symbol ->
-                try {
-                    if (symbol is KSClassDeclaration) {
-                        processClassDeclaration(symbol)
-                    } else {
-                        logger.error("Unsupported annotated symbol: $symbol", symbol)
+        fun KSClassDeclaration.mapKey(): String = qualifiedName!!.asString()
+
+        fun KSTypeReference.mapKey(): String = resolve().declaration.asClassDeclaration!!.mapKey()
+
+        validSymbols.forEach { classDeclaration ->
+            classDeclaration.superTypes
+                .filter { it.resolve().declaration.qualifiedName?.asString() != Any::class.qualifiedName!! }
+                .forEach {
+                    if (!validSymbols.map { it.mapKey() }.contains(it.mapKey())) {
+                        logger.error("Supertypes must be in the same module: ${it.resolve()}", classDeclaration)
                     }
-                } catch (e: ImmutatorException) {
-                    logger.error(e.message, e.ksNode)
-                } catch (e: Exception) {
-                    logger.error("Internal processing error: ${e.message}", symbol)
+                }
+        }
+
+        // TODO már itt legyenek az ellenőrzések a valid-okra
+        // TODO kizárni a nem egy modulban levő subinterface-eket
+
+        knownSubclasses = buildMap<String, List<KSClassDeclaration>> {
+            validSymbols.forEach { symbol ->
+                symbol.superTypes.filter {
+                    validSymbols.map { it.mapKey() }.contains(it.mapKey())
+                }.forEach {
+                    val key = it.mapKey()
+                    this[key] = (this[key] ?: emptyList()) + symbol
                 }
             }
+        }.toPersistentHashMap()
+
+        validSymbols.forEach { symbol ->
+            try {
+                processClassDeclaration(symbol)
+            } catch (e: ImmutatorException) {
+                logger.error(e.message, e.ksNode)
+            } catch (e: Exception) {
+                logger.error("Internal processing error: ${e.message}", symbol)
+            }
+        }
 
         return invalidSymbols
     }
+
+    private fun KSClassDeclaration.getKnownSubclasses(): List<KSClassDeclaration> =
+        if (this.qualifiedName != null) {
+            knownSubclasses[this.qualifiedName!!.asString()] ?: emptyList()
+        } else {
+            emptyList()
+        }
 
     private val KSClassDeclaration.abstractProperties: List<KSPropertyDeclaration>
         get() =
@@ -125,13 +170,6 @@ class ImmutatorSymbolProcessor(
             )
         }
 
-        if (!classDeclaration.modifiers.contains(SEALED)) {
-            throw ImmutatorException(
-                "An interface annotated with $annotationDisplayName must be sealed.",
-                classDeclaration
-            )
-        }
-
         if (classDeclaration.typeParameters.isNotEmpty()) {
             throw ImmutatorException(
                 "Type parameters are not supported in case of $annotationDisplayName annotated interfaces.",
@@ -139,7 +177,7 @@ class ImmutatorSymbolProcessor(
             )
         }
 
-        if (classDeclaration.abstractProperties.isEmpty() && classDeclaration.getSealedSubclasses().toList()
+        if (classDeclaration.abstractProperties.isEmpty() && classDeclaration.getKnownSubclasses().toList()
                 .isEmpty()
         ) {
             throw ImmutatorException(
@@ -163,6 +201,7 @@ class ImmutatorSymbolProcessor(
             )
         }
 
+        // TODO
 //        var hasInvalidPropertyType = false
 //        classDeclaration.abstractProperties.forEach {
 //            if (it.type.resolve().propertyType == PropertyType.Unsupported) {
@@ -191,9 +230,11 @@ class ImmutatorSymbolProcessor(
 
         when (classDeclaration.classKind) {
             INTERFACE -> {
+                generatedFile.generateExtensionMethods(classDeclaration)
+
                 generatedFile.generateMutableInterface(classDeclaration)
 
-                if (classDeclaration.getSealedSubclasses().toList().isEmpty()) {
+                if (classDeclaration.getKnownSubclasses().toList().isEmpty()) {
                     generateImmutableDataClass(classDeclaration, generatedFile)
                     generateMutableClass(classDeclaration, generatedFile)
                 } else {
@@ -326,7 +367,11 @@ class ImmutatorSymbolProcessor(
                                                 "mutableListOfImmutableElements(_objectState, source.${it.simpleName.asString()})"
                                             }
                                         PropertyType.Map -> "mutableMapProperty(_objectState, source.${it.simpleName.asString()}, ::${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclaration!!.mutableClassName.simpleName}, ${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclaration!!.mutableClassName.simpleName}::toImmutable)"
-                                        PropertyType.Unsupported -> throwInternalCompilerError(it)
+                                        PropertyType.Unsupported -> throwInternalCompilerError(
+                                            it.type.resolve()
+                                                .toString() + ", " + it.type.resolve().declaration.qualifiedName?.asString(),
+                                            it
+                                        ) // TODO
                                     }
                                 )
                                 .build()
@@ -349,7 +394,11 @@ class ImmutatorSymbolProcessor(
                                         PropertyType.Set -> TODO()
                                         PropertyType.List -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
                                         PropertyType.Map -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
-                                        PropertyType.Unsupported -> throwInternalCompilerError(it)
+                                        PropertyType.Unsupported -> throwInternalCompilerError(
+                                            it.type.resolve()
+                                                .toString() + ", " + it.type.resolve().declaration.qualifiedName?.asString(),
+                                            it
+                                        ) // TODO
                                     }
                                 }
                             })
@@ -371,16 +420,16 @@ class ImmutatorSymbolProcessor(
 
     private val KSType.propertyType: PropertyType
         get() =
-            if (declaration.isImmutated) {
-                PropertyType.Immutated
-            } else if (isImmutable) {
-                PropertyType.Value
-            } else if (declaration.qualifiedName?.asString() == Set::class.qualifiedName) {
+            if (declaration.qualifiedName?.asString() == Set::class.qualifiedName) {
                 PropertyType.Set
             } else if (declaration.qualifiedName?.asString() == List::class.qualifiedName) {
                 PropertyType.List
             } else if (declaration.qualifiedName?.asString() == Map::class.qualifiedName) {
                 PropertyType.Map
+            } else if (declaration.isImmutated) {
+                PropertyType.Immutated
+            } else if (isImmutable) {
+                PropertyType.Value
             } else {
                 PropertyType.Unsupported
             }
@@ -402,7 +451,11 @@ class ImmutatorSymbolProcessor(
                     ${
                             definitionInterfaceDeclaration.abstractProperties.toList().joinToString("\n") {
                                 val propertyName = it.simpleName.asString()
-                                """if ($propertyName != other.$propertyName) { return false }"""
+                                """
+                                if ($propertyName != other.$propertyName) {
+                                    return false 
+                                }
+                                """.trimIndent()
                             }
                         }
 
@@ -547,7 +600,10 @@ class ImmutatorSymbolProcessor(
                                     PropertyType.Set -> propertyType.mutableTypeName
                                     PropertyType.List -> propertyType.mutableTypeName
                                     PropertyType.Map -> propertyType.mutableTypeName
-                                    PropertyType.Unsupported -> throwInternalCompilerError(propertyDeclaration)
+                                    PropertyType.Unsupported -> throwInternalCompilerError(
+                                        resolvedPropertyType.toString() + ", " + resolvedPropertyType.declaration.qualifiedName?.asString(),
+                                        propertyDeclaration
+                                    )
                                 },
                                 OVERRIDE
                             )
@@ -560,8 +616,70 @@ class ImmutatorSymbolProcessor(
         )
     }
 
-    private fun throwInternalCompilerError(ksNode: KSNode): Nothing {
-        throw ImmutatorException("Internal compiler error.", ksNode)
+    private fun FileSpec.Builder.generateExtensionMethods(definitionInterfaceDeclaration: KSClassDeclaration) {
+        addFunction(
+            FunSpec.builder("toMutable")
+                .receiver(definitionInterfaceDeclaration.toClassName())
+                .returns(definitionInterfaceDeclaration.mutableInterfaceName)
+                .addCode(
+                    // TODO support more complex hierarchy of classes
+                    """
+                        return when (this) {
+                            ${
+                        if (definitionInterfaceDeclaration.getKnownSubclasses().toList().isNotEmpty()) {
+                            definitionInterfaceDeclaration.getKnownSubclasses().joinToString("\n") {
+                                """
+                                is ${it.mutableInterfaceName} -> this
+                                is ${it.immutableDataClassName} -> ${convertToMutableFunctionName}()
+                                """
+                            }
+                        } else {
+                            """
+                            is ${definitionInterfaceDeclaration.mutableInterfaceName} -> this
+                            is ${definitionInterfaceDeclaration.immutableDataClassName} -> ${convertToMutableFunctionName}()
+                            """.trimIndent()
+                        }
+                    }
+                        else -> throw IllegalStateException()
+                        }
+                        """.trimIndent()
+                )
+                .build()
+        )
+
+        addFunction(
+            FunSpec.builder("toImmutable")
+                .receiver(definitionInterfaceDeclaration.toClassName())
+                .returns(definitionInterfaceDeclaration.immutableDataClassName)
+                .addCode(
+                    // TODO support more complex hierarchy of classes
+                    """
+                        return when (this) {
+                            ${
+                        if (definitionInterfaceDeclaration.getKnownSubclasses().toList().isNotEmpty()) {
+                            definitionInterfaceDeclaration.getKnownSubclasses().joinToString("\n") {
+                                """
+                                is ${it.immutableDataClassName} -> this
+                                is ${it.mutableInterfaceName} -> (this as ${it.mutableClassName}).${convertToImmutableMethodName}()
+                                """
+                            }
+                        } else {
+                            """
+                            is ${definitionInterfaceDeclaration.immutableDataClassName} -> this
+                            is ${definitionInterfaceDeclaration.mutableInterfaceName} -> (this as ${definitionInterfaceDeclaration.mutableClassName}).${convertToImmutableMethodName}()
+                            """.trimIndent()
+                        }
+                    }
+                        else -> throw IllegalStateException()
+                        }
+                        """.trimIndent()
+                )
+                .build()
+        )
+    }
+
+    private fun throwInternalCompilerError(message: String, ksNode: KSNode): Nothing {
+        throw ImmutatorException("Internal compiler error: $message", ksNode)
     }
 }
 
@@ -581,7 +699,7 @@ internal val KSTypeReference.mutableTypeName: TypeName
                 if (declaration is KSClassDeclaration) {
                     if (declaration.isImmutated) {
                         declaration.mutableInterfaceName
-                    } else if (declaration.isImmutable) {
+                    } else if (ksType.isImmutable) {
                         this@mutableTypeName.toTypeName()
                     } else {
                         when (val typeName = ksType.toTypeName()) {
@@ -706,6 +824,7 @@ private val knownImmutableClassNames =
         Unit::class, String::class, //
         LocalDate::class, LocalDateTime::class, Instant::class, //
         java.time.LocalDate::class, java.time.LocalDateTime::class, ZonedDateTime::class, java.time.Instant::class, //
+        UUID::class, //
         ImmutableList::class, ImmutableSet::class, ImmutableMap::class
     )
         .map { it.qualifiedName!! }
@@ -728,21 +847,26 @@ internal val KSClassDeclaration.isEnumClass: Boolean
     get() = modifiers.contains(Modifier.ENUM)
 
 internal val KSType.isImmutable: Boolean
-    get() =
-        declaration.qualifiedName?.asString() == ImmutableBox::class.qualifiedName || (
-                arguments.all {
-                    (it.variance in supportedVariances) && (it.type?.resolve()?.isImmutable ?: false)
-                } &&
-                        (declaration.asClassDeclaration?.isImmutable ?: false)
-                )
+    get() = (
+            declaration.qualifiedName?.asString() !in listOf(List::class.qualifiedName!!) && (
+                    declaration.qualifiedName?.asString() == ImmutableBox::class.qualifiedName ||
+                            (declaration.asClassDeclaration?.isEnumClass ?: false) ||
+                            declaration.isMarkedImmutable ||
+                            (
+                                    arguments.all {
+                                        (it.variance in supportedVariances) && (it.type?.resolve()?.isImmutable
+                                            ?: false)
+                                    } &&
+                                            (declaration.asClassDeclaration?.isImmutable ?: false)
+                                    )
+                    )
+            )
 
 private val KSClassDeclaration.isImmutable: Boolean
     get() {
         val qualifiedName = qualifiedName?.asString()
         return qualifiedName != null &&
                 (knownImmutableClassNames.contains(qualifiedName) ||
-                        isEnumClass ||
-                        isMarkedImmutable ||
                         superTypes.map { it.resolve().declaration.qualifiedName?.asString() }
                             .contains(ImmutableObject::class.qualifiedName) ||
                         isInferredImmutable)
@@ -751,11 +875,15 @@ private val KSClassDeclaration.isImmutable: Boolean
 internal val KSClassDeclaration.isInferredImmutable: Boolean
     get() =
         getAllProperties()
-            .all { !it.isMutable && !it.isDelegated() && it.type.resolve().isImmutable }
+            .all {
+                !it.isMutable &&
+                        // TODO!it.isDelegated() && // TODO az isDelegated() valamiért true az Ulid.value-nál
+                        it.type.resolve().isImmutable
+            }
 // TODO
 //                    &&
 //                    (!declaration.modifiers.contains(SEALED) ||
-//                            declaration.getSealedSubclasses().all { it.isImmutable }) &&
+//                            declaration.getKnownSubclasses().all { it.isImmutable }) &&
 //                    declaration.superTypes.all {
 //                        val superTypeDeclaration = it.resolve().declaration
 //                        (superTypeDeclaration is KSClassDeclaration && superTypeDeclaration.classKind == INTERFACE) ||

@@ -5,13 +5,18 @@ plugins {
 
 kotlin {
     jvm {  }
+        js(IR) {
+        browser()
+    }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.kotlinx.collections.immutable)
-                api(libs.kotlinx.datetime)
-                api(libs.kotlinx.serialization.json)
+                api(project(":kotlinw-utils"))
+                api(project(":kotlinw-immutator-annotations"))
+                implementation(libs.kotlinx.collections.immutable)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val commonTest by getting {

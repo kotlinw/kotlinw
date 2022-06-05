@@ -1,27 +1,20 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("com.google.devtools.ksp") version "1.6.10-1.0.4"
+    id("com.google.devtools.ksp")
 }
 
 kotlin {
     jvm { }
-//    js(IR) {
-//        browser {
-//            testTask {
-//                useKarma {
-//                    useChromeHeadless()
-//                }
-//            }
-//        }
-//    }
+    js(IR) {
+        browser {}
+    }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":kotlinw-immutator-api"))
+                implementation(project(":kotlinw-immutator-test2"))
 
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)
@@ -35,6 +28,7 @@ kotlin {
             }
         }
         val jvmMain by getting {
+            kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
                 api(kotlin("stdlib-jdk8"))
                 api(kotlin("reflect"))
@@ -45,19 +39,17 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation("ch.qos.logback:logback-classic:1.2.5")
-                implementation(project(":kotlinw-immutator-processor"))
             }
         }
-//        val jsMain by getting {
-//        }
-//        val jsTest by getting {
-//        }
+        val jsMain by getting {
+        }
+        val jsTest by getting {
+        }
     }
 }
 
 dependencies {
-    add("kspMetadata", project(":kotlinw-immutator-processor"))
+//    add("kspMetadata", project(":kotlinw-immutator-processor"))
     add("kspJvm", project(":kotlinw-immutator-processor"))
     add("kspJvmTest", project(":kotlinw-immutator-processor"))
-    // ksp("")
 }

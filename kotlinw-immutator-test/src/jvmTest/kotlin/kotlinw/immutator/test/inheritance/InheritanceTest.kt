@@ -1,11 +1,9 @@
 package kotlinw.immutator.test.inheritance
 
-import kotlinw.immutator.api.Immutate
+import kotlinw.immutator.annotation.Immutate
 import kotlinw.immutator.test.inheritance.PetKind.Cat
 import kotlinw.immutator.test.inheritance.PetKind.Dog
 import kotlinw.immutator.test.inheritance.PetKind.Rabbit
-import kotlinw.immutator.util.toImmutable
-import kotlinw.immutator.util.toMutable
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate

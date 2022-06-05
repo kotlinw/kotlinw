@@ -1,6 +1,7 @@
 package kotlinw.immutator.util
 
-import kotlinw.immutator.api.Immutable
+import kotlinw.common.util.randomUuid
+import kotlinw.immutator.annotation.Immutable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlin.reflect.KMutableProperty0
@@ -10,7 +11,15 @@ import kotlin.reflect.KMutableProperty0
  * Internal state modification of the referenced mutable object is not tracked or observed.
  */
 @Immutable
-data class ImmutableBox<T>(val value: T) // TODO implement equals+hashcode using UUID
+class ImmutableBox<T>(val value: T) {
+    private val uid = randomUuid()
+
+    override fun equals(other: Any?): Boolean = other is ImmutableBox<*> && other.uid == uid
+
+    override fun hashCode(): Int = uid.hashCode()
+
+    override fun toString(): String = value.toString()
+}
 
 fun <T> ImmutableBox<T>.mutate(mutator: T.() -> T): ImmutableBox<T> = value.mutator().wrapInImmutableBox()
 
