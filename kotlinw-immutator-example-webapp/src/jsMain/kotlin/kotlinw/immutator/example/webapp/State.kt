@@ -25,7 +25,6 @@ interface MainScreen : Screen {
 @Immutate
 interface EditScreen : Screen {
     val editedTodoListId: Long
-    val focusedItemIndex: Int?
 }
 
 @Immutate

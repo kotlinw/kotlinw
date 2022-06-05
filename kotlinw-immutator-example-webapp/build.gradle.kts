@@ -2,10 +2,8 @@ import org.jetbrains.compose.compose
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.spring")
     id("com.google.devtools.ksp")
     id("org.jetbrains.compose")
-    id("org.springframework.boot")
 }
 
 kotlin {
@@ -29,9 +27,6 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                project.dependencies.platform(libs.spring.boot.bom)
-                implementation("org.springframework.boot:spring-boot-starter-web")
-                implementation("org.springframework.boot:spring-boot-devtools")
             }
         }
     }

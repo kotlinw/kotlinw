@@ -17,5 +17,5 @@ fun TodoAppStateMutable.toggleShowCompletedItems() {
 }
 
 fun TodoAppStateMutable.openEditPopup(todoListId: Long) {
-    screenStack.add(EditScreenImmutable(todoListId, null).toMutable())
+    screenStack.add(EditScreenImmutable(todoListId).toMutable())
 }
