@@ -4,7 +4,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
-        setDefaultRepositories()
+        // TODO setDefaultRepositories()
+        mavenCentral()
+        google()
+        maven(uri("https://repo.spring.io/release"))
+        maven(uri("https://maven.pkg.jetbrains.space/public/p/compose/dev"))
+        maven(uri("https://androidx.dev/storage/compose-compiler/repository/"))
+        maven(uri("https://jitpack.io"))
     }
 }
 
@@ -20,7 +26,13 @@ subprojects {
     version = "1.0.0-SNAPSHOT"
 
     repositories {
-        setDefaultRepositories()
+        // TODO setDefaultRepositories()
+        mavenCentral()
+        google()
+        maven(uri("https://repo.spring.io/release"))
+        maven(uri("https://maven.pkg.jetbrains.space/public/p/compose/dev"))
+        maven(uri("https://androidx.dev/storage/compose-compiler/repository/"))
+        maven(uri("https://jitpack.io"))
     }
 
     tasks.withType<KotlinCompile> {

@@ -16,5 +16,4 @@ fun RepositoryHandler.setDefaultRepositories() {
     maven {
         url = URI("https://jitpack.io")
     }
-    mavenLocal()
 }
