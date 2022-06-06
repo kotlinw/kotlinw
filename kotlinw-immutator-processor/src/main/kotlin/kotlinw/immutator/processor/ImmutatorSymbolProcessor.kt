@@ -516,6 +516,7 @@ class ImmutatorSymbolProcessor(
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
                 .addSuperinterface(definitionInterfaceDeclaration.toClassName())
                 .addModifiers(KModifier.DATA)
+                .addAnnotation(ClassName("androidx.compose.runtime", "Immutable"))
                 .primaryConstructor(
                     FunSpec.constructorBuilder().addParameters(
                         definitionInterfaceDeclaration.abstractProperties
