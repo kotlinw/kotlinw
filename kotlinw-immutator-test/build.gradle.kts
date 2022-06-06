@@ -1,3 +1,5 @@
+import org.jetbrains.compose.compose
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
@@ -16,9 +18,10 @@ kotlin {
                 implementation(project(":kotlinw-immutator-api"))
                 implementation(project(":kotlinw-immutator-test2"))
 
-                api(libs.kotlinx.collections.immutable)
-                api(libs.kotlinx.datetime)
-                api(libs.kotlinx.serialization.json)
+                implementation(compose.runtime)
+                implementation(libs.kotlinx.collections.immutable)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val commonTest by getting {
@@ -30,8 +33,8 @@ kotlin {
         val jvmMain by getting {
             kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
-                api(kotlin("stdlib-jdk8"))
-                api(kotlin("reflect"))
+                implementation(kotlin("stdlib-jdk8"))
+                implementation(kotlin("reflect"))
             }
         }
         val jvmTest by getting {

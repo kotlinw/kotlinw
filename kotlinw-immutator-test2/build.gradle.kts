@@ -1,3 +1,5 @@
+import org.jetbrains.compose.compose
+
 plugins {
     kotlin("multiplatform")
     id("com.google.devtools.ksp")
@@ -13,6 +15,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":kotlinw-immutator-api"))
+                implementation(compose.runtime)
             }
         }
         val commonTest by getting {
