@@ -94,19 +94,21 @@ class DataFetchStateMachineDefinition<InputType, DataType>(
 }
 
 sealed class DataFetchStatus<InputType, DataType> {
+    abstract val parameter: InputType
+
     data class DataFetchInProgress<InputType>(
-        val parameter: InputType,
+        override val parameter: InputType,
         val cancel: () -> Unit
     ) : DataFetchStatus<InputType, Nothing>()
 
     data class DataAvailable<InputType, DataType>(
-        val parameter: InputType,
+        override val parameter: InputType,
         val resultData: DataType,
         val reload: () -> Unit
     ) : DataFetchStatus<InputType, DataType>()
 
     data class DataFetchFailed<InputType>(
-        val parameter: InputType,
+        override val parameter: InputType,
         val errorMessage: String,
         val reload: () -> Unit
     ) : DataFetchStatus<InputType, Nothing>()

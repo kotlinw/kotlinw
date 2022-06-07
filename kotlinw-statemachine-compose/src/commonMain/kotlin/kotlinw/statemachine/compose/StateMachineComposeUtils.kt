@@ -66,25 +66,35 @@ data class StateMachineState<SMDefinition : StateMachineDefinition<SMDefinition>
 fun <SMDefinition : StateMachineDefinition<SMDefinition>> rememberStateMachineState(
     stateMachineDefinition: SMDefinition,
     key1: Any?,
-    initializer: StateMachineTransitionDispatcher<SMDefinition>.() -> Unit
+    initializer: StateMachineTransitionDispatcher<SMDefinition>.() -> Unit,
+    finalizer: StateMachineTransitionDispatcher<SMDefinition>.(State<SMDefinition, *>) -> Unit
 ): androidx.compose.runtime.State<StateMachineState<SMDefinition>> =
-    rememberStateMachineState(stateMachineDefinition, listOf(key1), initializer)
+    rememberStateMachineState(stateMachineDefinition, listOf(key1), initializer, finalizer)
 
 @Composable
 fun <SMDefinition : StateMachineDefinition<SMDefinition>> rememberStateMachineState(
     stateMachineDefinition: SMDefinition,
     vararg keys: Any?,
-    initializer: StateMachineTransitionDispatcher<SMDefinition>.() -> Unit
+    initializer: StateMachineTransitionDispatcher<SMDefinition>.() -> Unit,
+    finalizer: StateMachineTransitionDispatcher<SMDefinition>.(State<SMDefinition, *>) -> Unit
 ): androidx.compose.runtime.State<StateMachineState<SMDefinition>> =
-    rememberStateMachineState(stateMachineDefinition, keys.toList(), initializer)
+    rememberStateMachineState(stateMachineDefinition, keys.toList(), initializer, finalizer)
 
 @Composable
 private fun <SMDefinition : StateMachineDefinition<SMDefinition>> rememberStateMachineState(
     stateMachineDefinition: SMDefinition,
     keys: List<Any?>,
-    initializer: StateMachineTransitionDispatcher<SMDefinition>.() -> Unit
+    initializer: StateMachineTransitionDispatcher<SMDefinition>.() -> Unit,
+    finalizer: StateMachineTransitionDispatcher<SMDefinition>.(State<SMDefinition, *>) -> Unit
 ): androidx.compose.runtime.State<StateMachineState<SMDefinition>> {
-    val stateMachine = remember(keys) { MutableStateMachine(stateMachineDefinition).also { it.initializer() } }
+    val stateMachine = remember(keys) {
+        MutableStateMachine(stateMachineDefinition).also { it.initializer() }
+    }
+    DisposableEffect(keys) {
+        onDispose {
+            stateMachine.finalizer(stateMachine.currentSnapshot.currentState)
+        }
+    }
     val stateMachineState by stateMachine.stateFlow.collectAsState(stateMachine.stateFlow.value)
     return derivedStateOf {
         StateMachineState(

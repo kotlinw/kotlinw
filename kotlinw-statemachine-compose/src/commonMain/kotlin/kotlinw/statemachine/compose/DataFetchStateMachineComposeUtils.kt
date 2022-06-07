@@ -6,8 +6,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinw.statemachine.StateMachineDefinition
 import kotlinw.statemachine.match
 import kotlinw.statemachine.util.DataFetchStateMachineDefinition
+import kotlinw.statemachine.util.DataFetchStateMachineDefinition.DataFetchInProgressData
 import kotlinw.statemachine.util.DataFetchStatus
 import kotlinw.statemachine.util.DataFetchStatus.DataAvailable
 import kotlinw.statemachine.util.DataFetchStatus.DataFetchFailed
@@ -19,14 +21,20 @@ fun <InputType, DataType> produceDataFetchState(
     dataProducer: @DisallowComposableCalls suspend (InputType) -> DataType
 ): State<DataFetchStatus<InputType, out DataType>> {
     val coroutineScope = rememberCoroutineScope()
+    val stateMachineDefinition by derivedStateOf {
+        DataFetchStateMachineDefinition<InputType, DataType>(coroutineScope) { dataProducer(it) }
+    }
 
     val composeState by rememberStateMachineState(
-        stateMachineDefinition = DataFetchStateMachineDefinition<InputType, DataType>(coroutineScope) { dataProducer(it) },
+        stateMachineDefinition = stateMachineDefinition,
         key1 = inputParameter,
-        initializer = { dispatch(definition.onInputChanged, inputParameter) }
+        initializer = { dispatch(definition.onInputChanged, inputParameter) },
+        finalizer = {
+            if (it.data is DataFetchInProgressData<*>) {
+                dispatch(definition.onCancelLoading)
+            }
+        }
     )
-
-    val stateMachineDefinition by derivedStateOf { composeState.dispatcher.definition }
 
     fun reload() {
         composeState.dispatcher.dispatch(stateMachineDefinition.onReload, inputParameter)

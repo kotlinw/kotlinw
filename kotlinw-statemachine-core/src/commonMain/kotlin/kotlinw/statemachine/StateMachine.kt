@@ -1,6 +1,7 @@
 package kotlinw.statemachine
 
 import kotlinw.util.AtomicReference
+import kotlinw.util.Lock
 import kotlinw.util.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -200,7 +201,7 @@ abstract class StateMachineDefinition<SMDefinition : StateMachineDefinition<SMDe
                     val currentState = stateMachineSnapshot.currentState
                     val currentData = currentState.data
                     for (transition in transitions) {
-                        if (currentState.definition == transition.from) {
+                        if (currentState.definition.name == transition.from.name) {
                             val condition =
                                 transition.condition as (TransitionContext<Any?, ParameterType, SMDefinition>) -> Boolean
                             // TODO kezelni, ha transition.from != currentState
@@ -280,20 +281,20 @@ class MutableStateMachine<SMDefinition : StateMachineDefinition<SMDefinition>>(
 
     val currentSnapshot get() = _stateFlow.value
 
-    // TODO HOMEAUT-105: private val lock = Lock()
+    private val lock = Lock()
 
     override fun <ParameterType : Any?> dispatch(
         executor: TransitionExecutor<SMDefinition, ParameterType>,
         parameter: ParameterType
     ) {
         val currentState = currentSnapshot.currentState
-        // TODO HOMEAUT-105: lock.withLock {
+        lock.withLock {
             val lockedSnapshot = currentSnapshot
             check(currentState == lockedSnapshot.currentState)
             _stateFlow.update {
                 executor.execute(lockedSnapshot, parameter, this)
             }
-//        }
+        }
     }
 }
 

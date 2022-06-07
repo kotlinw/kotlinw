@@ -17,6 +17,8 @@ include(":kotlinw-immutator-test2")
 
 include(":kotlinw-statemachine-core")
 include(":kotlinw-statemachine-compose")
+include(":kotlinw-statemachine-example-desktop")
 include(":kotlinw-statemachine-example-webapp")
 
+include(":kotlinw-compose")
 include(":kotlinw-util")
