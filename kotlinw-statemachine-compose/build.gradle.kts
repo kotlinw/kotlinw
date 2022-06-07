@@ -1,6 +1,8 @@
+import org.jetbrains.compose.compose
+
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    id("org.jetbrains.compose")
 }
 
 kotlin {
@@ -12,15 +14,11 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":kotlinw-immutator-annotations"))
-                api(libs.kotlinx.serialization.json)
+                api(project(":kotlinw-statemachine-core"))
+                api(compose.runtime)
             }
         }
         val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-            }
         }
         val jvmMain by getting {
             dependencies {
@@ -28,18 +26,14 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test-junit5"))
             }
         }
         val jsMain by getting {
             dependencies {
-                implementation(npm("uuid", "8.3.2"))
-                implementation(npm("@types/uuid", "8.3.1"))
             }
         }
         val jsTest by getting {
             dependencies {
-                implementation(kotlin("test-js"))
             }
         }
     }

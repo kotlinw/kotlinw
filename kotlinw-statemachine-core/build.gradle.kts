@@ -1,6 +1,5 @@
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -12,11 +11,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":kotlinw-util"))
                 api(project(":kotlinw-immutator-annotations"))
-                implementation(libs.kotlinx.collections.immutable)
-                implementation(libs.kotlinx.datetime)
-                implementation(libs.kotlinx.serialization.json)
+                api(project(":kotlinw-util"))
+                api(libs.kotlinx.coroutines.core)
+                api(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {
