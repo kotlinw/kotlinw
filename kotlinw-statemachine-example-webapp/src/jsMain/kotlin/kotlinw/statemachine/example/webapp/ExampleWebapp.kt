@@ -11,6 +11,7 @@ import kotlinw.statemachine.util.DataFetchStatus.DataAvailable
 import kotlinw.statemachine.util.DataFetchStatus.DataFetchFailed
 import kotlinw.statemachine.util.DataFetchStatus.DataFetchInProgress
 import kotlinx.browser.document
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock.System
 import kotlinx.dom.appendElement
@@ -44,18 +45,23 @@ fun log(text: String) {
 
 @Composable
 fun Application() {
-    var input by remember { mutableStateOf(0) }
+    var input by remember { mutableStateOf(1) }
 
     val dataFetchState by produceDataFetchState(input) {
-        log("Started fetching data... input=$input")
-        delay(5.seconds)
-        if (Random.nextInt(3) == 2) {
-            log("Data fetch failed! input=$input")
-            throw RuntimeException()
+        try {
+            log("Started fetching data... input=$input")
+            delay(5.seconds)
+            if (Random.nextInt(3) == 2) {
+                log("Data fetch failed! input=$input")
+                throw RuntimeException()
+            }
+            val data = sqrt(it.toFloat())
+            log("Data loaded. input=$input, data=$data")
+            data
+        } catch (e: CancellationException) {
+            log("Coroutine cancelled.")
+            throw e
         }
-        val data = sqrt(it.toFloat())
-        log("Data loaded. input=$input, data=$data")
-        data
     }
 
     Div {
