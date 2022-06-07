@@ -2,11 +2,13 @@ package kotlinw.statemachine.util
 
 import kotlinw.statemachine.StateMachineDefinition
 import kotlinw.statemachine.TransitionContext
+import kotlinw.statemachine.dot.annotation.GenerateDot
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+@GenerateDot
 class DataFetchStateMachineDefinition<InputType, DataType>(
     private val coroutineScope: CoroutineScope,
     private val dataProducer: suspend (InputType) -> DataType
