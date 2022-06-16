@@ -43,7 +43,7 @@ subprojects {
             apiVersion = "1.6"
             jvmTarget = "17"
             javaParameters = true
-            freeCompilerArgs += listOf("-Xjsr305=strict", "-Xopt-in=kotlin.RequiresOptIn", "-Xcontext-receivers", "-Xenable-builder-inference")
+            freeCompilerArgs += listOf("-Xjsr305=strict", "-Xopt-in=kotlin.RequiresOptIn", "-Xenable-builder-inference")
         }
     }
 
