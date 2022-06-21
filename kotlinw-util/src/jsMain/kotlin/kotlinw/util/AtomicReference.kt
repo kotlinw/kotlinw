@@ -19,4 +19,10 @@ actual class AtomicReference<T> actual constructor(initialValue: T) {
         currentValue = updater(currentValue)
         return currentValue
     }
+
+    actual fun getAndSet(newValue: T): T {
+        val previousValue = currentValue
+        currentValue = newValue
+        return previousValue
+    }
 }

@@ -10,4 +10,6 @@ actual class AtomicReference<T> actual constructor(initialValue: T) {
     actual fun getAndUpdate(updater: (T) -> T): T = wrapped.getAndUpdate(updater)
 
     actual fun updateAndGet(updater: (T) -> T): T = wrapped.updateAndGet(updater)
+
+    actual fun getAndSet(newValue: T): T = wrapped.getAndSet(newValue)
 }

@@ -7,6 +7,8 @@ expect class AtomicReference<T>(initialValue: T) {
 
     fun getAndUpdate(updater: (T) -> T): T
 
+    fun getAndSet(newValue: T): T
+
     fun updateAndGet(updater: (T) -> T): T
 }
 
