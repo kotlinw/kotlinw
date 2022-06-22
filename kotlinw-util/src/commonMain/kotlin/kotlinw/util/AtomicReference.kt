@@ -1,5 +1,7 @@
 package kotlinw.util
 
+import kotlin.reflect.KProperty
+
 expect class AtomicReference<T>(initialValue: T) {
     fun get(): T
 
@@ -19,3 +21,9 @@ inline var <T> AtomicReference<T>.value: T
     }
 
 fun <T> AtomicReference<T>.update(updater: (T) -> T) = updateAndGet(updater)
+
+operator fun <T> AtomicReference<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
+
+operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+    this.value = value
+}

@@ -1,5 +1,7 @@
 package kotlinw.util
 
+import kotlin.reflect.KProperty
+
 actual class AtomicReference<T> actual constructor(initialValue: T) {
     private val wrapped = java.util.concurrent.atomic.AtomicReference(initialValue)
 
