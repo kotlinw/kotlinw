@@ -14,6 +14,7 @@ kotlin {
             dependencies {
                 api(project(":kotlinw-immutator-annotations"))
                 api(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.collections.immutable)
             }
         }
         val commonTest by getting {
