@@ -39,8 +39,8 @@ subprojects {
 
     tasks.withType<KotlinCompile> {
         kotlinOptions {
-            languageVersion = "1.6"
-            apiVersion = "1.6"
+            languageVersion = "1.7"
+            apiVersion = "1.7"
             jvmTarget = "17"
             javaParameters = true
             freeCompilerArgs += listOf("-Xjsr305=strict", "-Xopt-in=kotlin.RequiresOptIn", "-Xenable-builder-inference")
