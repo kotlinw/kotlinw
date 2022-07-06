@@ -7,9 +7,10 @@ plugins {
 
 kotlin {
     jvm { }
-    js(IR) {
-        browser {}
-    }
+// HOMEAUT-123
+//    js(IR) {
+//        browser {}
+//    }
 
     sourceSets {
         val commonMain by getting {
@@ -38,10 +39,11 @@ kotlin {
                 implementation("ch.qos.logback:logback-classic:1.2.5")
             }
         }
-        val jsMain by getting {
-        }
-        val jsTest by getting {
-        }
+// HOMEAUT-123
+//        val jsMain by getting {
+//        }
+//        val jsTest by getting {
+//        }
     }
 }
 

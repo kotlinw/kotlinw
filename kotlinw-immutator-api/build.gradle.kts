@@ -4,10 +4,11 @@ plugins {
 }
 
 kotlin {
-    jvm {  }
-        js(IR) {
-        browser()
-    }
+    jvm { }
+// HOMEAUT-123
+//    js(IR) {
+//        browser()
+//    }
 
     sourceSets {
         val commonMain by getting {

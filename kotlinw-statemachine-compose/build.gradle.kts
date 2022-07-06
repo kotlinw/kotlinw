@@ -7,9 +7,10 @@ plugins {
 
 kotlin {
     jvm { }
-    js(IR) {
-        browser()
-    }
+// HOMEAUT-123
+//    js(IR) {
+//        browser()
+//    }
 
     sourceSets {
         val commonMain by getting {
@@ -28,13 +29,14 @@ kotlin {
             dependencies {
             }
         }
-        val jsMain by getting {
-            dependencies {
-            }
-        }
-        val jsTest by getting {
-            dependencies {
-            }
-        }
+// HOMEAUT-123
+//        val jsMain by getting {
+//            dependencies {
+//            }
+//        }
+//        val jsTest by getting {
+//            dependencies {
+//            }
+//        }
     }
 }
