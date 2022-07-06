@@ -16,10 +16,10 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform") version "1.6.21" apply false
-    kotlin("plugin.serialization") version "1.6.21" apply false
-    id("com.google.devtools.ksp") version "1.6.21-1.0.6" apply false
-    id("org.jetbrains.compose") version "1.2.0-alpha01-dev725" apply false
+    kotlin("multiplatform") version "1.7.0" apply false
+    kotlin("plugin.serialization") version "1.7.0" apply false
+    id("com.google.devtools.ksp") version "1.7.0-1.0.6" apply false
+    id("org.jetbrains.compose") version "1.2.0-alpha01-dev741" apply false
 }
 
 subprojects {
