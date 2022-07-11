@@ -5,10 +5,9 @@ plugins {
 
 kotlin {
     jvm { }
-// HOMEAUT-123
-//    js(IR) {
-//        browser()
-//    }
+    js(IR) {
+        browser()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -33,17 +32,16 @@ kotlin {
                 implementation(kotlin("test-junit5"))
             }
         }
-// HOMEAUT-123
-//        val jsMain by getting {
-//            dependencies {
-//                implementation(npm("uuid", "8.3.2"))
-//                implementation(npm("@types/uuid", "8.3.1"))
-//            }
-//        }
-//        val jsTest by getting {
-//            dependencies {
-//                implementation(kotlin("test-js"))
-//            }
-//        }
+        val jsMain by getting {
+            dependencies {
+                implementation(npm("uuid", "8.3.2"))
+                implementation(npm("@types/uuid", "8.3.1"))
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
+        }
     }
 }

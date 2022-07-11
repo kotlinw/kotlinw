@@ -5,10 +5,9 @@ plugins {
 
 kotlin {
     jvm { }
-// HOMEAUT-123
-//    js(IR) {
-//        browser()
-//    }
+    js(IR) {
+        browser()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -29,8 +28,7 @@ kotlin {
                 implementation(kotlin("test-junit5"))
             }
         }
-// HOMEAUT-123
-//        val jsMain by getting
-//        val jsTest by getting
+        val jsMain by getting
+        val jsTest by getting
     }
 }
