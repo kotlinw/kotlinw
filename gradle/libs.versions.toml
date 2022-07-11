@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.7.0"
+kotlin = "1.7.10"
 
 # https://junit.org/junit5/docs/current/release-notes/index.html
 junit = "5.8.2"
