@@ -35,6 +35,7 @@ subprojects {
         maven(uri("https://maven.pkg.jetbrains.space/public/p/compose/dev"))
         maven(uri("https://androidx.dev/storage/compose-compiler/repository/"))
         maven(uri("https://jitpack.io"))
+        maven(uri("https://repo.kotlin.link"))
     }
 
     tasks.withType<KotlinCompile> {
