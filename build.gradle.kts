@@ -19,7 +19,7 @@ plugins {
     kotlin("multiplatform") version "1.7.0" apply false
     kotlin("plugin.serialization") version "1.7.0" apply false
     id("com.google.devtools.ksp") version "1.7.0-1.0.6" apply false
-    id("org.jetbrains.compose") version "1.2.0-alpha01-dev750" apply false
+    id("org.jetbrains.compose") version "1.2.0-alpha01-dev753" apply false
 }
 
 subprojects {
