@@ -1,0 +1,16 @@
+digraph finite_state_machine {
+    graph [pad = "0.5", nodesep = "1", ranksep = "2"]
+    fontname = "Helvetica,Arial,sans-serif"
+    node [fontname = "Helvetica,Arial,sans-serif"]
+    edge [fontname = "Helvetica,Arial,sans-serif"]
+    rankdir = "LR"
+    loading -> displayingError [label = "onCancelLoading" color="black" fontcolor="black"];
+    loading -> displayingData [label = "onDataReceived" color="gray" fontcolor="gray"];
+    loading -> displayingError [label = "onLoadingFailed" color="gray" fontcolor="gray"];
+    displayingError -> loading [label = "onReload" color="black" fontcolor="black"];
+    displayingData -> loading [label = "onReload" color="black" fontcolor="black"];
+    undefined -> loading [label = "onInputChanged" color="black" fontcolor="black"];
+    loading -> loading [label = "onInputChanged" color="black" fontcolor="black"];
+    displayingData -> loading [label = "onInputChanged" color="black" fontcolor="black"];
+    displayingError -> loading [label = "onInputChanged" color="black" fontcolor="black"];
+}

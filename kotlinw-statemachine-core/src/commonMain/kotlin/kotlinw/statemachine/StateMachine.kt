@@ -3,6 +3,7 @@ package kotlinw.statemachine
 import kotlinw.util.AtomicReference
 import kotlinw.util.Lock
 import kotlinw.util.value
+import kotlinw.util.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
