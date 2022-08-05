@@ -54,5 +54,9 @@ fun <SMDefinition : StateMachineDefinition<SMDefinition>, T> State<SMDefinition,
         override val stateMachineDefinition: SMDefinition get() = stateMachineDefinition
     }).matcher()
 
-    return if (resultHolder.isResultSet) resultHolder.result as T else throw IllegalStateException("No match.")
+    return if (resultHolder.isResultSet) {
+        resultHolder.result as T
+    } else {
+        throw IllegalStateException("No match.")
+    }
 }
