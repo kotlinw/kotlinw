@@ -6,14 +6,13 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import kotlinw.statemachine.StateMachineDefinition
+import kotlinw.statemachine.datafetch.DataFetchStateMachineDefinition
+import kotlinw.statemachine.datafetch.DataFetchStateMachineDefinition.DataFetchInProgressData
+import kotlinw.statemachine.datafetch.DataFetchStatus
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataAvailable
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataFetchFailed
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataFetchInProgress
 import kotlinw.statemachine.match
-import kotlinw.statemachine.util.DataFetchStateMachineDefinition
-import kotlinw.statemachine.util.DataFetchStateMachineDefinition.DataFetchInProgressData
-import kotlinw.statemachine.util.DataFetchStatus
-import kotlinw.statemachine.util.DataFetchStatus.DataAvailable
-import kotlinw.statemachine.util.DataFetchStatus.DataFetchFailed
-import kotlinw.statemachine.util.DataFetchStatus.DataFetchInProgress
 
 @Composable
 fun <InputType, DataType> produceDataFetchState(
