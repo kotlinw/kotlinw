@@ -56,7 +56,6 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation(libs.ktor.client.js)
                 implementation(libs.jetbrains.compose.web.core.js)
                 implementation(compose.web.core)
             }
