@@ -29,4 +29,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
+# https://github.com/MicroUtils/kotlin-logging/releases
+kotlin-logging = { module = "io.github.microutils:kotlin-logging", version = "2.1.23" }
+
 [plugins]

@@ -13,10 +13,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import kotlinw.compose.modifier.ext.recomposeHighlighter
 import kotlinw.statemachine.compose.produceDataFetchState
-import kotlinw.statemachine.util.DataFetchStatus.DataAvailable
-import kotlinw.statemachine.util.DataFetchStatus.DataFetchFailed
-import kotlinw.statemachine.util.DataFetchStatus.DataFetchInProgress
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataAvailable
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataFetchFailed
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataFetchInProgress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock.System
@@ -49,6 +50,14 @@ fun Application() {
     Column(modifier = initialModifiers()) {
         var input by remember { mutableStateOf(1) }
 
+        Text(modifier = initialModifiers(), text = "Current input: $input")
+        Button(
+            modifier = initialModifiers(),
+            onClick = { input++ }
+        ) {
+            Text("Change input (increment by 1)")
+        }
+
         val dataFetchState by produceDataFetchState(input) {
             try {
                 log("Started fetching data... input=$it")
@@ -66,14 +75,6 @@ fun Application() {
                 log("Coroutine cancelled for input=$it.")
                 throw e
             }
-        }
-
-        Text(modifier = initialModifiers(), text = "Current input: $input")
-        Button(
-            modifier = initialModifiers(),
-            onClick = { input++ }
-        ) {
-            Text("Change input (increment by 1)")
         }
 
         when (val state = dataFetchState) {

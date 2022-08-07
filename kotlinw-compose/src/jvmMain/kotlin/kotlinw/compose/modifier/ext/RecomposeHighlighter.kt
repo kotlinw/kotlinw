@@ -1,6 +1,8 @@
 // Source: https://raw.githubusercontent.com/android/snippets/master/compose/recomposehighlighter/src/main/java/com/example/android/compose/recomposehighlighter/RecomposeHighlighter.kt
 // Version: 164f256 on Mar 1 (https://github.com/android/snippets/commit/164f25686ee3ca16b3c07078a3dc357319d23ded)
 
+package kotlinw.compose.modifier.ext
+
 /*
  *  Copyright 2022 Google Inc.
  *
@@ -15,7 +17,7 @@
  * permissions and limitations under the License.
  */
 
-package kotlinw.compose.modifier.ext
+// package com.example.android.compose.recomposehighlighter
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable

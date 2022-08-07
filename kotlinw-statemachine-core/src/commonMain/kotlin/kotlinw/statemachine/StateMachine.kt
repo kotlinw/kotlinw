@@ -24,7 +24,7 @@ private data class StateImpl<SMDefinition : StateMachineDefinition<SMDefinition>
     override val data: StateDataType,
     override val definition: StateDefinition<SMDefinition, StateDataType>
 ) : State<SMDefinition, StateDataType> {
-    val name: String get() = definition.name
+    val name get() = definition.name
 
     override fun toString(): String {
         return "StateImpl(name='$name', data=$data)"

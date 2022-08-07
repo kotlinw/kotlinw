@@ -8,6 +8,8 @@ pluginManagement {
 
 enableFeaturePreview("VERSION_CATALOGS")
 
+include(":kotlinw-compose")
+
 include(":kotlinw-immutator-annotations")
 include(":kotlinw-immutator-api")
 include(":kotlinw-immutator-example-webapp")
