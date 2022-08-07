@@ -8,13 +8,12 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinw.statemachine.compose.produceDataFetchState
-import kotlinw.statemachine.util.DataFetchStatus.DataAvailable
-import kotlinw.statemachine.util.DataFetchStatus.DataFetchFailed
-import kotlinw.statemachine.util.DataFetchStatus.DataFetchInProgress
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataAvailable
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataFetchFailed
+import kotlinw.statemachine.datafetch.DataFetchStatus.DataFetchInProgress
 import kotlinx.browser.document
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Clock.System
 import kotlinx.dom.appendElement
 import kotlinx.dom.appendText
