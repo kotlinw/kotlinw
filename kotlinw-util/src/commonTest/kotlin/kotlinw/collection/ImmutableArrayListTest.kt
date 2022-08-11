@@ -8,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 class ImmutableArrayListTest {
     @Test
-    fun testEmptyList() {
+    fun testEmpty() {
         val ref: ImmutableList<Int> = persistentListOf()
         val impl = ImmutableArrayList.empty<Int>()
 
@@ -41,5 +41,10 @@ class ImmutableArrayListTest {
 
         testListIterator(ref)
         testListIterator(impl)
+    }
+
+    @Test
+    fun testNonEmpty() {
+        // TODO
     }
 }

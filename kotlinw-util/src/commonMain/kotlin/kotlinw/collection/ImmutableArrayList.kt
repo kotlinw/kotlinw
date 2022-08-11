@@ -2,7 +2,7 @@ package kotlinw.collection
 
 import kotlinx.collections.immutable.ImmutableList
 
-sealed interface ImmutableArrayList<E> {
+sealed interface ImmutableArrayList<E> : ImmutableList<E> {
     companion object {
         fun <E> of(vararg elements: E): ImmutableList<E> =
             if (elements.isEmpty()) {
@@ -16,7 +16,7 @@ sealed interface ImmutableArrayList<E> {
     }
 }
 
-private class EmptyImmutableArrayList<E> : ImmutableList<E> {
+private class EmptyImmutableArrayList<E> : ImmutableArrayList<E> {
     companion object {
         val instance = EmptyImmutableArrayList<Any?>()
     }
@@ -55,7 +55,7 @@ private class EmptyImmutableArrayList<E> : ImmutableList<E> {
     override fun contains(element: E): Boolean = false
 }
 
-private class NonEmptyImmutableArrayList<E>(private val array: Array<E>) : ImmutableList<E> {
+private class NonEmptyImmutableArrayList<E>(private val array: Array<E>) : ImmutableArrayList<E> {
     override val size: Int get() = array.size
 
     override fun get(index: Int): E = array[index]
