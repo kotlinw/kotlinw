@@ -11,11 +11,19 @@ import kotlin.collections.Map.Entry
 @Serializable
 class SimpleImmutableMap<K, V>
 private constructor(val map: Map<K, V>) : Map<K, V> by map, ImmutableMap<K, V> {
+
     companion object {
-        fun <K, V> Map<K, V>.toOrderedImmutableMap(): ImmutableMap<K, V> = SimpleImmutableMap(LinkedHashMap(this))
+        fun <K, V> Map<K, V>.toOrderedImmutableMap(): ImmutableMap<K, V> =
+            if (this is SimpleImmutableMap && map is LinkedHashMap)
+                this
+            else
+                SimpleImmutableMap(LinkedHashMap(this))
 
         fun <K, V> Map<K, V>.toImmutableMap(): ImmutableMap<K, V> =
-            if (this is ImmutableMap<K, V>) this else SimpleImmutableMap(HashMap(this))
+            if (this is ImmutableMap<K, V>)
+                this
+            else
+                SimpleImmutableMap(HashMap(this))
     }
 
     override val entries: ImmutableSet<Entry<K, V>> get() = ImmutableSetAdapter(map.entries)
