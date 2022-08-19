@@ -3,7 +3,7 @@ package kotlinw.compose.remoting
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
-import kotlinw.remoting.RemoteService
+import kotlinw.remoting.api.RemoteService
 import kotlinw.remoting.Remoting
 import kotlinw.remoting.callRemote
 import kotlin.reflect.KSuspendFunction2
