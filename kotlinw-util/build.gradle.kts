@@ -16,6 +16,7 @@ kotlin {
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlin.logging)
+                api(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {
