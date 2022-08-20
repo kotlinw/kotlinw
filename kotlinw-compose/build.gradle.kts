@@ -15,7 +15,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(project(":kotlinw-util"))
-                api(project(":kotlinw-remoting-core"))
+                api(project(":kotlinw-remoting-server"))
                 api(compose.runtime)
             }
         }

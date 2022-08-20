@@ -6,7 +6,7 @@ import androidx.compose.runtime.produceState
 import kotlinw.remoting.api.RemoteService
 import kotlinw.remoting.common.Remoting
 import kotlinw.remoting.common.callRemote
-import kotlinw.remoting.common.ApplicationNodeId
+import kotlinw.remoting.api.ApplicationNodeId
 import kotlin.reflect.KSuspendFunction2
 
 // TODO FailedDataFetch
