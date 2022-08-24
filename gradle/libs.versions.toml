@@ -7,7 +7,7 @@ kotlin = "1.7.10"
 junit = "5.9.0"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
-serialization = "1.4.0-RC"
+serialization = "1.4.0"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.6.4"
