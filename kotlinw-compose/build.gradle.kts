@@ -33,7 +33,7 @@ kotlin {
                 api(compose.desktop.currentOs)
                 api(compose.preview)
                 api(libs.jetbrains.compose.material.materialiconsextended)
-                api("org.jetbrains.compose.components:components-splitpane-desktop:1.2.0-alpha01-dev770")
+                api("org.jetbrains.compose.components:components-splitpane-desktop:1.2.0-alpha01-dev774")
                 api("ca.gosyer:compose-material-dialogs-core:0.7.0")
                 api("ca.gosyer:compose-material-dialogs-datetime:0.7.0")
                 api(libs.devsrsouza.compose.icons.simpleicons)
