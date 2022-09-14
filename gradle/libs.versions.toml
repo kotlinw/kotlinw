@@ -18,7 +18,11 @@ devsrsouzaComposeIcons = "1.0.0"
 # https://github.com/JetBrains/compose-jb/releases
 composeVersion = "1.2.0-alpha01-dev774"
 
+mockk = "1.12.7"
+
 [libraries]
+
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 
