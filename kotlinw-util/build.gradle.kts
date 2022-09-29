@@ -36,8 +36,10 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation(npm("uuid", "8.3.2"))
-                implementation(npm("@types/uuid", "8.3.1"))
+                implementation(project.dependencies.platform(libs.kotlinjs.wrappers.bom))
+                api(libs.kotlinjs.wrappers.js)
+                implementation(npm("uuid", "8.3.2")) // TODO külön lib-be
+                implementation(npm("@types/uuid", "8.3.1")) // TODO külön lib-be
             }
         }
         val jsTest by getting {
