@@ -30,7 +30,6 @@ kotlin {
                 api(compose.desktop.currentOs)
                 api(compose.foundation)
                 api(compose.material)
-                api(compose.desktop.currentOs)
                 api(compose.preview)
                 api(libs.jetbrains.compose.material.materialiconsextended)
                 api("org.jetbrains.compose.components:components-splitpane-desktop:1.2.0-beta01")
