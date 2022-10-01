@@ -31,7 +31,7 @@ plugins {
 
 subprojects {
     group = "xyz.kotlinw"
-    version = "0.0.1-SNAPSHOT"
+    version = "0.0.2-SNAPSHOT"
 
     apply(plugin = "signing")
     apply(plugin = "maven-publish")
