@@ -12,7 +12,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":lib:kotlinw:kotlinw-immutator-annotations"))
+                api(project(":kotlinw:kotlinw-immutator-annotations"))
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlin.logging)

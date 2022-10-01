@@ -20,11 +20,52 @@ composeVersion = "1.2.0-beta02"
 
 mockk = "1.12.7"
 
+# https://github.com/JetBrains/kotlin-wrappers/releases
+kotlinWrappers = "1.0.0-pre.393"
+
 [libraries]
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
+
+kotlinjs-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-cesium = { module = "org.jetbrains.kotlin-wrappers:kotlin-cesium", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-css = { module = "org.jetbrains.kotlin-wrappers:kotlin-css", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-csstype = { module = "org.jetbrains.kotlin-wrappers:kotlin-csstype", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-emotion = { module = "org.jetbrains.kotlin-wrappers:kotlin-emotion", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-history = { module = "org.jetbrains.kotlin-wrappers:kotlin-history", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-js = { module = "org.jetbrains.kotlin-wrappers:kotlin-js", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-mui = { module = "org.jetbrains.kotlin-wrappers:kotlin-mui", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-mui-icons = { module = "org.jetbrains.kotlin-wrappers:kotlin-mui-icons", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-node = { module = "org.jetbrains.kotlin-wrappers:kotlin-node", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-popper = { module = "org.jetbrains.kotlin-wrappers:kotlin-popper", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react = { module = "org.jetbrains.kotlin-wrappers:kotlin-react", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-beautiful-dnd = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-beautiful-dnd", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-core = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-core", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-dom = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-dom", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-dom-legacy = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-dom-legacy", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-legacy = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-legacy", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-popper = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-popper", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-query = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-query", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-redux = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-redux", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-router-dom = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-router-dom", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-table = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-table", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-react-virtual = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-virtual", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-redux = { module = "org.jetbrains.kotlin-wrappers:kotlin-redux", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-ring-ui = { module = "org.jetbrains.kotlin-wrappers:kotlin-ring-ui", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-styled = { module = "org.jetbrains.kotlin-wrappers:kotlin-styled", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-styled-next = { module = "org.jetbrains.kotlin-wrappers:kotlin-styled-next", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-tanstack-query-core = { module = "org.jetbrains.kotlin-wrappers:kotlin-tanstack-query-core", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-tanstack-react-query = { module = "org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-query", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-tanstack-react-table = { module = "org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-table", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-tanstack-react-virtual = { module = "org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-virtual", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-tanstack-table-core = { module = "org.jetbrains.kotlin-wrappers:kotlin-tanstack-table-core", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-tanstack-virtual-core = { module = "org.jetbrains.kotlin-wrappers:kotlin-tanstack-virtual-core", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-typescript = { module = "org.jetbrains.kotlin-wrappers:kotlin-typescript", version.ref = "kotlinWrappers" }
+kotlinjs-wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web", version.ref = "kotlinWrappers" }
 
 jetbrains-compose-web-core = { module = "org.jetbrains.compose.web:web-core", version.ref = "composeVersion" }
 jetbrains-compose-web-core-js = { module = "org.jetbrains.compose.web:web-core-js", version.ref = "composeVersion" }
