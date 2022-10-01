@@ -1,7 +1,10 @@
+import kotlinw.project.build.gradle.DevelopmentMode
+import kotlinw.project.build.gradle.buildMode
+import kotlinw.project.build.gradle.readOssrhAccountData
+import kotlinw.project.build.gradle.readSigningData
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.*
 
 buildscript {
     repositories {
@@ -29,12 +32,16 @@ plugins {
     signing
 }
 
+val isPublicationActive = buildMode == DevelopmentMode.Production
+
 subprojects {
     group = "xyz.kotlinw"
-    version = "0.0.2-SNAPSHOT"
+    version = "0.0.1-SNAPSHOT"
 
-    apply(plugin = "signing")
-    apply(plugin = "maven-publish")
+    if (isPublicationActive) {
+        apply(plugin = "signing")
+        apply(plugin = "maven-publish")
+    }
 
     repositories {
         // TODO setDefaultRepositories()
@@ -62,76 +69,60 @@ subprojects {
         useJUnitPlatform()
     }
 
-    val javadocJar by tasks.registering(Jar::class) {
-        archiveClassifier.set("javadoc")
-    }
-
-    ext["signing.keyId"] = null
-    ext["signing.password"] = null
-    ext["signing.secretKeyRingFile"] = null
-    ext["ossrhUsername"] = null
-    ext["ossrhPassword"] = null
-    val secretPropsFile = project.rootProject.file("local.properties")
-    if (secretPropsFile.exists()) {
-        secretPropsFile.reader().use {
-            Properties().apply {
-                load(it)
-            }
-        }.onEach { (name, value) ->
-            ext[name.toString()] = value
-        }
-    } else {
-        ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
-        ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
-        ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
-        ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
-        ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
-    }
-
-    fun getExtraString(name: String) = ext[name]?.toString()
-
-    publishing {
-        // Configure maven central repository
-        repositories {
-            maven {
-                name = "sonatype"
-                setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = getExtraString("ossrhUsername")
-                    password = getExtraString("ossrhPassword")
-                }
-            }
+    if (isPublicationActive) {
+        val javadocJar by tasks.registering(Jar::class) {
+            archiveClassifier.set("javadoc")
         }
 
-        // Configure all publications
-        publications.withType<MavenPublication> {
-
-            // Stub javadoc.jar artifact
-            artifact(javadocJar.get())
-
-            // Provide artifacts information requited by Maven Central
-            pom {
-                name.set("kotlinw")
-                description.set("kotlinw - Kotlin Multiplatform library")
-                url.set("https://www.kotlinw.xyz")
-
-                licenses {
-                    license {
-                        name.set("MPL")
-                        url.set("https://www.mozilla.org/en-US/MPL/2.0/")
+        publishing {
+            // Configure maven central repository
+            repositories {
+                maven {
+                    name = "sonatype"
+                    setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    credentials {
+                        readOssrhAccountData().also {
+                            username = it.username
+                            password = it.password
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id.set("sandor.norbert")
-                        name.set("Norbert Sándor")
-                        email.set("sandor.norbert@erinors.com")
-                    }
-                }
-                scm {
-                    url.set("https://github.com/kotlinw/kotlinw.git")
                 }
             }
+
+            publications.withType<MavenPublication> {
+
+                artifact(javadocJar.get())
+
+                pom {
+                    name.set("kotlinw")
+                    description.set("kotlinw - Kotlin Multiplatform library")
+                    url.set("https://www.kotlinw.xyz")
+
+                    licenses {
+                        license {
+                            name.set("MPL")
+                            url.set("https://www.mozilla.org/en-US/MPL/2.0/")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("sandor.norbert")
+                            name.set("Norbert Sándor")
+                            email.set("sandor.norbert@erinors.com")
+                        }
+                    }
+                    scm {
+                        url.set("https://github.com/kotlinw/kotlinw.git")
+                    }
+                }
+            }
+        }
+
+        signing {
+            readSigningData().also {
+                useInMemoryPgpKeys(it.privateKey, it.password)
+            }
+            sign(publishing.publications)
         }
     }
 }
