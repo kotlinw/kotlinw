@@ -34,9 +34,11 @@ plugins {
 
 val isPublicationActive = buildMode == DevelopmentMode.Production
 
+val projectVersion: String by project
+
 subprojects {
     group = "xyz.kotlinw"
-    version = "0.0.1-SNAPSHOT"
+    version = projectVersion
 
     if (isPublicationActive) {
         apply(plugin = "signing")
