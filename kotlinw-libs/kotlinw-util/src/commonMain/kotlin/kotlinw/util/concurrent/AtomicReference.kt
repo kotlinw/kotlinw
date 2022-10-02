@@ -1,8 +1,10 @@
-package kotlinw.util
+package kotlinw.util.concurrent
 
 import kotlin.reflect.KProperty
 
 expect class AtomicReference<T>(initialValue: T) {
+    companion object
+
     fun get(): T
 
     fun set(value: T)

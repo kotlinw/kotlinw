@@ -1,8 +1,8 @@
-package kotlinw.util
+package kotlinw.util.concurrent
 
-import kotlin.reflect.KProperty
+ actual class AtomicReference<T> actual constructor(initialValue: T) {
+    actual companion object;
 
-actual class AtomicReference<T> actual constructor(initialValue: T) {
     private val wrapped = java.util.concurrent.atomic.AtomicReference(initialValue)
 
     actual fun get(): T = wrapped.get()

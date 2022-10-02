@@ -1,6 +1,8 @@
-package kotlinw.util
+package kotlinw.util.concurrent
 
 actual class AtomicReference<T> actual constructor(initialValue: T) {
+    actual companion object;
+
     private var currentValue: T = initialValue
 
     actual fun get(): T = currentValue

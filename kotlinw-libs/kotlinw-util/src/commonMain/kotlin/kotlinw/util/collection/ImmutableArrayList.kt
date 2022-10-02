@@ -1,4 +1,4 @@
-package kotlinw.collection
+package kotlinw.util.collection
 
 import kotlinx.collections.immutable.ImmutableList
 

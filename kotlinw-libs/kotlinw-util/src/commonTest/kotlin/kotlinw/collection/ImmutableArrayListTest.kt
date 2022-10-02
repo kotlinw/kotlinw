@@ -1,5 +1,6 @@
 package kotlinw.collection
 
+import kotlinw.util.collection.ImmutableArrayList
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.test.Test
