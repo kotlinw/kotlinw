@@ -1,7 +1,7 @@
-import kotlinw.project.build.gradle.DevelopmentMode
-import kotlinw.project.build.gradle.buildMode
-import kotlinw.project.build.gradle.readOssrhAccountData
-import kotlinw.project.build.gradle.readSigningData
+import kotlinw.project.gradle.DevelopmentMode
+import kotlinw.project.gradle.buildMode
+import kotlinw.project.gradle.readOssrhAccountData
+import kotlinw.project.gradle.readSigningData
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
