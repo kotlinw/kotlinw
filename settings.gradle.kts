@@ -8,8 +8,6 @@ pluginManagement {
 
 enableFeaturePreview("VERSION_CATALOGS")
 
-rootProject.name = "kotlinw-parent"
-
 //include(":lib:kotlinw:kotlinw-compose")
 
 include(":kotlinw-libs:kotlinw-immutator-annotations")
