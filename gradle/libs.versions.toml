@@ -16,7 +16,7 @@ coroutines = "1.6.4"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-composeVersion = "1.2.0-rc02"
+composeVersion = "1.2.0"
 
 mockk = "1.12.7"
 
