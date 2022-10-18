@@ -6,5 +6,5 @@ import kotlin.io.path.isDirectory
 
 fun Path.isEmptyDirectory(): Boolean {
     check(isDirectory())
-    return Files.list(this).findFirst().isPresent
+    return Files.list(this).findFirst().isEmpty
 }
