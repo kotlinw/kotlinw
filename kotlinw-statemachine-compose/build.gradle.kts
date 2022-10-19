@@ -14,7 +14,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":lib:kotlinw:kotlinw-statemachine-core"))
+                api("kotlinw:kotlinw-statemachine-core")
                 api(compose.runtime)
             }
         }

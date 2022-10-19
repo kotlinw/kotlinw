@@ -128,14 +128,24 @@ subprojects {
         }
     }
 
-    configurations.all {
-        resolutionStrategy {
-            dependencySubstitution {
-                substitute(module("kotlinw:kotlinw-util")).using(project(":kotlinw:kotlinw-util"))
-                substitute(module("kotlinw:kotlinw-immutator-annotations")).using(project(":kotlinw:kotlinw-immutator-annotations"))
-            }
-        }
-    }
+//    configurations.all {
+//        resolutionStrategy {
+//            dependencySubstitution {
+//                substitute(module("kotlinw:kotlinw-compose")).using(project(":kotlinw:kotlinw-compose"))
+//                substitute(module("kotlinw:kotlinw-immutator-annotations")).using(project(":kotlinw:kotlinw-immutator-annotations"))
+//                substitute(module("kotlinw:kotlinw-immutator-api")).using(project(":kotlinw:kotlinw-immutator-api"))
+//                substitute(module("kotlinw:kotlinw-immutator-example-webapp")).using(project(":kotlinw:kotlinw-immutator-example-webapp"))
+//                substitute(module("kotlinw:kotlinw-immutator-processor")).using(project(":kotlinw:kotlinw-immutator-processor"))
+//                substitute(module("kotlinw:kotlinw-immutator-test")).using(project(":kotlinw:kotlinw-immutator-test"))
+//                substitute(module("kotlinw:kotlinw-immutator-test2")).using(project(":kotlinw:kotlinw-immutator-test2"))
+//                substitute(module("kotlinw:kotlinw-statemachine-compose")).using(project(":kotlinw:kotlinw-statemachine-compose"))
+//                substitute(module("kotlinw:kotlinw-statemachine-core")).using(project(":kotlinw:kotlinw-statemachine-core"))
+//                substitute(module("kotlinw:kotlinw-statemachine-example-desktop")).using(project(":kotlinw:kotlinw-statemachine-example-desktop"))
+//                substitute(module("kotlinw:kotlinw-statemachine-example-webapp")).using(project(":kotlinw:kotlinw-statemachine-example-webapp"))
+//                substitute(module("kotlinw:kotlinw-util")).using(project(":kotlinw:kotlinw-util"))
+//            }
+//        }
+//    }
 }
 
 rootProject.plugins.withType<YarnPlugin> {

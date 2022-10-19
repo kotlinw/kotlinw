@@ -21,8 +21,8 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":lib:kotlinw:kotlinw-compose"))
-    implementation(project(":lib:kotlinw:kotlinw-statemachine-compose"))
+    implementation("kotlinw:kotlinw-compose")
+    implementation("kotlinw:kotlinw-statemachine-compose")
     implementation(compose.desktop.currentOs)
     implementation(compose.runtime)
     implementation(compose.foundation)

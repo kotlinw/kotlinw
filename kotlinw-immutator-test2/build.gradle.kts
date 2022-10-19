@@ -2,6 +2,7 @@ import org.jetbrains.compose.compose
 
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.compose")
     id("com.google.devtools.ksp")
 }
 
@@ -15,7 +16,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":lib:kotlinw:kotlinw-immutator-api"))
+                implementation("kotlinw:kotlinw-immutator-api")
                 implementation(compose.runtime)
             }
         }
@@ -49,6 +50,6 @@ kotlin {
 
 dependencies {
 //    add("kspMetadata", project(":lib:kotlinw:kotlinw-immutator-processor"))
-    add("kspJvm", project(":lib:kotlinw:kotlinw-immutator-processor"))
-    add("kspJvmTest", project(":lib:kotlinw:kotlinw-immutator-processor"))
+    add("kspJvm", module("kotlinw:kotlinw-immutator-processor"))
+    add("kspJvmTest", module("kotlinw:kotlinw-immutator-processor"))
 }

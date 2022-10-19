@@ -11,7 +11,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":kotlinw-libs:kotlinw-util"))
+                api("kotlinw:kotlinw-util")
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.datetime)
             }
