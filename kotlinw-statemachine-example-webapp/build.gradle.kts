@@ -15,8 +15,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("kotlinw:kotlinw-immutator-api")
-                implementation("kotlinw:kotlinw-statemachine-compose")
+                implementation(project(":kotlinw:kotlinw-immutator-api"))
+                implementation(project(":kotlinw:kotlinw-statemachine-compose"))
                 implementation(compose.runtime)
             }
         }
@@ -34,5 +34,5 @@ kotlin {
 }
 
 dependencies {
-    add("kspJs", module("kotlinw:kotlinw-immutator-processor"))
+    add("kspJs", project(":kotlinw:kotlinw-immutator-processor"))
 }

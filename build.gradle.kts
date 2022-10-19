@@ -36,6 +36,9 @@ val isPublicationActive = buildMode == DevelopmentMode.Production
 
 val projectVersion: String by project
 
+val kotlinJavaCompatibility = "1.8"
+println("Kotlin default Java compatibility: $kotlinJavaCompatibility")
+
 subprojects {
     group = "xyz.kotlinw"
     version = projectVersion
@@ -57,14 +60,37 @@ subprojects {
         maven(uri("https://repo.kotlin.link"))
     }
 
+    fun org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions.configureCommonOptions() {
+        languageVersion = "1.7"
+        apiVersion = "1.7"
+        freeCompilerArgs += kotlin.collections.listOf(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=kotlin.time.ExperimentalTime",
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
+            "-opt-in=kotlin.ExperimentalStdlibApi",
+            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-Xenable-builder-inference",
+            "-Xcontext-receivers",
+        )
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon> {
+        kotlinOptions.configureCommonOptions()
+    }
     tasks.withType<KotlinCompile> {
         kotlinOptions {
-            languageVersion = "1.7"
-            apiVersion = "1.7"
-            jvmTarget = "17"
+            configureCommonOptions()
+            jvmTarget = kotlinJavaCompatibility
             javaParameters = true
-            freeCompilerArgs += listOf("-Xjsr305=strict", "-opt-in=kotlin.RequiresOptIn", "-Xenable-builder-inference")
+            freeCompilerArgs += listOf(
+                "-Xjsr305=strict",
+                // "-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+            )
         }
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
+        kotlinOptions.configureCommonOptions()
     }
 
     tasks.withType<Test> {

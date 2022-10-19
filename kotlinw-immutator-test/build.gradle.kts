@@ -17,8 +17,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("kotlinw:kotlinw-immutator-api")
-                implementation("kotlinw:kotlinw-immutator-test2")
+                implementation(project(":kotlinw:kotlinw-immutator-api"))
+                implementation(project(":kotlinw:kotlinw-immutator-test2"))
 
                 implementation(compose.runtime)
                 implementation(libs.kotlinx.collections.immutable)
@@ -56,6 +56,6 @@ kotlin {
 
 dependencies {
 //    add("kspMetadata", project(":lib:kotlinw:kotlinw-immutator-processor"))
-    add("kspJvm", module("kotlinw:kotlinw-immutator-processor"))
-    add("kspJvmTest", module("kotlinw:kotlinw-immutator-processor"))
+    add("kspJvm", project(":kotlinw:kotlinw-immutator-processor"))
+    add("kspJvmTest", project(":kotlinw:kotlinw-immutator-processor"))
 }
