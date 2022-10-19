@@ -127,6 +127,15 @@ subprojects {
             sign(publishing.publications)
         }
     }
+
+    configurations.all {
+        resolutionStrategy {
+            dependencySubstitution {
+                substitute(module("kotlinw:kotlinw-util")).using(project(":kotlinw:kotlinw-util"))
+                substitute(module("kotlinw:kotlinw-immutator-annotations")).using(project(":kotlinw:kotlinw-immutator-annotations"))
+            }
+        }
+    }
 }
 
 rootProject.plugins.withType<YarnPlugin> {
