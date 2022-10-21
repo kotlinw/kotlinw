@@ -15,7 +15,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":kotlinw:kotlinw-immutator-api"))
+                implementation(projects.kotlinw.kotlinwImmutatorApi)
                 implementation(compose.runtime)
             }
         }
@@ -46,5 +46,5 @@ val jvmProcessResources by tasks.getting
 jvmProcessResources.dependsOn(copyGeneratedJsFiles)
 
 dependencies {
-    add("kspJs", project(":kotlinw:kotlinw-immutator-processor"))
+    add("kspJs", projects.kotlinw.kotlinwImmutatorProcessor)
 }

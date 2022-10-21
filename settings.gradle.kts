@@ -8,6 +8,8 @@ pluginManagement {
 
 enableFeaturePreview("VERSION_CATALOGS")
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 //include(":lib:kotlinw:kotlinw-compose")
 
 include(":kotlinw-immutator-annotations")

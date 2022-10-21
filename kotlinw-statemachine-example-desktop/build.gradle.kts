@@ -8,8 +8,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":kotlinw:kotlinw-compose"))
-    implementation(project(":kotlinw:kotlinw-statemachine-compose"))
+    implementation(projects.kotlinw.kotlinwCompose)
+    implementation(projects.kotlinw.kotlinwStatemachineCompose)
     implementation(compose.desktop.currentOs)
     implementation(compose.runtime)
     implementation(compose.foundation)
