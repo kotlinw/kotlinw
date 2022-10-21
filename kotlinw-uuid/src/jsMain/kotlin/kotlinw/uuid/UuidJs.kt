@@ -1,4 +1,4 @@
-package kotlinw.util
+package kotlinw.uuid
 
 import kotlinw.immutator.annotation.Immutable
 import kotlinw.js.ext.uuid.v4

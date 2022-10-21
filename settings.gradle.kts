@@ -26,3 +26,4 @@ include(":kotlinw-immutator-annotations")
 //
 //include(":lib:kotlinw:kotlinw-compose")
 include(":kotlinw-util")
+include(":kotlinw-uuid")

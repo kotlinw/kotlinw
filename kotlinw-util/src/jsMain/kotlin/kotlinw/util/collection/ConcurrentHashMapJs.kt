@@ -1,8 +1,5 @@
 package kotlinw.util.collection
 
-import kotlinw.util.collection.ConcurrentHashMap
-import kotlinw.util.collection.ConcurrentMutableMap
-
 // TODO szebb implementációkat
 // TODO ennek a common-ba kellene menni, csak egyelőre nincs lehetőség default implementációt megadni
 actual class ConcurrentHashMap<K, V> private constructor(

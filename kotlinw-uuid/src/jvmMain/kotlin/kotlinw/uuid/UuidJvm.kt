@@ -1,4 +1,4 @@
-package kotlinw.util
+package kotlinw.uuid
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -9,18 +9,18 @@ import java.util.*
 
 actual typealias Uuid = UUID
 
-actual object UuidSerializer : KSerializer<UUID> {
+actual object UuidSerializer : KSerializer<Uuid> {
     override val descriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): UUID {
+    override fun deserialize(decoder: Decoder): Uuid {
         return UUID.fromString(decoder.decodeString())
     }
 
-    override fun serialize(encoder: Encoder, value: UUID) {
+    override fun serialize(encoder: Encoder, value: Uuid) {
         encoder.encodeString(value.toString())
     }
 }
 
-actual fun randomUuid(): UUID = UUID.randomUUID()
+actual fun randomUuid(): Uuid = UUID.randomUUID()
 
 actual fun uuidFromString(uuidString: String): Uuid = UUID.fromString(uuidString)

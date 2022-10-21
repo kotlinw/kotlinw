@@ -5,7 +5,6 @@ import javax.xml.namespace.QName
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.StartElement
-import javax.xml.stream.events.XMLEvent
 
 fun Reader.createXmlEventReader(xmlInputFactory: XMLInputFactory = XMLInputFactory.newInstance()): XMLEventReader =
     xmlInputFactory.createXMLEventReader(this)

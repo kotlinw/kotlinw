@@ -13,12 +13,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwImmutatorAnnotations)
-                api(projects.kotlinw.kotlinwUuid)
 
-                api(libs.kotlinx.serialization.json)
-                api(libs.kotlinx.collections.immutable)
-                api(libs.kotlin.logging)
-                api(libs.kotlinx.datetime)
+                api(libs.kotlinx.serialization.core)
             }
         }
         val commonTest by getting {
