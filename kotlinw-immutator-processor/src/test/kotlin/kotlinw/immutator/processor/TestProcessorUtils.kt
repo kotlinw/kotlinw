@@ -10,7 +10,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Variance
 import com.tschuchort.compiletesting.SourceFile
-import kotlinw.util.Uuid
+import kotlinw.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

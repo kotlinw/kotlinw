@@ -1,6 +1,6 @@
 package kotlinw.immutator.util
 
-import kotlinw.util.randomUuid
+import kotlinw.uuid.randomUuid
 import kotlinw.immutator.annotation.Immutable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
