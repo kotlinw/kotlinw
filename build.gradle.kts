@@ -30,6 +30,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.7.10" apply false
     `maven-publish`
     signing
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
 val isPublicationActive = buildMode == DevelopmentMode.Production
@@ -47,6 +48,8 @@ subprojects {
         apply(plugin = "signing")
         apply(plugin = "maven-publish")
     }
+
+    apply(plugin = "org.jetbrains.kotlinx.kover")
 
     repositories {
         // TODO setDefaultRepositories()
