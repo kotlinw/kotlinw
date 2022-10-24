@@ -21,5 +21,10 @@ value class Priority(val value: Int) : Comparable<Priority> {
 
 interface HasPriority {
 
+    companion object {
+
+        val comparator = Comparator<HasPriority> { a, b -> a.priority.compareTo(b.priority) }
+    }
+
     val priority: Priority
 }
