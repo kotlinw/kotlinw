@@ -44,7 +44,7 @@ actual class ConcurrentHashMap<K, V> private constructor(
 
     override fun replaceAll(function: (K, V) -> V) = TODO()
 
-    override fun computeIfAbsent(key: K, mappingFunction: (K) -> V): V? {
+    override fun computeIfAbsent(key: K, mappingFunction: (K) -> V?): V? {
         val oldValue = get(key)
         return if (oldValue == null) {
             val newValue = mappingFunction(key)
@@ -62,7 +62,7 @@ actual class ConcurrentHashMap<K, V> private constructor(
         }
     }
 
-    override fun computeIfPresent(key: K, remappingFunction: (K, V) -> V): V? = TODO()
+    override fun computeIfPresent(key: K, remappingFunction: (K, V) -> V?): V? = TODO()
 
     override fun compute(key: K, remappingFunction: (K, V?) -> V?): V? {
         while (true) {

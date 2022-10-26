@@ -21,9 +21,9 @@ actual class ConcurrentHashMap<K, V> private constructor(
 
     override fun replaceAll(function: (K, V) -> V) = wrapped.replaceAll(function)
 
-    override fun computeIfAbsent(key: K, mappingFunction: (K) -> V): V? = wrapped.computeIfAbsent(key, mappingFunction)
+    override fun computeIfAbsent(key: K, mappingFunction: (K) -> V?): V? = wrapped.computeIfAbsent(key, mappingFunction)
 
-    override fun computeIfPresent(key: K, remappingFunction: (K, V) -> V): V? =
+    override fun computeIfPresent(key: K, remappingFunction: (K, V) -> V?): V? =
         wrapped.computeIfPresent(key, remappingFunction)
 
     override fun compute(key: K, remappingFunction: (K, V?) -> V?): V? = wrapped.compute(key, remappingFunction)

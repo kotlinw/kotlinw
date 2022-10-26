@@ -15,12 +15,12 @@ interface ConcurrentMutableMap<K, V> : MutableMap<K, V> {
 
     fun computeIfAbsent(
         key: K,
-        mappingFunction: (K) -> V
+        mappingFunction: (K) -> V?
     ): V?
 
     fun computeIfPresent(
         key: K,
-        remappingFunction: (K, V) -> V
+        remappingFunction: (K, V) -> V?
     ): V?
 
     fun compute(

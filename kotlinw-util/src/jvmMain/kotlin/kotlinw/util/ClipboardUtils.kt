@@ -14,13 +14,13 @@ object ClipboardUtils {
             clipboard.setContents(
                 StringSelection(this)
             ) { _, _ -> }
-            logger.info("Copied to clipboard: $this")
+            logger.info("Copied to clipboard:\n$this")
             true
         } catch (e: HeadlessException) {
-            logger.warn("Cannot copy to clipboard in headless mode, add -Djava.awt.headless=false to the JVM arguments to allow access to the clipboard. text='$this'")
+            logger.warn("Cannot copy to clipboard in headless mode, add -Djava.awt.headless=false to the JVM arguments to allow access to the clipboard.\n$this")
             false
         } catch (e: Exception) {
-            logger.warn("Cannot copy to clipboard: '$this'", e)
+            logger.warn("Cannot copy to clipboard:\n$this", e)
             false
         }
 }
