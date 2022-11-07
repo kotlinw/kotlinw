@@ -18,16 +18,16 @@ buildscript {
         maven(uri("https://jitpack.io"))
     }
     dependencies {
-        classpath("org.jetbrains.dokka:kotlin-as-java-plugin:1.7.10")
+        classpath("org.jetbrains.dokka:kotlin-as-java-plugin:1.7.20")
     }
 }
 
 plugins {
-    kotlin("multiplatform") version "1.7.10" apply false
-    kotlin("plugin.serialization") version "1.7.10" apply false
-    id("com.google.devtools.ksp") version "1.7.10-1.0.6" apply false
-    id("org.jetbrains.compose") version "1.2.0" apply false
-    id("org.jetbrains.dokka") version "1.7.10" apply false
+    kotlin("multiplatform") version "1.7.20" apply false
+    kotlin("plugin.serialization") version "1.7.20" apply false
+    id("com.google.devtools.ksp") version "1.7.20-1.0.6" apply false
+    id("org.jetbrains.compose") version "1.2.1-rc03" apply false
+    id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
     id("org.jetbrains.kotlinx.kover") version "0.6.1"

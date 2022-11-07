@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.7.10"
+kotlin = "1.7.20"
 
 # https://junit.org/junit5/docs/current/release-notes/index.html
 junit = "5.9.0"
@@ -16,7 +16,7 @@ coroutines = "1.6.4"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-composeVersion = "1.2.0"
+composeVersion = "1.2.1-rc03"
 
 mockk = "1.12.7"
 

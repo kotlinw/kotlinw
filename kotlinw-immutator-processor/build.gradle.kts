@@ -6,7 +6,7 @@ plugins {
 kotlin {
     dependencies {
         implementation(projects.kotlinw.kotlinwImmutatorApi)
-        implementation("com.google.devtools.ksp:symbol-processing-api:1.7.10-1.0.6")
+        implementation("com.google.devtools.ksp:symbol-processing-api:1.7.20-1.0.6")
         implementation("com.squareup:kotlinpoet-ksp:1.11.0")
         implementation(kotlin("stdlib-jdk8"))
         implementation(libs.kotlinx.collections.immutable)
