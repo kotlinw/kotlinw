@@ -21,7 +21,7 @@ composeVersion = "1.2.1"
 mockk = "1.12.7"
 
 # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinWrappers = "1.0.0-pre.393"
+kotlinWrappers = "1.0.0-pre.449"
 
 [libraries]
 
