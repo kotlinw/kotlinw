@@ -19,6 +19,8 @@ kotlin {
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlin.logging)
                 api(libs.kotlinx.datetime)
+
+                api("com.michael-bull.kotlin-result:kotlin-result:1.1.16")
             }
         }
         val commonTest by getting {
