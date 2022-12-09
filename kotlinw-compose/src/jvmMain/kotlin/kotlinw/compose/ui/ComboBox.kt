@@ -25,8 +25,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import kotlinw.common.util.DefaultDisplayNameProvider
-import kotlinw.common.util.DisplayNameProvider
+import kotlinw.util.DefaultDisplayNameProvider
+import kotlinw.util.DisplayNameProvider
 
 @Composable
 fun <T : Any, K : Any> ComboBox(

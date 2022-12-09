@@ -31,6 +31,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                api(kotlin("reflect"))
             }
         }
         val jvmTest by getting {
