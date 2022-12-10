@@ -15,12 +15,13 @@ kotlin {
                 api(projects.kotlinw.kotlinwImmutatorAnnotations)
                 api(projects.kotlinw.kotlinwUuid)
 
-                api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.collections.immutable)
-                api(libs.kotlin.logging)
+                // TODO legyen egy külön projekt, ahol ez Android specifikus actual: api("androidx.collection:collection:1.3.0-alpha02")
+                api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
 
                 api("com.michael-bull.kotlin-result:kotlin-result:1.1.16")
+                api(libs.kotlin.logging)
             }
         }
         val commonTest by getting {
@@ -36,15 +37,11 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test-junit5"))
+                implementation(kotlin("test"))
             }
         }
         val jsMain by getting {
             dependencies {
-                implementation(project.dependencies.platform(libs.kotlinjs.wrappers.bom))
-                api(libs.kotlinjs.wrappers.js)
-                implementation(npm("uuid", "8.3.2")) // TODO külön lib-be
-                implementation(npm("@types/uuid", "8.3.1")) // TODO külön lib-be
             }
         }
         val jsTest by getting {
