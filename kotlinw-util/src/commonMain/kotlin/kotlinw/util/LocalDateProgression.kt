@@ -4,11 +4,12 @@ import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 
-class LocalDateProgression(
-    private val start: LocalDate,
-    private val endInclusive: LocalDate,
-    private val step: DatePeriod = DatePeriod(days = 1)
-) : Iterable<LocalDate> {
+class LocalDateProgression internal constructor(
+    override val start: LocalDate,
+    override val endInclusive: LocalDate,
+    internal val step: DatePeriod = DatePeriod(days = 1)
+) : Iterable<LocalDate>, ClosedRange<LocalDate> {
+
     override fun iterator(): Iterator<LocalDate> =
         object : Iterator<LocalDate> {
             var nextValue: LocalDate = start
@@ -22,3 +23,11 @@ class LocalDateProgression(
             }
         }
 }
+
+operator fun LocalDate.rangeTo(other: LocalDate): LocalDateProgression = LocalDateProgression(this, other)
+
+fun ClosedRange<LocalDate>.toLocalDateProgression(step: DatePeriod = DatePeriod(days = 1)) =
+    if (this is LocalDateProgression && this.step == step)
+        this
+    else
+        LocalDateProgression(start, endInclusive, step)
