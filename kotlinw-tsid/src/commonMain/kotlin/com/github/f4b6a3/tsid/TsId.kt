@@ -228,16 +228,16 @@ class Tsid
      * The first of two TSIDs is greater than the second if the most significant
      * byte in which they differ is greater for the first TSID.
      *
-     * @param that a TSID to be compared with
+     * @param other a TSID to be compared with
      * @return -1, 0 or 1 as `this` is less than, equal to, or greater than
      * `that`
      */
-    override operator fun compareTo(that: Tsid): Int {
+    override operator fun compareTo(other: Tsid): Int {
 
         // used to compare as UNSIGNED longs
         val min = Long.MIN_VALUE
         val a = number + min
-        val b = that.number + min
+        val b = other.number + min
         if (a > b) return 1 else if (a < b) return -1
         return 0
     }
