@@ -25,5 +25,6 @@ include(":kotlinw-immutator-annotations")
 //include(":kotlinw-statemachine-example-webapp")
 //
 //include(":lib:kotlinw:kotlinw-compose")
+include(":kotlinw-tsid")
 include(":kotlinw-util")
 include(":kotlinw-uuid")
