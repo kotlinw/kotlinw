@@ -22,6 +22,28 @@ class LocalDateProgression internal constructor(
                 return next
             }
         }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LocalDateProgression) return false
+
+        if (start != other.start) return false
+        if (endInclusive != other.endInclusive) return false
+        if (step != other.step) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = start.hashCode()
+        result = 31 * result + endInclusive.hashCode()
+        result = 31 * result + step.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "LocalDateProgression(start=$start, endInclusive=$endInclusive, step=$step)"
+    }
 }
 
 operator fun LocalDate.rangeTo(other: LocalDate): LocalDateProgression = LocalDateProgression(this, other)
