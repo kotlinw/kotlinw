@@ -37,7 +37,7 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/jvm/jvmTest/kotlin")
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("ch.qos.logback:logback-classic:1.2.5")
+                implementation(libs.logback.classic)
             }
         }
 // HOMEAUT-123

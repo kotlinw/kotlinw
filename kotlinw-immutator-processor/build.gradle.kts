@@ -14,7 +14,7 @@ kotlin {
         implementation(libs.kotlinx.serialization.json)
 
         testImplementation(kotlin("test-junit5"))
-        testImplementation("ch.qos.logback:logback-classic:1.2.5")
+        testImplementation(libs.logback.classic)
         testImplementation("com.github.tschuchortdev:kotlin-compile-testing-ksp:1.4.8")
     }
 }

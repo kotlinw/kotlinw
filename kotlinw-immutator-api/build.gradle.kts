@@ -36,7 +36,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("ch.qos.logback:logback-classic:1.2.5")
+                implementation(libs.logback.classic)
             }
         }
     }
