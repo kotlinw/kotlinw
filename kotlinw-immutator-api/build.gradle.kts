@@ -12,8 +12,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.kotlinwUtil)
                 api(projects.kotlinw.kotlinwImmutatorAnnotations)
+                api(projects.kotlinw.kotlinwUtilCoreMp)
+                api(projects.kotlinw.kotlinwUuid)
+
                 implementation(libs.kotlinx.collections.immutable)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)

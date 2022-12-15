@@ -1,8 +1,8 @@
 package kotlinw.statemachine
 
-import kotlinw.util.concurrent.AtomicReference
+import kotlinw.util.stdlib.concurrent.AtomicReference
 import kotlinw.util.Lock
-import kotlinw.util.concurrent.value
+import kotlinw.util.stdlib.concurrent.value
 import kotlinw.util.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel

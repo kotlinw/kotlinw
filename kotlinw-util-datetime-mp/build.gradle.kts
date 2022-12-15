@@ -14,7 +14,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
 
-                api(libs.kotlinx.coroutines.core)
+                api(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {

@@ -26,6 +26,8 @@ include(":kotlinw-immutator-annotations")
 //
 //include(":lib:kotlinw:kotlinw-compose")
 include(":kotlinw-util-coroutine-mp")
+include(":kotlinw-util-datetime-mp")
+include(":kotlinw-util-stdlib-mp")
 //include(":kotlinw-tsid")
 include(":kotlinw-util")
 include(":kotlinw-uuid")

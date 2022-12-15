@@ -12,7 +12,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.kotlinwUtil)
+                api(projects.kotlinw.kotlinwUtilCoreMp)
 
                 api(libs.kotlinx.serialization.core)
             }

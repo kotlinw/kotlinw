@@ -25,8 +25,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import kotlinw.util.DefaultDisplayNameProvider
-import kotlinw.util.DisplayNameProvider
 
 @Composable
 fun <T : Any, K : Any> ComboBox(
@@ -36,13 +34,13 @@ fun <T : Any, K : Any> ComboBox(
     onValueChange: (T?) -> Unit,
     keyProvider: (T) -> K,
     emptyText: String = "",
-    displayNameProvider: DisplayNameProvider<T> = DefaultDisplayNameProvider.instance()
+    displayNameProvider: (Any?) -> String
 ) {
     Column(Modifier.padding(20.dp)) {
         var textFieldSize by remember { mutableStateOf(Size.Zero) }
         var expanded by remember { mutableStateOf(false) }
         OutlinedTextField(
-            value = options.firstOrNull { keyProvider(it) == valueKey }?.let { displayNameProvider.displayNameOf(it) }
+            value = options.firstOrNull { keyProvider(it) == valueKey }?.let { displayNameProvider(it) }
                 ?: emptyText,
             readOnly = true,
             onValueChange = { },
@@ -78,7 +76,7 @@ fun <T : Any, K : Any> ComboBox(
                         expanded = false
                         onValueChange(option)
                     }) {
-                        Text(text = displayNameProvider.displayNameOf(option))
+                        Text(text = displayNameProvider(option))
                     }
                 }
             }

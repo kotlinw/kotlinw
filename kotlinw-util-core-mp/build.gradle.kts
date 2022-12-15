@@ -12,9 +12,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(projects.kotlinw.kotlinwImmutatorAnnotations)
+                api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                api(projects.kotlinw.kotlinwUtilDatetimeMp)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
 
-                api(libs.kotlinx.coroutines.core)
+                api(libs.kotlin.logging) // TODO remove
             }
         }
         val commonTest by getting {

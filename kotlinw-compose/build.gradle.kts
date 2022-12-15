@@ -14,7 +14,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.kotlinwUtil)
+                api(projects.kotlinw.kotlinwUtilCoreMp)
                 api(projects.shared.kotlinwRemotingServer)
                 api(compose.runtime)
             }
