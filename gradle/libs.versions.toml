@@ -23,6 +23,8 @@ mockk = "1.12.7"
 # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinWrappers = "1.0.0-pre.449"
 
+logback = "1.4.5"
+
 [libraries]
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -105,7 +107,6 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
-# https://github.com/MicroUtils/kotlin-logging/releases
-kotlin-logging = { module = "io.github.microutils:kotlin-logging", version = "2.1.23" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback"}
 
 [plugins]
