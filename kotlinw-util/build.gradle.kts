@@ -19,6 +19,7 @@ kotlin {
                 // TODO legyen egy külön projekt, ahol ez Android specifikus actual: api("androidx.collection:collection:1.3.0-alpha02")
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
+                api(libs.kotlinx.coroutines.core)
 
                 api("com.michael-bull.kotlin-result:kotlin-result:1.1.16")
                 api(libs.kotlin.logging)
