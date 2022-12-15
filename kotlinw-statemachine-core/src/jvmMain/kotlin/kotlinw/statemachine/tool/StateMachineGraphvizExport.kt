@@ -3,7 +3,7 @@ package kotlinw.statemachine.tool
 import kotlinw.statemachine.StateMachineDefinition
 import kotlinw.statemachine.TransitionDefinition
 import kotlinw.statemachine.TransitionEventDefinition
-import kotlinw.util.ClipboardUtils.copyToClipboard
+import kotlinw.util.stdlib.ClipboardUtils.copyToClipboard
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.memberProperties
 
