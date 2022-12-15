@@ -12,16 +12,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.kotlinwImmutatorAnnotations)
-                api(projects.kotlinw.kotlinwUuid)
-
-                api(libs.kotlinx.collections.immutable)
-                // TODO legyen egy külön projekt, ahol ez Android specifikus actual: api("androidx.collection:collection:1.3.0-alpha02")
-                api(libs.kotlinx.serialization.json)
-                api(libs.kotlinx.datetime)
-
-                api("com.michael-bull.kotlin-result:kotlin-result:1.1.16")
-                api(libs.kotlin.logging)
+                api(projects.kotlinw.kotlinwUtil)
+                api(libs.kotlinx.coroutines.core)
             }
         }
         val commonTest by getting {

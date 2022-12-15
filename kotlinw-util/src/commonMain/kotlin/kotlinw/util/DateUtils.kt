@@ -22,6 +22,10 @@ val LocalDate.firstDayOfNextMonth
     get() = withDayOfMonth(1).plus(1, DateTimeUnit.MONTH)
 
 // Source: https://github.com/Kotlin/kotlinx-datetime/issues/74
-val LocalDate.atEndOfMonth get() = firstDayOfNextMonth - DatePeriod(days = 1)
+val LocalDate.atEndOfMonth get() = firstDayOfNextMonth.minus(1, DateTimeUnit.DAY)
 
 val LocalDate.atStartOfMonth get() = withDayOfMonth(1)
+
+val LocalDate.previousDay get() = minus(1, DateTimeUnit.DAY)
+
+val LocalDate.nextDay get() = plus(1, DateTimeUnit.DAY)
