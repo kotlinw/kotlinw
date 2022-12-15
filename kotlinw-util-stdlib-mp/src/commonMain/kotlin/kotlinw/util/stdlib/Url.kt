@@ -1,4 +1,4 @@
-package kotlinw.util
+package kotlinw.util.stdlib
 
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
