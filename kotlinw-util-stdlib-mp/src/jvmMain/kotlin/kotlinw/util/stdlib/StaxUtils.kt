@@ -12,14 +12,5 @@ import javax.xml.stream.events.StartElement
 fun Reader.createXmlEventReader(xmlInputFactory: XMLInputFactory = XMLInputFactory.newInstance()): XMLEventReader =
     xmlInputFactory.createXMLEventReader(this)
 
-enum class GetAttributeValueError {
-    NotFound
-}
-
-operator fun StartElement.get(attributeSimpleName: String): Result<String, GetAttributeValueError> =
-    getAttributeByName(
-        QName(attributeSimpleName)
-    )
-        ?.value
-        ?.let { Ok(it) }
-        ?: Err(GetAttributeValueError.NotFound)
+operator fun StartElement.get(attributeSimpleName: String): String? =
+    getAttributeByName(QName(attributeSimpleName))?.value
