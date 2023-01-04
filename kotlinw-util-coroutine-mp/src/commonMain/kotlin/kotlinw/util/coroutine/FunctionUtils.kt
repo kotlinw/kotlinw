@@ -3,7 +3,6 @@ package kotlinw.util.coroutine
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.map
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.github.michaelbull.result.runCatching
@@ -12,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlin.time.Duration
 
-inline fun <V, E> Result<V, E>.andThenIfError(
+inline fun <V, E> Result<V, E>.recoverFromError(
     block: (E) -> Result<V, E>
 ): Result<V, E> =
     when (this) {
