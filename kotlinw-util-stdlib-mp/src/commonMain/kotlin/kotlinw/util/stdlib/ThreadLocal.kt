@@ -1,5 +1,4 @@
 @file:JvmName("ThreadLocalJvm")
-
 package kotlinw.util.stdlib
 
 import kotlin.jvm.JvmName
@@ -22,7 +21,7 @@ inline var <T> ThreadLocal<T>.value: T?
         }
     }
 
-inline fun <T, R> ThreadLocal<T>.runWith(threadLocalValue: T?, block: () -> R): R {
+inline fun <T, R> ThreadLocal<T>.withThreadLocal(threadLocalValue: T, block: () -> R): R {
     val previousValue = value
     return try {
         value = threadLocalValue
