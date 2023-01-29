@@ -1,5 +1,6 @@
 package kotlinw.util.coroutine
 
+import kotlinw.util.coroutine.ProxyInvocationHandlerPeer.Companion.proxyEquals
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -60,25 +61,17 @@ class ProxyInvocationHandlerTest {
         }
     }
 
-    class TestProxyInvocationHandler(private val implementation: TestImplementation) : ProxyInvocationHandler() {
+    class TestProxyInvocationHandlerPeer(value: Int) : ProxyInvocationHandlerPeer {
+
+        private val implementation = TestImplementation(value)
 
         override fun invokeToString(): String = implementation.toString()
 
         override fun invokeHashCode(): Int = implementation.hashCode()
 
         override fun invokeEquals(other: Any?): Boolean =
-            when {
-                other == null -> false
-                other == this -> true
-                !Proxy.isProxyClass(other::class.java) -> false
-                else -> {
-                    val otherInvocationHandler = Proxy.getInvocationHandler(other)
-                    if (otherInvocationHandler is TestProxyInvocationHandler) {
-                        otherInvocationHandler.implementation.value == implementation.value
-                    } else {
-                        false
-                    }
-                }
+            proxyEquals<TestProxyInvocationHandlerPeer>(other) {
+                it.implementation.value == implementation.value
             }
 
         override fun invokeKotlinNormalFunction(kotlinFunction: KFunction<*>, vararg args: Any?): Any? {
@@ -104,17 +97,17 @@ class ProxyInvocationHandlerTest {
         val proxy1a = Proxy.newProxyInstance(
             this::class.java.classLoader,
             arrayOf(TestInterface::class.java),
-            TestProxyInvocationHandler(TestImplementation(1))
+            ProxyInvocationHandler(TestProxyInvocationHandlerPeer(1))
         )
         val proxy1b = Proxy.newProxyInstance(
             this::class.java.classLoader,
             arrayOf(TestInterface::class.java),
-            TestProxyInvocationHandler(TestImplementation(1))
+            ProxyInvocationHandler(TestProxyInvocationHandlerPeer(1))
         )
         val proxy2 = Proxy.newProxyInstance(
             this::class.java.classLoader,
             arrayOf(TestInterface::class.java),
-            TestProxyInvocationHandler(TestImplementation(2))
+            ProxyInvocationHandler(TestProxyInvocationHandlerPeer(2))
         )
 
         assertEquals(proxy1a, proxy1b)
@@ -132,7 +125,7 @@ class ProxyInvocationHandlerTest {
         val proxy1 = Proxy.newProxyInstance(
             this::class.java.classLoader,
             arrayOf(TestInterface::class.java),
-            TestProxyInvocationHandler(TestImplementation(1))
+            ProxyInvocationHandler(TestProxyInvocationHandlerPeer(1))
         ) as TestInterface
 
         assertEquals(1, proxy1.normalFunction())
@@ -144,7 +137,7 @@ class ProxyInvocationHandlerTest {
         val proxy1 = Proxy.newProxyInstance(
             this::class.java.classLoader,
             arrayOf(TestInterface::class.java),
-            TestProxyInvocationHandler(TestImplementation(1))
+            ProxyInvocationHandler(TestProxyInvocationHandlerPeer(1))
         ) as TestInterface
 
         runTest {
@@ -159,7 +152,7 @@ class ProxyInvocationHandlerTest {
             val proxy = Proxy.newProxyInstance(
                 this::class.java.classLoader,
                 arrayOf(TestInterface::class.java),
-                TestProxyInvocationHandler(TestImplementation(1))
+                ProxyInvocationHandler(TestProxyInvocationHandlerPeer(1))
             ) as TestInterface
 
             assertTrue {

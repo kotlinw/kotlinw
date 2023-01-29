@@ -1,53 +1,80 @@
 package kotlinw.util.coroutine
 
-import kotlinx.coroutines.currentCoroutineContext
 import java.lang.reflect.InvocationHandler
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import java.lang.reflect.UndeclaredThrowableException
+import java.lang.reflect.Proxy
 import kotlin.coroutines.Continuation
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.kotlinFunction
 
-abstract class ProxyInvocationHandler : InvocationHandler {
+interface ProxyInvocationHandlerPeer {
 
-    final override fun invoke(proxy: Any, method: Method, args: Array<out Any?>?): Any? =
-        try {
-            val kotlinFunction = method.kotlinFunction
-            val notNullArgs = args ?: emptyArray()
+    companion object {
+
+        inline fun <reified T : ProxyInvocationHandlerPeer> proxyEquals(
+            other: Any?,
+            peersEqual: (T) -> Boolean
+        ): Boolean =
             when {
-                kotlinFunction == null -> invokeJavaMethod(method, *notNullArgs)
-
-                kotlinFunction.isSuspend -> {
-                    val lastArg = notNullArgs.last()
-                    val continuation = lastArg as Continuation<*>
-                    invokeSuspendFunction(continuation) {
-                        invokeKotlinSuspendFunction(kotlinFunction, *notNullArgs)
-                    }
-                }
-
+                other == null -> false
+                other == this -> true
+                !Proxy.isProxyClass(other::class.java) -> false
                 else -> {
-                    when (kotlinFunction) {
-                        Any::equals -> invokeEquals(notNullArgs[0])
-                        Any::hashCode -> invokeHashCode()
-                        Any::toString -> invokeToString()
-                        else -> invokeKotlinNormalFunction(kotlinFunction, *notNullArgs)
+                    val invocationHandler = Proxy.getInvocationHandler(other)
+                    if (invocationHandler is ProxyInvocationHandler) {
+                        val peer = invocationHandler.peer
+                        if (peer is T) {
+                            peersEqual(peer)
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
                     }
                 }
             }
-        } catch (e: InvocationTargetException) {
-            throw e.cause!!
+    }
+
+    fun invokeToString(): String
+
+    fun invokeHashCode(): Int
+
+    fun invokeEquals(other: Any?): Boolean
+
+    fun invokeKotlinNormalFunction(kotlinFunction: KFunction<*>, vararg args: Any?): Any?
+
+    suspend fun invokeKotlinSuspendFunction(kotlinFunction: KFunction<*>, vararg args: Any?): Any?
+
+    fun invokeJavaMethod(method: Method, vararg args: Any?): Any?
+}
+
+// TODO mi van a property-kkel
+class ProxyInvocationHandler(
+    val peer: ProxyInvocationHandlerPeer
+) : InvocationHandler {
+
+    override fun invoke(proxy: Any, method: Method, args: Array<out Any?>?): Any? {
+        val kotlinFunction = method.kotlinFunction
+        val notNullArgs = args ?: emptyArray()
+        return when {
+            kotlinFunction == null -> peer.invokeJavaMethod(method, *notNullArgs)
+
+            kotlinFunction.isSuspend -> {
+                val lastArg = notNullArgs.last()
+                val continuation = lastArg as Continuation<*>
+                invokeSuspendFunction(continuation) {
+                    peer.invokeKotlinSuspendFunction(kotlinFunction, *notNullArgs)
+                }
+            }
+
+            else -> {
+                when (kotlinFunction) {
+                    Any::equals -> peer.invokeEquals(notNullArgs[0])
+                    Any::hashCode -> peer.invokeHashCode()
+                    Any::toString -> peer.invokeToString()
+                    else -> peer.invokeKotlinNormalFunction(kotlinFunction, *notNullArgs)
+                }
+            }
         }
-
-    protected abstract fun invokeToString(): String
-
-    protected abstract fun invokeHashCode(): Int
-
-    protected abstract fun invokeEquals(other: Any?): Boolean
-
-    protected abstract fun invokeKotlinNormalFunction(kotlinFunction: KFunction<*>, vararg args: Any?): Any?
-
-    protected abstract suspend fun invokeKotlinSuspendFunction(kotlinFunction: KFunction<*>, vararg args: Any?): Any?
-
-    protected abstract fun invokeJavaMethod(method: Method, vararg args: Any?): Any?
+    }
 }
