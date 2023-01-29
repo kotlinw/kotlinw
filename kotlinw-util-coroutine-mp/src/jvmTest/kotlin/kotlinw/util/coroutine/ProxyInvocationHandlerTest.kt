@@ -1,7 +1,9 @@
 package kotlinw.util.coroutine
 
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -14,6 +16,9 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 class ProxyInvocationHandlerTest {
 
@@ -26,6 +31,8 @@ class ProxyInvocationHandlerTest {
         suspend fun suspendFunction(): String
 
         suspend fun suspendFunctionThrowingException(): String
+
+        suspend fun infiniteDelay()
     }
 
     data class TestImplementation(val value: Int) : TestInterface {
@@ -46,6 +53,10 @@ class ProxyInvocationHandlerTest {
             yield()
             delay(1)
             throw IllegalStateException()
+        }
+
+        override suspend fun infiniteDelay() {
+            delay(Duration.INFINITE)
         }
     }
 
@@ -141,4 +152,27 @@ class ProxyInvocationHandlerTest {
             assertFailsWith<IllegalStateException> { proxy1.suspendFunctionThrowingException() }
         }
     }
+
+    @Test
+    fun testCoroutineCancellation() =
+        runTest {
+            val proxy = Proxy.newProxyInstance(
+                this::class.java.classLoader,
+                arrayOf(TestInterface::class.java),
+                TestProxyInvocationHandler(TestImplementation(1))
+            ) as TestInterface
+
+            assertTrue {
+                measureTime {
+                    try {
+                        withTimeout(1.seconds) {
+                            proxy.infiniteDelay()
+                        }
+                        fail()
+                    } catch (e: TimeoutCancellationException) {
+                        // Ignore
+                    }
+                } >= 1.seconds
+            }
+        }
 }

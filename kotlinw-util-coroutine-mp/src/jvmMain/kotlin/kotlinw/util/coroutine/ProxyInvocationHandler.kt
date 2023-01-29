@@ -1,5 +1,6 @@
 package kotlinw.util.coroutine
 
+import kotlinx.coroutines.currentCoroutineContext
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
