@@ -33,3 +33,11 @@ fun <V, E> combineWithAllErrors(vararg results: Result<V, E>): Result<List<V>, L
 
 fun <V, E, U> produceIfAllOk(vararg results: Result<V, E>, produce: () -> U): Result<U, List<E>> =
     results.asIterable().combineWithAllErrors().map { produce() }
+
+inline fun <V, E> Result<V, E>.recoverFromError(
+    block: (E) -> Result<V, E>
+): Result<V, E> =
+    when (this) {
+        is Ok -> this
+        is Err -> block(error)
+    }

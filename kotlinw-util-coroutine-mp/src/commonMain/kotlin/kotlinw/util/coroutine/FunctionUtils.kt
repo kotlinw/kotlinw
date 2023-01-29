@@ -9,15 +9,12 @@ import com.github.michaelbull.result.runCatching
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.Continuation
 import kotlin.time.Duration
 
-inline fun <V, E> Result<V, E>.recoverFromError(
-    block: (E) -> Result<V, E>
-): Result<V, E> =
-    when (this) {
-        is Ok -> this
-        is Err -> block(error)
-    }
+@Suppress("UNCHECKED_CAST")
+fun <T> invokeSuspendFunction(continuation: Continuation<*>, block: suspend () -> T): T =
+    (block as (Continuation<*>) -> T)(continuation)
 
 suspend inline fun <V, E> retryUntilSuccessful(
     delayAfterFailure: Duration = Duration.ZERO,
