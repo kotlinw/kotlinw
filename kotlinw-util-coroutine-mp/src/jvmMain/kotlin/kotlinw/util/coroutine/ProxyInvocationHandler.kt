@@ -62,8 +62,9 @@ class ProxyInvocationHandler(
             kotlinFunction.isSuspend -> {
                 val lastArg = notNullArgs.last()
                 val continuation = lastArg as Continuation<*>
+                val finalArgs = notNullArgs.dropLast(1).toTypedArray()
                 invokeSuspendFunction(continuation) {
-                    peer.invokeKotlinSuspendFunction(kotlinFunction, *notNullArgs)
+                    peer.invokeKotlinSuspendFunction(kotlinFunction, *finalArgs)
                 }
             }
 

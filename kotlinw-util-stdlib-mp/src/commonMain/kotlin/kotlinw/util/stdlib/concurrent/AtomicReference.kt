@@ -1,5 +1,8 @@
 package kotlinw.util.stdlib.concurrent
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.reflect.KProperty
 
 expect class AtomicReference<T>(initialValue: T) {
@@ -22,7 +25,14 @@ inline var <T> AtomicReference<T>.value: T
         set(value)
     }
 
-fun <T> AtomicReference<T>.update(updater: (T) -> T) = updateAndGet(updater)
+@OptIn(ExperimentalContracts::class)
+fun <T> AtomicReference<T>.update(updater: (T) -> T): T {
+    contract {
+        callsInPlace(updater, InvocationKind.UNKNOWN)
+    }
+
+    return updateAndGet(updater)
+}
 
 operator fun <T> AtomicReference<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
 
