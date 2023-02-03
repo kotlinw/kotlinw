@@ -1,7 +1,7 @@
 package statemachine2
 
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
 
 sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
@@ -9,7 +9,6 @@ sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
     data class InProgress<InputType>(
         override val input: InputType,
-        val cancel: () -> Unit
     ) : DataFetchStatus<InputType, Unit, Unit>
 
     data class Received<InputType, DataType>(
@@ -28,7 +27,7 @@ sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 }
 
 class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
-    StateMachineDefinition() {
+    StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
 
     val inProgress by state<DataFetchStatus.InProgress<InputType>>()
 
@@ -40,7 +39,7 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
 
     // TODO val cancel = inProgress transitionTo cancelled {}
 
-    val cancel by transitionsTo<Nothing, _>(cancelled) {
+    val cancel by transitionsTo<Unit, _>(cancelled) {
         from(inProgress) {
             DataFetchStatus.Cancelled(it.fromStateData.input)
         }
@@ -58,142 +57,25 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
         }
     }
 
-    val reload by transitionsTo<Nothing, _>(inProgress) {
+    val reload by transitionsTo<Unit, _>(inProgress) {
         from(received) {
-            DataFetchStatus.InProgress(it.fromStateData.input, TODO())
+            DataFetchStatus.InProgress(it.fromStateData.input)
         }
     }
 
-    val retry by transitionsTo<Nothing, _>(inProgress) {
+    val retry by transitionsTo<Unit, _>(inProgress) {
         from(cancelled, failed) {
-            DataFetchStatus.InProgress(it.fromStateData.input, TODO())
+            DataFetchStatus.InProgress(it.fromStateData.input)
         }
     }
 
     val changeInput by transitionsTo(inProgress) {
         from(undefined, inProgress, received, failed, cancelled) {
-            DataFetchStatus.InProgress(it.transitionParameter, TODO())
+            DataFetchStatus.InProgress(it.transitionParameter)
         }
     }
-}
-
-interface StateMachineDispatcher<SMD : StateMachineDefinition> {
-
-    fun <TransitionParameter, ToStateDataType> dispatch(block: SMD.() -> ExecutableTransition<TransitionParameter, ToStateDataType>)
-}
-
-interface InStateContext<SMD : StateMachineDefinition, StateDataType> : StateMachineDispatcher<SMD> {
-
-    val currentState: StateDefinition<StateDataType>
-
-    val currentStateData: StateDataType
-}
-
-interface DispatchDefinitionContext<SMD : StateMachineDefinition>
-
-operator fun <TransitionParameter, ToStateDataType> TransitionEventDefinition<TransitionParameter, ToStateDataType>.invoke(
-    parameter: TransitionParameter
-): ExecutableTransition<TransitionParameter, ToStateDataType> =
-    TODO()
-
-interface ExecutionDefinitionContext<SMD : StateMachineDefinition> {
-
-    val smd: SMD
-
-    fun <StateDataType> inState(
-        state: StateDefinition<StateDataType>,
-        block: suspend InStateContext<SMD, StateDataType>.() -> Unit
-    )
-
-    fun <ToStateDateType> onTransition(
-        transitionEventDefinition: TransitionEventDefinition<*, ToStateDateType>,
-        block: () -> Unit
-    )
-}
-
-interface ExecutableTransition<TransitionParameter, ToStateDataType> {
-
-}
-
-suspend fun <TransitionParameter, ToStateDataType, SMD : StateMachineDefinition> SMD.execute(
-    executionDefinition: ExecutionDefinitionContext<SMD>.() -> ExecutableTransition<TransitionParameter, ToStateDataType>
-): StateMachineDispatcher<SMD> {
-    TODO()
-}
-
-suspend fun usecase() {
-    data class FilteringData(val filterFragment: String)
-
-    val dispatcher =
-        DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>().execute {
-            with(smd) {
-                inState(inProgress) {
-                    println(currentStateData)
-                    try {
-                        delay(1000) // Simulate long network call
-                        val result = listOf("a", "b", "c")
-                        dispatch {
-                            onReceived(result)
-                        }
-                    } catch (e: Exception) {
-                        dispatch { onFailed(e) }
-                    }
-                }
-
-                onTransition(cancel) {
-                    // TODO log
-                }
-
-                changeInput(FilteringData(""))
-            }
-        }
-
-//    println(dispatcher.currentState)
-//    dispatcher.dispatch { changeInput(FilteringData("a")) }
-//    dispatcher.stateFlow.collect {
-//        println(it)
-//    }
 }
 
 fun main() {
     DataFetchStateMachineDefinition<Nothing, Nothing, Nothing>() // TODO
 }
-
-//data class TransitionActionContext<SMD : StateMachineDefinition<SMD>, FromData, Parameter>(
-//    val from: State<SMD, FromData>,
-//    val parameter: Parameter
-//)
-//
-//interface StateMachineDefinitionBinder<SMD : StateMachineDefinition<SMD>> {
-//
-//    val smd: SMD // TODO replace with context(SMD) in transitionAction
-//
-//    operator fun <Parameter> TransitionExecutor<SMD, Parameter>.invoke(transitionAction: TransitionActionContext<SMD, FromData, Parameter>.() -> Unit)
-//}
-//
-//fun <SMD : StateMachineDefinition<SMD>> SMD.bind(binder: StateMachineDefinitionBinder<SMD>.() -> Unit) {
-//
-//}
-//
-//fun usecase() {
-//    DataFetchStateMachineDefinition<Int, String, Exception>().bind {
-//        with(smd) {
-//            onInputChange {
-//            }
-//            onCancel {
-//            }
-//            onReceive {
-//
-//            }
-//            onFailure {
-//
-//            }
-//            onReload {
-//
-//            }
-//            onRetry {
-//
-//            }
-//        }
-//    }
-//}
