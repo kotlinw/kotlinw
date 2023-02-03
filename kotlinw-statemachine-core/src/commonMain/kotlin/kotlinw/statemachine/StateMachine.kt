@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 
@@ -36,8 +38,8 @@ data class TransitionDefinition<SMDefinition : StateMachineDefinition<SMDefiniti
     val eventName: String,
     val from: StateDefinition<SMDefinition, SourceStateDataType>,
     val to: StateDefinition<SMDefinition, TargetStateDataType>,
-    val condition: (TransitionContext<SourceStateDataType, ParameterType, SMDefinition>) -> Boolean,
-    val action: (TransitionContext<SourceStateDataType, ParameterType, SMDefinition>) -> TargetStateDataType
+    val condition: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> Boolean,
+    val action: suspend TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
 )
 
 data class TransitionEventDefinition<SMDefinition : StateMachineDefinition<SMDefinition>>(
@@ -61,8 +63,8 @@ class TransitionsToDefinitionBuilder<SMDefinition : StateMachineDefinition<SMDef
 ) : TransitionsDefinitionBuilder<SMDefinition, ParameterType>() {
     fun <SourceStateDataType> from(
         from: StateDefinition<SMDefinition, SourceStateDataType>,
-        condition: (TransitionContext<SourceStateDataType, ParameterType, SMDefinition>) -> Boolean = { true },
-        action: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
+        condition: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> Boolean = { true },
+        action: suspend TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
     ) {
         _transitions.add(TransitionDefinition(definingPropertyName, eventName, from, to, condition, action))
     }
@@ -73,9 +75,10 @@ class TransitionsFromDefinitionBuilder<SMDefinition : StateMachineDefinition<SMD
     override val definingPropertyName: String,
     private val eventName: String = definingPropertyName
 ) : TransitionsDefinitionBuilder<SMDefinition, ParameterType>() {
+
     fun <TargetStateDataType> to(
         to: StateDefinition<SMDefinition, TargetStateDataType>,
-        condition: (TransitionContext<SourceStateDataType, ParameterType, SMDefinition>) -> Boolean = { true },
+        condition: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> Boolean = { true },
         action: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
     ) {
         _transitions.add(TransitionDefinition(definingPropertyName, eventName, from, to, condition, action))
@@ -86,11 +89,12 @@ class GenericTransitionsDefinitionBuilder<SMDefinition : StateMachineDefinition<
     override val definingPropertyName: String,
     private val eventName: String = definingPropertyName
 ) : TransitionsDefinitionBuilder<SMDefinition, ParameterType>() {
+
     fun <SourceStateDataType, TargetStateDataType> transition(
         from: StateDefinition<SMDefinition, SourceStateDataType>,
         to: StateDefinition<SMDefinition, TargetStateDataType>,
-        condition: (TransitionContext<SourceStateDataType, ParameterType, SMDefinition>) -> Boolean = { true },
-        action: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
+        condition: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> Boolean = { true },
+        action: suspend TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
     ) {
         _transitions.add(TransitionDefinition(definingPropertyName, eventName, from, to, condition, action))
     }
@@ -99,16 +103,16 @@ class GenericTransitionsDefinitionBuilder<SMDefinition : StateMachineDefinition<
 interface StateMachineTransitionDispatcher<SMDefinition : StateMachineDefinition<SMDefinition>> {
     val definition: SMDefinition
 
-    fun <ParameterType> dispatch(
+    suspend fun <ParameterType> dispatch(
         executor: TransitionExecutor<SMDefinition, ParameterType>,
         parameter: ParameterType
     )
 
-    fun dispatch(executor: TransitionExecutor<SMDefinition, Unit>) = dispatch(executor, Unit)
+    suspend fun dispatch(executor: TransitionExecutor<SMDefinition, Unit>) = dispatch(executor, Unit)
 }
 
 interface TransitionExecutor<SMDefinition : StateMachineDefinition<SMDefinition>, ParameterType> {
-    fun execute(
+    suspend fun execute(
         stateMachineSnapshot: StateMachineSnapshot<SMDefinition>,
         parameter: ParameterType,
         dispatcher: StateMachineTransitionDispatcher<SMDefinition>
@@ -127,6 +131,7 @@ data class StateDefinition<SMDefinition : StateMachineDefinition<SMDefinition>, 
 )
 
 abstract class StateMachineDefinition<SMDefinition : StateMachineDefinition<SMDefinition>> {
+
     val undefined: StateDefinition<SMDefinition, Unit> =
         StateDefinition(StateMachineDefinition<SMDefinition>::undefined.name, this as SMDefinition)
 
@@ -142,7 +147,7 @@ abstract class StateMachineDefinition<SMDefinition : StateMachineDefinition<SMDe
             ReadOnlyProperty { _, _ -> stateDefinition }
         }
 
-    protected fun <TargetStateDataType, ParameterType> transitionsTo(
+    protected fun <TargetStateDataType, ParameterType /* TODO = Unit */ > transitionsTo(
         to: StateDefinition<SMDefinition, TargetStateDataType>,
         define: TransitionsToDefinitionBuilder<SMDefinition, TargetStateDataType, ParameterType>.() -> Unit
     ) =
@@ -181,8 +186,8 @@ abstract class StateMachineDefinition<SMDefinition : StateMachineDefinition<SMDe
     protected fun <SourceStateDataType, TargetStateDataType, ParameterType> transition(
         from: StateDefinition<SMDefinition, SourceStateDataType>,
         to: StateDefinition<SMDefinition, TargetStateDataType>,
-        condition: (TransitionContext<SourceStateDataType, ParameterType, SMDefinition>) -> Boolean = { true },
-        action: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
+        condition: TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> Boolean = { true },
+        action: suspend TransitionContext<SourceStateDataType, ParameterType, SMDefinition>.() -> TargetStateDataType
     ) = transitions<ParameterType> {
         transition(from, to, condition, action)
     }
@@ -194,7 +199,7 @@ abstract class StateMachineDefinition<SMDefinition : StateMachineDefinition<SMDe
         _eventDefinitions.add(TransitionEventDefinition(eventName, transitions))
         return ReadOnlyProperty { _, _ ->
             object : TransitionExecutor<SMDefinition, ParameterType> {
-                override fun execute(
+                override suspend fun execute(
                     stateMachineSnapshot: StateMachineSnapshot<SMDefinition>,
                     parameter: ParameterType,
                     dispatcher: StateMachineTransitionDispatcher<SMDefinition>
@@ -204,12 +209,12 @@ abstract class StateMachineDefinition<SMDefinition : StateMachineDefinition<SMDe
                     for (transition in transitions) {
                         if (currentState.definition.name == transition.from.name) {
                             val condition =
-                                transition.condition as (TransitionContext<Any?, ParameterType, SMDefinition>) -> Boolean
+                                transition.condition as TransitionContext<Any?, ParameterType, SMDefinition>.() -> Boolean
                             // TODO kezelni, ha transition.from != currentState
                             val transitionContext = TransitionContext(currentData, parameter, dispatcher)
                             if (condition.invoke(transitionContext)) {
                                 val action =
-                                    transition.action as (TransitionContext<Any?, ParameterType, SMDefinition>) -> Any?
+                                    transition.action as (suspend TransitionContext<Any?, ParameterType, SMDefinition>.() -> Any?)
                                 val newState = StateImpl(action(transitionContext), transition.to)
                                 return stateMachineSnapshot.copy(currentState = newState)
                             }
@@ -238,9 +243,9 @@ data class StateMachineSnapshot<SMDefinition : StateMachineDefinition<SMDefiniti
 }
 
 /**
- * Non-thread-safe state machine dispatcher.
+ * Non-synchronized state machine dispatcher.
  */
-fun <SMDefinition : StateMachineDefinition<SMDefinition>, ParameterType : Any?> StateMachineSnapshot<SMDefinition>.dispatch(
+suspend fun <SMDefinition : StateMachineDefinition<SMDefinition>, ParameterType : Any?> StateMachineSnapshot<SMDefinition>.dispatch(
     executor: TransitionExecutor<SMDefinition, ParameterType>,
     parameter: ParameterType
 ): StateMachineSnapshot<SMDefinition> {
@@ -249,7 +254,7 @@ fun <SMDefinition : StateMachineDefinition<SMDefinition>, ParameterType : Any?> 
     val dispatcher = object : StateMachineTransitionDispatcher<SMDefinition> {
         override val definition: SMDefinition get() = this@dispatch.definition
 
-        override fun <ParameterType> dispatch(
+        override suspend fun <ParameterType> dispatch(
             executor: TransitionExecutor<SMDefinition, ParameterType>,
             parameter: ParameterType
         ) {
@@ -263,14 +268,6 @@ fun <SMDefinition : StateMachineDefinition<SMDefinition>, ParameterType : Any?> 
 }
 
 /**
- * Non-thread-safe state machine dispatcher.
- */
-fun <SMDefinition : StateMachineDefinition<SMDefinition>> StateMachineSnapshot<SMDefinition>.dispatch(
-    executor: TransitionExecutor<SMDefinition, Unit>
-): StateMachineSnapshot<SMDefinition> =
-    dispatch(executor, Unit)
-
-/**
  * Thread-safe mutable state machine implementation.
  */
 class MutableStateMachine<SMDefinition : StateMachineDefinition<SMDefinition>>(
@@ -282,19 +279,17 @@ class MutableStateMachine<SMDefinition : StateMachineDefinition<SMDefinition>>(
 
     val currentSnapshot get() = _stateFlow.value
 
-    private val lock = Lock()
+    private val lock = Mutex()
 
-    override fun <ParameterType : Any?> dispatch(
+    override suspend fun <ParameterType : Any?> dispatch(
         executor: TransitionExecutor<SMDefinition, ParameterType>,
         parameter: ParameterType
     ) {
-        val currentState = currentSnapshot.currentState
         lock.withLock {
+            val currentState = currentSnapshot.currentState
             val lockedSnapshot = currentSnapshot
             check(currentState == lockedSnapshot.currentState)
-            _stateFlow.update {
-                executor.execute(lockedSnapshot, parameter, this)
-            }
+            _stateFlow.value = executor.execute(lockedSnapshot, parameter, this)
         }
     }
 }
