@@ -7,7 +7,7 @@ class StateDefinition<StateDataType>(
     val name: String
 )
 
-class TransitionEventDefinition<FromStateDataType, ToStateDataType>()
+class TransitionEventDefinition<TransitionParameter, ToStateDataType>()
 
 interface TransitionTargetStateDataProviderContext<TransitionParameter, FromStateDataType> {
 
@@ -26,7 +26,7 @@ interface TransitionDefinitionContext<TransitionParameter, ToStateDataType> {
     )
 }
 
-abstract class StateMachineDefinition<StateDataBaseType, SMD: StateMachineDefinition<StateDataBaseType, SMD>> {
+abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> {
 
     protected val undefined = StateDefinition<Nothing>("undefined")
 
@@ -37,5 +37,12 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD: StateMachineDefini
         toState: StateDefinition<ToStateDataType>,
         builder: TransitionDefinitionContext<TransitionParameter, ToStateDataType>.() -> Unit
     ): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, TransitionEventDefinition<TransitionParameter, ToStateDataType>>> =
+        TODO()
+
+    protected fun <TransitionParameter, FromStateDataType, ToStateDataType>
+            StateDefinition<ToStateDataType>.from(
+        vararg fromState: StateDefinition<FromStateDataType>,
+        block: (TransitionTargetStateDataProviderContext<TransitionParameter, FromStateDataType>) -> ToStateDataType
+    ): TransitionEventDefinition<TransitionParameter, ToStateDataType> =
         TODO()
 }

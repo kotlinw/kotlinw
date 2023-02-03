@@ -37,9 +37,11 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
 
     val failed by state<DataFetchStatus.Failed<InputType, ErrorType>>()
 
-    // TODO val cancel = inProgress transitionTo cancelled {}
+    val cancel = cancelled.from<Unit, _, _>(inProgress) {
+        DataFetchStatus.Cancelled(it.fromStateData.input)
+    }
 
-    val cancel by transitionsTo<Unit, _>(cancelled) {
+    val cancel2 by transitionsTo<Unit, _>(cancelled) {
         from(inProgress) {
             DataFetchStatus.Cancelled(it.fromStateData.input)
         }

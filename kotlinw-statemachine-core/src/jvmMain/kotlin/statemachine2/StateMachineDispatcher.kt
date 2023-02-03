@@ -70,7 +70,7 @@ suspend fun usecase() {
 
     println(dispatcher.currentState)
     dispatcher.dispatch { changeInput(FilteringData("a")) }
-//    dispatcher.stateFlow.collect {
-//        println(it)
-//    }
+    dispatcher.stateFlow.collect {
+        println(it)
+    }
 }
