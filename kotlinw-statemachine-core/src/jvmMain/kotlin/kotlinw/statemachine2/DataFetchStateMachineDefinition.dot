@@ -1,0 +1,18 @@
+digraph finite_state_machine {
+graph [pad = "0.5", nodesep = "1", ranksep = "2"]
+fontname = "Helvetica,Arial,sans-serif"
+node [fontname = "Helvetica,Arial,sans-serif"]
+edge [fontname = "Helvetica,Arial,sans-serif"]
+rankdir = "LR"
+inProgress -> cancelled [label = "cancel" color="black" fontcolor="black"];
+inProgress -> received [label = "onReceived" color="gray" fontcolor="gray"];
+inProgress -> failed [label = "onFailed" color="gray" fontcolor="gray"];
+received -> inProgress [label = "reload" color="black" fontcolor="black"];
+cancelled -> inProgress [label = "retry" color="black" fontcolor="black"];
+failed -> inProgress [label = "retry" color="black" fontcolor="black"];
+undefined -> inProgress [label = "changeInput" color="black" fontcolor="black"];
+inProgress -> inProgress [label = "changeInput" color="black" fontcolor="black"];
+received -> inProgress [label = "changeInput" color="black" fontcolor="black"];
+failed -> inProgress [label = "changeInput" color="black" fontcolor="black"];
+cancelled -> inProgress [label = "changeInput" color="black" fontcolor="black"];
+}

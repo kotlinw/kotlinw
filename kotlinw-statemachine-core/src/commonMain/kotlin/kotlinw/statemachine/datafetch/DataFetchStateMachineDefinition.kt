@@ -46,18 +46,11 @@ class DataFetchStateMachineDefinition<InputType, DataType>(
     }
 
     private val onDataReceived by transitionsTo<DataFetchSucceededData<InputType, DataType>, DataType>(displayingData) {
-        from(loading) {
-            DataFetchSucceededData(
-                from.inputParameter,
-                parameter
-            )
-        }
+        from(loading) { DataFetchSucceededData(from.inputParameter, parameter) }
     }
 
     private val onLoadingFailed by transitionsTo<DataFetchFailedData<InputType>, String>(displayingError) {
-        from(loading) {
-            DataFetchFailedData(from.inputParameter, parameter)
-        }
+        from(loading) { DataFetchFailedData(from.inputParameter, parameter) }
     }
 
     val onReload by transitionsTo<DataFetchInProgressData<InputType>, InputType>(loading) {

@@ -1,7 +1,4 @@
-package statemachine2
-
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharedFlow
+package kotlinw.statemachine2
 
 sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
@@ -37,47 +34,31 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
 
     val failed by state<DataFetchStatus.Failed<InputType, ErrorType>>()
 
-    val cancel = cancelled.from<Unit, _, _>(inProgress) {
+    val cancel by cancelled.from<Unit, _, _>(inProgress) {
         DataFetchStatus.Cancelled(it.fromStateData.input)
     }
 
-    val cancel2 by transitionsTo<Unit, _>(cancelled) {
-        from(inProgress) {
-            DataFetchStatus.Cancelled(it.fromStateData.input)
-        }
+    internal val onReceived by received.from(inProgress) {
+        DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
     }
 
-    internal val onReceived by transitionsTo<DataType, _>(received) {
-        from(inProgress) {
-            DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
-        }
+    internal val onFailed by failed.from(inProgress) {
+        DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
     }
 
-    internal val onFailed by transitionsTo(failed) {
-        from(inProgress) {
-            DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
-        }
+    val reload by inProgress.from<Unit, _, _>(received) {
+        DataFetchStatus.InProgress(it.fromStateData.input)
     }
 
-    val reload by transitionsTo<Unit, _>(inProgress) {
-        from(received) {
-            DataFetchStatus.InProgress(it.fromStateData.input)
-        }
+    val retry by inProgress.from<Unit, _, _>(cancelled, failed) {
+        DataFetchStatus.InProgress(it.fromStateData.input)
     }
 
-    val retry by transitionsTo<Unit, _>(inProgress) {
-        from(cancelled, failed) {
-            DataFetchStatus.InProgress(it.fromStateData.input)
-        }
-    }
-
-    val changeInput by transitionsTo(inProgress) {
-        from(undefined, inProgress, received, failed, cancelled) {
-            DataFetchStatus.InProgress(it.transitionParameter)
-        }
+    val changeInput by inProgress.from(undefined, inProgress, received, failed, cancelled) {
+        DataFetchStatus.InProgress(it.transitionParameter)
     }
 }
 
 fun main() {
-    DataFetchStateMachineDefinition<Nothing, Nothing, Nothing>() // TODO
+    DataFetchStateMachineDefinition<Nothing, Nothing, Nothing>().exportDotToClipboard()
 }
