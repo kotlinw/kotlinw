@@ -53,14 +53,6 @@ sealed interface TransitionTargetStateDataProviderContext<TransitionParameter, F
     val transitionParameter: TransitionParameter
 }
 
-interface TransitionDefinitionContext<TransitionParameter, ToStateDataType> {
-
-    fun <FromStateDataType> from(
-        vararg fromState: StateDefinition<out FromStateDataType>,
-        block: (TransitionTargetStateDataProviderContext<TransitionParameter, FromStateDataType>) -> ToStateDataType
-    )
-}
-
 abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> {
 
     val undefined = StateDefinition<Unit>("undefined")
