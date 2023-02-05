@@ -1,21 +1,34 @@
 package kotlinw.statemachine2
 
+import kotlinw.util.stdlib.debugName
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
+import kotlin.reflect.typeOf
 
 sealed interface StateDefinition<StateDataBaseType, StateDataType : StateDataBaseType> {
 
     val name: String
 }
 
-data class NonTerminalStateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
-    override val name: String
-): StateDefinition<StateDataBaseType, StateDataType>
+sealed interface NonTerminalStateDefinition<StateDataBaseType, StateDataType : StateDataBaseType> :
+    StateDefinition<StateDataBaseType, StateDataType>
 
-data class TerminalStateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
-    override val name: String
-): StateDefinition<StateDataBaseType, StateDataType>
+@PublishedApi
+internal data class NonTerminalStateDefinitionImpl<StateDataBaseType, StateDataType : StateDataBaseType>(
+    override val name: String,
+    val stateKType: KType?
+) : NonTerminalStateDefinition<StateDataBaseType, StateDataType>
+
+sealed interface TerminalStateDefinition<StateDataBaseType, StateDataType : StateDataBaseType> :
+    StateDefinition<StateDataBaseType, StateDataType>
+
+@PublishedApi
+internal data class TerminalStateDefinitionImpl<StateDataBaseType, StateDataType : StateDataBaseType>(
+    override val name: String,
+    val stateKType: KType
+) : TerminalStateDefinition<StateDataBaseType, StateDataType>
 
 sealed interface TransitionDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>, TransitionParameter, ToStateDataType : StateDataBaseType> {
 
@@ -108,11 +121,16 @@ sealed interface NormalTransitionTargetStateDataProviderContext<TransitionParame
     val fromStateData: FromStateDataType
 }
 
-abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> {
+abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>>(
+    private val forceUniqueStateTypes: Boolean = true
+) {
 
-    val undefined = NonTerminalStateDefinition<StateDataBaseType, Nothing>("undefined")
+    val undefined: NonTerminalStateDefinition<StateDataBaseType, Nothing> =
+        NonTerminalStateDefinitionImpl("undefined", null)
 
-    private val _stateDefinitions = mutableListOf<StateDefinition<*, *>>(undefined)
+    @PublishedApi
+    @Suppress("PropertyName")
+    internal val _stateDefinitions = mutableListOf<StateDefinition<*, *>>(undefined)
 
     private val _eventDefinitions = mutableListOf<TransitionEventDefinition<StateDataBaseType, SMD, *, *, *>>()
 
@@ -120,21 +138,44 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
 
     val events: List<TransitionEventDefinition<StateDataBaseType, SMD, *, *, *>> = _eventDefinitions
 
-    protected fun <StateDataType : StateDataBaseType> state(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NonTerminalStateDefinition<StateDataBaseType, StateDataType>>> =
+    protected inline fun <reified StateDataType : StateDataBaseType> state(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NonTerminalStateDefinition<StateDataBaseType, StateDataType>>> =
         PropertyDelegateProvider { _, kProperty ->
-            val stateName = kProperty.name
-            val stateDefinition = NonTerminalStateDefinition<StateDataBaseType, StateDataType>(stateName)
-            _stateDefinitions.add(stateDefinition)
+            val stateDefinition = NonTerminalStateDefinitionImpl<StateDataBaseType, StateDataType>(
+                kProperty.name,
+                typeOf<StateDataType>()
+            )
+            addStateDefinition(stateDefinition)
             ReadOnlyProperty { _, _ -> stateDefinition }
         }
 
-    protected fun <StateDataType : StateDataBaseType> terminalState(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, TerminalStateDefinition<StateDataBaseType, StateDataType>>> =
+    protected inline fun <reified StateDataType : StateDataBaseType> terminalState(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, TerminalStateDefinition<StateDataBaseType, StateDataType>>> =
         PropertyDelegateProvider { _, kProperty ->
-            val stateName = kProperty.name
-            val stateDefinition = TerminalStateDefinition<StateDataBaseType, StateDataType>(stateName)
-            _stateDefinitions.add(stateDefinition)
+            val stateDefinition =
+                TerminalStateDefinitionImpl<StateDataBaseType, StateDataType>(kProperty.name, typeOf<StateDataType>())
+            addStateDefinition(stateDefinition)
             ReadOnlyProperty { _, _ -> stateDefinition }
         }
+
+    @PublishedApi
+    internal fun <StateDataType : StateDataBaseType> addStateDefinition(stateDefinition: StateDefinition<StateDataBaseType, StateDataType>) {
+
+        fun StateDefinition<*, *>.getKType() =
+            when (this) {
+                is NonTerminalStateDefinitionImpl -> stateKType
+                is TerminalStateDefinitionImpl -> stateKType
+            }
+
+        if (forceUniqueStateTypes) {
+            val stateDefinitionKType = stateDefinition.getKType()
+            _stateDefinitions.forEach {
+                if (it.getKType() == stateDefinitionKType) {
+                    throw IllegalStateException("${StateMachineDefinition::class.debugName} has been created with ${StateMachineDefinition<*, *>::forceUniqueStateTypes.name}=true but two states has the same type: both ${it.name} and ${stateDefinition.name} has type $stateDefinitionKType")
+                }
+            }
+        }
+
+        _stateDefinitions.add(stateDefinition)
+    }
 
     protected fun <TransitionParameter, ToStateDataType : StateDataBaseType>
             initialTransitionTo(
