@@ -242,7 +242,7 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
             initialTransitionProvider(stateMachineDefinition, InitialTransitionProviderContextImpl())
         val executor =
             StateMachineExecutorImpl(stateMachineDefinition, mutableStateFlow, stateFlow, executionConfiguration)
-        executor.executeInitialTransition(stateMachineDefinition.undefined, initialTransition)
+        executor.executeInitialTransition(initialTransition)
         return executor
     }
 }
@@ -317,7 +317,6 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     private val currentStateCoroutines = AtomicReference<ImmutableList<Job>>(emptyImmutableList())
 
     internal suspend fun <TransitionParameter, ToStateDataType : StateDataBaseType> executeInitialTransition(
-        fromStateDefinition: StateDefinition<StateDataBaseType, Nothing>,
         transition: InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>
     ): ToStateDataType {
         return executeTransition(
