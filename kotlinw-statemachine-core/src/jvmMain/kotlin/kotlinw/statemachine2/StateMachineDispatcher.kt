@@ -319,6 +319,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     internal suspend fun <TransitionParameter, ToStateDataType : StateDataBaseType> executeInitialTransition(
         transition: InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>
     ): ToStateDataType =
+        // TODO validate transition
         executeTransition(
             stateMachineDefinition.undefined,
             transition.targetStateDefinition,
@@ -333,6 +334,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         fromStateData: FromStateDataType,
         transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>
     ): ToStateDataType =
+        // TODO validate transition
         executeTransition(
             fromStateDefinition,
             transition.targetStateDefinition,
@@ -353,7 +355,6 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         transitionParameter: TransitionParameter
     ): ToStateDataType =
         lock.withReentrantLock {
-            // TODO validate transition
 
             println(fromStateDefinition.name + " -> " + toStateDefinition.name) // TODO log
 

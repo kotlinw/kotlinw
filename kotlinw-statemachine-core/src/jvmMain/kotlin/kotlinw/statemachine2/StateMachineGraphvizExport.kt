@@ -6,10 +6,7 @@ import kotlin.reflect.full.memberProperties
 
 fun <StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> SMD.exportDotToString(): String {
 
-    fun TransitionDefinition<*, *, *, *>.isPublic() =
-        this@exportDotToString::class.memberProperties.first { it == definingProperty }.visibility == PUBLIC
-
-    fun TransitionDefinition<*, *, *, *>.edgeColor(): String = if (isPublic()) "black" else "gray"
+    fun TransitionDefinition<*, *, *, *>.edgeColor(): String = if (isPublic) "black" else "gray"
 
     fun <ParameterType> TransitionDefinition<StateDataBaseType, SMD, ParameterType, *>.exportDotToString(): String =
         when (this) {

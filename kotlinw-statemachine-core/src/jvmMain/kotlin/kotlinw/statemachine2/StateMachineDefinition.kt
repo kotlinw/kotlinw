@@ -3,6 +3,8 @@ package kotlinw.statemachine2
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KVisibility
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Public
 
 class StateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
     val name: String
@@ -10,7 +12,7 @@ class StateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
 
 sealed interface TransitionDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>, TransitionParameter, ToStateDataType : StateDataBaseType> {
 
-    val definingProperty: KProperty<*>
+    val isPublic: Boolean
 
     val eventName: String
 
@@ -22,7 +24,7 @@ sealed interface InitialTransitionDefinition<StateDataBaseType, SMD : StateMachi
 }
 
 private data class InitialTransitionDefinitionImpl<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>, TransitionParameter, ToStateDataType : StateDataBaseType>(
-    override val definingProperty: KProperty<*>,
+    override val isPublic: Boolean,
     override val eventName: String,
     override val to: StateDefinition<StateDataBaseType, ToStateDataType>
 ) :
@@ -35,10 +37,10 @@ sealed interface NormalTransitionDefinition<StateDataBaseType, SMD : StateMachin
 }
 
 private data class NormalTransitionDefinitionImpl<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>, TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>(
-    override val definingProperty: KProperty<*>,
+    override val isPublic: Boolean,
     override val eventName: String,
     override val to: StateDefinition<StateDataBaseType, ToStateDataType>,
-    override val from: StateDefinition<StateDataBaseType,  FromStateDataType>
+    override val from: StateDefinition<StateDataBaseType, FromStateDataType>
 ) :
     NormalTransitionDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>
 
@@ -132,7 +134,13 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
                     eventName,
                     this,
                     provideTargetState,
-                    listOf(InitialTransitionDefinitionImpl(kProperty, eventName, this)),
+                    listOf(
+                        InitialTransitionDefinitionImpl(
+                            kProperty.visibility == KVisibility.PUBLIC,
+                            eventName,
+                            this
+                        )
+                    ),
                 )
             _eventDefinitions.add(eventDefinition)
             ReadOnlyProperty { _, _ -> eventDefinition }
@@ -151,7 +159,7 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
                     this,
                     provideTargetState,
                     fromState.map {
-                        NormalTransitionDefinitionImpl(kProperty, eventName,  this, it)
+                        NormalTransitionDefinitionImpl(kProperty.visibility == KVisibility.PUBLIC, eventName, this, it)
                     }
                 )
             _eventDefinitions.add(eventDefinition)
