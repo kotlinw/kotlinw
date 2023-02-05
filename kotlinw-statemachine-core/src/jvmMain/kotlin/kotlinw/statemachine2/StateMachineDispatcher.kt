@@ -225,7 +225,7 @@ sealed interface DispatchContext<StateDataBaseType, SMD : StateMachineDefinition
     suspend operator fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
             NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
         transitionParameter: TransitionParameter
-    )
+    ): ToStateDataType
 
     suspend operator fun <FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
             NormalTransitionEventDefinition<StateDataBaseType, SMD, Unit, FromStateDataType, ToStateDataType>.invoke() {
@@ -245,15 +245,12 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
         override suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
             transitionParameter: TransitionParameter
-        ) {
-            val transition =
-                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider)
+        ) =
             executeNormalTransition(
                 currentState.definition as StateDefinition<StateDataBaseType, FromStateDataType>, // TODO cast irtás?
                 currentState.data as FromStateDataType, // TODO cast irtás?
-                transition
+                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider)
             )
-        }
     }
 
     private val lock = Mutex()
@@ -285,7 +282,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,
         fromStateData: FromStateDataType,
         transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>
-    ) {
+    ): ToStateDataType {
         val toStateDefinition = transition.targetStateDefinition
         // TODO validate transition
 
@@ -302,6 +299,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         currentStateHolder.value = newState
         println(fromStateDefinition.name + " -> " + toStateDefinition.name) // TODO log
         mutableStateFlow.emit(newState)
+
+        return newStateData
     }
 
     override suspend fun <T> dispatch(block: suspend /* TODO context(SMD) */ DispatchContext<StateDataBaseType, SMD>.() -> T): T =
