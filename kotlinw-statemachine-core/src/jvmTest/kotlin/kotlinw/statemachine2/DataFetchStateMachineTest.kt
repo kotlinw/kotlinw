@@ -19,8 +19,7 @@ class DataFetchStateMachineTest {
             // TODO runTest {}
             data class FilteringData(val filterFragment: String)
 
-            val smd =
-                DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
+            val smd = DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
             val configuredStateMachine = smd.configure {
                 inState(inProgress) {
                     println(it)
