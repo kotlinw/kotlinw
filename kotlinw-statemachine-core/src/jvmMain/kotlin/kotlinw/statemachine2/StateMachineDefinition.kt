@@ -122,7 +122,6 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
             ReadOnlyProperty { _, _ -> stateDefinition }
         }
 
-
     protected fun <TransitionParameter, ToStateDataType : StateDataBaseType>
             StateDefinition<StateDataBaseType, ToStateDataType>.fromUndefined(
         provideTargetState: (InitialTransitionTargetStateDataProviderContext<TransitionParameter, StateDataBaseType>) -> ToStateDataType
@@ -165,4 +164,6 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
             _eventDefinitions.add(eventDefinition)
             ReadOnlyProperty { _, _ -> eventDefinition }
         }
+
+    abstract val start: InitialTransitionEventDefinition<StateDataBaseType, SMD, *, out StateDataBaseType>
 }
