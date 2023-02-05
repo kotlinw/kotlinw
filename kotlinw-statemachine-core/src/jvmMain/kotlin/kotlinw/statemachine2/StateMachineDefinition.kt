@@ -4,9 +4,18 @@ import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KVisibility
 
-class StateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
+sealed interface StateDefinition<StateDataBaseType, StateDataType : StateDataBaseType> {
+
     val name: String
-)
+}
+
+data class NonTerminalStateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
+    override val name: String
+): StateDefinition<StateDataBaseType, StateDataType>
+
+data class TerminalStateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
+    override val name: String
+): StateDefinition<StateDataBaseType, StateDataType>
 
 sealed interface TransitionDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>, TransitionParameter, ToStateDataType : StateDataBaseType> {
 
@@ -101,7 +110,7 @@ sealed interface NormalTransitionTargetStateDataProviderContext<TransitionParame
 
 abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> {
 
-    val undefined = StateDefinition<StateDataBaseType, Nothing>("undefined")
+    val undefined = NonTerminalStateDefinition<StateDataBaseType, Nothing>("undefined")
 
     private val _stateDefinitions = mutableListOf<StateDefinition<*, *>>(undefined)
 
@@ -111,11 +120,18 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
 
     val events: List<TransitionEventDefinition<StateDataBaseType, SMD, *, *, *>> = _eventDefinitions
 
-    // TODO why does not compile: StateDataType: StateDataBaseType
-    protected fun <StateDataType : StateDataBaseType> state(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, StateDefinition<StateDataBaseType, StateDataType>>> =
+    protected fun <StateDataType : StateDataBaseType> state(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NonTerminalStateDefinition<StateDataBaseType, StateDataType>>> =
         PropertyDelegateProvider { _, kProperty ->
             val stateName = kProperty.name
-            val stateDefinition = StateDefinition<StateDataBaseType, StateDataType>(stateName)
+            val stateDefinition = NonTerminalStateDefinition<StateDataBaseType, StateDataType>(stateName)
+            _stateDefinitions.add(stateDefinition)
+            ReadOnlyProperty { _, _ -> stateDefinition }
+        }
+
+    protected fun <StateDataType : StateDataBaseType> terminalState(): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, TerminalStateDefinition<StateDataBaseType, StateDataType>>> =
+        PropertyDelegateProvider { _, kProperty ->
+            val stateName = kProperty.name
+            val stateDefinition = TerminalStateDefinition<StateDataBaseType, StateDataType>(stateName)
             _stateDefinitions.add(stateDefinition)
             ReadOnlyProperty { _, _ -> stateDefinition }
         }
@@ -145,7 +161,7 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
         }
 
     protected fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
-            StateDefinition<StateDataBaseType, ToStateDataType>.from(
+            StateDefinition<StateDataBaseType, ToStateDataType>.transitionFrom(
         vararg fromState: StateDefinition<StateDataBaseType, out FromStateDataType>,
         provideTargetState: (NormalTransitionTargetStateDataProviderContext<TransitionParameter, StateDataBaseType, FromStateDataType>) -> ToStateDataType
     ): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>>> =

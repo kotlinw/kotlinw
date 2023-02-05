@@ -38,27 +38,27 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
         DataFetchStatus.InProgress(it.transitionParameter)
     }
 
-    val cancel by cancelled.from<Unit, _, _>(inProgress) {
+    val cancel by cancelled.transitionFrom<Unit, _, _>(inProgress) {
         DataFetchStatus.Cancelled(it.fromStateData.input)
     }
 
-    internal val onReceived by received.from(inProgress) {
+    internal val onReceived by received.transitionFrom(inProgress) {
         DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
     }
 
-    internal val onFailed by failed.from(inProgress) {
+    internal val onFailed by failed.transitionFrom(inProgress) {
         DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
     }
 
-    val reload by inProgress.from<Unit, _, _>(received) {
+    val reload by inProgress.transitionFrom<Unit, _, _>(received) {
         DataFetchStatus.InProgress(it.fromStateData.input)
     }
 
-    val retry by inProgress.from<Unit, _, _>(cancelled, failed) {
+    val retry by inProgress.transitionFrom<Unit, _, _>(cancelled, failed) {
         DataFetchStatus.InProgress(it.fromStateData.input)
     }
 
-    val changeInput by inProgress.from(inProgress, received, failed, cancelled) {
+    val changeInput by inProgress.transitionFrom(inProgress, received, failed, cancelled) {
         DataFetchStatus.InProgress(it.transitionParameter)
     }
 }

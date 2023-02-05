@@ -64,7 +64,16 @@ interface StateMachineStateFlowProvider<StateDataBaseType> {
 sealed interface StateMachineExecutor<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> :
     StateMachineDispatcher<StateDataBaseType, SMD>,
     StateMachineStateProvider<StateDataBaseType>,
-    StateMachineStateFlowProvider<StateDataBaseType>
+    StateMachineStateFlowProvider<StateDataBaseType> {
+
+    enum class Status {
+        Active, Completed, Cancelled
+    }
+
+    val status: Status
+
+    suspend fun cancel()
+}
 
 sealed interface InStateExecutionContext<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>, StateDataType : StateDataBaseType> {
 
@@ -84,7 +93,7 @@ sealed interface ExecutionDefinitionContext<StateDataBaseType, SMD : StateMachin
 
     context(CoroutineScope)
     fun <StateDataType : StateDataBaseType> inState(
-        state: StateDefinition<StateDataBaseType, StateDataType>,
+        state: NonTerminalStateDefinition<StateDataBaseType, StateDataType>,
         block: suspend InStateExecutionContext<StateDataBaseType, SMD, StateDataType>.(StateDataType) -> Unit
     )
 
@@ -112,7 +121,7 @@ private class ExecutionDefinitionContextImpl<StateDataBaseType, SMD : StateMachi
 
     context(CoroutineScope)
     override fun <StateDataType : StateDataBaseType> inState(
-        state: StateDefinition<StateDataBaseType, StateDataType>,
+        state: NonTerminalStateDefinition<StateDataBaseType, StateDataType>,
         block: suspend InStateExecutionContext<StateDataBaseType, SMD, StateDataType>.(StateDataType) -> Unit
     ) {
         inStateTasks.compute(state) { _, tasks ->
@@ -311,6 +320,10 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
     private val lock = Mutex()
 
+    private val statusHolder = AtomicReference(StateMachineExecutor.Status.Active)
+
+    override val status: StateMachineExecutor.Status get() = statusHolder.value
+
     private val currentStateHolder: AtomicReference<State<StateDataBaseType, out StateDataBaseType>?> =
         AtomicReference(null)
 
@@ -358,7 +371,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
             println(fromStateDefinition.name + " -> " + toStateDefinition.name) // TODO log
 
-            currentStateCoroutines.value.run {
+            currentStateCoroutines.value.apply {
                 cancelAll()
                 joinAll()
             }
@@ -386,4 +399,14 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         }
 
     override val currentState get() = currentStateHolder.value!!
+
+    override suspend fun cancel() {
+        lock.withReentrantLock {
+            currentStateCoroutines.value.apply {
+                cancelAll()
+            }
+
+            statusHolder.value = StateMachineExecutor.Status.Cancelled
+        }
+    }
 }
