@@ -1,8 +1,5 @@
 package kotlinw.statemachine2
 
-import kotlin.properties.PropertyDelegateProvider
-import kotlin.properties.ReadOnlyProperty
-
 sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
     val input: InputType
@@ -37,7 +34,7 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
 
     val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
 
-    override val start by inProgress.fromUndefined {
+    override val start by initialTransitionTo(inProgress) {
         DataFetchStatus.InProgress(it.transitionParameter)
     }
 

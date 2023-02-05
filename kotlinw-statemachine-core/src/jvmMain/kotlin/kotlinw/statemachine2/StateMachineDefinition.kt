@@ -2,9 +2,7 @@ package kotlinw.statemachine2
 
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Public
 
 class StateDefinition<StateDataBaseType, StateDataType : StateDataBaseType>(
     val name: String
@@ -123,7 +121,8 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
         }
 
     protected fun <TransitionParameter, ToStateDataType : StateDataBaseType>
-            StateDefinition<StateDataBaseType, ToStateDataType>.fromUndefined(
+            initialTransitionTo(
+        targetState: StateDefinition<StateDataBaseType, ToStateDataType>,
         provideTargetState: (InitialTransitionTargetStateDataProviderContext<TransitionParameter, StateDataBaseType>) -> ToStateDataType
     ): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, InitialTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, ToStateDataType>>> =
         PropertyDelegateProvider { _, kProperty ->
@@ -131,13 +130,13 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
             val eventDefinition =
                 InitialTransitionEventDefinitionImpl<StateDataBaseType, SMD, TransitionParameter, ToStateDataType>(
                     eventName,
-                    this,
+                    targetState,
                     provideTargetState,
                     listOf(
                         InitialTransitionDefinitionImpl(
                             kProperty.visibility == KVisibility.PUBLIC,
                             eventName,
-                            this
+                            targetState
                         )
                     ),
                 )

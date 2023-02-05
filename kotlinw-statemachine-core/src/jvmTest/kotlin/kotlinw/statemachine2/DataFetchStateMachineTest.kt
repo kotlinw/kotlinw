@@ -24,7 +24,7 @@ class DataFetchStateMachineTest {
                 inState(inProgress) {
                     println(it)
                     try {
-                        delay(100) // Simulate long network call
+                        delay(100) // Simulate network call
                         val result = listOf(it.input.filterFragment)
                         println("result: $result")
                         onReceived(result)
