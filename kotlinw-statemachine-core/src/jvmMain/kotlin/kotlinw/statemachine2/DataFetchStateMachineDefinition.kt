@@ -1,38 +1,45 @@
 package kotlinw.statemachine2
 
+import kotlin.properties.PropertyDelegateProvider
+import kotlin.properties.ReadOnlyProperty
+
 sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
     val input: InputType
 
-    data class InProgress<InputType>(
+    data class InProgress<InputType, DataType, ErrorType>(
         override val input: InputType,
-    ) : DataFetchStatus<InputType, Unit, Unit>
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
 
-    data class Received<InputType, DataType>(
+    data class Received<InputType, DataType, ErrorType>(
         override val input: InputType,
         val data: DataType
-    ) : DataFetchStatus<InputType, DataType, Unit>
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
 
-    data class Cancelled<InputType>(
+    data class Cancelled<InputType, DataType, ErrorType>(
         override val input: InputType
-    ) : DataFetchStatus<InputType, Unit, Unit>
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
 
-    data class Failed<InputType, ErrorType>(
+    data class Failed<InputType, DataType, ErrorType>(
         override val input: InputType,
         val error: ErrorType
-    ) : DataFetchStatus<InputType, Unit, ErrorType>
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
 }
 
 class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
     StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
 
-    val inProgress by state<DataFetchStatus.InProgress<InputType>>()
+    val inProgress by state<DataFetchStatus.InProgress<InputType, DataType, ErrorType>>()
 
-    val received by state<DataFetchStatus.Received<InputType, DataType>>()
+    val received by state<DataFetchStatus.Received<InputType, DataType, ErrorType>>()
 
-    val cancelled by state<DataFetchStatus.Cancelled<InputType>>()
+    val cancelled by state<DataFetchStatus.Cancelled<InputType, DataType, ErrorType>>()
 
-    val failed by state<DataFetchStatus.Failed<InputType, ErrorType>>()
+    val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
+
+    val start by inProgress.fromUndefined {
+        DataFetchStatus.InProgress(it.transitionParameter)
+    }
 
     val cancel by cancelled.from<Unit, _, _>(inProgress) {
         DataFetchStatus.Cancelled(it.fromStateData.input)
@@ -54,7 +61,7 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
         DataFetchStatus.InProgress(it.fromStateData.input)
     }
 
-    val changeInput by inProgress.from(undefined, inProgress, received, failed, cancelled) {
+    val changeInput by inProgress.from(inProgress, received, failed, cancelled) {
         DataFetchStatus.InProgress(it.transitionParameter)
     }
 }

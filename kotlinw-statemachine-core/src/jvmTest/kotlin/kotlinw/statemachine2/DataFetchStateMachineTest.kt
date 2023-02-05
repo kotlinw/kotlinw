@@ -48,7 +48,7 @@ class DataFetchStateMachineTest {
             }
 
             val executor = configuredStateMachine.start {
-                changeInput(FilteringData("a"))
+                start(FilteringData("a"))
             }
 
             assertEquals(smd.inProgress.name, executor.currentState.definition.name)
