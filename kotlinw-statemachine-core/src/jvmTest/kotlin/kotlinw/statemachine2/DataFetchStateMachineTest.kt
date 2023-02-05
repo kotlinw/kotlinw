@@ -23,12 +23,11 @@ class DataFetchStateMachineTest {
                 DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
             val configuredStateMachine = smd.configure {
                 inState(inProgress) {
-                    println(currentState.data)
+                    println(it)
                     try {
                         delay(100) // Simulate long network call
-                        val result = listOf(currentState.data.input.filterFragment)
+                        val result = listOf(it.input.filterFragment)
                         println("result: $result")
-                        retry() // TODO ilyet ne lehessen
                         onReceived(result)
                     } catch (e: Exception) {
                         onFailed(e)
