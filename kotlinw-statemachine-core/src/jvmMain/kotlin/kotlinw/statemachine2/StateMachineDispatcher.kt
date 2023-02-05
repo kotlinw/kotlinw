@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+// TODO StateDataBaseType kell?
 private data class InitialTransitionTargetStateDataProviderContextImpl<TransitionParameter, StateDataBaseType>(
-    override val fromStateDefinition: StateDefinition<StateDataBaseType, Nothing>,
     override val transitionParameter: TransitionParameter
 ) :
     InitialTransitionTargetStateDataProviderContext<TransitionParameter, StateDataBaseType>
@@ -166,7 +166,7 @@ private data class ExecutionConfigurationImpl<StateDataBaseType, SMD : StateMach
 sealed interface InitialTransitionProviderContext<StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> {
 
     operator fun <TransitionParameter, ToStateDataType : StateDataBaseType>
-            TransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, *, ToStateDataType>.invoke(
+            InitialTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, ToStateDataType>.invoke(
         transitionParameter: TransitionParameter
     ): InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>
 }
@@ -175,7 +175,7 @@ private class InitialTransitionProviderContextImpl<StateDataBaseType, SMD : Stat
     InitialTransitionProviderContext<StateDataBaseType, SMD> {
 
     override operator fun <TransitionParameter, ToStateDataType : StateDataBaseType>
-            TransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, *, ToStateDataType>.invoke(
+            InitialTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, ToStateDataType>.invoke(
         transitionParameter: TransitionParameter
     ): InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType> =
         InitialExecutableTransitionImpl(
@@ -223,12 +223,12 @@ sealed interface DispatchContext<StateDataBaseType, SMD : StateMachineDefinition
     val smd: SMD
 
     suspend operator fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
-            TransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
+            NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
         transitionParameter: TransitionParameter
     )
 
     suspend operator fun <FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
-            TransitionEventDefinition<StateDataBaseType, SMD, Unit, FromStateDataType, ToStateDataType>.invoke() {
+            NormalTransitionEventDefinition<StateDataBaseType, SMD, Unit, FromStateDataType, ToStateDataType>.invoke() {
         invoke(Unit)
     }
 }
@@ -243,7 +243,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
         override val smd: SMD get() = stateMachineDefinition
 
-        override suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> TransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
+        override suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
             transitionParameter: TransitionParameter
         ) {
             val transition =
@@ -268,8 +268,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         val toStateDefinition = transition.targetStateDefinition
         // TODO validate transition
 
-        val targetStateDataProviderContext = InitialTransitionTargetStateDataProviderContextImpl(
-            fromStateDefinition,
+        val targetStateDataProviderContext = InitialTransitionTargetStateDataProviderContextImpl<_, StateDataBaseType>(
             transition.transitionParameter
         )
         val newStateData =
