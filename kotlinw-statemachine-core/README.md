@@ -9,9 +9,9 @@ A state machine is a computation model that can be used to represent and simulat
 A state machine contains states and defines the valid transitions from each state to others.\
 Additionally it has an initial state where the execution starts and optionally terminal states where execution ends.
 
-A classic example state machine:
+An example state machine for fetching data:
 
-![asd](https://en.wikipedia.org/wiki/Finite-state_machine#/media/File:Turnstile_state_machine_colored.svg)
+![Data fetch state machine](doc/DataFetchStateMachine.png)
 
 # Usage
 
