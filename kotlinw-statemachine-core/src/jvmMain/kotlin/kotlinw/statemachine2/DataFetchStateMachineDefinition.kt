@@ -1,22 +1,41 @@
 package kotlinw.statemachine2
 
+/**
+ * Represents the status of fetching data of type [DataType] from a source specified by [InputType].
+ *
+ * @param InputType defines the source of the data (eg. an URL, a filter definition, etc.)
+ * @param DataType type of the data to fetch
+ * @param ErrorType describes an error occurred during fetching the data
+ */
 sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
     val input: InputType
 
+    /**
+     * Data fetching is in progress.
+     */
     data class InProgress<InputType, DataType, ErrorType>(
         override val input: InputType,
     ) : DataFetchStatus<InputType, DataType, ErrorType>
 
+    /**
+     * Data has been received.
+     */
     data class Received<InputType, DataType, ErrorType>(
         override val input: InputType,
         val data: DataType
     ) : DataFetchStatus<InputType, DataType, ErrorType>
 
+    /**
+     * Data fetch has been cancelled.
+     */
     data class Cancelled<InputType, DataType, ErrorType>(
         override val input: InputType
     ) : DataFetchStatus<InputType, DataType, ErrorType>
 
+    /**
+     * Data fetch has failed.
+     */
     data class Failed<InputType, DataType, ErrorType>(
         override val input: InputType,
         val error: ErrorType

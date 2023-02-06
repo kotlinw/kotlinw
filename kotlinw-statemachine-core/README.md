@@ -19,7 +19,9 @@ An example state machine for fetching data:
 
 By modeling execution flows in your code with state machines your code will be more readable, more compact and easier to follow :)
 
-# Usage
+# Usage and example
+
+Let's create a state machine to model the execution flow of the above "data-fetch" state-machine.
 
 ## Add Gradle dependency
 
@@ -56,9 +58,42 @@ buildscript {
 }
 ```
 
-## Define state machine 
+### Declare state data types
 
-### Declare state data types 
+Most non-trivial state machines have some data associated with each state:
+
+```
+sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
+
+    val input: InputType
+
+    data class InProgress<InputType, DataType, ErrorType>(
+        override val input: InputType,
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
+
+    data class Received<InputType, DataType, ErrorType>(
+        override val input: InputType,
+        val data: DataType
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
+
+    data class Cancelled<InputType, DataType, ErrorType>(
+        override val input: InputType
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
+
+    data class Failed<InputType, DataType, ErrorType>(
+        override val input: InputType,
+        val error: ErrorType
+    ) : DataFetchStatus<InputType, DataType, ErrorType>
+}
+```
+
+## Declare state machine class
+
+Create a class for the state machine definition:
+
+```
+
+```
 
 ### Define states
 
