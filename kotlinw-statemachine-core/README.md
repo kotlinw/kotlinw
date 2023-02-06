@@ -1,6 +1,8 @@
+# About
+
 # About this library
 
-Type-safe [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) implementation for Kotlin.
+This library contains a type-safe [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) implementation for Kotlin.
 
 # About state machines
 
@@ -12,6 +14,10 @@ Additionally it has an initial state where the execution starts and optionally t
 An example state machine for fetching data:
 
 ![Data fetch state machine](doc/DataFetchStateMachine.png)
+
+# Why
+
+By modeling execution flows in your code with state machines your code will be more readable, more compact and easier to follow :)
 
 # Usage
 
