@@ -1,27 +1,31 @@
 # About
 
-# About this library
+## About this library
 
 This library contains a [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition and execution implementation for Kotlin. It provides various level of typing support depending on how it is used.
 
-# About state machines
+## About state machines
 
 A state machine is a computation model that can be used to represent and simulate sequential execution flow. 
 
 A state machine contains states and defines the valid transitions from each state to others.\
 Additionally it has an initial state where the execution starts and optionally terminal states where execution ends.
 
-An example state machine for fetching data:
+A classic state machine example is the ["coin-operated turnstile"](https://en.wikipedia.org/wiki/Finite-state_machine#Example:_coin-operated_turnstile):
 
-![Data fetch state machine](doc/DataFetchStateMachine.png)
+![Turnstile state machine](doc/TurnstileStateMachine.png)
 
-# Why
+> A turnstile, used to control access to subways and amusement park rides, is a gate with three rotating arms at waist height, one across the entryway. Initially the arms are locked, blocking the entry, preventing patrons from passing through. Depositing a coin or token in a slot on the turnstile unlocks the arms, allowing a single customer to push through. After the customer passes through, the arms are locked again until another coin is inserted.
+> 
+> Considered as a state machine, the turnstile has two possible states: Locked and Unlocked. There are two possible inputs that affect its state: putting a coin in the slot (coin) and pushing the arm (push).
 
-By modeling execution flows in your code with state machines your code will be more readable, more compact and easier to follow :)
+## Why use state machines
+
+By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to follow :)
 
 # Usage and example
 
-Let's create a state machine to model the execution flow of the above "data fetch" state-machine.
+Let's model the execution flow of the above turnstile state machine using this library.
 
 ## Add Gradle dependency
 
@@ -36,6 +40,10 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("xyz.kotlinw:kotlinw-statemachine-core:0.4.0")
+            }
+        }
+    }
+}
 ```
 
 In a platform-specific project:
@@ -43,187 +51,76 @@ In a platform-specific project:
 ```
 dependencies {
     implementation("xyz.kotlinw:kotlinw-statemachine-core:0.4.0")
-```
-
-Note that if you have a custom [`repositories { ... }`](https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)) block in your build file then the [mavenCentral()](https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.RepositoryHandler.html#org.gradle.api.artifacts.dsl.RepositoryHandler:mavenCentral()) repository should be added explicitly:
-
-```
-buildscript {
-    repositories {
-        mavenCentral()
-        ...
-    }
-}
-```
-
-### Declare classes for holding state data
-
-Most non-trivial state machines have some data associated with each state.\
-For better typing support each state should have a dedicated class to hold its data.
-
-In case of the "data fetch" state machine there are 4 states (not counting *undefined*), so we define 4 data classes:
-
-```
-/**
- * Represents the status of fetching data of type [DataType] from a source specified by [InputType].
- *
- * @param InputType defines the source of the data (eg. an URL, a filter definition, etc.)
- * @param DataType type of the data to fetch
- * @param ErrorType describes an error occurred during fetching the data
- */
-sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
-
-    val input: InputType
-
-    /**
-     * Data fetching is in progress.
-     */
-    data class InProgress<InputType, DataType, ErrorType>(
-        override val input: InputType,
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
-
-    /**
-     * Data has been received.
-     */
-    data class Received<InputType, DataType, ErrorType>(
-        override val input: InputType,
-        val data: DataType
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
-
-    /**
-     * Data fetch has been cancelled.
-     */
-    data class Cancelled<InputType, DataType, ErrorType>(
-        override val input: InputType
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
-
-    /**
-     * Data fetch has failed.
-     */
-    data class Failed<InputType, DataType, ErrorType>(
-        override val input: InputType,
-        val error: ErrorType
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
 }
 ```
 
 ## Declare state machine class
 
-The state machine definition class should extend `StateMachineDefinition`:
+Because this state machine does not have any additional data besides its current state, the state machine definition is stateless, so it can be an `object` and extend `SimpleStateMachineDefinition`:
 
 ```
-class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
-    StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
+object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileStateMachineDefinition>() {
 }
 ```
 
-### Define states
+## Define states
 
 Declare a property for each state by using `state()`:
 
 ```
-    val inProgress by state<DataFetchStatus.InProgress<InputType, DataType, ErrorType>>()
+    val locked by state()
 
-    val received by state<DataFetchStatus.Received<InputType, DataType, ErrorType>>()
-
-    val cancelled by state<DataFetchStatus.Cancelled<InputType, DataType, ErrorType>>()
-
-    val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
+    val unlocked by state()
 ```
 
-### Define transitions
+## Define transitions
 
 Declare a property named `start` for the initial transition:
 
 ```
-    override val start by initialTransitionTo(inProgress) {
-        DataFetchStatus.InProgress(it.transitionParameter)
-    }
+    override val start by initialTransitionTo(locked)
 ```
 
-Declare a property for valid transitions:
+Declare one property for each valid transition:
 
 ```
-    val cancel by cancelled.transitionFrom<Unit, _, _>(inProgress) {
-        DataFetchStatus.Cancelled(it.fromStateData.input)
-    }
+    val insertCoin by unlocked.transitionFrom(locked)
 
-    internal val onReceived by received.transitionFrom(inProgress) {
-        DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
-    }
-
-    internal val onFailed by failed.transitionFrom(inProgress) {
-        DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
-    }
-
-    val reload by inProgress.transitionFrom<Unit, _, _>(received) {
-        DataFetchStatus.InProgress(it.fromStateData.input)
-    }
-
-    val retry by inProgress.transitionFrom<Unit, _, _>(cancelled, failed) {
-        DataFetchStatus.InProgress(it.fromStateData.input)
-    }
-
-    val changeInput by inProgress.transitionFrom(inProgress, received, failed, cancelled) {
-        DataFetchStatus.InProgress(it.transitionParameter)
-    }
+    val pushArm by locked.transitionFrom(unlocked)
 ```
 
-## The final state machine definition class:
+The final state machine definition class is:
 
 ```
-class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
-    StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
+object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileStateMachineDefinition>() {
 
-    val inProgress by state<DataFetchStatus.InProgress<InputType, DataType, ErrorType>>()
+    val locked by state()
 
-    val received by state<DataFetchStatus.Received<InputType, DataType, ErrorType>>()
+    val unlocked by state()
 
-    val cancelled by state<DataFetchStatus.Cancelled<InputType, DataType, ErrorType>>()
+    override val start by initialTransitionTo(locked)
 
-    val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
+    val insertCoin by unlocked.transitionFrom(locked)
 
-    override val start by initialTransitionTo(inProgress) {
-        DataFetchStatus.InProgress(it.transitionParameter)
-    }
-
-    val cancel by cancelled.transitionFrom<Unit, _, _>(inProgress) {
-        DataFetchStatus.Cancelled(it.fromStateData.input)
-    }
-
-    internal val onReceived by received.transitionFrom(inProgress) {
-        DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
-    }
-
-    internal val onFailed by failed.transitionFrom(inProgress) {
-        DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
-    }
-
-    val reload by inProgress.transitionFrom<Unit, _, _>(received) {
-        DataFetchStatus.InProgress(it.fromStateData.input)
-    }
-
-    val retry by inProgress.transitionFrom<Unit, _, _>(cancelled, failed) {
-        DataFetchStatus.InProgress(it.fromStateData.input)
-    }
-
-    val changeInput by inProgress.transitionFrom(inProgress, received, failed, cancelled) {
-        DataFetchStatus.InProgress(it.transitionParameter)
-    }
+    val pushArm by locked.transitionFrom(unlocked)
 }
 ```
 
 ## Generate DOT representation
 
-State transitions form a graph that can be easily visualized by [Graphviz](https://graphviz.org/).
+State transitions form a graph that can be visualized by [Graphviz](https://graphviz.org/).
 
 To export the [DOT](https://graphviz.org/doc/info/lang.html) representation of the state machine's state transition graph to the clipboard, run the following code:
 
 ```
 fun main() {
-    DataFetchStateMachineDefinition<Nothing, Nothing, Nothing>().exportDotToClipboard()
+    TurnstileStateMachineDefinition.exportDotToClipboard()
 }
 ```
+
+The generated image is:
+
+![Turnstile state machine](doc/TurnstileStateMachine.png)
 
 ## Configure actions
 

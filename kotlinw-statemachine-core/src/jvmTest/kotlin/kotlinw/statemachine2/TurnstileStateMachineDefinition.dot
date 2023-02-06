@@ -1,0 +1,10 @@
+digraph finite_state_machine {
+    graph [pad = "0.5", nodesep = "1", ranksep = "2"]
+    fontname = "Helvetica,Arial,sans-serif"
+    node [fontname = "Helvetica,Arial,sans-serif"]
+    edge [fontname = "Helvetica,Arial,sans-serif"]
+    rankdir = "LR"
+    undefined -> locked [label = "start" color="black" fontcolor="black"];
+    locked -> unlocked [label = "insertCoin" color="black" fontcolor="black"];
+    unlocked -> locked [label = "pushArm" color="black" fontcolor="black"];
+}

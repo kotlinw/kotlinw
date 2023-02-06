@@ -1,10 +1,8 @@
 package kotlinw.statemachine2
 
 import kotlinw.util.stdlib.ClipboardUtils.copyToClipboard
-import kotlin.reflect.KVisibility.PUBLIC
-import kotlin.reflect.full.memberProperties
 
-fun <StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> SMD.exportDotToString(): String {
+fun <StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> SMD.exportDotToString(): String {
 
     fun TransitionDefinition<*, *, *, *>.edgeColor(): String = if (isPublic) "black" else "gray"
 
@@ -32,6 +30,6 @@ fun <StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> SM
     """.trimIndent()
 }
 
-fun <StateDataBaseType, SMD : StateMachineDefinition<StateDataBaseType, SMD>> SMD.exportDotToClipboard() {
+fun <StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> SMD.exportDotToClipboard() {
     exportDotToString().copyToClipboard()
 }
