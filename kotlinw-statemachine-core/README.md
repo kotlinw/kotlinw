@@ -2,7 +2,7 @@
 
 # About this library
 
-This library contains a type-safe [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) implementation for Kotlin.
+This library contains a [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition and execution implementation for Kotlin. It provides various level of typing support depending on how it is used.
 
 # About state machines
 
@@ -21,7 +21,7 @@ By modeling execution flows in your code with state machines your code will be m
 
 # Usage and example
 
-Let's create a state machine to model the execution flow of the above "data-fetch" state-machine.
+Let's create a state machine to model the execution flow of the above "data fetch" state-machine.
 
 ## Add Gradle dependency
 
@@ -32,12 +32,10 @@ In a multiplatform project
 
 ```
 kotlin {
-    ...
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("xyz.kotlinw:kotlinw-statemachine-core:0.4.0")
-
 ```
 
 In a platform-specific project:
@@ -58,10 +56,12 @@ buildscript {
 }
 ```
 
-### Declare state data types
+### Declare classes for holding state data
 
 Most non-trivial state machines have some data associated with each state.\
-In case of the data-fetch state machine there are 4 cases:
+For better typing support each state should have a dedicated class to hold its data.
+
+In case of the "data fetch" state machine there are 4 states (not counting *undefined*), so we define 4 data classes:
 
 ```
 /**
@@ -109,17 +109,121 @@ sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
 
 ## Declare state machine class
 
-Create a class for the state machine definition:
+The state machine definition class should extend `StateMachineDefinition`:
 
 ```
-
+class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
+    StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
+}
 ```
 
 ### Define states
 
+Declare a property for each state by using `state()`:
+
+```
+    val inProgress by state<DataFetchStatus.InProgress<InputType, DataType, ErrorType>>()
+
+    val received by state<DataFetchStatus.Received<InputType, DataType, ErrorType>>()
+
+    val cancelled by state<DataFetchStatus.Cancelled<InputType, DataType, ErrorType>>()
+
+    val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
+```
+
 ### Define transitions
 
-## Generate image representation
+Declare a property named `start` for the initial transition:
+
+```
+    override val start by initialTransitionTo(inProgress) {
+        DataFetchStatus.InProgress(it.transitionParameter)
+    }
+```
+
+Declare a property for valid transitions:
+
+```
+    val cancel by cancelled.transitionFrom<Unit, _, _>(inProgress) {
+        DataFetchStatus.Cancelled(it.fromStateData.input)
+    }
+
+    internal val onReceived by received.transitionFrom(inProgress) {
+        DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
+    }
+
+    internal val onFailed by failed.transitionFrom(inProgress) {
+        DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
+    }
+
+    val reload by inProgress.transitionFrom<Unit, _, _>(received) {
+        DataFetchStatus.InProgress(it.fromStateData.input)
+    }
+
+    val retry by inProgress.transitionFrom<Unit, _, _>(cancelled, failed) {
+        DataFetchStatus.InProgress(it.fromStateData.input)
+    }
+
+    val changeInput by inProgress.transitionFrom(inProgress, received, failed, cancelled) {
+        DataFetchStatus.InProgress(it.transitionParameter)
+    }
+```
+
+## The final state machine definition class:
+
+```
+class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
+    StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
+
+    val inProgress by state<DataFetchStatus.InProgress<InputType, DataType, ErrorType>>()
+
+    val received by state<DataFetchStatus.Received<InputType, DataType, ErrorType>>()
+
+    val cancelled by state<DataFetchStatus.Cancelled<InputType, DataType, ErrorType>>()
+
+    val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
+
+    override val start by initialTransitionTo(inProgress) {
+        DataFetchStatus.InProgress(it.transitionParameter)
+    }
+
+    val cancel by cancelled.transitionFrom<Unit, _, _>(inProgress) {
+        DataFetchStatus.Cancelled(it.fromStateData.input)
+    }
+
+    internal val onReceived by received.transitionFrom(inProgress) {
+        DataFetchStatus.Received(it.fromStateData.input, it.transitionParameter)
+    }
+
+    internal val onFailed by failed.transitionFrom(inProgress) {
+        DataFetchStatus.Failed(it.fromStateData.input, it.transitionParameter)
+    }
+
+    val reload by inProgress.transitionFrom<Unit, _, _>(received) {
+        DataFetchStatus.InProgress(it.fromStateData.input)
+    }
+
+    val retry by inProgress.transitionFrom<Unit, _, _>(cancelled, failed) {
+        DataFetchStatus.InProgress(it.fromStateData.input)
+    }
+
+    val changeInput by inProgress.transitionFrom(inProgress, received, failed, cancelled) {
+        DataFetchStatus.InProgress(it.transitionParameter)
+    }
+}
+```
+
+## Generate DOT representation
+
+State transitions form a graph that can be easily visualized by [Graphviz](https://graphviz.org/).
+
+To export the [DOT](https://graphviz.org/doc/info/lang.html) representation of the state machine's state transition graph to the clipboard, run the following code:
+
+```
+fun main() {
+    DataFetchStateMachineDefinition<Nothing, Nothing, Nothing>().exportDotToClipboard()
+}
+```
 
 ## Configure actions
 
