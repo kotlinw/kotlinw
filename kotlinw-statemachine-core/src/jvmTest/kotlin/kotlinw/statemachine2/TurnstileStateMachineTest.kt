@@ -11,13 +11,13 @@ class TurnstileStateMachineTest {
     @Test
     fun test() {
         runBlocking {
-            val configuredStateMachine = TurnstileStateMachineDefinition.configure()
+            val configuredStateMachine = TurnstileStateMachineDefinition.configure(this)
 
             val loggerJob = launch(start = CoroutineStart.UNDISPATCHED) {
                 configuredStateMachine.stateFlow.collect { println("New state: ${it.definition.name}") }
             }
 
-            val executor = configuredStateMachine.execute { start() }
+            val executor = configuredStateMachine.execute { smd.start() }
             assertEquals(TurnstileStateMachineDefinition.locked, executor.currentState.definition)
 
             // TODO `smd.` will be omitted when this issue would be fixed: https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException

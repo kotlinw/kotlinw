@@ -24,6 +24,15 @@ A classic state machine example is the ["coin-operated turnstile"](https://en.wi
 
 By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to reason about.
 
+## Future API enhancements
+
+The API of this library would be slightly intuitive as soon as the following blocking Kotlin issues will be fixed:
+
+- [KT-53551: suspend functional type with context receiver causes ClassCastException](https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException)
+- [KT-51270: Support context receivers in multiplatform projects](https://youtrack.jetbrains.com/issue/KT-51270)
+
+Please consider voting for these issues, so they may be fixed earlier...
+
 # Usage and example
 
 Let's model the execution flow of the above *turnstile state machine* using this library.
@@ -133,7 +142,7 @@ There are several options to execute some code
 - while a state is active. 
 
 Because these actions may be different for each state machine instance, they must be specified in a separate step by calling `configure()`.\
-Configuration is trivial if no code is to be assigned to the various states or state changes:
+Configuration is trivial if no code is to be assigned to the various states or state changes, only a `CoroutineScope` should be passed to it (this is necessary because of [KT-51270](https://youtrack.jetbrains.com/issue/KT-51270)):
 
 ```
 val configuredStateMachine = TurnstileStateMachineDefinition.configure()
@@ -152,13 +161,12 @@ launch(start = CoroutineStart.UNDISPATCHED) {
 A configured state machine can be executed by calling `execute()`, defining the initial transition:
 
 ```
-val executor = configuredStateMachine.execute { start() }
+val executor = configuredStateMachine.execute { smd.start() }
 ```
 
 `executor` can be used to dispatch transition events to the state machine:
 
 ```
-// TODO `smd.` will be omitted when a related Kotlin issue would be fixed: https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException
 executor.dispatch { smd.insertCoin() }
 executor.dispatch { smd.pushArm() }
 ```
@@ -169,6 +177,8 @@ Invalid transitions are sometimes detected at compile-time but often only during
 // This would throw an IllegalStateException with message: "No valid transition exists from current state 'locked' to state 'locked'."
 executor.dispatch { smd.pushArm() }
 ```
+
+(The explicit `smd` reference will not be needed as soon as [KT-53551](https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException) and [KT-51270](https://youtrack.jetbrains.com/issue/KT-51270) will be fixed.)
 
 ## More complex use-cases
 

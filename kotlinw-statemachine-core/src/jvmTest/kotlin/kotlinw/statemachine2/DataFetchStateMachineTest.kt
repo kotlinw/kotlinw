@@ -19,20 +19,20 @@ class DataFetchStateMachineTest {
 
             val smd = DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
 
-            val configuredStateMachine = smd.configure {
-                inState(inProgress) {
+            val configuredStateMachine = smd.configure(this) {
+                inState(smd.inProgress) {
                     println(it)
                     try {
                         delay(100) // Simulate network call
                         val result = listOf(it.input.filterFragment)
                         println("result: $result")
-                        onReceived(result)
+                        smd.onReceived(result)
                     } catch (e: Exception) {
-                        onFailed(e)
+                        smd.onFailed(e)
                     }
                 }
 
-                onTransition(cancel) { from, to ->
+                onTransition(smd.cancel) { from, to ->
                     println("$from -> $to")
                     // TODO log
                 }
@@ -47,7 +47,7 @@ class DataFetchStateMachineTest {
             }
 
             val executor = configuredStateMachine.execute {
-                start(FilteringData("a"))
+                smd.start(FilteringData("a"))
             }
 
             assertEquals(smd.inProgress.name, executor.currentState.definition.name)
