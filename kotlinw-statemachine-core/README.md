@@ -5,6 +5,15 @@
 This library contains a [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition and execution implementation for Kotlin.\
 It provides various level of typing support depending on how it is used.
 
+## Pending API enhancements
+
+The API of this library would be slightly intuitive as soon as the following blocking Kotlin issues will be fixed:
+
+- [KT-53551: suspend functional type with context receiver causes ClassCastException](https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException)
+- [KT-51270: Support context receivers in multiplatform projects](https://youtrack.jetbrains.com/issue/KT-51270)
+
+Please consider voting for these issues, so they may be fixed earlier...
+
 ## About state machines
 
 A state machine is a computation model that can be used to represent and simulate sequential execution flow. 
@@ -23,15 +32,6 @@ A classic state machine example is the ["coin-operated turnstile"](https://en.wi
 ## Why use state machines
 
 By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to reason about.
-
-## Future API enhancements
-
-The API of this library would be slightly intuitive as soon as the following blocking Kotlin issues will be fixed:
-
-- [KT-53551: suspend functional type with context receiver causes ClassCastException](https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException)
-- [KT-51270: Support context receivers in multiplatform projects](https://youtrack.jetbrains.com/issue/KT-51270)
-
-Please consider voting for these issues, so they may be fixed earlier...
 
 # Usage and example
 
