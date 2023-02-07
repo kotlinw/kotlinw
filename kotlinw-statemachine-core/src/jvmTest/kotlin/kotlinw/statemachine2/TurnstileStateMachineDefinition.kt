@@ -8,9 +8,9 @@ object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileSt
 
     override val start by initialTransitionTo(locked)
 
-    val insertCoin by unlocked.transitionFrom(locked)
+    val insertCoin by unlocked.from(locked)
 
-    val pushArm by locked.transitionFrom(unlocked)
+    val pushArm by transitionTo(locked).from(unlocked) // transitionTo() is optional but slightly increases readability
 }
 
 fun main() {

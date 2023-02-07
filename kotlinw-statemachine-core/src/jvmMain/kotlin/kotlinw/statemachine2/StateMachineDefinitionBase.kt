@@ -173,6 +173,12 @@ abstract class StateMachineDefinitionBase<StateDataBaseType, SMD : StateMachineD
         _stateDefinitions.add(stateDefinition)
     }
 
+    /**
+     * A no-op function to increase readability if preferred.
+     */
+    fun <ToStateDataType : StateDataBaseType> transitionTo(targetState: StateDefinition<StateDataBaseType, ToStateDataType>): StateDefinition<StateDataBaseType, ToStateDataType> =
+        targetState
+
     internal fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
             StateDefinition<StateDataBaseType, ToStateDataType>.transitionFromImpl(
         vararg fromState: StateDefinition<StateDataBaseType, out FromStateDataType>,
@@ -237,7 +243,7 @@ abstract class StateMachineDefinition<StateDataBaseType, SMD : StateMachineDefin
         terminalStateImpl(typeOf<StateDataType>())
 
     protected fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
-            StateDefinition<StateDataBaseType, ToStateDataType>.transitionFrom(
+            StateDefinition<StateDataBaseType, ToStateDataType>.from(
         vararg fromState: StateDefinition<StateDataBaseType, out FromStateDataType>,
         provideTargetState: (NormalTransitionTargetStateDataProviderContext<TransitionParameter, StateDataBaseType, FromStateDataType>) -> ToStateDataType
     ): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>>> =
@@ -258,6 +264,6 @@ abstract class SimpleStateMachineDefinition<SMD : SimpleStateMachineDefinition<S
         terminalStateImpl(typeOf<Unit>())
 
 
-    protected fun StateDefinition<Unit, Unit>.transitionFrom(vararg fromState: StateDefinition<Unit, Unit>): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NormalTransitionEventDefinition<Unit, SMD, Unit, Unit, Unit>>> =
+    protected fun StateDefinition<Unit, Unit>.from(vararg fromState: StateDefinition<Unit, Unit>): PropertyDelegateProvider<SMD, ReadOnlyProperty<SMD, NormalTransitionEventDefinition<Unit, SMD, Unit, Unit, Unit>>> =
         transitionFromImpl(*fromState) {}
 }

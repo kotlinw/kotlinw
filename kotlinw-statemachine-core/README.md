@@ -2,7 +2,8 @@
 
 ## About this library
 
-This library contains a [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition and execution implementation for Kotlin. It provides various level of typing support depending on how it is used.
+This library contains a [state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition and execution implementation for Kotlin.\
+It provides various level of typing support depending on how it is used.
 
 ## About state machines
 
@@ -21,11 +22,11 @@ A classic state machine example is the ["coin-operated turnstile"](https://en.wi
 
 ## Why use state machines
 
-By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to follow :)
+By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to reason about.
 
 # Usage and example
 
-Let's model the execution flow of the above turnstile state machine using this library.
+Let's model the execution flow of the above *turnstile state machine* using this library.
 
 ## Add Gradle dependency
 
@@ -56,7 +57,7 @@ dependencies {
 
 ## Declare state machine class
 
-Because this state machine does not have any additional data besides its current state, the state machine definition is stateless, so it can be an `object` and extend `SimpleStateMachineDefinition`:
+Because this state machine does not have any additional data besides its current state, it should extend `SimpleStateMachineDefinition` for simplicity, and it can even be an `object`:
 
 ```
 object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileStateMachineDefinition>() {
@@ -65,7 +66,7 @@ object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileSt
 
 ## Define states
 
-Declare a property for each state by using `state()`:
+Declare a property for each *state* by using `state()`:
 
 ```
 val locked by state()
@@ -84,12 +85,14 @@ override val start by initialTransitionTo(locked)
 Declare one property for each valid transition:
 
 ```
-val insertCoin by unlocked.transitionFrom(locked)
+val insertCoin by transitionTo(unlocked).from(locked)
 
-val pushArm by locked.transitionFrom(unlocked)
+val pushArm by transitionTo(locked).from(unlocked)
 ```
 
-The final state machine definition class is:
+(The `transitionTo()` function call is optional but slightly increases readability.)
+
+The final state machine definition class is (without  `transitionTo()` calls):
 
 ```
 object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileStateMachineDefinition>() {
@@ -100,9 +103,9 @@ object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileSt
 
     override val start by initialTransitionTo(locked)
 
-    val insertCoin by unlocked.transitionFrom(locked)
+    val insertCoin by unlocked.from(locked)
 
-    val pushArm by locked.transitionFrom(unlocked)
+    val pushArm by locked.from(unlocked)
 }
 ```
 
@@ -152,7 +155,7 @@ A configured state machine can be executed by calling `execute()`, defining the 
 val executor = configuredStateMachine.execute { start() }
 ```
 
-The `executor` can be used to dispatch transition events to the state machine:
+`executor` can be used to dispatch transition events to the state machine:
 
 ```
 // TODO `smd.` will be omitted when a related Kotlin issue would be fixed: https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException
