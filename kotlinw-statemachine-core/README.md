@@ -23,7 +23,7 @@ Additionally it has an initial state where the execution starts and optionally t
 
 ## Why use state machines
 
-By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to reason about.
+By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact, and easier to reason about.
 
 ## Example state machine
 
