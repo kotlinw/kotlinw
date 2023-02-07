@@ -103,7 +103,7 @@ val insertCoin by transitionTo(unlocked).from(locked)
 val pushArm by transitionTo(locked).from(unlocked)
 ```
 
-(The `transitionTo()` function call is optional but slightly increases readability.)
+(Wrapping the target state property in a `transitionTo()` call is optional but slightly increases readability.)
 
 The final state machine definition class is (without  `transitionTo()` calls):
 
