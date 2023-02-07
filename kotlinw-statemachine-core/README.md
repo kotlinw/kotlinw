@@ -9,7 +9,7 @@ It provides various level of typing support depending on how it is used.
 
 The API of this library would be slightly intuitive as soon as the following blocking Kotlin issues will be fixed:
 
-- [KT-53551: suspend functional type with context receiver causes ClassCastException](https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException)
+- [KT-53551: Suspend functional type with context receiver causes ClassCastException](https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException)
 - [KT-51270: Support context receivers in multiplatform projects](https://youtrack.jetbrains.com/issue/KT-51270)
 
 Please consider voting for these issues, so they may be fixed earlier...
