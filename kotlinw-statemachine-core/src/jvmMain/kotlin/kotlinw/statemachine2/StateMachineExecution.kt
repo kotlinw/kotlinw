@@ -67,7 +67,7 @@ sealed interface StateMachineExecutor<StateDataBaseType, SMD : StateMachineDefin
     StateMachineStateFlowProvider<StateDataBaseType> {
 
     enum class Status {
-        Active, Completed, Cancelled
+        Active, Completed, Cancelled // TODO handle Completed with terminal states
     }
 
     val status: Status
