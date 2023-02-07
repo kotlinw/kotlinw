@@ -2,8 +2,6 @@ package kotlinw.statemachine2
 
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
@@ -48,7 +46,7 @@ class DataFetchStateMachineTest {
                 println(3)
             }
 
-            val executor = configuredStateMachine.start {
+            val executor = configuredStateMachine.execute {
                 start(FilteringData("a"))
             }
 

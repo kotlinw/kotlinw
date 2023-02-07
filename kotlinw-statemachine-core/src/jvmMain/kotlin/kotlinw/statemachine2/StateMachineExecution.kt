@@ -214,6 +214,10 @@ sealed interface InitialTransitionProviderContext<StateDataBaseType, SMD : State
             InitialTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, ToStateDataType>.invoke(
         transitionParameter: TransitionParameter
     ): InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>
+
+    operator fun <ToStateDataType : StateDataBaseType>
+            InitialTransitionEventDefinition<StateDataBaseType, SMD, Unit, ToStateDataType>.invoke(): InitialExecutableTransition<Unit, StateDataBaseType, ToStateDataType> =
+        invoke(Unit)
 }
 
 private class InitialTransitionProviderContextImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> :
@@ -233,7 +237,7 @@ private class InitialTransitionProviderContextImpl<StateDataBaseType, SMD : Stat
 sealed interface ConfiguredStateMachine<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> :
     StateMachineStateFlowProvider<StateDataBaseType> {
 
-    suspend fun <ToStateDataType : StateDataBaseType> start(initialTransitionProvider: context(SMD) InitialTransitionProviderContext<StateDataBaseType, SMD>.() -> InitialExecutableTransition<*, StateDataBaseType, ToStateDataType>): StateMachineExecutor<StateDataBaseType, SMD>
+    suspend fun <ToStateDataType : StateDataBaseType> execute(initialTransitionProvider: context(SMD) InitialTransitionProviderContext<StateDataBaseType, SMD>.() -> InitialExecutableTransition<*, StateDataBaseType, ToStateDataType>): StateMachineExecutor<StateDataBaseType, SMD>
 }
 
 private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>>(
@@ -246,7 +250,7 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
 
     override val stateFlow = mutableStateFlow.asSharedFlow()
 
-    override suspend fun <ToStateDataType : StateDataBaseType> start(initialTransitionProvider: context(SMD) InitialTransitionProviderContext<StateDataBaseType, SMD>.() -> InitialExecutableTransition<*, StateDataBaseType, ToStateDataType>): StateMachineExecutor<StateDataBaseType, SMD> {
+    override suspend fun <ToStateDataType : StateDataBaseType> execute(initialTransitionProvider: context(SMD) InitialTransitionProviderContext<StateDataBaseType, SMD>.() -> InitialExecutableTransition<*, StateDataBaseType, ToStateDataType>): StateMachineExecutor<StateDataBaseType, SMD> {
         val initialTransition =
             initialTransitionProvider(stateMachineDefinition, InitialTransitionProviderContextImpl())
         val executor =
@@ -257,7 +261,7 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
 }
 
 fun <StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> SMD.configure(
-    executionDefinitionBuilder: context(SMD) ExecutionDefinitionContext<StateDataBaseType, SMD>.() -> Unit
+    executionDefinitionBuilder: context(SMD) ExecutionDefinitionContext<StateDataBaseType, SMD>.() -> Unit = {}
 ): ConfiguredStateMachine<StateDataBaseType, SMD> =
     ConfiguredStateMachineImpl(
         this,
@@ -332,34 +336,65 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     internal suspend fun <TransitionParameter, ToStateDataType : StateDataBaseType> executeInitialTransition(
         transition: InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>
     ): ToStateDataType =
-        // TODO validate transition
-        executeTransition(
-            stateMachineDefinition.undefined,
-            transition.targetStateDefinition,
-            transition.targetDataProvider(
-                InitialTransitionTargetStateDataProviderContextImpl(transition.transitionParameter)
-            ),
-            transition.transitionParameter
-        )
+        lock.withReentrantLock {
+            validateInitialTransition(transition)
+            executeTransition(
+                stateMachineDefinition.undefined,
+                transition.targetStateDefinition,
+                transition.targetDataProvider(
+                    InitialTransitionTargetStateDataProviderContextImpl(transition.transitionParameter)
+                ),
+                transition.transitionParameter
+            )
+        }
+
+    private fun <TransitionParameter, ToStateDataType : StateDataBaseType> validateInitialTransition(transition: InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>) {
+        check(
+            stateMachineDefinition.events
+                .filterIsInstance<InitialTransitionEventDefinition<*, *, *, *>>()
+                .any { event ->
+                    event.transitions.any { it.to == transition.targetStateDefinition }
+                }
+        ) {
+            "No valid initial transition exists to state '${transition.targetStateDefinition.name}'."
+        }
+    }
 
     internal suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> executeNormalTransition(
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,
         fromStateData: FromStateDataType,
         transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>
     ): ToStateDataType =
-        // TODO validate transition
-        executeTransition(
-            fromStateDefinition,
-            transition.targetStateDefinition,
-            transition.targetDataProvider(
-                NormalTransitionTargetStateDataProviderContextImpl(
-                    fromStateDefinition,
-                    fromStateData,
-                    transition.transitionParameter
-                )
-            ),
-            transition.transitionParameter
-        )
+        lock.withReentrantLock {
+            validateNormalTransition(transition)
+            executeTransition(
+                fromStateDefinition,
+                transition.targetStateDefinition,
+                transition.targetDataProvider(
+                    NormalTransitionTargetStateDataProviderContextImpl(
+                        fromStateDefinition,
+                        fromStateData,
+                        transition.transitionParameter
+                    )
+                ),
+                transition.transitionParameter
+            )
+        }
+
+    private fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> validateNormalTransition(
+        transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>
+    ) {
+        val currentStateDefinition = currentState.definition
+        check(
+            stateMachineDefinition.events
+                .filterIsInstance<NormalTransitionEventDefinition<*, *, *, *, *>>()
+                .any { event ->
+                    event.transitions.any { it.from == currentStateDefinition && it.to == transition.targetStateDefinition }
+                }
+        ) {
+            "No valid transition exists from current state '${currentStateDefinition.name}' to state '${transition.targetStateDefinition.name}'."
+        }
+    }
 
     private suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> executeTransition(
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,

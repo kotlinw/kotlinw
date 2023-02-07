@@ -68,9 +68,9 @@ object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileSt
 Declare a property for each state by using `state()`:
 
 ```
-    val locked by state()
+val locked by state()
 
-    val unlocked by state()
+val unlocked by state()
 ```
 
 ## Define transitions
@@ -78,15 +78,15 @@ Declare a property for each state by using `state()`:
 Declare a property named `start` for the initial transition:
 
 ```
-    override val start by initialTransitionTo(locked)
+override val start by initialTransitionTo(locked)
 ```
 
 Declare one property for each valid transition:
 
 ```
-    val insertCoin by unlocked.transitionFrom(locked)
+val insertCoin by unlocked.transitionFrom(locked)
 
-    val pushArm by locked.transitionFrom(unlocked)
+val pushArm by locked.transitionFrom(unlocked)
 ```
 
 The final state machine definition class is:
@@ -122,8 +122,51 @@ The generated image is:
 
 ![Turnstile state machine](doc/TurnstileStateMachine.png)
 
-## Configure actions
+## Configure
+
+There are several options to execute some code
+
+- when a transition happens, or
+- while a state is active. 
+
+Because these actions may be different for each state machine instance, they must be specified in a separate step by calling `configure()`.\
+Configuration is trivial if no code is to be assigned to the various states or state changes:
+
+```
+val configuredStateMachine = TurnstileStateMachineDefinition.configure()
+```
+
+At this point the state machine is not active yet, so this is a good place to add state change listeners:
+
+```
+launch(start = CoroutineStart.UNDISPATCHED) {
+    configuredStateMachine.stateFlow.collect { println("New state: ${it.definition.name}") }
+}
+```
 
 ## Execute
 
-## Use in Compose
+A configured state machine can be executed by calling `execute()`, defining the initial transition:
+
+```
+val executor = configuredStateMachine.execute { start() }
+```
+
+The `executor` can be used to dispatch transition events to the state machine:
+
+```
+// TODO `smd.` will be omitted when a related Kotlin issue would be fixed: https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException
+executor.dispatch { smd.insertCoin() }
+executor.dispatch { smd.pushArm() }
+```
+
+Invalid transitions are sometimes detected at compile-time but often only during runtime:
+
+```
+// This would throw an IllegalStateException with message: "No valid transition exists from current state 'locked' to state 'locked'."
+executor.dispatch { smd.pushArm() }
+```
+
+## More complex use-cases
+
+For more complex use-cases and other supported functions, see the documentation.

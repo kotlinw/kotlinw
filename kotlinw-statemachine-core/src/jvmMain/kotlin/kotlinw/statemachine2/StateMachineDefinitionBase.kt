@@ -122,20 +122,16 @@ sealed interface NormalTransitionTargetStateDataProviderContext<TransitionParame
 }
 
 abstract class StateMachineDefinitionBase<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>>(
-
     @PublishedApi
     internal val forceUniqueStateTypes: Boolean
-
 ) {
 
     val undefined: NonTerminalStateDefinition<StateDataBaseType, Nothing> =
         NonTerminalStateDefinitionImpl("undefined", null)
 
-    @PublishedApi
-    @Suppress("PropertyName")
-    internal val _stateDefinitions = mutableListOf<StateDefinition<*, *>>(undefined)
+    private val _stateDefinitions = mutableListOf<StateDefinition<*, *>>(undefined)
 
-    protected val _eventDefinitions = mutableListOf<TransitionEventDefinition<StateDataBaseType, SMD, *, *, *>>()
+    private val _eventDefinitions = mutableListOf<TransitionEventDefinition<StateDataBaseType, SMD, *, *, *>>()
 
     val states: List<StateDefinition<*, *>> get() = _stateDefinitions
 
