@@ -89,10 +89,10 @@ val unlocked by state()
 
 ## Define transitions
 
-Declare a property named `start` for the initial transition:
+Declare a property for the initial transition, to change the state to some known *state* from the default `undefined`:
 
 ```
-override val start by initialTransitionTo(locked)
+val start by initialTransitionTo(locked)
 ```
 
 Declare one property for each valid transition:
@@ -114,7 +114,7 @@ object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileSt
 
     val unlocked by state()
 
-    override val start by initialTransitionTo(locked)
+    val start by initialTransitionTo(locked)
 
     val insertCoin by unlocked.from(locked)
 

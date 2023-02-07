@@ -6,7 +6,7 @@ object TurnstileStateMachineDefinition: SimpleStateMachineDefinition<TurnstileSt
 
     val unlocked by state()
 
-    override val start by initialTransitionTo(locked)
+    val start by initialTransitionTo(locked)
 
     val insertCoin by unlocked.from(locked)
 

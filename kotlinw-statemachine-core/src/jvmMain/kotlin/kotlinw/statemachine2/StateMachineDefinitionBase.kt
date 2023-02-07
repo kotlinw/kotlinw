@@ -199,8 +199,6 @@ abstract class StateMachineDefinitionBase<StateDataBaseType, SMD : StateMachineD
             ReadOnlyProperty { _, _ -> eventDefinition }
         }
 
-    abstract val start: InitialTransitionEventDefinition<StateDataBaseType, SMD, *, out StateDataBaseType>
-
     internal fun <TransitionParameter, ToStateDataType : StateDataBaseType> initialTransitionToImpl(
         targetState: StateDefinition<StateDataBaseType, ToStateDataType>,
         provideTargetState: (InitialTransitionTargetStateDataProviderContext<TransitionParameter, StateDataBaseType>) -> ToStateDataType

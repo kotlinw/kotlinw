@@ -53,7 +53,7 @@ class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
 
     val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
 
-    override val start by initialTransitionTo(inProgress) {
+    val start by initialTransitionTo(inProgress) {
         DataFetchStatus.InProgress(it.transitionParameter)
     }
 
