@@ -21,19 +21,21 @@ A state machine is a computation model that can be used to represent and simulat
 A state machine contains states and defines the valid transitions from each state to others.\
 Additionally it has an initial state where the execution starts and optionally terminal states where execution ends.
 
-A classic state machine example is the ["coin-operated turnstile"](https://en.wikipedia.org/wiki/Finite-state_machine#Example:_coin-operated_turnstile):
+## Why use state machines
+
+By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to reason about.
+
+## Example state machine
+
+A classic state machine example simulates the operation of a ["coin-operated turnstile"](https://en.wikipedia.org/wiki/Finite-state_machine#Example:_coin-operated_turnstile):
 
 ![turnstile](https://upload.wikimedia.org/wikipedia/commons/9/97/Torniqueterevolution.jpg)
 
 > A turnstile, used to control access to subways and amusement park rides, is a gate with three rotating arms at waist height, one across the entryway. Initially the arms are locked, blocking the entry, preventing patrons from passing through. Depositing a coin or token in a slot on the turnstile unlocks the arms, allowing a single customer to push through. After the customer passes through, the arms are locked again until another coin is inserted.
-> 
+>
 > Considered as a state machine, the turnstile has two possible states: Locked and Unlocked. There are two possible inputs that affect its state: putting a coin in the slot (coin) and pushing the arm (push).
 
 ![Turnstile state machine](doc/TurnstileStateMachine.png)
-
-## Why use state machines
-
-By modeling execution flows and state changes in your code with state machines, your code will be more readable, more compact and easier to reason about.
 
 # Usage and example
 
