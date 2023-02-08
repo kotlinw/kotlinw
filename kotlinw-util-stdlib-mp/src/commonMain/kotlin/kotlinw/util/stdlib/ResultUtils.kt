@@ -8,19 +8,6 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-@OptIn(ExperimentalContracts::class)
-inline fun <V, E> Result<V, E>.ifError(block: (E) -> Unit): Result<V, E> {
-    contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
-    }
-
-    if (this is Err<*>) {
-        block(error as E)
-    }
-
-    return this
-}
-
 fun <V, E> Iterable<Result<V, E>>.combineWithAllErrors(): Result<List<V>, List<E>> =
     if (any { it is Err<*> }) {
         Err(filterIsInstance<Err<E>>().map { it.error })
@@ -41,3 +28,19 @@ inline fun <V, E> Result<V, E>.recoverFromError(
         is Ok -> this
         is Err -> block(error)
     }
+
+@OptIn(ExperimentalContracts::class)
+inline infix fun <T, V> T.runCatchingExceptions(block: T.() -> V): Result<V, Exception> {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
+    return try {
+        Ok(block())
+    } catch (e: Exception) {
+        Err(e)
+    }
+}
+
+fun <V, E> V?.nonNullToOk(otherwise: () -> E): Result<V, E> =
+    if (this != null) Ok(this) else Err(otherwise())
