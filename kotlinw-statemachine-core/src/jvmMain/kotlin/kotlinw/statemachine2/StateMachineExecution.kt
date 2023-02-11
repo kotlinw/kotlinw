@@ -46,7 +46,7 @@ interface StateMachineDispatcher<StateDataBaseType, SMD : StateMachineDefinition
     val stateMachineDefinition: SMD
 
     suspend fun <T> dispatch(
-        block: suspend /* TODO context(SMD) */ DispatchContext<StateDataBaseType, SMD>.() -> T
+        block: suspend /* TODO context(SMD) */ DispatchContext<StateDataBaseType, SMD>.(StateDataBaseType) -> T
     ): T
 }
 
@@ -299,6 +299,8 @@ sealed interface DispatchContext<StateDataBaseType, SMD : StateMachineDefinition
 
     val smd: SMD
 
+    val currentState: State<StateDataBaseType, out StateDataBaseType>
+
     suspend operator fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType>
             NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
         transitionParameter: TransitionParameter
@@ -325,6 +327,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     private inner class DispatchContextImpl : DispatchContext<StateDataBaseType, SMD> {
 
         override val smd: SMD get() = stateMachineDefinition
+
+        override val currentState get() = this@StateMachineExecutorImpl.currentState
 
         override suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> NormalTransitionEventDefinition<StateDataBaseType, SMD, TransitionParameter, FromStateDataType, ToStateDataType>.invoke(
             transitionParameter: TransitionParameter
@@ -512,9 +516,9 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
             toStateData
         }
 
-    override suspend fun <T> dispatch(block: suspend /* TODO context(SMD) */ DispatchContext<StateDataBaseType, SMD>.() -> T): T =
+    override suspend fun <T> dispatch(block: suspend /* TODO context(SMD) */ DispatchContext<StateDataBaseType, SMD>.(StateDataBaseType) -> T): T =
         lock.withReentrantLock {
-            block(DispatchContextImpl())
+            block(DispatchContextImpl(), currentStateHolder.value!!.data)
         }
 
     override val currentState get() = currentStateHolder.value!!
