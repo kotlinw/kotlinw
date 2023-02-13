@@ -530,7 +530,9 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
     override suspend fun <T> dispatch(block: suspend /* TODO context(SMD) */ DispatchContext<StateDataBaseType, SMD>.(StateDataBaseType) -> T): T =
         lock.withReentrantLock {
-            block(DispatchContextImpl(), currentStateHolder.value!!.data)
+            withContext(NonCancellable) {
+                block(DispatchContextImpl(), currentStateHolder.value!!.data)
+            }
         }
 
     override val currentState get() = currentStateHolder.value!!
