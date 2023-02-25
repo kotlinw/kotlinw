@@ -15,6 +15,7 @@ buildscript {
         maven(uri("https://maven.pkg.jetbrains.space/public/p/compose/dev"))
         maven(uri("https://androidx.dev/storage/compose-compiler/repository/"))
         maven(uri("https://jitpack.io"))
+        maven(uri("https://oss.sonatype.org/content/repositories/snapshots"))
     }
     dependencies {
         // TODO classpath("org.jetbrains.dokka:kotlin-as-java-plugin:1.7.20")

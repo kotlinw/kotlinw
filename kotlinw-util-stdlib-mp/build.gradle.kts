@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(libs.arrow.core)
                 api("com.michael-bull.kotlin-result:kotlin-result:1.1.16")
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.serialization.core)
