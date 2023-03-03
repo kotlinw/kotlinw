@@ -19,7 +19,7 @@ sealed interface ReadResourceError {
 
     object ResourceNotFound : ReadResourceError
 
-    data class ResourceReadFailed(override val cause: Throwable) : ReadResourceError, HasCause
+    data class ResourceReadFailed(val cause: Throwable) : ReadResourceError
 }
 
 fun KClass<*>.readResourceText(name: String, charset: Charset = Charsets.UTF_8): Result<String, ReadResourceError> {
