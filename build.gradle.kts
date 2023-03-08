@@ -23,8 +23,8 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform") version "1.8.20-Beta" apply false
-    kotlin("plugin.serialization") version "1.8.20-Beta" apply false
+    kotlin("multiplatform") version "1.8.20-RC" apply false
+    kotlin("plugin.serialization") version "1.8.20-RC" apply false
     id("com.google.devtools.ksp") version "1.8.20-Beta-1.0.9" apply false
     id("org.jetbrains.compose") version "1.3.0" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
