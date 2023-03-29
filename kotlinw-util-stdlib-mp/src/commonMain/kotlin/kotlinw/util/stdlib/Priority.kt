@@ -9,11 +9,11 @@ value class Priority(val value: Int) : Comparable<Priority> {
 
     companion object {
 
-        val Lowest = Priority(Int.MIN_VALUE)
+        val Lowest = Priority(Int.MAX_VALUE)
 
         val Normal = Priority(0)
 
-        val Highest = Priority(Int.MAX_VALUE)
+        val Highest = Priority(Int.MIN_VALUE)
     }
 
     override fun compareTo(other: Priority): Int = value.compareTo(other.value)
