@@ -28,7 +28,7 @@ actual class ConcurrentHashMap<K, V> private constructor(
 
     override fun compute(key: K, remappingFunction: (K, V?) -> V?): V? = wrapped.compute(key, remappingFunction)
 
-    override fun merge(key: K, value: V, remappingFunction: (V, V) -> V): V? = merge(key, value, remappingFunction)
+    override fun merge(key: K, value: V, remappingFunction: (V, V) -> V): V? = wrapped.merge(key, value, remappingFunction)
 
     override fun equals(other: Any?): Boolean =
         if (other is ConcurrentHashMap<*, *>) {
