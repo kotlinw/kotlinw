@@ -48,7 +48,8 @@ interface ProxyInvocationHandlerPeer {
     fun invokeJavaMethod(method: Method, vararg args: Any?): Any?
 }
 
-// TODO mi van a property-kkel
+// TODO property-k esetén rendes hibaüzenetet
+// TODO legyen egy opcionális szinkronizálás, amikor alapesetben csak egy hívás futhat egyszerre
 class ProxyInvocationHandler(
     val peer: ProxyInvocationHandlerPeer
 ) : InvocationHandler {
