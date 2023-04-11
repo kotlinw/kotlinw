@@ -7,22 +7,18 @@ import kotlin.coroutines.intrinsics.createCoroutineUnintercepted
 
 fun <V> DirectedGraph<V>.dfs(from: Vertex<V>): LinkedHashSet<Vertex<V>> {
     this as DirectedGraphRepresentation<V>
-    return dfsTraversal(
-        from,
-        { true },
-        { true }
-    )
+    return dfsTraversal(from)
 }
 
 internal fun <V> DirectedGraph<V>.dfsTraversal(
     from: Vertex<V>,
-    onVisitVertex: (Vertex<V>) -> Boolean,
-    onRevisitAttempt: (Vertex<V>) -> Boolean
+    onRevisitAttempt: (Vertex<V>) -> Boolean = { true },
+    onVisitVertex: (Vertex<V>) -> Boolean = { true }
 ): LinkedHashSet<Vertex<V>> {
     this as DirectedGraphRepresentation<V>
     val visitedNodes = LinkedHashSet<Vertex<V>>(vertexCount)
 
-    val visit = DeepRecursiveFunction<Vertex<V>, Unit> { vertex ->
+    val visit = DeepRecursiveFunction { vertex ->
         if (visitedNodes.contains(vertex)) {
             if (!onRevisitAttempt(vertex)) {
                 return@DeepRecursiveFunction
