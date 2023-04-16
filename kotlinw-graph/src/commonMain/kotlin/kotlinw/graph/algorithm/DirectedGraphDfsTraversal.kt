@@ -3,7 +3,7 @@ package kotlinw.graph.algorithm
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.DirectedGraphRepresentation
 import kotlinw.graph.model.Vertex
-import kotlinw.util.stdlib.BloomFilter
+import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 
 fun <V> DirectedGraph<V>.dfs(from: Vertex<V>): Sequence<Vertex<V>> {
@@ -24,7 +24,7 @@ internal fun <V> DirectedGraph<V>.dfsTraversal(
 private data class DfsTraversalData<V> private constructor(
     val graph: DirectedGraphRepresentation<V>,
     val visitedVerticesSet: MutableSet<Vertex<V>>,
-    val visitedVerticesBloomFilter: BloomFilter<Vertex<V>>,
+    val visitedVerticesBloomFilter: MutableBloomFilter<Vertex<V>>,
     val onRevisitAttempt: (Vertex<V>) -> Unit
 ) {
 
@@ -32,11 +32,7 @@ private data class DfsTraversalData<V> private constructor(
             this(
                 graph,
                 HashSet(graph.vertexCount),
-                newMutableBloomFilter<Vertex<V>>(graph.vertexCount).apply {
-                    graph.vertices.forEach {
-                        add(it)
-                    }
-                },
+                newMutableBloomFilter<Vertex<V>>(graph.vertexCount / 2),
                 onRevisitAttempt
             )
 }
@@ -51,6 +47,8 @@ private suspend fun <V> SequenceScope<Vertex<V>>.visit(
         traversalData.onRevisitAttempt(vertex)
     } else {
         traversalData.visitedVerticesSet.add(vertex)
+        traversalData.visitedVerticesBloomFilter.add(vertex)
+
         yield(vertex)
 
         traversalData.graph.inNeighbors(vertex).forEach {
