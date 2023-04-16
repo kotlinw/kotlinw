@@ -1,8 +1,8 @@
 package kotlinw.graph.model
 
-internal sealed interface DirectedGraphRepresentation<V : Any>: DirectedGraph<V> {
+internal sealed interface DirectedGraphRepresentation<D : Any, V : Vertex<D>> :
+    GraphRepresentation<D, V>,
+    DirectedGraph<D, V> {
 
-    val vertexCount: Int
-
-    fun inNeighbors(from: Vertex<V>): Sequence<Vertex<V>>
+    fun inNeighbors(from: V): Sequence<V> = neighborsOf(from)
 }

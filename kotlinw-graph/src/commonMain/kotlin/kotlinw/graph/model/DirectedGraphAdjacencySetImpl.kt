@@ -1,16 +1,13 @@
 package kotlinw.graph.model
 
-internal class DirectedGraphAdjacencySetImpl<V: Any>(
-    private val vertexAdjacencySets: Map<V, Set<V>>
-) : DirectedGraphRepresentation<V> {
+internal class DirectedGraphAdjacencySetImpl<D : Any, V : Vertex<D>>(
+    private val vertexAdjacencySets: LinkedHashMap<V, LinkedHashSet<V>>
+) : DirectedGraphRepresentation<D, V> {
 
     override val vertexCount: Int get() = vertexAdjacencySets.size
 
-    override fun inNeighbors(from: Vertex<V>): Sequence<Vertex<V>> =
-        vertexAdjacencySets[from.data]?.asSequence()?.map { VertexImpl(it) } ?: throw ForeignGraphVertexException()
+    override fun neighborsOf(from: V): Sequence<V> =
+        vertexAdjacencySets[from]?.asSequence() ?: throw ForeignGraphVertexException()
 
-
-    override val vertices: Sequence<Vertex<V>>
-        get() = vertexAdjacencySets.keys.asSequence().map { VertexImpl(it) }
-
+    override val vertices get() = vertexAdjacencySets.keys.asSequence()
 }

@@ -1,8 +1,6 @@
 package kotlinw.graph.model
 
-sealed interface DirectedGraph<V: Any> {
+sealed interface DirectedGraph<D: Any, V: Vertex<D>>: Graph<D, V> {
 
     companion object
-
-    val vertices: Sequence<Vertex<V>>
 }

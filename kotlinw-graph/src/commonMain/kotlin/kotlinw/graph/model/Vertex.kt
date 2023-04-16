@@ -1,6 +1,6 @@
 package kotlinw.graph.model
 
-sealed interface Vertex<V: Any> {
+sealed interface Vertex<out D: Any> {
 
-    val data: V
+    val data: D
 }

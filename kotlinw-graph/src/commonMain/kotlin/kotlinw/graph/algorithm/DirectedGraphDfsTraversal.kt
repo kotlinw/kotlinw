@@ -6,40 +6,40 @@ import kotlinw.graph.model.Vertex
 import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 
-fun <V: Any> DirectedGraph<V>.dfs(from: Vertex<V>): Sequence<Vertex<V>> {
-    this as DirectedGraphRepresentation<V>
+fun <D: Any, V: Vertex<D>> DirectedGraph<D, V>.dfs(from: V): Sequence<Vertex<D>> {
+    check(this is DirectedGraphRepresentation<D, V>)
     return dfsTraversal(from)
 }
 
-internal fun <V: Any> DirectedGraph<V>.dfsTraversal(
-    from: Vertex<V>,
-    onRevisitAttempt: (Vertex<V>) -> Unit = {}
-): Sequence<Vertex<V>> {
-    this as DirectedGraphRepresentation<V>
+internal fun <D: Any, V: Vertex<D>> DirectedGraph<D, V>.dfsTraversal(
+    from: V,
+    onRevisitAttempt: (V) -> Unit = {}
+): Sequence<V> {
+    check(this is DirectedGraphRepresentation<D, V>)
     return sequence {
         visit(DfsTraversalData(this@dfsTraversal, onRevisitAttempt), from)
     }
 }
 
-private data class DfsTraversalData<V: Any> private constructor(
-    val graph: DirectedGraphRepresentation<V>,
-    val visitedVerticesSet: MutableSet<Vertex<V>>,
-    val visitedVerticesBloomFilter: MutableBloomFilter<Vertex<V>>,
-    val onRevisitAttempt: (Vertex<V>) -> Unit
+private data class DfsTraversalData<D: Any, V: Vertex<D>> private constructor(
+    val graph: DirectedGraphRepresentation<D, V>,
+    val visitedVerticesSet: MutableSet<V>,
+    val visitedVerticesBloomFilter: MutableBloomFilter<V>,
+    val onRevisitAttempt: (V) -> Unit
 ) {
 
-    constructor(graph: DirectedGraphRepresentation<V>, onRevisitAttempt: (Vertex<V>) -> Unit) :
+    constructor(graph: DirectedGraphRepresentation<D, V>, onRevisitAttempt: (V) -> Unit) :
             this(
                 graph,
                 HashSet(graph.vertexCount),
-                newMutableBloomFilter<Vertex<V>>(graph.vertexCount * 4),
+                newMutableBloomFilter<V>(graph.vertexCount * 4),
                 onRevisitAttempt
             )
 }
 
-private suspend fun <V : Any> SequenceScope<Vertex<V>>.visit(
-    traversalData: DfsTraversalData<V>, // TODO context(DfsTraversalData<V>)
-    vertex: Vertex<V>
+private suspend fun <D: Any, V: Vertex<D>> SequenceScope<V>.visit(
+    traversalData: DfsTraversalData<D, V>, // TODO context(DfsTraversalData<V>)
+    vertex: V
 ) {
     if (traversalData.visitedVerticesBloomFilter.mightContain(vertex)
         && traversalData.visitedVerticesSet.contains(vertex)
