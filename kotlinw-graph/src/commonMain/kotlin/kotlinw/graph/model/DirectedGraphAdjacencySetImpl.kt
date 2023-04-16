@@ -1,6 +1,6 @@
 package kotlinw.graph.model
 
-internal class DirectedGraphAdjacencySetImpl<V>(
+internal class DirectedGraphAdjacencySetImpl<V: Any>(
     private val vertexAdjacencySets: Map<V, Set<V>>
 ) : DirectedGraphRepresentation<V> {
 

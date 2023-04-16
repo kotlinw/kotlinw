@@ -5,7 +5,7 @@ import kotlinw.graph.model.Vertex
 
 private class CyclicGraphException : RuntimeException()
 
-fun <V> DirectedGraph<V>.isAcyclic(from: Vertex<V>): Boolean =
+fun <V: Any> DirectedGraph<V>.isAcyclic(from: Vertex<V>): Boolean =
     try {
         dfsTraversal(from, onRevisitAttempt = { throw CyclicGraphException() })
         true

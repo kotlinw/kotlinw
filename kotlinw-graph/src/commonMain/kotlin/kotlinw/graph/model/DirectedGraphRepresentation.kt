@@ -1,8 +1,6 @@
 package kotlinw.graph.model
 
-import arrow.core.raise.Raise
-
-internal sealed interface DirectedGraphRepresentation<V>: DirectedGraph<V> {
+internal sealed interface DirectedGraphRepresentation<V : Any>: DirectedGraph<V> {
 
     val vertexCount: Int
 

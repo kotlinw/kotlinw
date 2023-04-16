@@ -6,12 +6,12 @@ import kotlinw.graph.model.Vertex
 import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 
-fun <V> DirectedGraph<V>.dfs(from: Vertex<V>): Sequence<Vertex<V>> {
+fun <V: Any> DirectedGraph<V>.dfs(from: Vertex<V>): Sequence<Vertex<V>> {
     this as DirectedGraphRepresentation<V>
     return dfsTraversal(from)
 }
 
-internal fun <V> DirectedGraph<V>.dfsTraversal(
+internal fun <V: Any> DirectedGraph<V>.dfsTraversal(
     from: Vertex<V>,
     onRevisitAttempt: (Vertex<V>) -> Unit = {}
 ): Sequence<Vertex<V>> {
@@ -21,7 +21,7 @@ internal fun <V> DirectedGraph<V>.dfsTraversal(
     }
 }
 
-private data class DfsTraversalData<V> private constructor(
+private data class DfsTraversalData<V: Any> private constructor(
     val graph: DirectedGraphRepresentation<V>,
     val visitedVerticesSet: MutableSet<Vertex<V>>,
     val visitedVerticesBloomFilter: MutableBloomFilter<Vertex<V>>,
@@ -37,7 +37,7 @@ private data class DfsTraversalData<V> private constructor(
             )
 }
 
-private suspend fun <V> SequenceScope<Vertex<V>>.visit(
+private suspend fun <V : Any> SequenceScope<Vertex<V>>.visit(
     traversalData: DfsTraversalData<V>, // TODO context(DfsTraversalData<V>)
     vertex: Vertex<V>
 ) {
