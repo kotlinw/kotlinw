@@ -3,7 +3,7 @@ package kotlinw.graph.algorithm
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 
-private class CyclicGraphException() : RuntimeException()
+private class CyclicGraphException : RuntimeException()
 
 fun <V> DirectedGraph<V>.isAcyclic(from: Vertex<V>): Boolean =
     try {
