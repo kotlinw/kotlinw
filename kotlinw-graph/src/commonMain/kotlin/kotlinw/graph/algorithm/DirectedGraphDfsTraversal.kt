@@ -3,6 +3,8 @@ package kotlinw.graph.algorithm
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.DirectedGraphRepresentation
 import kotlinw.graph.model.Vertex
+import kotlinw.util.stdlib.BloomFilter
+import kotlinw.util.stdlib.newMutableBloomFilter
 
 fun <V> DirectedGraph<V>.dfs(from: Vertex<V>): Sequence<Vertex<V>> {
     this as DirectedGraphRepresentation<V>
@@ -15,24 +17,44 @@ internal fun <V> DirectedGraph<V>.dfsTraversal(
 ): Sequence<Vertex<V>> {
     this as DirectedGraphRepresentation<V>
     return sequence {
-        visit(this@dfsTraversal, from, HashSet(vertexCount), onRevisitAttempt)
+        visit(DfsTraversalData(this@dfsTraversal, onRevisitAttempt), from)
     }
 }
 
-internal suspend fun <V> SequenceScope<Vertex<V>>.visit(
-    graph: DirectedGraphRepresentation<V>,
-    vertex: Vertex<V>,
-    visitedNodes: HashSet<Vertex<V>>, // TODO more efficient data structure
-    onRevisitAttempt: (Vertex<V>) -> Unit
+private data class DfsTraversalData<V> private constructor(
+    val graph: DirectedGraphRepresentation<V>,
+    val visitedVerticesSet: MutableSet<Vertex<V>>,
+    val visitedVerticesBloomFilter: BloomFilter<Vertex<V>>,
+    val onRevisitAttempt: (Vertex<V>) -> Unit
 ) {
-    if (visitedNodes.contains(vertex)) {
-        onRevisitAttempt(vertex)
+
+    constructor(graph: DirectedGraphRepresentation<V>, onRevisitAttempt: (Vertex<V>) -> Unit) :
+            this(
+                graph,
+                HashSet(graph.vertexCount),
+                newMutableBloomFilter<Vertex<V>>(graph.vertexCount).apply {
+                    graph.vertices.forEach {
+                        add(it)
+                    }
+                },
+                onRevisitAttempt
+            )
+}
+
+private suspend fun <V> SequenceScope<Vertex<V>>.visit(
+    traversalData: DfsTraversalData<V>, // TODO context(DfsTraversalData<V>)
+    vertex: Vertex<V>
+) {
+    if (traversalData.visitedVerticesBloomFilter.mightContain(vertex)
+        && traversalData.visitedVerticesSet.contains(vertex)
+    ) {
+        traversalData.onRevisitAttempt(vertex)
     } else {
-        visitedNodes.add(vertex)
+        traversalData.visitedVerticesSet.add(vertex)
         yield(vertex)
 
-        graph.inNeighbors(vertex).forEach {
-            visit(graph, it, visitedNodes, onRevisitAttempt)
+        traversalData.graph.inNeighbors(vertex).forEach {
+            visit(traversalData, it)
         }
     }
 }

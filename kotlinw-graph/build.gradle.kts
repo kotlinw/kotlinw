@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(libs.arrow.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.serialization.core)
