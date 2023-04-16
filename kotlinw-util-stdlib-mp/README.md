@@ -37,7 +37,7 @@ with(newMutableBloomFilter<Int>(4)) {
     assertTrue(mightContain(3))
 
     (4..Int.MAX_VALUE).forEach {
-        mightContain(it)
+        assertTrue(mightContain(it))
     }
 }
 ```

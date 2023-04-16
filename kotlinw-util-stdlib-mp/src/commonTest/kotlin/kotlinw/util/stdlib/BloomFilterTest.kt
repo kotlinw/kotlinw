@@ -72,7 +72,7 @@ class BloomFilterTest {
 
             // Use 999 instead of Int.MAX_VALUE for performance
             (4..999).forEach {
-                mightContain(it)
+                assertTrue(mightContain(it))
             }
         }
     }
