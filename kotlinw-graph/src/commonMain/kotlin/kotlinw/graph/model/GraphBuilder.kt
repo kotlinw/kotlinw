@@ -1,19 +1,19 @@
 package kotlinw.graph.model
 
-fun <V> DirectedGraph.Companion.build(builder: DirectedGraphBuilder<V>.() -> Unit): DirectedGraph<V> =
+fun <V : Any> DirectedGraph.Companion.build(builder: DirectedGraphBuilder<V>.() -> Unit): DirectedGraph<V> =
     DirectedGraphBuilderImpl<V>().let {
         builder(it)
         it.build()
     }
 
-interface DirectedGraphBuilder<V> {
+interface DirectedGraphBuilder<V: Any> {
 
     fun vertex(data: V): Vertex<V>
 
     fun edge(from: Vertex<V>, to: Vertex<V>)
 }
 
-private class DirectedGraphBuilderImpl<V> : DirectedGraphBuilder<V> {
+private class DirectedGraphBuilderImpl<V: Any> : DirectedGraphBuilder<V> {
 
     private val vertices = mutableMapOf<V, MutableSet<V>>()
 
