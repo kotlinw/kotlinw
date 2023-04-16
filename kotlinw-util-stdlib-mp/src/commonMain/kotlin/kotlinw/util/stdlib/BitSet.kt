@@ -1,4 +1,5 @@
 // Source: https://github.com/JetBrains/kotlin/blob/4819593bf43dc06ed2e4e1b6fd7766cdbac89e5d/kotlin-native/runtime/src/main/kotlin/kotlin/native/BitSet.kt#L15
+// Related issue: https://youtrack.jetbrains.com/issue/KT-55163
 
 /*
  * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
