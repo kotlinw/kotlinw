@@ -3,6 +3,7 @@ package kotlinw.util.stdlib
 
 import kotlin.jvm.JvmName
 
+@Deprecated("Deprecated because of incorrect semantics on single-threaded platforms.")
 expect class ThreadLocal<T>() {
     fun get(): T?
 
