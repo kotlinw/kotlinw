@@ -1,0 +1,15 @@
+[versions]
+
+# https://github.com/JetBrains/kotlin
+kotlin = "1.8.20"
+
+# https://central.sonatype.com/namespace/xyz.kotlinw
+kotlinw = "0.0.4"
+
+[libraries]
+
+kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
+
+kotlinw-util-stdlib = { module = "xyz.kotlinw:kotlinw-util-stdlib-mp", version.ref = "kotlinw" }
+
+[plugins]
