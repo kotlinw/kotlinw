@@ -25,6 +25,9 @@ kotlinWrappers = "1.0.0-pre.449"
 
 logback = "1.4.5"
 
+# https://github.com/arrow-kt/arrow/releases
+arrow = "1.2.0-RC"
+
 [libraries]
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -106,7 +109,12 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback"}
+
+arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
+arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 
 [plugins]

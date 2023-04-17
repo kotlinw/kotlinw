@@ -13,6 +13,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 //include(":lib:kotlinw:kotlinw-compose")
 
 include(":kotlinw-immutator-annotations")
+include(":kotlinw-immutator-graph")
 //include(":lib:kotlinw:kotlinw-immutator-api")
 //include(":lib:kotlinw:kotlinw-immutator-example-webapp")
 //include(":lib:kotlinw:kotlinw-immutator-processor")
