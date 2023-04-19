@@ -32,7 +32,7 @@ private data class DfsTraversalData<D: Any, V: Vertex<D>> private constructor(
             this(
                 graph,
                 HashSet(graph.vertexCount),
-                newMutableBloomFilter<V>(graph.vertexCount * 4),
+                newMutableBloomFilter<V>(graph.vertexCount),
                 onRevisitAttempt
             )
 }
