@@ -23,20 +23,18 @@ fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.dfs(from: V): Sequence<Vertex<D
 
 private sealed interface RemainingVerticesHolder<D : Any, V : Vertex<D>> {
 
-    fun isEmpty(): Boolean
+    fun isNotEmpty(): Boolean
 
     fun add(vertex: V)
 
     fun remove(): V
 }
 
-private fun <D : Any, V : Vertex<D>> RemainingVerticesHolder<D, V>.isNotEmpty() = !isEmpty()
-
 @JvmInline
 private value class BfsRemainingVerticesHolder<D : Any, V : Vertex<D>>(private val queue: MutableQueue<V> = LinkedQueue()) :
     RemainingVerticesHolder<D, V> {
 
-    override fun isEmpty() = queue.isEmpty()
+    override fun isNotEmpty() = queue.size > 0
 
     override fun remove(): V = queue.dequeueOrNull()!!
 
@@ -47,7 +45,7 @@ private value class BfsRemainingVerticesHolder<D : Any, V : Vertex<D>>(private v
 private value class DfsRemainingVerticesHolder<D : Any, V : Vertex<D>>(private val stack: MutableStack<V> = ArrayStack()) :
     RemainingVerticesHolder<D, V> {
 
-    override fun isEmpty() = stack.isEmpty()
+    override fun isNotEmpty() = stack.size > 0
 
     override fun remove(): V = stack.popOrNull()!!
 
@@ -77,17 +75,14 @@ private fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.traverse(
 
         while (remainingVerticesHolder.isNotEmpty()) {
             val current = remainingVerticesHolder.remove()
+            markAsVisited(current)
+            yield(current)
 
-            if (current.isVisited()) {
-                onRevisitAttempt(current)
-            } else {
-                markAsVisited(current)
-                yield(current)
-
-                inNeighbors(current).forEach {
-                    if (!it.isVisited()) {
-                        remainingVerticesHolder.add(it)
-                    }
+            inNeighbors(current).forEach {
+                if (it.isVisited()) {
+                    onRevisitAttempt(current)
+                } else {
+                    remainingVerticesHolder.add(it)
                 }
             }
         }
