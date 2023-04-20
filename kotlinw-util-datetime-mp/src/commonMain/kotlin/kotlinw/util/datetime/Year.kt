@@ -10,6 +10,9 @@ value class Year(val value: Int)
 
 expect fun isLeapYear(year: Int): Boolean
 
+internal fun isLeapYearImpl(year: Int): Boolean =
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+
 val Year.isLeapYear: Boolean get() = isLeapYear(value)
 
 fun Year.atMonth(month: Month) = YearMonth(this, month)
