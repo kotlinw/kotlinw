@@ -1,7 +1,5 @@
 package kotlinw.graph.model
 
-import kotlinw.graph.algorithm.dfs
-
 private data class RootedTreeNodeImpl<D : Any>(
     override val data: D,
     override val parent: RootedTreeNode<D>?,

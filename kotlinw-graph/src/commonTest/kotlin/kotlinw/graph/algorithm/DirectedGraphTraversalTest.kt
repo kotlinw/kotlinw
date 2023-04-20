@@ -40,7 +40,7 @@ class DirectedGraphTraversalTest {
 
         assertEquals(
             listOf("1", "2", "5", "9", "10", "6", "3", "4", "7", "11", "12", "8"),
-            graph.dfs(from).toList().map { it.data }
+            graph.recursiveDfs(from).toList().map { it.data }
         )
 
         assertEquals(
