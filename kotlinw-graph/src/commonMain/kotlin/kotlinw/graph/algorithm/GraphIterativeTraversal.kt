@@ -4,22 +4,21 @@ import kotlinw.collection.ArrayStack
 import kotlinw.collection.LinkedQueue
 import kotlinw.collection.MutableQueue
 import kotlinw.collection.MutableStack
-import kotlinw.graph.model.DirectedGraph
-import kotlinw.graph.model.DirectedGraphRepresentation
 import kotlinw.graph.model.Graph
+import kotlinw.graph.model.GraphRepresentation
 import kotlinw.graph.model.Vertex
 import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 import kotlin.jvm.JvmInline
 
 fun <D : Any, V : Vertex<D>> Graph<D, V>.bfs(from: V): Sequence<Vertex<D>> {
-    check(this is DirectedGraphRepresentation<D, V>)
-    return traverse(from, BfsRemainingVerticesHolder(), { inNeighborsOf(it).asIterable() })
+    check(this is GraphRepresentation<D, V>)
+    return traverse(from, BfsRemainingVerticesHolder(), { neighborsOf(it).asIterable() })
 }
 
-fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.dfs(from: V): Sequence<Vertex<D>> {
-    check(this is DirectedGraphRepresentation<D, V>)
-    return traverse(from, DfsRemainingVerticesHolder(), { inNeighborsOf(it).asIterable().reversed() })
+fun <D : Any, V : Vertex<D>> Graph<D, V>.dfs(from: V): Sequence<Vertex<D>> {
+    check(this is GraphRepresentation<D, V>)
+    return traverse(from, DfsRemainingVerticesHolder(), { neighborsOf(it).asIterable().reversed() })
 }
 
 private sealed interface RemainingVerticesHolder<D : Any, V : Vertex<D>> {
@@ -53,13 +52,13 @@ private value class DfsRemainingVerticesHolder<D : Any, V : Vertex<D>>(private v
     override fun add(vertex: V) = stack.push(vertex)
 }
 
-private fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.traverse(
+private fun <D : Any, V : Vertex<D>> Graph<D, V>.traverse(
     from: V,
     remainingVerticesHolder: RemainingVerticesHolder<D, V>,
     inNeighbors: (V) -> Iterable<V>,
     onRevisitAttempt: (V) -> Unit = {}
 ): Sequence<V> {
-    check(this is DirectedGraphRepresentation<D, V>)
+    check(this is GraphRepresentation<D, V>)
     return sequence {
         val graph = this@traverse
         val visitedVerticesSet: MutableSet<V> = HashSet(graph.vertexCount)

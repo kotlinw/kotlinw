@@ -1,34 +1,34 @@
 package kotlinw.graph.algorithm
 
-import kotlinw.graph.model.DirectedGraph
-import kotlinw.graph.model.DirectedGraphRepresentation
+import kotlinw.graph.model.Graph
+import kotlinw.graph.model.GraphRepresentation
 import kotlinw.graph.model.Vertex
 import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 
-fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.recursiveDfs(from: V): Sequence<Vertex<D>> {
-    check(this is DirectedGraphRepresentation<D, V>)
+fun <D : Any, V : Vertex<D>> Graph<D, V>.recursiveDfs(from: V): Sequence<Vertex<D>> {
+    check(this is GraphRepresentation<D, V>)
     return recursiveDfsTraversal(from)
 }
 
-internal fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.recursiveDfsTraversal(
+internal fun <D : Any, V : Vertex<D>> Graph<D, V>.recursiveDfsTraversal(
     from: V,
     onRevisitAttempt: (V) -> Unit = {}
 ): Sequence<V> {
-    check(this is DirectedGraphRepresentation<D, V>)
+    check(this is GraphRepresentation<D, V>)
     return sequence {
         visit(RecursiveDfsTraversalData(this@recursiveDfsTraversal, onRevisitAttempt), from)
     }
 }
 
 private data class RecursiveDfsTraversalData<D : Any, V : Vertex<D>> private constructor(
-    val graph: DirectedGraphRepresentation<D, V>,
+    val graph: GraphRepresentation<D, V>,
     val visitedVerticesSet: MutableSet<V>,
     val visitedVerticesBloomFilter: MutableBloomFilter<V>,
     val onRevisitAttempt: (V) -> Unit
 ) {
 
-    constructor(graph: DirectedGraphRepresentation<D, V>, onRevisitAttempt: (V) -> Unit) :
+    constructor(graph: GraphRepresentation<D, V>, onRevisitAttempt: (V) -> Unit) :
             this(
                 graph,
                 HashSet(graph.vertexCount),
@@ -38,7 +38,7 @@ private data class RecursiveDfsTraversalData<D : Any, V : Vertex<D>> private con
 }
 
 private suspend fun <D : Any, V : Vertex<D>> SequenceScope<V>.visit(
-    traversalData: RecursiveDfsTraversalData<D, V>, // TODO context(DfsTraversalData<V>)
+    traversalData: RecursiveDfsTraversalData<D, V>, // TODO context(RecursiveDfsTraversalData<D, V>)
     vertex: V
 ) {
     if (traversalData.visitedVerticesBloomFilter.mightContain(vertex)
@@ -51,7 +51,7 @@ private suspend fun <D : Any, V : Vertex<D>> SequenceScope<V>.visit(
 
         yield(vertex)
 
-        traversalData.graph.inNeighborsOf(vertex).forEach {
+        traversalData.graph.neighborsOf(vertex).forEach {
             visit(traversalData, it)
         }
     }
