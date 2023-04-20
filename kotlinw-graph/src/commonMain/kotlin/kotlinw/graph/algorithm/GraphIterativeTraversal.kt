@@ -5,19 +5,16 @@ import kotlinw.collection.LinkedQueue
 import kotlinw.collection.MutableQueue
 import kotlinw.collection.MutableStack
 import kotlinw.graph.model.Graph
-import kotlinw.graph.model.GraphRepresentation
 import kotlinw.graph.model.Vertex
 import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 import kotlin.jvm.JvmInline
 
 fun <D : Any, V : Vertex<D>> Graph<D, V>.bfs(from: V): Sequence<Vertex<D>> {
-    check(this is GraphRepresentation<D, V>)
     return traverse(from, BfsRemainingVerticesHolder(), { neighborsOf(it).asIterable() })
 }
 
 fun <D : Any, V : Vertex<D>> Graph<D, V>.dfs(from: V): Sequence<Vertex<D>> {
-    check(this is GraphRepresentation<D, V>)
     return traverse(from, DfsRemainingVerticesHolder(), { neighborsOf(it).asIterable().reversed() })
 }
 
@@ -58,7 +55,6 @@ private fun <D : Any, V : Vertex<D>> Graph<D, V>.traverse(
     inNeighbors: (V) -> Iterable<V>,
     onRevisitAttempt: (V) -> Unit = {}
 ): Sequence<V> {
-    check(this is GraphRepresentation<D, V>)
     return sequence {
         val graph = this@traverse
         val visitedVerticesSet: MutableSet<V> = HashSet(graph.vertexCount)
