@@ -1,15 +1,12 @@
 package kotlinw.statemachine
 
-import kotlinw.util.stdlib.concurrent.AtomicReference
-import kotlinw.util.stdlib.Lock
+import arrow.core.continuations.AtomicRef
 import kotlinw.util.stdlib.concurrent.value
-import kotlinw.util.stdlib.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -249,7 +246,7 @@ suspend fun <SMDefinition : StateMachineDefinition<SMDefinition>, ParameterType 
     executor: TransitionExecutor<SMDefinition, ParameterType>,
     parameter: ParameterType
 ): StateMachineSnapshot<SMDefinition> {
-    val resultSnapshot = AtomicReference(this)
+    val resultSnapshot = AtomicRef(this)
 
     val dispatcher = object : StateMachineTransitionDispatcher<SMDefinition> {
         override val definition: SMDefinition get() = this@dispatch.definition

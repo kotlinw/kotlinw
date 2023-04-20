@@ -1,13 +1,13 @@
 package kotlinw.statemachine2
 
+import arrow.atomic.AtomicBoolean
+import arrow.core.continuations.AtomicRef
 import kotlinw.logging.mp.LoggerFactory
 import kotlinw.logging.mp.debug
 import kotlinw.logging.mp.error
 import kotlinw.logging.mp.getLogger
 import kotlinw.util.coroutine.withReentrantLock
-import kotlinw.util.stdlib.concurrent.AtomicBoolean
 import kotlinw.util.stdlib.concurrent.value
-import kotlinw.util.stdlib.concurrent.AtomicReference
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -346,7 +346,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
         override val smd: SMD get() = stateMachineDefinition
 
-        val cancellationByStateChange = AtomicBoolean()
+        val cancellationByStateChange = AtomicBoolean(false)
 
         private val onBeforeStateChangeFinalizerTasks = ConcurrentLinkedQueue<StateFinalizerTask<StateDataType>>()
 
@@ -399,16 +399,16 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
     private val lock = Mutex()
 
-    private val statusHolder = AtomicReference(StateMachineExecutor.Status.Active)
+    private val statusHolder = AtomicRef(StateMachineExecutor.Status.Active)
 
     override val status: StateMachineExecutor.Status get() = statusHolder.value
 
-    private val currentStateHolder: AtomicReference<State<StateDataBaseType, out StateDataBaseType>?> =
-        AtomicReference(null)
+    private val currentStateHolder: AtomicRef<State<StateDataBaseType, out StateDataBaseType>?> =
+        AtomicRef(null)
 
     private inner class InStateExecutionContextData(val context: InStateExecutionContextImpl<*>, val job: Job)
 
-    private val currentStateExecutionContextHolder = AtomicReference<InStateExecutionContextData?>(null)
+    private val currentStateExecutionContextHolder = AtomicRef<InStateExecutionContextData?>(null)
 
     internal suspend fun <TransitionParameter, ToStateDataType : StateDataBaseType> executeInitialTransition(
         transition: InitialExecutableTransition<TransitionParameter, StateDataBaseType, ToStateDataType>
