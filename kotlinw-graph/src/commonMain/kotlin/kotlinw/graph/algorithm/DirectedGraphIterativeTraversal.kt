@@ -64,9 +64,9 @@ private fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.traverse(
         val visitedVerticesSet: MutableSet<V> = HashSet(graph.vertexCount)
         val visitedVerticesBloomFilter: MutableBloomFilter<V> = newMutableBloomFilter(graph.vertexCount)
 
-        fun markAsVisited(vertex: V) {
-            visitedVerticesSet.add(vertex)
-            visitedVerticesBloomFilter.add(vertex)
+        fun V.markAsVisited() {
+            visitedVerticesSet.add(this)
+            visitedVerticesBloomFilter.add(this)
         }
 
         fun V.isVisited() = visitedVerticesBloomFilter.mightContain(this) && visitedVerticesSet.contains(this)
@@ -75,7 +75,7 @@ private fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.traverse(
 
         while (remainingVerticesHolder.isNotEmpty()) {
             val current = remainingVerticesHolder.remove()
-            markAsVisited(current)
+            current.markAsVisited()
             yield(current)
 
             inNeighbors(current).forEach {
