@@ -6,19 +6,20 @@ import kotlinw.collection.MutableQueue
 import kotlinw.collection.MutableStack
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.DirectedGraphRepresentation
+import kotlinw.graph.model.Graph
 import kotlinw.graph.model.Vertex
 import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 import kotlin.jvm.JvmInline
 
-fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.bfs(from: V): Sequence<Vertex<D>> {
+fun <D : Any, V : Vertex<D>> Graph<D, V>.bfs(from: V): Sequence<Vertex<D>> {
     check(this is DirectedGraphRepresentation<D, V>)
-    return traverse(from, BfsRemainingVerticesHolder(), { inNeighbors(it).asIterable() })
+    return traverse(from, BfsRemainingVerticesHolder(), { inNeighborsOf(it).asIterable() })
 }
 
 fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.dfs(from: V): Sequence<Vertex<D>> {
     check(this is DirectedGraphRepresentation<D, V>)
-    return traverse(from, DfsRemainingVerticesHolder(), { inNeighbors(it).asIterable().reversed() })
+    return traverse(from, DfsRemainingVerticesHolder(), { inNeighborsOf(it).asIterable().reversed() })
 }
 
 private sealed interface RemainingVerticesHolder<D : Any, V : Vertex<D>> {

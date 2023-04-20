@@ -51,7 +51,7 @@ private suspend fun <D : Any, V : Vertex<D>> SequenceScope<V>.visit(
 
         yield(vertex)
 
-        traversalData.graph.inNeighbors(vertex).forEach {
+        traversalData.graph.inNeighborsOf(vertex).forEach {
             visit(traversalData, it)
         }
     }

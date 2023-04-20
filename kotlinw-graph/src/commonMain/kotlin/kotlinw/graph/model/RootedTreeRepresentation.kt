@@ -15,8 +15,8 @@ internal class RootedTreeRepresentation<D : Any>(
 
     override val vertexCount = nodeCount
 
-    override fun neighborsOf(from: RootedTreeNode<D>): Sequence<RootedTreeNode<D>> =
-        from.children?.asSequence() ?: emptySequence()
+    override fun neighborsOf(vertex: RootedTreeNode<D>): Sequence<RootedTreeNode<D>> =
+        vertex.children?.asSequence() ?: emptySequence()
 
     override val vertices: Sequence<RootedTreeNode<D>> get() = TODO()
 }

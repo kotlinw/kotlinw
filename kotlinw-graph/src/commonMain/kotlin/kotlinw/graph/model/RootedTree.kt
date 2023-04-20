@@ -1,6 +1,6 @@
 package kotlinw.graph.model
 
-interface RootedTreeNode<D: Any>: Vertex<D> {
+sealed interface RootedTreeNode<D: Any>: Vertex<D> {
 
     override val data: D
 
@@ -16,7 +16,7 @@ sealed interface RootedTree<D: Any>: Tree<D, RootedTreeNode<D>> {
     val root: RootedTreeNode<D>
 }
 
-fun <D : Any> Tree<D, Vertex<D>>.toRootedTree(from: Vertex<D>): RootedTree<D> =
+fun <D : Any> Tree<D, Vertex<D>>.toRootedTree(root: Vertex<D>): RootedTree<D> =
     RootedTreeRepresentation(
         TODO(),
         TODO()
