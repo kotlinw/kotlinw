@@ -81,6 +81,5 @@ class ArrayQueue<E : Any> : AbstractMutableCollection<E>(), MutableQueue<E> {
             }
         }
 
-    override fun peekOrNull(): E? =
-        if (headIndex == -1) null else list[headIndex]
+    override fun peekOrNull(): E? = if (headIndex >= 0) list[headIndex] else null
 }
