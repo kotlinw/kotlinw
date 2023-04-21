@@ -7,7 +7,7 @@ private class CyclicGraphException : RuntimeException()
 
 fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.isAcyclic(from: V): Boolean =
     try {
-        recursiveDfsTraversal(from, onRevisitAttempt = { throw CyclicGraphException() }).forEach {
+        dfs(from, onRevisitAttempt = { throw CyclicGraphException() }).forEach {
             // Do nothing
         }
         true

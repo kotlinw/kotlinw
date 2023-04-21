@@ -1,6 +1,8 @@
 package kotlinw.graph.algorithm
 
 import kotlinw.graph.model.DirectedGraph
+import kotlinw.graph.model.UndirectedGraph
+import kotlinw.graph.model.Vertex
 import kotlinw.graph.model.build
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -59,5 +61,28 @@ class DirectedGraphTraversalTest {
         edge(v4, v8)
         edge(v7, v11)
         edge(v7, v12)
+    }
+
+
+    @Test
+    fun testUndirectedGraphDfsStackOverflowBug() {
+        lateinit var v1: Vertex<Int>
+        lateinit var v2: Vertex<Int>
+
+        val graph = UndirectedGraph.build {
+            v1 = vertex(1)
+            v2 = vertex(2)
+            edge(v1, v2)
+        }
+
+        assertEquals(
+            listOf(1, 2),
+            graph.dfs(v1).map { it.data }.toList()
+        )
+
+        assertEquals(
+            listOf(2, 1),
+            graph.dfs(v2).map { it.data }.toList()
+        )
     }
 }
