@@ -5,7 +5,7 @@ plugins {
 
 kotlin {
     dependencies {
-        implementation(projects.kotlinw.kotlinwImmutatorApi)
+        implementation(projects.kotlinw.kotlinwRemotingApi)
         implementation(libs.ksp.api)
         implementation(libs.kotlinpoet.ksp)
         implementation(libs.kotlinx.collections.immutable)
