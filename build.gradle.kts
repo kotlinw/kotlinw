@@ -2,6 +2,7 @@ import kotlinw.project.gradle.DevelopmentMode
 import kotlinw.project.gradle.buildMode
 import kotlinw.project.gradle.readOssrhAccountData
 import kotlinw.project.gradle.readSigningData
+import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -26,7 +27,7 @@ plugins {
     kotlin("multiplatform") version "1.8.20" apply false
     kotlin("plugin.serialization") version "1.8.20" apply false
     id("com.google.devtools.ksp") version "1.8.20-1.0.11" apply false
-    id("org.jetbrains.compose") version "1.3.1" apply false
+    id("org.jetbrains.compose") version "1.4.0" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
@@ -39,6 +40,10 @@ val projectVersion: String by project
 
 val kotlinJavaCompatibility = "1.8"
 println("Kotlin default Java compatibility: $kotlinJavaCompatibility")
+
+val notPublishedProjects = listOf(
+    projects.kotlinw.kotlinwRemotingProcessorTest
+).map { it.dependencyProject }
 
 subprojects {
     group = "xyz.kotlinw"
@@ -62,10 +67,10 @@ subprojects {
         maven(uri("https://repo.kotlin.link"))
     }
 
-    fun org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions.configureCommonOptions() {
+    fun KotlinCommonOptions.configureCommonOptions() {
         languageVersion = "1.9"
         apiVersion = "1.8"
-        freeCompilerArgs += kotlin.collections.listOf(
+        freeCompilerArgs += listOf(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=kotlin.time.ExperimentalTime",
             "-opt-in=kotlin.contracts.ExperimentalContracts",
@@ -99,7 +104,7 @@ subprojects {
         useJUnitPlatform()
     }
 
-    if (isPublicationActive) {
+    if (isPublicationActive && project !in notPublishedProjects) {
         val javadocJar by tasks.registering(Jar::class) {
             archiveClassifier.set("javadoc")
         }
