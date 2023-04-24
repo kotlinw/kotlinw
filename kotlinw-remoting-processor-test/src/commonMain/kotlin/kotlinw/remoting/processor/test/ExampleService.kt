@@ -12,4 +12,6 @@ interface ExampleService {
     suspend fun p1IntReturnsUnit(p1: Int)
 
     suspend fun p1IntReturnsString(p1: Int): String
+
+    suspend fun p1IntP2DoubleReturnsFloat(p1: Int, p2: Double): Float
 }

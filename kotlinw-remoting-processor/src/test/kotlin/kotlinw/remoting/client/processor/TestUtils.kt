@@ -7,6 +7,7 @@ import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.symbolProcessorProviders
+import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -37,7 +38,7 @@ inline fun checkCompilationResult(sourceFile: String, block: KotlinCompilation.R
 fun compile(sourceFile: SourceFile, vararg additionalSymbolProcessorProviders: SymbolProcessorProvider) =
     KotlinCompilation().apply {
         sources = listOf(sourceFile)
-        symbolProcessorProviders = listOf(RemotingClientSymbolProcessorProvider()).plus(additionalSymbolProcessorProviders)
+        symbolProcessorProviders = listOf(RemotingSymbolProcessorProvider()).plus(additionalSymbolProcessorProviders)
         messageOutputStream = System.out
         inheritClassPath = true
     }.compile()

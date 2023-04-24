@@ -1,1 +1,1 @@
-kotlinw.remoting.client.processor.RemotingClientSymbolProcessorProvider
+kotlinw.remoting.processor.RemotingSymbolProcessorProvider
