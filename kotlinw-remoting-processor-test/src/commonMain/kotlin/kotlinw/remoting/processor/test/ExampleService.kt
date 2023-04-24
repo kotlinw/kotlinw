@@ -1,9 +1,15 @@
 package kotlinw.remoting.processor.test
 
-import kotlinw.remoting.api.RemotingCapable
+import kotlinw.remoting.api.SupportsRemoting
 
-@RemotingCapable
+@SupportsRemoting
 interface ExampleService {
 
-    suspend fun helloWorld(): String
+    suspend fun noParameterReturnsUnit()
+
+    suspend fun noParameterReturnsString(): String
+
+    suspend fun p1IntReturnsUnit(p1: Int)
+
+    suspend fun p1IntReturnsString(p1: Int): String
 }

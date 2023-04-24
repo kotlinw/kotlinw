@@ -21,8 +21,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.kotlinx.serialization.core)
-                api(libs.kotlinx.coroutines.core)
+                api(projects.kotlinw.kotlinwRemotingApi)
+                api(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {

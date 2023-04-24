@@ -1,7 +1,9 @@
 import org.jetbrains.compose.compose
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("com.google.devtools.ksp")
 }
 
@@ -29,8 +31,11 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(kotlin("test"))
+                implementation(projects.kotlinw.kotlinwRemotingClientKtor)
+                implementation(libs.ktor.client.mock)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val jvmMain by getting {
@@ -56,7 +61,7 @@ dependencies {
 //    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+tasks.withType<KotlinCompile<*>>().all {
     if (name != "kspCommonMainKotlinMetadata") {
         dependsOn("kspCommonMainKotlinMetadata")
     }

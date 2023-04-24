@@ -22,13 +22,16 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
-                api(libs.ktor.http)
+                api(projects.kotlinw.kotlinwRemotingCore)
+                api(libs.ktor.client.core)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(libs.ktor.client.mock)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(kotlin("test"))
             }
         }
     }
