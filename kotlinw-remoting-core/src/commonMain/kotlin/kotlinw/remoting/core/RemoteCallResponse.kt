@@ -18,14 +18,14 @@ data class RemoteCallResponseMetadata(
 )
 
 @Serializable(with = RemoteCallResponseSerializer::class)
-data class RemoteCallResponse<T: Any>(
+data class RemoteCallResponse<T : Any>(
     val payload: T,
     val metadata: RemoteCallResponseMetadata?
 )
 
 typealias RemoteCallResponseFactory<T> = (parameter: T) -> RemoteCallResponse<T>
 
-class RemoteCallResponseSerializer<T: Any>(private val payloadSerializer: KSerializer<T>) :
+class RemoteCallResponseSerializer<T : Any>(private val payloadSerializer: KSerializer<T>) :
     KSerializer<RemoteCallResponse<T>> {
 
     private val metadataSerializer = serializer<RemoteCallResponseMetadata?>()
@@ -40,12 +40,17 @@ class RemoteCallResponseSerializer<T: Any>(private val payloadSerializer: KSeria
         decoder.decodeStructure(descriptor) {
             var payload: T? = null
             var metadata: RemoteCallResponseMetadata? = null
-            while (true) {
-                when (val index = decodeElementIndex(descriptor)) {
-                    0 -> payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
-                    1 -> metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
-                    CompositeDecoder.DECODE_DONE -> break
-                    else -> error("Unexpected index: $index")
+            if (decodeSequentially()) {
+                payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
+                metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
+            } else {
+                while (true) {
+                    when (val index = decodeElementIndex(descriptor)) {
+                        0 -> payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
+                        1 -> metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
+                        CompositeDecoder.DECODE_DONE -> break
+                        else -> error("Unexpected index: $index")
+                    }
                 }
             }
 

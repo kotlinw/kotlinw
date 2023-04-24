@@ -18,14 +18,14 @@ data class RemoteCallRequestMetadata(
 )
 
 @Serializable(with = RemoteCallRequestSerializer::class)
-data class RemoteCallRequest<T: Any>(
+data class RemoteCallRequest<T : Any>(
     val payload: T,
     val metadata: RemoteCallRequestMetadata?
 )
 
 typealias RemoteCallRequestFactory<T> = (parameter: T) -> RemoteCallRequest<T>
 
-class RemoteCallRequestSerializer<T: Any>(private val payloadSerializer: KSerializer<T>) :
+class RemoteCallRequestSerializer<T : Any>(private val payloadSerializer: KSerializer<T>) :
     KSerializer<RemoteCallRequest<T>> {
 
     private val metadataSerializer = serializer<RemoteCallRequestMetadata?>()
@@ -40,12 +40,17 @@ class RemoteCallRequestSerializer<T: Any>(private val payloadSerializer: KSerial
         decoder.decodeStructure(descriptor) {
             var payload: T? = null
             var metadata: RemoteCallRequestMetadata? = null
-            while (true) {
-                when (val index = decodeElementIndex(descriptor)) {
-                    0 -> payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
-                    1 -> metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
-                    DECODE_DONE -> break
-                    else -> error("Unexpected index: $index")
+            if (decodeSequentially()) {
+                payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
+                metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
+            } else {
+                while (true) {
+                    when (val index = decodeElementIndex(descriptor)) {
+                        0 -> payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
+                        1 -> metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
+                        DECODE_DONE -> break
+                        else -> error("Unexpected index: $index")
+                    }
                 }
             }
 

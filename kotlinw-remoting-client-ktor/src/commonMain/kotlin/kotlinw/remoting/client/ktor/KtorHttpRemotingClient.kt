@@ -26,13 +26,12 @@ import kotlin.reflect.KFunction
 class KtorHttpRemotingClient(
     private val serializer: SerialFormat,
     private val contentType: ContentType,
-    httpClientEngine: HttpClientEngine
+    private val httpClient: HttpClient
 ) :
     RemotingClientImplementor {
 
-    private val httpClient = HttpClient(httpClientEngine) {
-        // TODO
-    }
+    constructor(serializer: SerialFormat, contentType: ContentType, httpClientEngine: HttpClientEngine) :
+            this(serializer, contentType, HttpClient(httpClientEngine))
 
     init {
         require(serializer is StringFormat || serializer is BinaryFormat)
@@ -47,7 +46,7 @@ class KtorHttpRemotingClient(
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
     ): R {
-        val response = httpClient.post(buildServiceUrl(serviceName, methodName)) {
+        val response = httpClient.post {
             val requestBody = requestFactory(parameter)
 
             header(HttpHeaders.Accept, contentType.toString())
@@ -58,6 +57,8 @@ class KtorHttpRemotingClient(
                 is StringFormat -> setBody(serializer.encodeToString(requestSerializer, requestBody))
                 is BinaryFormat -> setBody(serializer.encodeToByteArray(requestSerializer, requestBody))
             }
+
+             url(buildServiceUrl(serviceName, methodName))
         }
 
         val deserializer = RemoteCallResponseSerializer(resultDeserializer)
@@ -71,8 +72,8 @@ class KtorHttpRemotingClient(
         return responseBody.payload
     }
 
-    private fun buildServiceUrl(serviceName: String, methodName: String): Url =
-        Url("/$serviceName/$methodName") // TODO
+    private fun buildServiceUrl(serviceName: String, methodName: String): String =
+        "/$serviceName/$methodName" // TODO
 
     private fun <P : Any> requestFactory(parameter: P): RemoteCallRequest<P> =
         RemoteCallRequest(parameter, null)

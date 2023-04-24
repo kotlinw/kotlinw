@@ -1,6 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.google.devtools.ksp")
 }
 
 kotlin {
@@ -28,9 +31,13 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                implementation(projects.kotlinw.kotlinwRemotingProcessorTest)
+                implementation(projects.kotlinw.kotlinwRemotingClientKtor)
+                implementation(libs.mockk)
                 implementation(libs.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.ktor.server.test.host)
                 implementation(kotlin("test"))
             }
         }
@@ -40,8 +47,13 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(libs.ktor.server.test.host)
             }
         }
     }
+}
+
+dependencies {
+    add("kspCommonMainMetadata", projects.kotlinw.kotlinwRemotingProcessor)
+    add("kspJvm", projects.kotlinw.kotlinwRemotingProcessor)
+    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
 }
