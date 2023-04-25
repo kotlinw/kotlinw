@@ -10,7 +10,7 @@ import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageSerializerImpl
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
-import kotlinw.remoting.processor.test.ExampleServiceServerDelegate
+import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +42,7 @@ class SpringSupportTest {
 
         @Bean
         fun exampleServiceReceivedCallProcessor() =
-            ExampleServiceServerDelegate(exampleService(), MessageSerializerImpl(Json.Default))
+            ExampleServiceRemoteCallDelegator(exampleService(), MessageSerializerImpl(Json.Default))
     }
 
     @Value("\${local.server.port}")

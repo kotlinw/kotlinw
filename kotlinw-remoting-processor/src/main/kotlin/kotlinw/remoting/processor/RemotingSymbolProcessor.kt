@@ -95,10 +95,10 @@ class RemotingSymbolProcessor(
             .filter { it.functionKind == FunctionKind.MEMBER && it.isAbstract }
 
         fun KSFunctionDeclaration.parameterClassName(nestedClassClassifier: Int) =
-            clientProxyClassName.nestedClass("Parameter_" + simpleName.asString() + "_" + nestedClassClassifier)
+            clientProxyClassName.nestedClass("Parameter_" + simpleName.asString() + "_cid" + nestedClassClassifier)
 
         fun KSFunctionDeclaration.resultClassName(nestedClassClassifier: Int) =
-            clientProxyClassName.nestedClass("Result_" + simpleName.asString() + "_" + nestedClassClassifier)
+            clientProxyClassName.nestedClass("Result_" + simpleName.asString() + "_cid" + nestedClassClassifier)
 
         fun KSFunctionDeclaration.remotingMethodPath(nestedClassClassifier: Int) =
             simpleName.asString() + "_" + nestedClassClassifier // TODO customizable
@@ -205,7 +205,7 @@ class RemotingSymbolProcessor(
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
-                        .addParameter("helper", MessageSerializer::class)
+                        .addParameter("messageSerializer", MessageSerializer::class)
                         .build()
                 )
                 .addProperty(
@@ -215,9 +215,9 @@ class RemotingSymbolProcessor(
                         .build()
                 )
                 .addProperty(
-                    PropertySpec.builder("helper", MessageSerializer::class)
+                    PropertySpec.builder("messageSerializer", MessageSerializer::class)
                         .addModifiers(KModifier.PRIVATE)
-                        .initializer("helper")
+                        .initializer("messageSerializer")
                         .build()
                 )
                 .addProperty(
@@ -241,7 +241,7 @@ class RemotingSymbolProcessor(
 
                 processCallFunctionBuilder.beginControlFlow("%S ->", function.remotingMethodPath(nestedClassIdentifier))
                 processCallFunctionBuilder.addStatement(
-                    "val r = helper.readMessage(requestData, %M<%T>())",
+                    "val r = messageSerializer.readMessage(requestData, %M<%T>())",
                     serializerFunctionName,
                     function.parameterClassName(nestedClassIdentifier)
                 )
@@ -251,14 +251,14 @@ class RemotingSymbolProcessor(
                 if (returnType.isUnit) {
                     processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
                     processCallFunctionBuilder.addStatement(
-                        "helper.writeMessage(%T, %M<%T>())",
+                        "messageSerializer.writeMessage(%T, %M<%T>())",
                         function.resultClassName(nestedClassIdentifier),
                         serializerFunctionName,
                         function.resultClassName(nestedClassIdentifier),
                     )
                 } else {
                     processCallFunctionBuilder.addStatement(
-                        "helper.writeMessage(%T(${buildTargetFunctionCall()}), %M<%T>())",
+                        "messageSerializer.writeMessage(%T(${buildTargetFunctionCall()}), %M<%T>())",
                         function.resultClassName(nestedClassIdentifier),
                         functionName,
                         serializerFunctionName,

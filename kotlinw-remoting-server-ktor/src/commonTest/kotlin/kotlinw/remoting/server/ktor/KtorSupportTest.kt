@@ -11,7 +11,7 @@ import kotlinw.remoting.core.PayloadSerializer
 import kotlinw.remoting.core.MessageSerializerImpl
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
-import kotlinw.remoting.processor.test.ExampleServiceServerDelegate
+import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
@@ -36,7 +36,7 @@ class KtorSupportTest {
         val payloadSerializer = PayloadSerializer.TextPayloadSerializer(ContentType.Application.Json, Json.Default)
 
         routing {
-            remotingServerRouting(payloadSerializer, listOf(ExampleServiceServerDelegate(service, helper)))
+            remotingServerRouting(payloadSerializer, listOf(ExampleServiceRemoteCallDelegator(service, helper)))
         }
 
         val remotingHttpClientImplementor = KtorRemotingHttpClientImplementor(client)
