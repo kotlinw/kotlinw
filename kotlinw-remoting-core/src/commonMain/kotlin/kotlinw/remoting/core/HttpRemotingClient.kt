@@ -1,7 +1,7 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.api.ClientConnection
-import kotlinw.remoting.api.ClientSubscription
+import kotlinw.remoting.api.MessagingConnection
+import kotlinw.remoting.api.MessageReceiver
 import kotlinw.remoting.client.core.RemotingClientImplementor
 import kotlinw.remoting.server.core.RemotingServerDelegate.Payload
 import kotlinw.remoting.server.core.RemotingServerDelegateHelper
@@ -85,21 +85,21 @@ class HttpRemotingClient(
 
     override suspend fun <T : Any, R> subscribe(
         serviceKClass: KClass<T>,
-        methodKFunction: KFunction<ClientSubscription<R>>,
+        methodKFunction: KFunction<MessageReceiver<R>>,
         serviceName: String,
         methodName: String,
         arguments: Array<Any?>
-    ): ClientSubscription<R> {
+    ): MessageReceiver<R> {
         TODO("Not yet implemented")
     }
 
     override suspend fun <T : Any, R, S> connect(
         serviceKClass: KClass<T>,
-        methodKFunction: KFunction<ClientConnection<R, S>>,
+        methodKFunction: KFunction<MessagingConnection<R, S>>,
         serviceName: String,
         methodName: String,
         arguments: Array<Any?>
-    ): ClientConnection<R, S> {
+    ): MessagingConnection<R, S> {
         TODO("Not yet implemented")
     }
 
