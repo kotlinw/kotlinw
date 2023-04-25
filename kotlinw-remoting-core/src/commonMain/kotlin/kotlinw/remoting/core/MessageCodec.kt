@@ -13,7 +13,7 @@ interface MessageCodec {
     fun <T : Any> encodeMessage(payload: T, payloadSerializer: KSerializer<T>): RawMessage
 }
 
-interface MessageCodecMetadataPrefetchSupport: MessageCodec {
+interface MessageCodecWithMetadataPrefetchSupport: MessageCodec {
 
     interface PrefetchedMetadata {
 
