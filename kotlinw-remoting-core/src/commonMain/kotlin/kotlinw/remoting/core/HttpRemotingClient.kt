@@ -13,11 +13,10 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class HttpRemotingClient(
-    private val serialFormat: SerialFormat,
-    private val contentType: String,
+    private val messageSerializerDescriptor: MessageSerializerDescriptor,
     private val httpClient: RemotingHttpClientImplementor,
     private val remotingServerBaseUrl: String
-) : RemotingClientImplementor, MessageSerializer by MessageSerializerImpl(serialFormat) {
+) : RemotingClientImplementor, MessageSerializer by MessageSerializerImpl(messageSerializerDescriptor) {
 
     interface RemotingHttpClientImplementor {
 
@@ -29,11 +28,7 @@ class HttpRemotingClient(
         ): RawMessage
     }
 
-    init {
-        require(serialFormat is StringFormat || serialFormat is BinaryFormat)
-    }
-
-    private val isResponseBodyText = serialFormat is StringFormat
+    private val serialFormat = messageSerializerDescriptor.serialFormat
 
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
         "$remotingServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO
@@ -53,23 +48,22 @@ class HttpRemotingClient(
         val wrappedParameter = wrapParameter(parameter)
 
         val requestSerializer = RemoteCallRequestSerializer(parameterSerializer)
-        val requestBody = when (serialFormat) {
-            is StringFormat -> RawMessage.Text(serialFormat.encodeToString(requestSerializer, wrappedParameter))
-            is BinaryFormat -> RawMessage.Binary(
-                serialFormat.encodeToByteArray(
-                    requestSerializer,
-                    wrappedParameter
-                )
-            )
+        val requestBody =
+            when (serialFormat) {
+                is StringFormat ->
+                    RawMessage.Text(serialFormat.encodeToString(requestSerializer, wrappedParameter))
 
-            else -> throw IllegalStateException()
-        }
+                is BinaryFormat ->
+                    RawMessage.Binary(serialFormat.encodeToByteArray(requestSerializer, wrappedParameter))
+
+                else -> throw IllegalStateException()
+            }
 
         val responsePayload = httpClient.post(
             buildServiceUrl(serviceName, methodName),
             requestBody,
-            contentType,
-            isResponseBodyText
+            messageSerializerDescriptor.contentType,
+            messageSerializerDescriptor.isText
         )
 
         val deserializer = RemoteCallResponseSerializer(resultDeserializer)
@@ -112,6 +106,4 @@ class HttpRemotingClient(
     ): MessagingConnection<R, S> {
         TODO("Not yet implemented")
     }
-
-
 }

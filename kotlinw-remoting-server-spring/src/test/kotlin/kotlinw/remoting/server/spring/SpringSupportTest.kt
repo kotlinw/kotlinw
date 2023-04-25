@@ -7,10 +7,14 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
+import kotlinw.remoting.core.MessageSerializerDescriptor
 import kotlinw.remoting.core.MessageSerializerImpl
+import kotlinw.remoting.ktor.core.Text
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
+import kotlinw.remoting.server.core.MessageSerializer
+import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,17 +40,28 @@ class SpringSupportTest {
     class TestSpringModule {
 
         @Bean
+        fun messagingSerializerDescriptor(): MessageSerializerDescriptor.Text =
+            MessageSerializerDescriptor.Text(ContentType.Application.Json, Json.Default)
+
+        @Bean
+        fun remotingMessageSerializer(messageSerializerDescriptor: MessageSerializerDescriptor): MessageSerializer =
+            MessageSerializerImpl(messageSerializerDescriptor)
+
+        @Bean
         fun exampleService(): ExampleService = mockk<ExampleService>(relaxed = true) {
             coEvery { p1IntReturnsString(123) } returns "abc"
         }
 
         @Bean
-        fun exampleServiceReceivedCallProcessor() =
-            ExampleServiceRemoteCallDelegator(exampleService(), MessageSerializerImpl(Json.Default))
+        fun exampleServiceReceivedCallProcessor(): RemoteCallDelegator =
+            ExampleServiceRemoteCallDelegator(exampleService())
     }
 
     @Value("\${local.server.port}")
     private var port: Int = -1
+
+    @Autowired
+    private lateinit var messageSerializerDescriptor: MessageSerializerDescriptor
 
     @Autowired
     private lateinit var exampleService: ExampleService
@@ -56,8 +71,7 @@ class SpringSupportTest {
         val proxy: ExampleService =
             ExampleServiceClientProxy(
                 HttpRemotingClient(
-                    Json.Default,
-                    ContentType.Application.Json.toString(),
+                    messageSerializerDescriptor,
                     KtorRemotingHttpClientImplementor(),
                     "http://localhost:$port"
                 )

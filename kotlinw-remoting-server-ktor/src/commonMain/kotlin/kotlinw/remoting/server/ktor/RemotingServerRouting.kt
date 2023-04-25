@@ -1,21 +1,31 @@
 package kotlinw.remoting.server.ktor
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import kotlinw.remoting.core.PayloadSerializer
-import kotlinw.remoting.server.core.RemoteCallDelegator
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.header
+import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.contentType
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import kotlinw.remoting.core.MessageSerializerDescriptor
+import kotlinw.remoting.core.MessageSerializerImpl
 import kotlinw.remoting.server.core.RawMessage
+import kotlinw.remoting.server.core.RemoteCallDelegator
 
 fun Routing.remotingServerRouting(
-    payloadSerializer: PayloadSerializer<*, *>,
+    messageSerializerDescriptor: MessageSerializerDescriptor,
     remoteCallDelegators: Iterable<RemoteCallDelegator>
 ) {
-    val contentTypeValue = payloadSerializer.contentType
+    val contentTypeValue = messageSerializerDescriptor.contentType
     val contentType = ContentType.parse(contentTypeValue) // TODO check
-    val isBinary = payloadSerializer is PayloadSerializer.BinaryPayloadSerializer
+    val isBinary = messageSerializerDescriptor is MessageSerializerDescriptor.Binary
+    val messageSerializer = MessageSerializerImpl(messageSerializerDescriptor)
 
     val delegators = remoteCallDelegators.associateBy { it.servicePath }
 
@@ -35,7 +45,8 @@ fun Routing.remotingServerRouting(
                                     RawMessage.Text(call.receiveText())
                                 }
 
-                            val responsePayload = delegator.processCall(methodPath, requestPayload) // TODO handle errors
+                            // TODO handle errors
+                            val responsePayload = delegator.processCall(methodPath, requestPayload, messageSerializer)
 
                             call.response.status(HttpStatusCode.OK)
                             call.response.header(HttpHeaders.ContentType, contentType.toString())

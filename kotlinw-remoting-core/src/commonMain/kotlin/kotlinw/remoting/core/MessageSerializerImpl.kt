@@ -8,8 +8,10 @@ import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.StringFormat
 
 class MessageSerializerImpl(
-    private val serialFormat: SerialFormat
+    messageSerializerDescriptor: MessageSerializerDescriptor
 ) : MessageSerializer {
+
+    private val serialFormat = messageSerializerDescriptor.serialFormat
 
     init {
         require(serialFormat is StringFormat || serialFormat is BinaryFormat)

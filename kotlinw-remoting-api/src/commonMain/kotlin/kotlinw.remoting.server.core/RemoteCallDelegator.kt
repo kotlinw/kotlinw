@@ -4,5 +4,9 @@ interface RemoteCallDelegator {
 
     val servicePath: String
 
-    suspend fun processCall(methodPath: String, requestData: RawMessage): RawMessage
+    suspend fun processCall(
+        methodPath: String,
+        requestData: RawMessage,
+        messageSerializer: MessageSerializer
+    ): RawMessage
 }

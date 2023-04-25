@@ -1,6 +1,7 @@
 package kotlinw.remoting.server.spring
 
 import jakarta.annotation.PostConstruct
+import kotlinw.remoting.server.core.MessageSerializer
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RawMessage
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,6 +18,9 @@ import org.springframework.web.server.ResponseStatusException
 @Controller
 @RequestMapping("\${kotlinw.remoting.server.spring.controller.path:/remoting}")
 class RemotingServerController {
+
+    @Autowired
+    private lateinit var messageSerializer: MessageSerializer
 
     @Autowired
     private lateinit var handlerList: List<RemoteCallDelegator>
@@ -42,7 +46,7 @@ class RemotingServerController {
         val service = handlers[serviceName]
         if (service != null) {
             val responsePayload =
-                service.processCall(methodName, RawMessage.Text(requestBody)) // TODO handle errors, eg. method not found
+                service.processCall(methodName, RawMessage.Text(requestBody), messageSerializer) // TODO handle errors, eg. method not found
 
             if (responsePayload is RawMessage.Text) {
                 return responsePayload.text

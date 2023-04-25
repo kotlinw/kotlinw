@@ -205,19 +205,12 @@ class RemotingSymbolProcessor(
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
-                        .addParameter("messageSerializer", MessageSerializer::class)
                         .build()
                 )
                 .addProperty(
                     PropertySpec.builder("target", definitionInterfaceName)
                         .addModifiers(KModifier.PRIVATE)
                         .initializer("target")
-                        .build()
-                )
-                .addProperty(
-                    PropertySpec.builder("messageSerializer", MessageSerializer::class)
-                        .addModifiers(KModifier.PRIVATE)
-                        .initializer("messageSerializer")
                         .build()
                 )
                 .addProperty(
@@ -232,6 +225,7 @@ class RemotingSymbolProcessor(
                 .returns(RawMessage::class)
                 .addParameter("methodPath", String::class)
                 .addParameter("requestData", RawMessage::class)
+                .addParameter("messageSerializer", MessageSerializer::class)
 
             processCallFunctionBuilder.beginControlFlow("return when(methodPath)")
 
