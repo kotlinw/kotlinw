@@ -8,7 +8,8 @@ dependencies {
     api(project.dependencies.platform(libs.spring.boot.bom))
     api(libs.spring.context)
     api(libs.spring.web)
-    api(libs.jakarta.annotation.api)
+    implementation(libs.jakarta.annotation.api)
+    implementation(libs.kotlinx.coroutines.reactor)
 
     testImplementation(project.dependencies.platform(libs.spring.boot.bom))
     testImplementation(libs.spring.boot.starter.web)
@@ -18,7 +19,6 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.kotlinx.coroutines.reactor)
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.ktor.client.java)
     testImplementation(libs.mockk)
