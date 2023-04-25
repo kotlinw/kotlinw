@@ -39,7 +39,7 @@ class RemotingServerController {
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseBody
-    suspend fun call(
+    suspend fun callText(
         @PathVariable serviceName: String,
         @PathVariable methodName: String,
         @RequestBody requestBody: String
@@ -53,7 +53,42 @@ class RemotingServerController {
                 val parameter =
                     messageCodec.decodeMessage(RawMessage.Text(requestBody), methodDescriptor.parameterSerializer)
                 val result = service.processCall(methodName, parameter)
-                return (messageCodec.encodeMessage(result, methodDescriptor.resultSerializer as KSerializer<Any>) as RawMessage.Text).text
+                return (messageCodec.encodeMessage(
+                    result,
+                    methodDescriptor.resultSerializer as KSerializer<Any>
+                ) as RawMessage.Text).text
+            } else {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+        } else {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping(
+        path = ["/call/{serviceName}/{methodName}"],
+        consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
+    @ResponseBody
+    suspend fun callBinary(
+        @PathVariable serviceName: String,
+        @PathVariable methodName: String,
+        @RequestBody requestBody: ByteArray
+    ): ByteArray {
+        // TODO handle errors
+
+        val service = handlers[serviceName]
+        if (service != null) {
+            val methodDescriptor = service.methodDescriptors[methodName]
+            if (methodDescriptor != null) {
+                val parameter =
+                    messageCodec.decodeMessage(RawMessage.Binary(requestBody), methodDescriptor.parameterSerializer)
+                val result = service.processCall(methodName, parameter)
+                return (messageCodec.encodeMessage(
+                    result,
+                    methodDescriptor.resultSerializer as KSerializer<Any>
+                ) as RawMessage.Binary).byteArray
             } else {
                 throw ResponseStatusException(HttpStatus.NOT_FOUND);
             }
