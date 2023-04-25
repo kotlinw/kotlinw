@@ -3,12 +3,12 @@ package kotlinw.remoting.client.core
 import kotlinw.remoting.api.MessagingConnection
 import kotlinw.remoting.api.MessageReceiver
 import kotlinw.remoting.api.client.RemotingClient
-import kotlinw.remoting.server.core.RemotingServerDelegateHelper
+import kotlinw.remoting.server.core.MessageSerializer
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-interface RemotingClientImplementor : RemotingClient, RemotingServerDelegateHelper {
+interface RemotingClientImplementor : RemotingClient, MessageSerializer {
 
     suspend fun <T : Any, P: Any, R : Any> call(
         serviceKClass: KClass<T>,

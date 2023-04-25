@@ -7,19 +7,17 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.RemotingServerDelegateHelperImpl
+import kotlinw.remoting.core.MessageSerializerImpl
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceServerDelegate
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
-import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -44,7 +42,7 @@ class SpringSupportTest {
 
         @Bean
         fun exampleServiceReceivedCallProcessor() =
-            ExampleServiceServerDelegate(exampleService(), RemotingServerDelegateHelperImpl(Json.Default))
+            ExampleServiceServerDelegate(exampleService(), MessageSerializerImpl(Json.Default))
     }
 
     @Value("\${local.server.port}")

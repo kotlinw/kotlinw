@@ -8,7 +8,7 @@ import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.PayloadSerializer
-import kotlinw.remoting.core.RemotingServerDelegateHelperImpl
+import kotlinw.remoting.core.MessageSerializerImpl
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceServerDelegate
@@ -32,7 +32,7 @@ class KtorSupportTest {
         val service = mockk<ExampleService>(relaxed = true)
         coEvery { service.p1IntReturnsString(any()) } returns "abc"
 
-        val helper = RemotingServerDelegateHelperImpl(serializer)
+        val helper = MessageSerializerImpl(serializer)
         val payloadSerializer = PayloadSerializer.TextPayloadSerializer(ContentType.Application.Json, Json.Default)
 
         routing {

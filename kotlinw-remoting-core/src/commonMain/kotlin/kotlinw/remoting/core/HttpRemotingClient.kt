@@ -3,8 +3,8 @@ package kotlinw.remoting.core
 import kotlinw.remoting.api.MessagingConnection
 import kotlinw.remoting.api.MessageReceiver
 import kotlinw.remoting.client.core.RemotingClientImplementor
-import kotlinw.remoting.server.core.RemotingServerDelegate.Payload
-import kotlinw.remoting.server.core.RemotingServerDelegateHelper
+import kotlinw.remoting.server.core.RawMessage
+import kotlinw.remoting.server.core.MessageSerializer
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialFormat
@@ -17,7 +17,17 @@ class HttpRemotingClient(
     private val contentType: String,
     private val httpClient: RemotingHttpClientImplementor,
     private val remotingServerBaseUrl: String
-) : RemotingClientImplementor, RemotingServerDelegateHelper by RemotingServerDelegateHelperImpl(serialFormat) {
+) : RemotingClientImplementor, MessageSerializer by MessageSerializerImpl(serialFormat) {
+
+    interface RemotingHttpClientImplementor {
+
+        suspend fun post(
+            url: String,
+            requestBody: RawMessage,
+            contentType: String,
+            isResponseBodyText: Boolean // TODO ehelyett a return type legyen generikus
+        ): RawMessage
+    }
 
     init {
         require(serialFormat is StringFormat || serialFormat is BinaryFormat)
@@ -44,8 +54,8 @@ class HttpRemotingClient(
 
         val requestSerializer = RemoteCallRequestSerializer(parameterSerializer)
         val requestBody = when (serialFormat) {
-            is StringFormat -> Payload.Text(serialFormat.encodeToString(requestSerializer, wrappedParameter))
-            is BinaryFormat -> Payload.Binary(
+            is StringFormat -> RawMessage.Text(serialFormat.encodeToString(requestSerializer, wrappedParameter))
+            is BinaryFormat -> RawMessage.Binary(
                 serialFormat.encodeToByteArray(
                     requestSerializer,
                     wrappedParameter
@@ -68,13 +78,13 @@ class HttpRemotingClient(
                 is StringFormat ->
                     serialFormat.decodeFromString(
                         deserializer,
-                        (responsePayload as Payload.Text).text
+                        (responsePayload as RawMessage.Text).text
                     )
 
                 is BinaryFormat ->
                     serialFormat.decodeFromByteArray(
                         deserializer,
-                        (responsePayload as Payload.Binary).byteArray
+                        (responsePayload as RawMessage.Binary).byteArray
                     )
 
                 else -> throw IllegalStateException()

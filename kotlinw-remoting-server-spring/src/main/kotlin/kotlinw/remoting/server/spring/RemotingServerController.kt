@@ -1,8 +1,8 @@
 package kotlinw.remoting.server.spring
 
 import jakarta.annotation.PostConstruct
-import kotlinw.remoting.server.core.RemotingServerDelegate
-import kotlinw.remoting.server.core.RemotingServerDelegate.Payload
+import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.remoting.server.core.RawMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -19,9 +19,9 @@ import org.springframework.web.server.ResponseStatusException
 class RemotingServerController {
 
     @Autowired
-    private lateinit var handlerList: List<RemotingServerDelegate>
+    private lateinit var handlerList: List<RemoteCallDelegator>
 
-    private lateinit var handlers: Map<String, RemotingServerDelegate>
+    private lateinit var handlers: Map<String, RemoteCallDelegator>
 
     @PostConstruct
     fun initialize() {
@@ -42,9 +42,9 @@ class RemotingServerController {
         val service = handlers[serviceName]
         if (service != null) {
             val responsePayload =
-                service.processCall(methodName, Payload.Text(requestBody)) // TODO handle errors, eg. method not found
+                service.processCall(methodName, RawMessage.Text(requestBody)) // TODO handle errors, eg. method not found
 
-            if (responsePayload is Payload.Text) {
+            if (responsePayload is RawMessage.Text) {
                 return responsePayload.text
             } else {
                 throw IllegalStateException("Expected response payload of type Payload.Text but got: $responsePayload")

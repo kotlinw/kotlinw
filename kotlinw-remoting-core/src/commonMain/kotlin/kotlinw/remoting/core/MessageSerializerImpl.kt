@@ -1,22 +1,22 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.server.core.RemotingServerDelegate.Payload
-import kotlinw.remoting.server.core.RemotingServerDelegateHelper
+import kotlinw.remoting.server.core.RawMessage
+import kotlinw.remoting.server.core.MessageSerializer
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.StringFormat
 
-class RemotingServerDelegateHelperImpl(
+class MessageSerializerImpl(
     private val serialFormat: SerialFormat
-) : RemotingServerDelegateHelper {
+) : MessageSerializer {
 
     init {
         require(serialFormat is StringFormat || serialFormat is BinaryFormat)
     }
 
-    override suspend fun <T : Any> readRequest(
-        requestData: Payload,
+    override fun <T : Any> readMessage(
+        requestData: RawMessage,
         payloadDeserializer: KSerializer<T>
     ): T {
         val requestDeserializer = RemoteCallRequestSerializer(payloadDeserializer)
@@ -24,24 +24,24 @@ class RemotingServerDelegateHelperImpl(
         return when (serialFormat) {
             is StringFormat -> serialFormat.decodeFromString(
                 requestDeserializer,
-                (requestData as Payload.Text).text
+                (requestData as RawMessage.Text).text
             ).payload
 
             is BinaryFormat -> serialFormat.decodeFromByteArray(
                 requestDeserializer,
-                (requestData as Payload.Binary).byteArray
+                (requestData as RawMessage.Binary).byteArray
             ).payload
 
             else -> throw IllegalStateException()
         }
     }
 
-    override fun <T : Any> writeResponse(payload: T, payloadSerializer: KSerializer<T>): Payload {
+    override fun <T : Any> writeMessage(payload: T, payloadSerializer: KSerializer<T>): RawMessage {
         val responseSerializer = RemoteCallResponseSerializer(payloadSerializer)
         val callResponse = RemoteCallResponse(payload, null) // TODO
         return when (serialFormat) {
-            is StringFormat -> Payload.Text(serialFormat.encodeToString(responseSerializer, callResponse))
-            is BinaryFormat -> Payload.Binary(serialFormat.encodeToByteArray(responseSerializer, callResponse))
+            is StringFormat -> RawMessage.Text(serialFormat.encodeToString(responseSerializer, callResponse))
+            is BinaryFormat -> RawMessage.Binary(serialFormat.encodeToByteArray(responseSerializer, callResponse))
             else -> throw IllegalStateException()
         }
     }

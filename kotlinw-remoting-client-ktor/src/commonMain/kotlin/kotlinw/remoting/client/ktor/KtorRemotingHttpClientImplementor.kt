@@ -6,23 +6,21 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinw.remoting.core.RemotingHttpClientImplementor
-import kotlinw.remoting.core.RemotingServerDelegateHelperImpl
-import kotlinw.remoting.server.core.RemotingServerDelegate.Payload
-import kotlinw.remoting.server.core.RemotingServerDelegateHelper
+import kotlinw.remoting.core.HttpRemotingClient
+import kotlinw.remoting.server.core.RawMessage
 
 class KtorRemotingHttpClientImplementor(
     private val httpClient: HttpClient = HttpClient()
-) : RemotingHttpClientImplementor {
+) : HttpRemotingClient.RemotingHttpClientImplementor {
 
     constructor(engine: HttpClientEngine) : this(HttpClient(engine))
 
     override suspend fun post(
         url: String,
-        requestBody: Payload,
+        requestBody: RawMessage,
         contentType: String,
         isResponseBodyText: Boolean,
-    ): Payload {
+    ): RawMessage {
         val response =
             httpClient.post(url) {
                 header(HttpHeaders.Accept, contentType)
@@ -30,15 +28,15 @@ class KtorRemotingHttpClientImplementor(
 
                 setBody(
                     when (requestBody) {
-                        is Payload.Binary -> requestBody.byteArray
-                        is Payload.Text -> requestBody.text
+                        is RawMessage.Binary -> requestBody.byteArray
+                        is RawMessage.Text -> requestBody.text
                     }
                 )
             }
 
         return if (isResponseBodyText)
-            Payload.Text(response.bodyAsText())
+            RawMessage.Text(response.bodyAsText())
         else
-            Payload.Binary(response.body<ByteArray>())
+            RawMessage.Binary(response.body<ByteArray>())
     }
 }

@@ -31,8 +31,9 @@ import kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.api.client.ClientProxy
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.core.RemotingClientImplementor
-import kotlinw.remoting.server.core.RemotingServerDelegate
-import kotlinw.remoting.server.core.RemotingServerDelegateHelper
+import kotlinw.remoting.server.core.RawMessage
+import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.remoting.server.core.MessageSerializer
 import kotlinx.serialization.Serializable
 
 class RemotingSymbolProcessor(
@@ -72,8 +73,8 @@ class RemotingSymbolProcessor(
     private val ClassName.clientProxyClassName: ClassName
         get() = ClassName(packageName, simpleName + "ClientProxy")
 
-    private val ClassName.serverDelegateClassName: ClassName
-        get() = ClassName(packageName, simpleName + "ServerDelegate")
+    private val ClassName.remoteCallDelegatorClassName: ClassName
+        get() = ClassName(packageName, simpleName + "RemoteCallDelegator")
 
     private val KSTypeReference?.isUnit get() = this?.toTypeName() == Unit::class.asTypeName()
 
@@ -198,13 +199,13 @@ class RemotingSymbolProcessor(
         }
 
         fun generateServerDelegateClass(): TypeSpec {
-            val builder = TypeSpec.classBuilder(definitionInterfaceName.serverDelegateClassName)
+            val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallDelegatorClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
-                .addSuperinterface(RemotingServerDelegate::class)
+                .addSuperinterface(RemoteCallDelegator::class)
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
-                        .addParameter("helper", RemotingServerDelegateHelper::class)
+                        .addParameter("helper", MessageSerializer::class)
                         .build()
                 )
                 .addProperty(
@@ -214,7 +215,7 @@ class RemotingSymbolProcessor(
                         .build()
                 )
                 .addProperty(
-                    PropertySpec.builder("helper", RemotingServerDelegateHelper::class)
+                    PropertySpec.builder("helper", MessageSerializer::class)
                         .addModifiers(KModifier.PRIVATE)
                         .initializer("helper")
                         .build()
@@ -228,9 +229,9 @@ class RemotingSymbolProcessor(
 
             val processCallFunctionBuilder = FunSpec.builder("processCall")
                 .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
-                .returns(RemotingServerDelegate.Payload::class)
+                .returns(RawMessage::class)
                 .addParameter("methodPath", String::class)
-                .addParameter("requestData", RemotingServerDelegate.Payload::class)
+                .addParameter("requestData", RawMessage::class)
 
             processCallFunctionBuilder.beginControlFlow("return when(methodPath)")
 
@@ -240,7 +241,7 @@ class RemotingSymbolProcessor(
 
                 processCallFunctionBuilder.beginControlFlow("%S ->", function.remotingMethodPath(nestedClassIdentifier))
                 processCallFunctionBuilder.addStatement(
-                    "val r = helper.readRequest(requestData, %M<%T>())",
+                    "val r = helper.readMessage(requestData, %M<%T>())",
                     serializerFunctionName,
                     function.parameterClassName(nestedClassIdentifier)
                 )
@@ -250,14 +251,14 @@ class RemotingSymbolProcessor(
                 if (returnType.isUnit) {
                     processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
                     processCallFunctionBuilder.addStatement(
-                        "helper.writeResponse(%T, %M<%T>())",
+                        "helper.writeMessage(%T, %M<%T>())",
                         function.resultClassName(nestedClassIdentifier),
                         serializerFunctionName,
                         function.resultClassName(nestedClassIdentifier),
                     )
                 } else {
                     processCallFunctionBuilder.addStatement(
-                        "helper.writeResponse(%T(${buildTargetFunctionCall()}), %M<%T>())",
+                        "helper.writeMessage(%T(${buildTargetFunctionCall()}), %M<%T>())",
                         function.resultClassName(nestedClassIdentifier),
                         functionName,
                         serializerFunctionName,
