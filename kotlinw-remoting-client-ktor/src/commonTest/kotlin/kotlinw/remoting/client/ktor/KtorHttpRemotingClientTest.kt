@@ -7,11 +7,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.MessageCodecDescriptor
-import kotlinw.remoting.core.MessageCodecImpl
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageSerializer
-import kotlinw.remoting.core.ktor.Text
+import kotlinw.remoting.core.ktor.MessageCodecImpl
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -56,7 +54,7 @@ class KtorHttpRemotingClientTest {
         }
 
         val remotingClient = HttpRemotingClient(
-            MessageCodecImpl(MessageCodecDescriptor.Text(ContentType.Application.Json, Json.Default)),
+            MessageCodecImpl(Json, ContentType.Application.Json, false),
             KtorRemotingHttpClientImplementor(mockEngine),
             ""
         )

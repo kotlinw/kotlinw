@@ -1,4 +1,4 @@
-package kotlinw.remoting.server.core
+package kotlinw.remoting.core
 
 import kotlin.jvm.JvmInline
 

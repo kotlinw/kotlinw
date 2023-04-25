@@ -1,16 +1,15 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.server.core.RawMessage
-import kotlinw.remoting.server.core.MessageCodec
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.StringFormat
 
 class MessageCodecImpl(
-    override val descriptor: MessageCodecDescriptor
-) : MessageCodecImplementor {
-
-    private val serialFormat = descriptor.serialFormat
+    private val serialFormat: SerialFormat,
+    override val contentType: String,
+    override val isBinary: Boolean
+) : MessageCodec {
 
     init {
         require(serialFormat is StringFormat || serialFormat is BinaryFormat)

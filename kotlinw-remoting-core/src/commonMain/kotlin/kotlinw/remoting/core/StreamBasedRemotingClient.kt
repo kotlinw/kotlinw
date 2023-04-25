@@ -1,7 +1,6 @@
 package kotlinw.remoting.core
 
 import kotlinw.remoting.client.core.RemotingClientImplementor
-import kotlinw.remoting.server.core.RawMessage
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
@@ -12,7 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class StreamBasedSynchronousRemotingClient(
-    private val messageCodec: MessageCodecImplementor,
+    private val messageCodec: MessageCodec,
     source: Source,
     sink: Sink
 ) : RemotingClientImplementor {
@@ -23,7 +22,7 @@ class StreamBasedSynchronousRemotingClient(
 
     private val bufferedSink = sink.buffer()
 
-    private val isBinaryCodec = messageCodec.descriptor.isBinary
+    private val isBinaryCodec = messageCodec.isBinary
 
     override suspend fun <T : Any, P : Any, R : Any> call(
         serviceKClass: KClass<T>,

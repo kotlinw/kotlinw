@@ -1,9 +1,9 @@
 package kotlinw.remoting.server.spring
 
 import jakarta.annotation.PostConstruct
-import kotlinw.remoting.server.core.MessageCodec
+import kotlinw.remoting.core.MessageCodec
+import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.RawMessage
 import kotlinx.serialization.KSerializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

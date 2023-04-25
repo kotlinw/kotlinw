@@ -1,14 +1,12 @@
 package kotlinw.remoting.core
 
 import kotlinw.remoting.client.core.RemotingClientImplementor
-import kotlinw.remoting.server.core.RawMessage
-import kotlinw.remoting.server.core.MessageCodec
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class HttpRemotingClient(
-    private val messageCodec: MessageCodecImplementor,
+    private val messageCodec: MessageCodec,
     private val httpClient: RemotingHttpClientImplementor,
     private val remotingServerBaseUrl: String
 ) : RemotingClientImplementor {
@@ -40,8 +38,8 @@ class HttpRemotingClient(
         val rawResponseMessage = httpClient.post(
             buildServiceUrl(serviceName, methodName),
             rawRequestMessage,
-            messageCodec.descriptor.contentType,
-            messageCodec.descriptor.isBinary
+            messageCodec.contentType,
+            messageCodec.isBinary
         )
 
         return messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)

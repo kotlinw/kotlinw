@@ -1,13 +1,12 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.server.core.RawMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import okio.Sink
 import okio.Source
 import okio.buffer
 
 class StreamBasedSynchronousRemotingServer(
-    private val messageCodec: MessageCodecImplementor,
+    private val messageCodec: MessageCodec,
     private val source: Source,
     private val sink: Sink,
     private val handlers: List<RemoteCallDelegator>

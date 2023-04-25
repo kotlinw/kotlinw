@@ -13,20 +13,18 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.contentType
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import kotlinw.remoting.core.MessageCodecImpl
-import kotlinw.remoting.core.MessageCodecImplementor
-import kotlinw.remoting.server.core.RawMessage
+import kotlinw.remoting.core.MessageCodec
+import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinx.serialization.KSerializer
 
 fun Routing.remotingServerRouting(
-    messageCodec: MessageCodecImplementor,
+    messageCodec: MessageCodec,
     remoteCallDelegators: Iterable<RemoteCallDelegator>
 ) {
-    val messageCodecDescriptor = messageCodec.descriptor
-    val contentTypeValue = messageCodecDescriptor.contentType
-    val contentType = ContentType.parse(contentTypeValue) // TODO check
-    val isBinaryCodec = messageCodecDescriptor.isBinary
+    val contentTypeValue = messageCodec.contentType
+    val contentType = ContentType.parse(contentTypeValue)
+    val isBinaryCodec = messageCodec.isBinary
 
     val delegators = remoteCallDelegators.associateBy { it.servicePath }
 

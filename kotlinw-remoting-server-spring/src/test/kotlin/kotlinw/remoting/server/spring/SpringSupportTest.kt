@@ -7,13 +7,11 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.MessageCodecDescriptor
+import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.MessageCodecImpl
-import kotlinw.remoting.core.ktor.Text
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
-import kotlinw.remoting.server.core.MessageCodec
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -25,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -40,12 +39,7 @@ class SpringSupportTest {
     class TestSpringModule {
 
         @Bean
-        fun messagingSerializerDescriptor(): MessageCodecDescriptor.Text =
-            MessageCodecDescriptor.Text(ContentType.Application.Json, Json.Default)
-
-        @Bean
-        fun remotingMessageSerializer(messageCodecDescriptor: MessageCodecDescriptor): MessageCodec =
-            MessageCodecImpl(messageCodecDescriptor)
+        fun messageCodec(): MessageCodec = MessageCodecImpl(Json, MediaType.APPLICATION_JSON_VALUE, false)
 
         @Bean
         fun exampleService(): ExampleService = mockk<ExampleService>(relaxed = true) {
@@ -61,7 +55,7 @@ class SpringSupportTest {
     private var port: Int = -1
 
     @Autowired
-    private lateinit var messageCodecDescriptor: MessageCodecDescriptor
+    private lateinit var messageCodec: MessageCodec
 
     @Autowired
     private lateinit var exampleService: ExampleService
@@ -71,7 +65,7 @@ class SpringSupportTest {
         val proxy: ExampleService =
             ExampleServiceClientProxy(
                 HttpRemotingClient(
-                    MessageCodecImpl(messageCodecDescriptor),
+                    messageCodec,
                     KtorRemotingHttpClientImplementor(),
                     "http://localhost:$port"
                 )
