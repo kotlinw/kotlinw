@@ -1,11 +1,11 @@
 package kotlinw.remoting.core.ktor
 
 import io.ktor.http.*
-import kotlinw.remoting.core.MessageSerializerDescriptor
+import kotlinw.remoting.core.MessageCodecDescriptor
 import kotlinx.serialization.StringFormat
 
-fun MessageSerializerDescriptor.Companion.Text(
+fun MessageCodecDescriptor.Companion.Text(
     contentType: ContentType,
     serialFormat: StringFormat
-): MessageSerializerDescriptor.Text =
-    MessageSerializerDescriptor.Text(contentType.toString(), serialFormat)
+): MessageCodecDescriptor.Text =
+    MessageCodecDescriptor.Text(contentType.toString(), serialFormat)

@@ -7,6 +7,6 @@ interface RemoteCallDelegator {
     suspend fun processCall(
         methodPath: String,
         requestData: RawMessage,
-        messageSerializer: MessageSerializer
+        messageCodec: MessageCodec
     ): RawMessage
 }

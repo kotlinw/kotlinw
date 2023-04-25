@@ -33,7 +33,7 @@ import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.core.RemotingClientImplementor
 import kotlinw.remoting.server.core.RawMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.MessageSerializer
+import kotlinw.remoting.server.core.MessageCodec
 import kotlinx.serialization.Serializable
 
 class RemotingSymbolProcessor(
@@ -225,7 +225,7 @@ class RemotingSymbolProcessor(
                 .returns(RawMessage::class)
                 .addParameter("methodPath", String::class)
                 .addParameter("requestData", RawMessage::class)
-                .addParameter("messageSerializer", MessageSerializer::class)
+                .addParameter("messageCodec", MessageCodec::class)
 
             processCallFunctionBuilder.beginControlFlow("return when(methodPath)")
 
@@ -235,7 +235,7 @@ class RemotingSymbolProcessor(
 
                 processCallFunctionBuilder.beginControlFlow("%S ->", function.remotingMethodPath(nestedClassIdentifier))
                 processCallFunctionBuilder.addStatement(
-                    "val r = messageSerializer.readMessage(requestData, %M<%T>())",
+                    "val r = messageCodec.decodeMessage(requestData, %M<%T>())",
                     serializerFunctionName,
                     function.parameterClassName(nestedClassIdentifier)
                 )
@@ -245,14 +245,14 @@ class RemotingSymbolProcessor(
                 if (returnType.isUnit) {
                     processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
                     processCallFunctionBuilder.addStatement(
-                        "messageSerializer.writeMessage(%T, %M<%T>())",
+                        "messageCodec.encodeMessage(%T, %M<%T>())",
                         function.resultClassName(nestedClassIdentifier),
                         serializerFunctionName,
                         function.resultClassName(nestedClassIdentifier),
                     )
                 } else {
                     processCallFunctionBuilder.addStatement(
-                        "messageSerializer.writeMessage(%T(${buildTargetFunctionCall()}), %M<%T>())",
+                        "messageCodec.encodeMessage(%T(${buildTargetFunctionCall()}), %M<%T>())",
                         function.resultClassName(nestedClassIdentifier),
                         functionName,
                         serializerFunctionName,

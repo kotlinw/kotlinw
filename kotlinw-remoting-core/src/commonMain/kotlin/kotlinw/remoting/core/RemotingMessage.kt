@@ -13,33 +13,31 @@ import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.serializer
 
 @Serializable
-data class RemoteCallRequestMetadata(
+data class RemotingMessageMetadata(
     val timestamp: Instant
 )
 
-@Serializable(with = RemoteCallRequestSerializer::class)
-data class RemoteCallRequest<T : Any>(
+@Serializable(with = RemotingMessageSerializer::class)
+data class RemotingMessage<T : Any>(
     val payload: T,
-    val metadata: RemoteCallRequestMetadata?
+    val metadata: RemotingMessageMetadata?
 )
 
-typealias RemoteCallRequestFactory<T> = (parameter: T) -> RemoteCallRequest<T>
+class RemotingMessageSerializer<T : Any>(private val payloadSerializer: KSerializer<T>) :
+    KSerializer<RemotingMessage<T>> {
 
-class RemoteCallRequestSerializer<T : Any>(private val payloadSerializer: KSerializer<T>) :
-    KSerializer<RemoteCallRequest<T>> {
-
-    private val metadataSerializer = serializer<RemoteCallRequestMetadata?>()
+    private val metadataSerializer = serializer<RemotingMessageMetadata?>()
 
     override val descriptor =
         buildClassSerialDescriptor("Request") {
             element("payload", payloadSerializer.descriptor)
-            element<RemoteCallRequestMetadata?>("metadata")
+            element<RemotingMessageMetadata?>("metadata")
         }
 
-    override fun deserialize(decoder: Decoder): RemoteCallRequest<T> =
+    override fun deserialize(decoder: Decoder): RemotingMessage<T> =
         decoder.decodeStructure(descriptor) {
             var payload: T? = null
-            var metadata: RemoteCallRequestMetadata? = null
+            var metadata: RemotingMessageMetadata? = null
             if (decodeSequentially()) {
                 payload = decodeSerializableElement(descriptor, 0, payloadSerializer)
                 metadata = decodeSerializableElement(descriptor, 1, metadataSerializer)
@@ -54,10 +52,10 @@ class RemoteCallRequestSerializer<T : Any>(private val payloadSerializer: KSeria
                 }
             }
 
-            RemoteCallRequest(payload!!, metadata)
+            RemotingMessage(payload!!, metadata)
         }
 
-    override fun serialize(encoder: Encoder, value: RemoteCallRequest<T>) {
+    override fun serialize(encoder: Encoder, value: RemotingMessage<T>) {
         encoder.encodeStructure(descriptor) {
             encodeSerializableElement(descriptor, 0, payloadSerializer, value.payload)
             encodeSerializableElement(descriptor, 1, metadataSerializer, value.metadata)

@@ -1,11 +1,10 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.server.core.RawMessage
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.StringFormat
 
-sealed interface MessageSerializerDescriptor {
+sealed interface MessageCodecDescriptor {
 
     companion object
 
@@ -16,12 +15,12 @@ sealed interface MessageSerializerDescriptor {
     val isText: Boolean
 
     class Text(override val contentType: String, override val serialFormat: StringFormat) :
-        MessageSerializerDescriptor {
+        MessageCodecDescriptor {
 
         override val isText get() = true
     }
 
-    class Binary(override val serialFormat: BinaryFormat) : MessageSerializerDescriptor {
+    class Binary(override val serialFormat: BinaryFormat) : MessageCodecDescriptor {
 
         override val contentType get() = "application/octet-stream"
 

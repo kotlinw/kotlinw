@@ -22,14 +22,14 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
-                api(libs.kotlinx.datetime)
-                api(libs.okio.core)
+                api(projects.kotlinw.kotlinwRemotingCore)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(kotlin("test"))
             }
         }
     }

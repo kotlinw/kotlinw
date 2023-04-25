@@ -1,17 +1,18 @@
 package kotlinw.remoting.client.ktor
 
-import io.ktor.client.engine.mock.*
-import io.ktor.client.utils.*
-import io.ktor.http.*
-import io.ktor.http.content.*
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.utils.buildHeaders
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.content.TextContent
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.MessageSerializerDescriptor
-import kotlinw.remoting.core.RemoteCallRequestSerializer
-import kotlinw.remoting.core.RemoteCallResponse
+import kotlinw.remoting.core.MessageCodecDescriptor
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageSerializer
 import kotlinw.remoting.core.ktor.Text
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -40,13 +41,13 @@ class KtorHttpRemotingClientTest {
             assertEquals(ContentType.Application.Json, request.body.contentType)
 
             val requestPayload = serializer.decodeFromString(
-                RemoteCallRequestSerializer(serializer<TestParameter>()),
+                RemotingMessageSerializer(serializer<TestParameter>()),
                 (request.body as TextContent).text
             )
             assertEquals(TestParameter("abc"), requestPayload.payload)
 
             respond(
-                content = serializer.encodeToString(RemoteCallResponse(TestResult(123), null)),
+                content = serializer.encodeToString(RemotingMessage(TestResult(123), null)),
                 headers = buildHeaders {
                     set(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 }
@@ -54,7 +55,7 @@ class KtorHttpRemotingClientTest {
         }
 
         val remotingClient = HttpRemotingClient(
-            MessageSerializerDescriptor.Text(ContentType.Application.Json, Json.Default),
+            MessageCodecDescriptor.Text(ContentType.Application.Json, Json.Default),
             KtorRemotingHttpClientImplementor(mockEngine),
             ""
         )

@@ -7,8 +7,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.MessageSerializerImpl
-import kotlinw.remoting.core.MessageSerializerDescriptor
+import kotlinw.remoting.core.MessageCodecDescriptor
 import kotlinw.remoting.core.ktor.Text
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
@@ -26,15 +25,15 @@ class KtorSupportTest {
         val service = mockk<ExampleService>(relaxed = true)
         coEvery { service.p1IntReturnsString(any()) } returns "abc"
 
-        val messageSerializerDescriptor = MessageSerializerDescriptor.Text(ContentType.Application.Json, Json)
+        val messageCodecDescriptor = MessageCodecDescriptor.Text(ContentType.Application.Json, Json)
 
         routing {
-            remotingServerRouting(messageSerializerDescriptor, listOf(ExampleServiceRemoteCallDelegator(service)))
+            remotingServerRouting(messageCodecDescriptor, listOf(ExampleServiceRemoteCallDelegator(service)))
         }
 
         val remotingHttpClientImplementor = KtorRemotingHttpClientImplementor(client)
         val remotingClient =
-            HttpRemotingClient(messageSerializerDescriptor, remotingHttpClientImplementor, "")
+            HttpRemotingClient(messageCodecDescriptor, remotingHttpClientImplementor, "")
 
         val clientProxy = ExampleServiceClientProxy(remotingClient)
         assertEquals("abc", clientProxy.p1IntReturnsString(123))
