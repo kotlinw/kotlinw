@@ -3,6 +3,7 @@ package kotlinw.remoting.client.core
 import kotlinw.remoting.api.ClientConnection
 import kotlinw.remoting.api.ClientSubscription
 import kotlinw.remoting.api.client.RemotingClient
+import kotlinw.remoting.server.core.RemotingServerDelegateHelper
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,7 @@ import kotlinx.serialization.SerializationStrategy
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-interface RemotingClientImplementor : RemotingClient {
+interface RemotingClientImplementor : RemotingClient, RemotingServerDelegateHelper {
 
     suspend fun <T : Any, P: Any, R : Any> call(
         serviceKClass: KClass<T>,

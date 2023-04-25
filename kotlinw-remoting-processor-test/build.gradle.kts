@@ -32,11 +32,8 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(projects.kotlinw.kotlinwRemotingClientKtor)
-                implementation(projects.kotlinw.kotlinwRemotingServerKtor)
                 implementation(libs.mockk)
-                implementation(libs.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.kotlinx.serialization.json)
             }
         }
         val jvmMain by getting {

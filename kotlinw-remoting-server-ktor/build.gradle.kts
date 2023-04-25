@@ -38,6 +38,8 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.server.test.host)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.logback.classic)
                 implementation(kotlin("test"))
             }
         }

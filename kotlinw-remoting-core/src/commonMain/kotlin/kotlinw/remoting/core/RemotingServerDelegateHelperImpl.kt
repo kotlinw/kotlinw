@@ -8,11 +8,11 @@ import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.StringFormat
 
 class RemotingServerDelegateHelperImpl(
-    private val serializer: SerialFormat
+    private val serialFormat: SerialFormat
 ) : RemotingServerDelegateHelper {
 
     init {
-        require(serializer is StringFormat || serializer is BinaryFormat)
+        require(serialFormat is StringFormat || serialFormat is BinaryFormat)
     }
 
     override suspend fun <T : Any> readRequest(
@@ -20,13 +20,14 @@ class RemotingServerDelegateHelperImpl(
         payloadDeserializer: KSerializer<T>
     ): T {
         val requestDeserializer = RemoteCallRequestSerializer(payloadDeserializer)
-        return when (serializer) {
-            is StringFormat -> serializer.decodeFromString(
+        // TODO allow access to metadata
+        return when (serialFormat) {
+            is StringFormat -> serialFormat.decodeFromString(
                 requestDeserializer,
                 (requestData as Payload.Text).text
             ).payload
 
-            is BinaryFormat -> serializer.decodeFromByteArray(
+            is BinaryFormat -> serialFormat.decodeFromByteArray(
                 requestDeserializer,
                 (requestData as Payload.Binary).byteArray
             ).payload
@@ -37,10 +38,10 @@ class RemotingServerDelegateHelperImpl(
 
     override fun <T : Any> writeResponse(payload: T, payloadSerializer: KSerializer<T>): Payload {
         val responseSerializer = RemoteCallResponseSerializer(payloadSerializer)
-        val callResponse = RemoteCallResponse(payload, null)
-        return when (serializer) {
-            is StringFormat -> Payload.Text(serializer.encodeToString(responseSerializer, callResponse))
-            is BinaryFormat -> Payload.Binary(serializer.encodeToByteArray(responseSerializer, callResponse))
+        val callResponse = RemoteCallResponse(payload, null) // TODO
+        return when (serialFormat) {
+            is StringFormat -> Payload.Text(serialFormat.encodeToString(responseSerializer, callResponse))
+            is BinaryFormat -> Payload.Binary(serialFormat.encodeToByteArray(responseSerializer, callResponse))
             else -> throw IllegalStateException()
         }
     }

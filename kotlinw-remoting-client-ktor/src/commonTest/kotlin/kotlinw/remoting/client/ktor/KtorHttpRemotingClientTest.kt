@@ -4,6 +4,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.RemoteCallRequestSerializer
 import kotlinw.remoting.core.RemoteCallResponse
 import kotlinx.coroutines.test.runTest
@@ -33,7 +34,7 @@ class KtorHttpRemotingClientTest {
         val serializer = Json.Default
 
         val mockEngine = MockEngine { request ->
-            assertEquals("http://localhost/FakeService/fakeMethod", request.url.toString())
+            assertEquals("http://localhost/remoting/call/FakeService/fakeMethod", request.url.toString())
             assertEquals(ContentType.Application.Json, request.body.contentType)
 
             val requestPayload = serializer.decodeFromString(
@@ -50,10 +51,11 @@ class KtorHttpRemotingClientTest {
             )
         }
 
-        val remotingClient = KtorHttpRemotingClient(
+        val remotingClient = HttpRemotingClient(
             serializer,
-            ContentType.Application.Json,
-            mockEngine
+            ContentType.Application.Json.toString(),
+            KtorRemotingHttpClientImplementor(mockEngine),
+            ""
         )
 
         runTest {
