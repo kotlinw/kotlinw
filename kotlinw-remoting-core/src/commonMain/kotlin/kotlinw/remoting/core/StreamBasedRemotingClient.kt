@@ -2,12 +2,9 @@ package kotlinw.remoting.core
 
 import kotlinw.remoting.client.core.RemotingClientImplementor
 import kotlinw.remoting.server.core.RawMessage
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 import okio.Sink
 import okio.Source
 import okio.buffer
@@ -26,7 +23,7 @@ class StreamBasedSynchronousRemotingClient(
 
     private val bufferedSink = sink.buffer()
 
-    private val isTextCodec = messageCodec.descriptor.isText
+    private val isBinaryCodec = messageCodec.descriptor.isBinary
 
     override suspend fun <T : Any, P : Any, R : Any> call(
         serviceKClass: KClass<T>,
@@ -49,7 +46,7 @@ class StreamBasedSynchronousRemotingClient(
                 val rawResponseMessageSize = bufferedSource.readInt()
                 bufferedSource.readByteArray(rawResponseMessageSize.toLong())
             }.let {
-                if (isTextCodec) RawMessage.Text.of(it) else RawMessage.Binary(it)
+                if (isBinaryCodec) RawMessage.Binary(it) else RawMessage.Text.of(it)
             }
 
         return messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)

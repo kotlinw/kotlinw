@@ -71,7 +71,7 @@ class SpringSupportTest {
         val proxy: ExampleService =
             ExampleServiceClientProxy(
                 HttpRemotingClient(
-                    messageCodecDescriptor,
+                    MessageCodecImpl(messageCodecDescriptor),
                     KtorRemotingHttpClientImplementor(),
                     "http://localhost:$port"
                 )

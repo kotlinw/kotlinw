@@ -19,7 +19,7 @@ class KtorRemotingHttpClientImplementor(
         url: String,
         requestBody: RawMessage,
         contentType: String,
-        isResponseBodyText: Boolean,
+        isResponseBodyBinary: Boolean,
     ): RawMessage {
         val response =
             httpClient.post(url) {
@@ -34,9 +34,9 @@ class KtorRemotingHttpClientImplementor(
                 )
             }
 
-        return if (isResponseBodyText)
-            RawMessage.Text(response.bodyAsText())
-        else
+        return if (isResponseBodyBinary)
             RawMessage.Binary(response.body<ByteArray>())
+        else
+            RawMessage.Text(response.bodyAsText())
     }
 }

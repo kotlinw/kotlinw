@@ -13,19 +13,20 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.contentType
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import kotlinw.remoting.core.MessageCodecDescriptor
 import kotlinw.remoting.core.MessageCodecImpl
+import kotlinw.remoting.core.MessageCodecImplementor
 import kotlinw.remoting.server.core.RawMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinx.serialization.KSerializer
 
 fun Routing.remotingServerRouting(
-    messageCodecDescriptor: MessageCodecDescriptor,
+    messageCodec: MessageCodecImplementor,
     remoteCallDelegators: Iterable<RemoteCallDelegator>
 ) {
+    val messageCodecDescriptor = messageCodec.descriptor
     val contentTypeValue = messageCodecDescriptor.contentType
     val contentType = ContentType.parse(contentTypeValue) // TODO check
-    val isBinary = messageCodecDescriptor is MessageCodecDescriptor.Binary
-    val messageSerializer = MessageCodecImpl(messageCodecDescriptor)
+    val isBinaryCodec = messageCodecDescriptor.isBinary
 
     val delegators = remoteCallDelegators.associateBy { it.servicePath }
 
@@ -38,23 +39,33 @@ fun Routing.remotingServerRouting(
                     if (delegator != null) {
                         val methodPath = call.parameters["methodPath"]
                         if (methodPath != null) {
-                            val requestPayload =
-                                if (isBinary) {
-                                    RawMessage.Binary(call.receive<ByteArray>())
-                                } else {
-                                    RawMessage.Text(call.receiveText())
+                            val methodDescriptor = delegator.methodDescriptors[methodPath]
+                            if (methodDescriptor != null) {
+                                // TODO handle errors
+
+                                val rawRequestMessage =
+                                    if (isBinaryCodec) {
+                                        RawMessage.Binary(call.receive<ByteArray>())
+                                    } else {
+                                        RawMessage.Text(call.receiveText())
+                                    }
+
+                                val parameter =
+                                    messageCodec.decodeMessage(rawRequestMessage, methodDescriptor.parameterSerializer)
+
+                                val result = delegator.processCall(methodPath, parameter)
+                                val rawResponseMessage = messageCodec.encodeMessage(
+                                    result,
+                                    methodDescriptor.resultSerializer as KSerializer<Any>
+                                )
+
+                                call.response.status(HttpStatusCode.OK)
+                                call.response.header(HttpHeaders.ContentType, contentType.toString())
+
+                                when (rawResponseMessage) {
+                                    is RawMessage.Binary -> call.respondBytes(rawResponseMessage.byteArray)
+                                    is RawMessage.Text -> call.respondText(rawResponseMessage.text)
                                 }
-
-                            // TODO handle errors
-                            val responsePayload = delegator.processCall(methodPath, requestPayload, messageSerializer)
-
-                            call.response.status(HttpStatusCode.OK)
-                            call.response.header(HttpHeaders.ContentType, contentType.toString())
-
-                            if (isBinary) {
-                                call.respondBytes((responsePayload as RawMessage.Binary).byteArray)
-                            } else {
-                                call.respondText((responsePayload as RawMessage.Text).text)
                             }
                         }
                     }

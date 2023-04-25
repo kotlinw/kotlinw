@@ -12,18 +12,18 @@ sealed interface MessageCodecDescriptor {
 
     val serialFormat: SerialFormat
 
-    val isText: Boolean
+    val isBinary: Boolean
 
     class Text(override val contentType: String, override val serialFormat: StringFormat) :
         MessageCodecDescriptor {
 
-        override val isText get() = true
+        override val isBinary get() = false
     }
 
     class Binary(override val serialFormat: BinaryFormat) : MessageCodecDescriptor {
 
         override val contentType get() = "application/octet-stream"
 
-        override val isText get() = false
+        override val isBinary get() = true
     }
 }

@@ -8,10 +8,10 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class HttpRemotingClient(
-    private val messageCodecDescriptor: MessageCodecDescriptor,
+    private val messageCodec: MessageCodecImplementor,
     private val httpClient: RemotingHttpClientImplementor,
     private val remotingServerBaseUrl: String
-) : RemotingClientImplementor, MessageCodec by MessageCodecImpl(messageCodecDescriptor) {
+) : RemotingClientImplementor {
 
     interface RemotingHttpClientImplementor {
 
@@ -19,11 +19,9 @@ class HttpRemotingClient(
             url: String,
             requestBody: RawMessage,
             contentType: String,
-            isResponseBodyText: Boolean // TODO ehelyett a return type legyen generikus
+            isResponseBodyBinary: Boolean // TODO ehelyett a return type legyen generikus
         ): RawMessage
     }
-
-    private val messageCodec = MessageCodecImpl(messageCodecDescriptor)
 
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
         "$remotingServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO
@@ -42,8 +40,8 @@ class HttpRemotingClient(
         val rawResponseMessage = httpClient.post(
             buildServiceUrl(serviceName, methodName),
             rawRequestMessage,
-            messageCodecDescriptor.contentType,
-            messageCodecDescriptor.isText
+            messageCodec.descriptor.contentType,
+            messageCodec.descriptor.isBinary
         )
 
         return messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)

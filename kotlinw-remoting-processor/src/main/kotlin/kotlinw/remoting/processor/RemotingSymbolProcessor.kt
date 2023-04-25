@@ -13,6 +13,7 @@ import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -27,6 +28,7 @@ import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
+import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.api.client.ClientProxy
 import kotlinw.remoting.api.client.RemotingClient
@@ -34,6 +36,7 @@ import kotlinw.remoting.client.core.RemotingClientImplementor
 import kotlinw.remoting.server.core.RawMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.MessageCodec
+import kotlinw.remoting.server.core.RemotingMethodDescriptor
 import kotlinx.serialization.Serializable
 
 class RemotingSymbolProcessor(
@@ -220,43 +223,63 @@ class RemotingSymbolProcessor(
                         .build()
                 )
 
+            val methodDescriptorsBuilder =
+                PropertySpec.builder(
+                    "methodDescriptors",
+                    typeNameOf<Map<String, RemotingMethodDescriptor<*, *>>>(),
+                    KModifier.OVERRIDE
+                )
+                    .initializer(
+                        CodeBlock.builder().apply {
+                            add("listOf(")
+                            processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
+                                add(
+                                    "%T(%S, %M<%T>(), %M<%T>()),",
+                                    RemotingMethodDescriptor::class,
+                                    function.remotingMethodPath(nestedClassIdentifier),
+                                    serializerFunctionName,
+                                    function.parameterClassName(nestedClassIdentifier),
+                                    serializerFunctionName,
+                                    function.resultClassName(nestedClassIdentifier)
+                                )
+                            }
+                            add(").associateBy { it.methodId }")
+                        }.build()
+                    )
+            builder.addProperty(methodDescriptorsBuilder.build())
+
             val processCallFunctionBuilder = FunSpec.builder("processCall")
                 .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
-                .returns(RawMessage::class)
-                .addParameter("methodPath", String::class)
-                .addParameter("requestData", RawMessage::class)
-                .addParameter("messageCodec", MessageCodec::class)
+                .returns(Any::class)
+                .addParameter("methodId", String::class)
+                .addParameter("parameter", Any::class)
 
-            processCallFunctionBuilder.beginControlFlow("return when(methodPath)")
+            processCallFunctionBuilder.beginControlFlow("return when (methodId)")
 
             processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
                 val returnType = function.returnType
                 val functionName = function.simpleName.asString()
 
-                processCallFunctionBuilder.beginControlFlow("%S ->", function.remotingMethodPath(nestedClassIdentifier))
+                processCallFunctionBuilder.beginControlFlow(
+                    "%S ->",
+                    function.remotingMethodPath(nestedClassIdentifier)
+                )
                 processCallFunctionBuilder.addStatement(
-                    "val r = messageCodec.decodeMessage(requestData, %M<%T>())",
-                    serializerFunctionName,
+                    "val p = parameter as %T",
                     function.parameterClassName(nestedClassIdentifier)
                 )
 
-                fun buildTargetFunctionCall() = "target.%N(${function.parameters.joinToString { "r." + it.name!!.asString() }})"
+                fun buildTargetFunctionCall() =
+                    "target.%N(${function.parameters.joinToString { "p." + it.name!!.asString() }})"
 
                 if (returnType.isUnit) {
                     processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
-                    processCallFunctionBuilder.addStatement(
-                        "messageCodec.encodeMessage(%T, %M<%T>())",
-                        function.resultClassName(nestedClassIdentifier),
-                        serializerFunctionName,
-                        function.resultClassName(nestedClassIdentifier),
-                    )
+                    processCallFunctionBuilder.addStatement("%T", function.resultClassName(nestedClassIdentifier))
                 } else {
                     processCallFunctionBuilder.addStatement(
-                        "messageCodec.encodeMessage(%T(${buildTargetFunctionCall()}), %M<%T>())",
+                        "%T(${buildTargetFunctionCall()})",
                         function.resultClassName(nestedClassIdentifier),
-                        functionName,
-                        serializerFunctionName,
-                        function.resultClassName(nestedClassIdentifier),
+                        functionName
                     )
                 }
 
@@ -264,7 +287,7 @@ class RemotingSymbolProcessor(
             }
 
             processCallFunctionBuilder.beginControlFlow("else ->")
-            processCallFunctionBuilder.addStatement("throw IllegalStateException(\"Invalid method path: ${"$"}methodPath\")")
+            processCallFunctionBuilder.addStatement("throw IllegalStateException(\"Invalid method ID: ${"$"}methodId\")")
             processCallFunctionBuilder.endControlFlow()
             processCallFunctionBuilder.endControlFlow()
 

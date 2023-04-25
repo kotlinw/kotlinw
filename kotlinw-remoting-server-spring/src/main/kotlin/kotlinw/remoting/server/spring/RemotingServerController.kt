@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct
 import kotlinw.remoting.server.core.MessageCodec
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RawMessage
+import kotlinx.serialization.KSerializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -43,15 +44,18 @@ class RemotingServerController {
         @PathVariable methodName: String,
         @RequestBody requestBody: String
     ): String {
+        // TODO handle errors
+
         val service = handlers[serviceName]
         if (service != null) {
-            val responsePayload =
-                service.processCall(methodName, RawMessage.Text(requestBody), messageCodec) // TODO handle errors, eg. method not found
-
-            if (responsePayload is RawMessage.Text) {
-                return responsePayload.text
+            val methodDescriptor = service.methodDescriptors[methodName]
+            if (methodDescriptor != null) {
+                val parameter =
+                    messageCodec.decodeMessage(RawMessage.Text(requestBody), methodDescriptor.parameterSerializer)
+                val result = service.processCall(methodName, parameter)
+                return (messageCodec.encodeMessage(result, methodDescriptor.resultSerializer as KSerializer<Any>) as RawMessage.Text).text
             } else {
-                throw IllegalStateException("Expected response payload of type Payload.Text but got: $responsePayload")
+                throw ResponseStatusException(HttpStatus.NOT_FOUND);
             }
         } else {
             throw ResponseStatusException(HttpStatus.NOT_FOUND);
