@@ -23,7 +23,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
                 implementation(projects.kotlinw.kotlinwRemotingCore)
-                api(projects.kotlinw.kotlinwRemotingKtorCore)
+                api(projects.kotlinw.kotlinwRemotingCoreKtor)
                 api(libs.ktor.client.core)
             }
         }

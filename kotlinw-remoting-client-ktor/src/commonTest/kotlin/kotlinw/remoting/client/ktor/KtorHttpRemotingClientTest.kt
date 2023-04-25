@@ -8,7 +8,7 @@ import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageSerializerDescriptor
 import kotlinw.remoting.core.RemoteCallRequestSerializer
 import kotlinw.remoting.core.RemoteCallResponse
-import kotlinw.remoting.ktor.core.Text
+import kotlinw.remoting.core.ktor.Text
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString

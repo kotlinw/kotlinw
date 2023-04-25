@@ -9,7 +9,7 @@ import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageSerializerImpl
 import kotlinw.remoting.core.MessageSerializerDescriptor
-import kotlinw.remoting.ktor.core.Text
+import kotlinw.remoting.core.ktor.Text
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator

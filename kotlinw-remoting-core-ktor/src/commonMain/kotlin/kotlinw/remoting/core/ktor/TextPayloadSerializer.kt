@@ -1,4 +1,4 @@
-package kotlinw.remoting.ktor.core
+package kotlinw.remoting.core.ktor
 
 import io.ktor.http.*
 import kotlinw.remoting.core.MessageSerializerDescriptor
