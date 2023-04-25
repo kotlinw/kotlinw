@@ -7,21 +7,15 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.PayloadSerializer
 import kotlinw.remoting.core.MessageSerializerImpl
+import kotlinw.remoting.core.PayloadSerializer
+import kotlinw.remoting.ktor.core.TextPayloadSerializer
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
-import kotlinx.serialization.StringFormat
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
-
-fun PayloadSerializer.Companion.TextPayloadSerializer(
-    contentType: ContentType,
-    serialFormat: StringFormat
-): PayloadSerializer.TextPayloadSerializer =
-    PayloadSerializer.TextPayloadSerializer(contentType.toString(), serialFormat)
 
 class KtorSupportTest {
 
@@ -33,7 +27,7 @@ class KtorSupportTest {
         coEvery { service.p1IntReturnsString(any()) } returns "abc"
 
         val helper = MessageSerializerImpl(serializer)
-        val payloadSerializer = PayloadSerializer.TextPayloadSerializer(ContentType.Application.Json, Json.Default)
+        val payloadSerializer = PayloadSerializer.TextPayloadSerializer(ContentType.Application.Json, Json)
 
         routing {
             remotingServerRouting(payloadSerializer, listOf(ExampleServiceRemoteCallDelegator(service, helper)))

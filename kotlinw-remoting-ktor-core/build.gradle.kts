@@ -22,8 +22,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
-                implementation(projects.kotlinw.kotlinwRemotingCore)
-                api(projects.kotlinw.kotlinwRemotingKtorCore)
+                api(projects.kotlinw.kotlinwRemotingCore)
                 api(libs.ktor.client.core)
             }
         }
