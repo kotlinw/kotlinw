@@ -1,25 +1,23 @@
 package kotlinw.remoting.core
 
+import kotlinw.util.stdlib.ByteArrayView
+import kotlinw.util.stdlib.decodeToString
 import kotlin.jvm.JvmInline
 
 sealed interface RawMessage {
 
-    fun toByteArray(): ByteArray
+    val byteArrayView: ByteArrayView
 
-    @JvmInline
-    value class Text(val text: String) : RawMessage {
+    data class Text(val text: String) : RawMessage {
 
         companion object {
 
-            fun of(bytes: ByteArray) = Text(bytes.decodeToString())
+            fun of(bytes: ByteArrayView) = Text(bytes.decodeToString())
         }
 
-        override fun toByteArray() = text.encodeToByteArray()
+        override val byteArrayView by lazy { ByteArrayView(text.encodeToByteArray()) }
     }
 
     @JvmInline
-    value class Binary(val byteArray: ByteArray) : RawMessage {
-
-        override fun toByteArray() = byteArray
-    }
+    value class Binary(override val byteArrayView: ByteArrayView) : RawMessage
 }

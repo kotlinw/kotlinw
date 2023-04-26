@@ -12,6 +12,8 @@ import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.MessageCodecDescriptor
 import kotlinw.remoting.core.RawMessage
+import kotlinw.util.stdlib.toReadOnlyByteArray
+import kotlinw.util.stdlib.view
 
 class KtorRemotingHttpClientImplementor(
     private val httpClient: HttpClient = HttpClient()
@@ -31,7 +33,7 @@ class KtorRemotingHttpClientImplementor(
 
                 setBody(
                     if (messageCodecDescriptor.isBinary) {
-                        (requestBody as RawMessage.Binary).byteArray
+                        (requestBody as RawMessage.Binary).byteArrayView.toReadOnlyByteArray()
                     } else {
                         (requestBody as RawMessage.Text).text
                     }
@@ -39,7 +41,7 @@ class KtorRemotingHttpClientImplementor(
             }
 
         return if (messageCodecDescriptor.isBinary)
-            RawMessage.Binary(response.body<ByteArray>()) as M
+            RawMessage.Binary(response.body<ByteArray>().view()) as M
         else
             RawMessage.Text(response.bodyAsText()) as M
     }

@@ -1,9 +1,13 @@
 package kotlinw.remoting.core
 
 import kotlinw.remoting.client.core.RemotingClientImplementor
+import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.util.stdlib.write
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
+import okio.BufferedSink
+import okio.BufferedSource
 import okio.Sink
 import okio.Source
 import okio.buffer
@@ -11,16 +15,12 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class StreamBasedSynchronousRemotingClient(
-    private val messageCodec: MessageCodec<RawMessage>,
-    source: Source,
-    sink: Sink
+    private val messageCodec: BinaryMessageCodec,
+    private val source: BufferedSource,
+    private val sink: BufferedSink
 ) : RemotingClientImplementor {
 
     private val mutex = Mutex()
-
-    private val bufferedSource = source.buffer()
-
-    private val bufferedSink = sink.buffer()
 
     private val isBinaryCodec = messageCodec.isBinary
 
@@ -34,23 +34,12 @@ class StreamBasedSynchronousRemotingClient(
         resultDeserializer: KSerializer<R>
     ): R {
         val parameterMessage = RemotingMessage(parameter, null) // TODO metadata
-
         val rawParameterMessage = messageCodec.encodeMessage(parameterMessage, parameterSerializer)
-        val bytes = rawParameterMessage.toByteArray()
 
-        val rawResultMessage =
-            mutex.withLock {
-                bufferedSink.writeInt(bytes.size)
-                bufferedSink.write(bytes)
-                bufferedSink.flush()
-
-                val rawResponseMessageSize = bufferedSource.readInt()
-                bufferedSource.readByteArray(rawResponseMessageSize.toLong())
-            }.let {
-                if (isBinaryCodec) RawMessage.Binary(it) else RawMessage.Text.of(it)
-            }
-
-        val resultMessage = messageCodec.decodeMessage(rawResultMessage, resultDeserializer)
+        val resultMessage = mutex.withLock {
+            sink.write(rawParameterMessage.byteArrayView)
+            messageCodec.decodeMessage(source, resultDeserializer)
+        }
 
         return resultMessage.payload
     }

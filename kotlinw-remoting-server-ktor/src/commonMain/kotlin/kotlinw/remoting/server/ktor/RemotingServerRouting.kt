@@ -17,9 +17,11 @@ import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.util.stdlib.toReadOnlyByteArray
+import kotlinw.util.stdlib.view
 import kotlinx.serialization.KSerializer
 
-fun <M: RawMessage> Routing.remotingServerRouting(
+fun <M : RawMessage> Routing.remotingServerRouting(
     messageCodec: MessageCodec<M>,
     remoteCallDelegators: Iterable<RemoteCallDelegator>
 ) {
@@ -31,20 +33,20 @@ fun <M: RawMessage> Routing.remotingServerRouting(
 
     route("/remoting/call") { // TODO configurable
         contentType(contentType) {
-            post("/{servicePath}/{methodPath}") {
-                val servicePath = call.parameters["servicePath"]
-                if (servicePath != null) {
-                    val delegator = delegators[servicePath]
+            post("/{serviceId}/{methodId}") {
+                val serviceId = call.parameters["serviceId"]
+                if (serviceId != null) {
+                    val delegator = delegators[serviceId]
                     if (delegator != null) {
-                        val methodPath = call.parameters["methodPath"]
-                        if (methodPath != null) {
-                            val methodDescriptor = delegator.methodDescriptors[methodPath]
+                        val methodId = call.parameters["methodId"]
+                        if (methodId != null) {
+                            val methodDescriptor = delegator.methodDescriptors[methodId]
                             if (methodDescriptor != null) {
                                 // TODO handle errors
 
                                 val rawRequestMessage =
                                     if (isBinaryCodec) {
-                                        RawMessage.Binary(call.receive<ByteArray>()) as M
+                                        RawMessage.Binary(call.receive<ByteArray>().view()) as M
                                     } else {
                                         RawMessage.Text(call.receiveText()) as M
                                     }
@@ -52,7 +54,7 @@ fun <M: RawMessage> Routing.remotingServerRouting(
                                 val requestMessage =
                                     messageCodec.decodeMessage(rawRequestMessage, methodDescriptor.parameterSerializer)
 
-                                val result = delegator.processCall(methodPath, requestMessage.payload)
+                                val result = delegator.processCall(methodId, requestMessage.payload)
 
                                 val responseMessage = RemotingMessage(result, null)
                                 val rawResponseMessage = messageCodec.encodeMessage(
@@ -64,7 +66,7 @@ fun <M: RawMessage> Routing.remotingServerRouting(
                                 call.response.header(HttpHeaders.ContentType, contentType.toString())
 
                                 if (isBinaryCodec) {
-                                    call.respondBytes((rawResponseMessage as RawMessage.Binary).byteArray)
+                                    call.respondBytes((rawResponseMessage as RawMessage.Binary).byteArrayView.toReadOnlyByteArray())
                                 } else {
                                     call.respondText((rawResponseMessage as RawMessage.Text).text)
                                 }

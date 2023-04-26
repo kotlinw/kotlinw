@@ -4,5 +4,4 @@ import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 
 @Serializable
-@JvmInline
-value class ServiceLocator(val id: String)
+class ServiceLocator(val serviceId: String, val methodId: String)

@@ -25,6 +25,7 @@ kotlin {
                 api("com.michael-bull.kotlin-result:kotlin-result:1.1.16")
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.serialization.core)
+                api(libs.okio.core)
             }
         }
         val commonTest by getting {

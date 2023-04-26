@@ -1,45 +1,48 @@
 package kotlinw.remoting.core
 
 import kotlinw.remoting.server.core.RemoteCallDelegator
-import okio.Sink
-import okio.Source
-import okio.buffer
+import kotlinw.util.stdlib.write
+import kotlinx.coroutines.yield
+import kotlinx.serialization.KSerializer
+import okio.BufferedSink
+import okio.BufferedSource
 
 class StreamBasedSynchronousRemotingServer(
-    private val messageCodec: MessageDecoderMetadataPrefetchSupport<RawMessage>,
-    private val source: Source,
-    private val sink: Sink,
-    private val handlers: List<RemoteCallDelegator>
+    private val messageCodec: BinaryMessageCodec,
+    remoteCallDelegators: Iterable<RemoteCallDelegator>,
+    private val source: BufferedSource,
+    private val sink: BufferedSink,
 ) {
-
-    private val handlerMap = handlers.associateBy { it.servicePath }
-
-    private val bufferedSource = source.buffer()
-
-    private val bufferedSink = sink.buffer()
+    private val delegators = remoteCallDelegators.associateBy { it.servicePath }
 
     suspend fun listen(): Nothing {
-        TODO()
-//        while (true) {
-//            val rawMessageSize = bufferedSource.readInt()
-//            val rawMessageBytes = bufferedSource.readByteArray(rawMessageSize.toLong())
-//
-//
-//
-//            val service = handlers[serviceName]
-//            if (service != null) {
-//                val responsePayload =
-//                    service.processCall(methodName, RawMessage.Text(requestBody), messageCodec) // TODO handle errors, eg. method not found
-//
-//                if (responsePayload is RawMessage.Text) {
-//                    return responsePayload.text
-//                } else {
-//                    throw IllegalStateException("Expected response payload of type Payload.Text but got: $responsePayload")
-//                }
-//            } else {
-//                throw ResponseStatusException(HttpStatus.NOT_FOUND);
-//            }
-//
-//        }
+        while (true) {
+            val extractedMetadata = messageCodec.extractMetadata(source)
+            val metadata = extractedMetadata.metadata
+            check(metadata != null) { "Protocol error: missing metadata." }
+
+            val serviceLocator = metadata.serviceLocator
+            check(serviceLocator != null) { "Protocol error: missing service locator. metadata=$metadata" }
+
+            val serviceId = serviceLocator.serviceId
+            val delegator = delegators[serviceId]
+            check(delegator != null) { "Service not found: $serviceLocator" }
+
+            val methodId = serviceLocator.methodId
+            val methodDescriptor = delegator.methodDescriptors[methodId]
+            check(methodDescriptor != null) { "Method not found: $serviceLocator" }
+
+            val parameter = extractedMetadata.decodePayload(methodDescriptor.parameterSerializer)
+            val result = delegator.processCall(methodId, parameter)
+
+            sink.write(
+                messageCodec.encodeMessage(
+                    RemotingMessage(result, null),
+                    methodDescriptor.resultSerializer as KSerializer<Any>
+                ).byteArrayView
+            )
+
+            yield()
+        }
     }
 }

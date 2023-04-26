@@ -22,6 +22,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
+                api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(libs.kotlinx.datetime)
                 api(libs.okio.core)
             }

@@ -1,5 +1,7 @@
 package kotlinw.remoting.core
 
+import kotlinw.util.stdlib.toReadOnlyByteArray
+import kotlinw.util.stdlib.view
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.StringFormat
@@ -14,17 +16,11 @@ class GenericTextMessageCodec(
 
     override val isBinary = false
 
-    override fun <T : Any> decodeMessage(
-        rawMessage: RawMessage.Text,
-        payloadDeserializer: KSerializer<T>
-    ): RemotingMessage<T> =
-        serialFormat.decodeFromString(RemotingMessageSerializer(payloadDeserializer), rawMessage.text)
+    override fun <T : Any> decode(rawMessage: RawMessage.Text, deserializer: KSerializer<T>): T =
+        serialFormat.decodeFromString(deserializer, rawMessage.text)
 
-    override fun <T : Any> encodeMessage(
-        message: RemotingMessage<T>,
-        payloadSerializer: KSerializer<T>
-    ): RawMessage.Text =
-        RawMessage.Text(serialFormat.encodeToString(RemotingMessageSerializer(payloadSerializer), message))
+    override fun <T : Any> encode(message: T, serializer: KSerializer<T>): RawMessage.Text =
+        RawMessage.Text(serialFormat.encodeToString(serializer, message))
 }
 
 class GenericBinaryMessageCodec(
@@ -39,15 +35,15 @@ class GenericBinaryMessageCodec(
 
     override val isBinary = true
 
-    override fun <T : Any> decodeMessage(
+    override fun <T : Any> decode(
         rawMessage: RawMessage.Binary,
-        payloadDeserializer: KSerializer<T>
-    ): RemotingMessage<T> =
-        serialFormat.decodeFromByteArray(RemotingMessageSerializer(payloadDeserializer), rawMessage.byteArray)
+        deserializer: KSerializer<T>
+    ): T =
+        serialFormat.decodeFromByteArray(deserializer, rawMessage.byteArrayView.toReadOnlyByteArray())
 
-    override fun <T : Any> encodeMessage(
-        message: RemotingMessage<T>,
-        payloadSerializer: KSerializer<T>
+    override fun <T : Any> encode(
+        message: T,
+        serializer: KSerializer<T>
     ): RawMessage.Binary =
-        RawMessage.Binary(serialFormat.encodeToByteArray(RemotingMessageSerializer(payloadSerializer), message))
+        RawMessage.Binary(serialFormat.encodeToByteArray(serializer, message).view())
 }
