@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.kotlinw.kotlinwRemotingCore)
+    api(projects.kotlinw.kotlinwRemotingCore)
     api(project.dependencies.platform(libs.spring.boot.bom))
     api(libs.spring.context)
     api(libs.spring.web)
