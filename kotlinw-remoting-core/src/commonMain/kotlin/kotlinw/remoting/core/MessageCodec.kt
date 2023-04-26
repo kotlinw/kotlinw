@@ -2,25 +2,34 @@ package kotlinw.remoting.core
 
 import kotlinx.serialization.KSerializer
 
-interface MessageCodec {
+interface MessageCodecDescriptor {
 
     val contentType: String
 
     val isBinary: Boolean
-
-    fun <T : Any> decodeMessage(rawMessage: RawMessage, payloadDeserializer: KSerializer<T>): T
-
-    fun <T : Any> encodeMessage(payload: T, payloadSerializer: KSerializer<T>): RawMessage
 }
 
-interface MessageCodecWithMetadataPrefetchSupport: MessageCodec {
+interface MessageDecoder<in M : RawMessage> : MessageCodecDescriptor {
 
-    interface PrefetchedMetadata {
+    fun <T : Any> decodeMessage(rawMessage: M, payloadDeserializer: KSerializer<T>): RemotingMessage<T>
+}
+
+interface MessageEncoder<out M : RawMessage> : MessageCodecDescriptor {
+
+    fun <T : Any> encodeMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>): M
+}
+
+interface MessageCodec<M : RawMessage> : MessageEncoder<M>, MessageDecoder<M> {
+}
+
+interface MessageDecoderMetadataPrefetchSupport<M : RawMessage> : MessageDecoder<M> {
+
+    interface PrefetchedMetadata<T : Any> {
 
         val metadata: RemotingMessageMetadata?
 
-        fun <T: Any> decodePayload(payloadDeserializer: KSerializer<T>): T
+        fun decodePayload(): T
     }
 
-    fun prefetchMetadata(rawMessage: RawMessage): PrefetchedMetadata
+    fun <T : Any> prefetchMetadata(rawMessage: M, deserializer: KSerializer<T>): PrefetchedMetadata<T>
 }

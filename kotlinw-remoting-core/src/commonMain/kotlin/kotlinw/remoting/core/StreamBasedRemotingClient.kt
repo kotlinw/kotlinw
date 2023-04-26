@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class StreamBasedSynchronousRemotingClient(
-    private val messageCodec: MessageCodec,
+    private val messageCodec: MessageCodec<RawMessage>,
     source: Source,
     sink: Sink
 ) : RemotingClientImplementor {
@@ -33,10 +33,12 @@ class StreamBasedSynchronousRemotingClient(
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
     ): R {
-        val rawRequestMessage = messageCodec.encodeMessage(parameter, parameterSerializer)
-        val bytes = rawRequestMessage.toByteArray()
+        val parameterMessage = RemotingMessage(parameter, null) // TODO metadata
 
-        val rawResponseMessage =
+        val rawParameterMessage = messageCodec.encodeMessage(parameterMessage, parameterSerializer)
+        val bytes = rawParameterMessage.toByteArray()
+
+        val rawResultMessage =
             mutex.withLock {
                 bufferedSink.writeInt(bytes.size)
                 bufferedSink.write(bytes)
@@ -48,6 +50,8 @@ class StreamBasedSynchronousRemotingClient(
                 if (isBinaryCodec) RawMessage.Binary(it) else RawMessage.Text.of(it)
             }
 
-        return messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
+        val resultMessage = messageCodec.decodeMessage(rawResultMessage, resultDeserializer)
+
+        return resultMessage.payload
     }
 }

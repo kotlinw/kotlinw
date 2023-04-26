@@ -9,6 +9,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import kotlinw.remoting.core.HttpRemotingClient
+import kotlinw.remoting.core.MessageCodec
+import kotlinw.remoting.core.MessageCodecDescriptor
 import kotlinw.remoting.core.RawMessage
 
 class KtorRemotingHttpClientImplementor(
@@ -17,28 +19,28 @@ class KtorRemotingHttpClientImplementor(
 
     constructor(engine: HttpClientEngine) : this(HttpClient(engine))
 
-    override suspend fun post(
+    override suspend fun <M : RawMessage> post(
         url: String,
-        requestBody: RawMessage,
-        contentType: String,
-        isResponseBodyBinary: Boolean,
-    ): RawMessage {
+        requestBody: M,
+        messageCodecDescriptor: MessageCodecDescriptor
+    ): M {
         val response =
             httpClient.post(url) {
-                header(HttpHeaders.Accept, contentType)
-                header(HttpHeaders.ContentType, contentType)
+                header(HttpHeaders.Accept, messageCodecDescriptor.contentType)
+                header(HttpHeaders.ContentType, messageCodecDescriptor.contentType)
 
                 setBody(
-                    when (requestBody) {
-                        is RawMessage.Binary -> requestBody.byteArray
-                        is RawMessage.Text -> requestBody.text
+                    if (messageCodecDescriptor.isBinary) {
+                        (requestBody as RawMessage.Binary).byteArray
+                    } else {
+                        (requestBody as RawMessage.Text).text
                     }
                 )
             }
 
-        return if (isResponseBodyBinary)
-            RawMessage.Binary(response.body<ByteArray>())
+        return if (messageCodecDescriptor.isBinary)
+            RawMessage.Binary(response.body<ByteArray>()) as M
         else
-            RawMessage.Text(response.bodyAsText())
+            RawMessage.Text(response.bodyAsText()) as M
     }
 }

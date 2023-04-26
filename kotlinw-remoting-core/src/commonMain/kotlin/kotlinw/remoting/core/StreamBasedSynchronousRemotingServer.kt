@@ -6,7 +6,7 @@ import okio.Source
 import okio.buffer
 
 class StreamBasedSynchronousRemotingServer(
-    private val messageCodec: MessageCodec,
+    private val messageCodec: MessageDecoderMetadataPrefetchSupport<RawMessage>,
     private val source: Source,
     private val sink: Sink,
     private val handlers: List<RemoteCallDelegator>

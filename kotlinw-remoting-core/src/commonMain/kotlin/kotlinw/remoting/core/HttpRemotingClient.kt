@@ -5,20 +5,19 @@ import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-class HttpRemotingClient(
-    private val messageCodec: MessageCodec,
+class HttpRemotingClient<M : RawMessage>(
+    private val messageCodec: MessageCodec<M>,
     private val httpClient: RemotingHttpClientImplementor,
     private val remotingServerBaseUrl: String
 ) : RemotingClientImplementor {
 
     interface RemotingHttpClientImplementor {
 
-        suspend fun post(
+        suspend fun <M: RawMessage> post(
             url: String,
-            requestBody: RawMessage,
-            contentType: String,
-            isResponseBodyBinary: Boolean // TODO ehelyett a return type legyen generikus
-        ): RawMessage
+            requestBody: M,
+            messageCodecDescriptor: MessageCodecDescriptor
+        ): M
     }
 
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
@@ -33,15 +32,20 @@ class HttpRemotingClient(
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
     ): R {
-        val rawRequestMessage = messageCodec.encodeMessage(parameter, parameterSerializer)
+        val parameterMessage = RemotingMessage(parameter, null) // TODO metadata
+        val rawResultMessage =
+            messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
         val rawResponseMessage = httpClient.post(
             buildServiceUrl(serviceName, methodName),
-            rawRequestMessage,
-            messageCodec.contentType,
-            messageCodec.isBinary
+            rawResultMessage,
+            messageCodec
         )
 
-        return messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
+        val resultMessage =
+            messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
+        // TODO metadata
+
+        return resultMessage.payload
     }
 }

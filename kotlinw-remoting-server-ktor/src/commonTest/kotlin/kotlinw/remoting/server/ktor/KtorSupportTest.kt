@@ -7,7 +7,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.ktor.MessageCodecImpl
+import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
@@ -19,12 +19,10 @@ class KtorSupportTest {
 
     @Test
     fun test() = testApplication {
-        val serializer = Json.Default
-
         val service = mockk<ExampleService>(relaxed = true)
         coEvery { service.p1IntReturnsString(any()) } returns "abc"
 
-        val messageCodec = MessageCodecImpl(Json, ContentType.Application.Json, false)
+        val messageCodec = GenericTextMessageCodec(Json, ContentType.Application.Json)
 
         routing {
             remotingServerRouting(messageCodec, listOf(ExampleServiceRemoteCallDelegator(service)))

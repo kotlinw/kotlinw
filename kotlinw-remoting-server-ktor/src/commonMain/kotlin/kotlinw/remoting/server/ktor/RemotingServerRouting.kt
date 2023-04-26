@@ -15,11 +15,12 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinx.serialization.KSerializer
 
-fun Routing.remotingServerRouting(
-    messageCodec: MessageCodec,
+fun <M: RawMessage> Routing.remotingServerRouting(
+    messageCodec: MessageCodec<M>,
     remoteCallDelegators: Iterable<RemoteCallDelegator>
 ) {
     val contentTypeValue = messageCodec.contentType
@@ -43,26 +44,29 @@ fun Routing.remotingServerRouting(
 
                                 val rawRequestMessage =
                                     if (isBinaryCodec) {
-                                        RawMessage.Binary(call.receive<ByteArray>())
+                                        RawMessage.Binary(call.receive<ByteArray>()) as M
                                     } else {
-                                        RawMessage.Text(call.receiveText())
+                                        RawMessage.Text(call.receiveText()) as M
                                     }
 
-                                val parameter =
+                                val requestMessage =
                                     messageCodec.decodeMessage(rawRequestMessage, methodDescriptor.parameterSerializer)
 
-                                val result = delegator.processCall(methodPath, parameter)
+                                val result = delegator.processCall(methodPath, requestMessage.payload)
+
+                                val responseMessage = RemotingMessage(result, null)
                                 val rawResponseMessage = messageCodec.encodeMessage(
-                                    result,
+                                    responseMessage,
                                     methodDescriptor.resultSerializer as KSerializer<Any>
                                 )
 
                                 call.response.status(HttpStatusCode.OK)
                                 call.response.header(HttpHeaders.ContentType, contentType.toString())
 
-                                when (rawResponseMessage) {
-                                    is RawMessage.Binary -> call.respondBytes(rawResponseMessage.byteArray)
-                                    is RawMessage.Text -> call.respondText(rawResponseMessage.text)
+                                if (isBinaryCodec) {
+                                    call.respondBytes((rawResponseMessage as RawMessage.Binary).byteArray)
+                                } else {
+                                    call.respondText((rawResponseMessage as RawMessage.Text).text)
                                 }
                             }
                         }

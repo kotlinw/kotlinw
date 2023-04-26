@@ -1,12 +1,13 @@
 package kotlinw.remoting.core.ktor
 
 import io.ktor.http.ContentType
-import kotlinw.remoting.core.MessageCodecImpl
-import kotlinx.serialization.SerialFormat
+import kotlinw.remoting.core.GenericMessageCodec
+import kotlinw.remoting.core.GenericTextMessageCodec
+import kotlinw.remoting.core.RawMessage
+import kotlinx.serialization.StringFormat
 
-fun MessageCodecImpl(
-    serialFormat: SerialFormat,
-    contentType: ContentType,
-    isBinary: Boolean
-): MessageCodecImpl =
-    MessageCodecImpl(serialFormat, contentType.toString(), isBinary)
+fun GenericTextMessageCodec(
+    serialFormat: StringFormat,
+    contentType: ContentType
+): GenericTextMessageCodec =
+    GenericTextMessageCodec(serialFormat, contentType.toString())

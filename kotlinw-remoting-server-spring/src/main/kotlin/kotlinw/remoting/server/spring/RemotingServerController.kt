@@ -3,6 +3,7 @@ package kotlinw.remoting.server.spring
 import jakarta.annotation.PostConstruct
 import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinx.serialization.KSerializer
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException
 class RemotingServerController {
 
     @Autowired
-    private lateinit var messageCodec: MessageCodec
+    private lateinit var messageCodec: MessageCodec<RawMessage.Text>
 
     @Autowired
     private lateinit var handlerList: List<RemoteCallDelegator>
@@ -50,13 +51,15 @@ class RemotingServerController {
         if (service != null) {
             val methodDescriptor = service.methodDescriptors[methodName]
             if (methodDescriptor != null) {
-                val parameter =
+                val requestMessage =
                     messageCodec.decodeMessage(RawMessage.Text(requestBody), methodDescriptor.parameterSerializer)
-                val result = service.processCall(methodName, parameter)
-                return (messageCodec.encodeMessage(
-                    result,
+                // TODO metadata
+                val result = service.processCall(methodName, requestMessage.payload)
+                val responseMessage = RemotingMessage(result, null) // TODO metadata
+                return messageCodec.encodeMessage(
+                    responseMessage,
                     methodDescriptor.resultSerializer as KSerializer<Any>
-                ) as RawMessage.Text).text
+                ).text
             } else {
                 throw ResponseStatusException(HttpStatus.NOT_FOUND);
             }
@@ -65,35 +68,5 @@ class RemotingServerController {
         }
     }
 
-    @PostMapping(
-        path = ["/call/{serviceName}/{methodName}"],
-        consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
-    )
-    @ResponseBody
-    suspend fun callBinary(
-        @PathVariable serviceName: String,
-        @PathVariable methodName: String,
-        @RequestBody requestBody: ByteArray
-    ): ByteArray {
-        // TODO handle errors
-
-        val service = handlers[serviceName]
-        if (service != null) {
-            val methodDescriptor = service.methodDescriptors[methodName]
-            if (methodDescriptor != null) {
-                val parameter =
-                    messageCodec.decodeMessage(RawMessage.Binary(requestBody), methodDescriptor.parameterSerializer)
-                val result = service.processCall(methodName, parameter)
-                return (messageCodec.encodeMessage(
-                    result,
-                    methodDescriptor.resultSerializer as KSerializer<Any>
-                ) as RawMessage.Binary).byteArray
-            } else {
-                throw ResponseStatusException(HttpStatus.NOT_FOUND);
-            }
-        } else {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-    }
+    // TODO binary support
 }

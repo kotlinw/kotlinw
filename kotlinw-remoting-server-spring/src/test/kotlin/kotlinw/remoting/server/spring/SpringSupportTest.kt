@@ -8,7 +8,10 @@ import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
 import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageCodec
-import kotlinw.remoting.core.MessageCodecImpl
+import kotlinw.remoting.core.GenericMessageCodec
+import kotlinw.remoting.core.GenericTextMessageCodec
+import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceClientProxy
 import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
@@ -39,7 +42,7 @@ class SpringSupportTest {
     class TestSpringModule {
 
         @Bean
-        fun messageCodec(): MessageCodec = MessageCodecImpl(Json, MediaType.APPLICATION_JSON_VALUE, false)
+        fun messageCodec() = GenericTextMessageCodec(Json, MediaType.APPLICATION_JSON_VALUE)
 
         @Bean
         fun exampleService(): ExampleService = mockk<ExampleService>(relaxed = true) {
@@ -55,7 +58,7 @@ class SpringSupportTest {
     private var port: Int = -1
 
     @Autowired
-    private lateinit var messageCodec: MessageCodec
+    private lateinit var messageCodec: MessageCodec<*>
 
     @Autowired
     private lateinit var exampleService: ExampleService
