@@ -14,29 +14,22 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okio.Buffer
 import okio.Okio
+import okio.Pipe
 import okio.Sink
 import okio.Source
 import okio.Timeout
 import okio.buffer
 import okio.sink
 import okio.source
+import java.io.InterruptedIOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class StreamBasedSynchronousRemotingTest {
-
-    private class PipedSourceSinkPair {
-
-        private val inputStream = PipedInputStream()
-
-        private val outputStream = PipedOutputStream(inputStream)
-
-        val source = inputStream.source().buffer()
-
-        val sink = outputStream.sink().buffer()
-    }
 
     private class EchoServiceImpl : EchoService {
 
@@ -50,27 +43,31 @@ class StreamBasedSynchronousRemotingTest {
                 GenericTextMessageCodec(Json, "application/json").asBinaryMessageCodec()
             )
 
-            val serverToClientPipe = PipedSourceSinkPair()
-            val clientToServerPipe = PipedSourceSinkPair()
+            val serverToClientPipe = Pipe(1000)
+            val clientToServerPipe = Pipe(1000)
+
+            val clientToServerPipeSource = clientToServerPipe.source
+            clientToServerPipeSource.timeout().timeout(1, TimeUnit.SECONDS)
 
             launch(newSingleThreadContext("server")) {
-                StreamBasedSynchronousRemotingServer(
-                    messageCodec,
-                    listOf(EchoServiceRemoteCallDelegator(EchoServiceImpl())),
-                    clientToServerPipe.source,
-                    serverToClientPipe.sink
-                ).listen()
+                assertFailsWith(InterruptedIOException::class) {
+                    StreamBasedSynchronousRemotingServer(
+                        messageCodec,
+                        listOf(EchoServiceRemoteCallDelegator(EchoServiceImpl())),
+                        clientToServerPipeSource.buffer(),
+                        serverToClientPipe.sink.buffer()
+                    ).listen()
+                }
             }
 
-            launch {
-                val remotingClient = StreamBasedSynchronousRemotingClient(
-                    messageCodec,
-                    serverToClientPipe.source,
-                    clientToServerPipe.sink
-                )
-                val proxy = remotingClient.proxy(::EchoServiceClientProxy)
-                assertEquals("Hello!!!", proxy.echo("Hello!!!"))
-            }
+            val remotingClient = StreamBasedSynchronousRemotingClient(
+                messageCodec,
+                serverToClientPipe.source.buffer(),
+                clientToServerPipe.sink.buffer()
+            )
+            val proxy = remotingClient.proxy(::EchoServiceClientProxy)
+            assertEquals("Hello!!!", proxy.echo("Hello!!!"))
+            assertEquals("Hello World!", proxy.echo("Hello World!"))
         }
     }
 }
