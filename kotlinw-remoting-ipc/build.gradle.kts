@@ -21,11 +21,21 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwRemotingCore)
             }
         }
         val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(kotlin("test"))
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+            }
+        }
+        val jvmTest by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.serialization.json)
