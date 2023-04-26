@@ -17,6 +17,7 @@ class StreamBasedSynchronousRemotingServer(
 
     suspend fun listen(): Nothing {
         while (true) {
+            println("Waiting for message...")
             val extractedMetadata = messageCodec.extractMetadata(source)
             val metadata = extractedMetadata.metadata
             check(metadata != null) { "Protocol error: missing metadata." }
@@ -34,13 +35,15 @@ class StreamBasedSynchronousRemotingServer(
 
             val parameter = extractedMetadata.decodePayload(methodDescriptor.parameterSerializer)
             val result = delegator.processCall(methodId, parameter)
+            println("called $serviceLocator: $parameter returned $result")
 
-            sink.write(
-                messageCodec.encodeMessage(
-                    RemotingMessage(result, null),
-                    methodDescriptor.resultSerializer as KSerializer<Any>
-                ).byteArrayView
-            )
+            val rawResult = messageCodec.encodeMessage(
+                RemotingMessage(result, null),
+                methodDescriptor.resultSerializer as KSerializer<Any>
+            ).byteArrayView
+
+            sink.write(rawResult)
+            sink.flush()
 
             yield()
         }

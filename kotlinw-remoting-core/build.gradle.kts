@@ -1,6 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.google.devtools.ksp")
 }
 
 kotlin {
@@ -20,6 +23,7 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
@@ -29,9 +33,34 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(kotlin("test"))
+                api(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.coroutines.test)
             }
         }
+        val jvmMain by getting {
+            kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
+            dependencies {
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+    }
+}
+
+dependencies {
+    add("kspCommonMainMetadata", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJs", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJsTest", projects.kotlinw.kotlinwRemotingProcessor)
+    add("kspJvm", projects.kotlinw.kotlinwRemotingProcessor)
+    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
+}
+
+tasks.withType<KotlinCompile<*>>().all {
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
     }
 }

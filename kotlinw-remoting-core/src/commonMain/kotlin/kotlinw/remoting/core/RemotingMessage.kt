@@ -14,8 +14,8 @@ import kotlinx.serialization.serializer
 
 @Serializable
 data class RemotingMessageMetadata(
-    val timestamp: Instant?,
-    val serviceLocator: ServiceLocator?
+    val timestamp: Instant? = null,
+    val serviceLocator: ServiceLocator? = null
 )
 
 @Serializable(with = RemotingMessageSerializer::class)

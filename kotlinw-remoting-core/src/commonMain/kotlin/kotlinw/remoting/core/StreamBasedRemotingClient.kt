@@ -22,8 +22,6 @@ class StreamBasedSynchronousRemotingClient(
 
     private val mutex = Mutex()
 
-    private val isBinaryCodec = messageCodec.isBinary
-
     override suspend fun <T : Any, P : Any, R : Any> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<*>,
@@ -33,11 +31,16 @@ class StreamBasedSynchronousRemotingClient(
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
     ): R {
-        val parameterMessage = RemotingMessage(parameter, null) // TODO metadata
+        val parameterMessage = RemotingMessage(
+            parameter,
+            RemotingMessageMetadata(serviceLocator = ServiceLocator(serviceName, methodName))
+        )
         val rawParameterMessage = messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
         val resultMessage = mutex.withLock {
             sink.write(rawParameterMessage.byteArrayView)
+            sink.flush()
+
             messageCodec.decodeMessage(source, resultDeserializer)
         }
 
