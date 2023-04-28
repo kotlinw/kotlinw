@@ -109,6 +109,7 @@ class RemotingSymbolProcessor(
         fun generateClientProxyClass(): TypeSpec {
             val builder = TypeSpec.classBuilder(clientProxyClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
+                .addModifiers(KModifier.PRIVATE)
                 .addSuperinterface(definitionInterfaceName)
                 .addSuperinterface(ClientProxy::class.asClassName().parameterizedBy(definitionInterfaceName))
                 .primaryConstructor(
@@ -202,6 +203,7 @@ class RemotingSymbolProcessor(
         fun generateServerDelegateClass(): TypeSpec {
             val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallDelegatorClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
+                .addModifiers(KModifier.PRIVATE)
                 .addSuperinterface(RemoteCallDelegator::class)
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
@@ -295,7 +297,28 @@ class RemotingSymbolProcessor(
         }
 
         generatedFile.addType(generateClientProxyClass())
+
+        // fun ExampleService.Companion.clientProxy(remotingClient: RemotingClient) = ExampleServiceClientProxy(remotingClient)
+
+        generatedFile.addFunction(
+            FunSpec.builder("clientProxy")
+                .receiver(definitionInterfaceName.nestedClass("Companion"))
+                .addParameter("remotingClient", RemotingClient::class)
+                .returns(definitionInterfaceName)
+                .addStatement("return %T(remotingClient)", clientProxyClassName)
+                .build()
+        )
+
         generatedFile.addType(generateServerDelegateClass())
+
+        generatedFile.addFunction(
+            FunSpec.builder("remoteCallDelegator")
+                .receiver(definitionInterfaceName.nestedClass("Companion"))
+                .addParameter("target", definitionInterfaceName)
+                .returns(RemoteCallDelegator::class)
+                .addStatement("return %T(target)", definitionInterfaceName.remoteCallDelegatorClassName)
+                .build()
+        )
     }
 
     private fun buildPayloadClass(className: ClassName, parameterTypes: List<KSValueParameter>): TypeSpec =

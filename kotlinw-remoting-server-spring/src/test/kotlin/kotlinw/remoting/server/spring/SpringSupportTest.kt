@@ -6,15 +6,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
+import kotlinw.remoting.core.GenericTextMessageCodec
 import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageCodec
-import kotlinw.remoting.core.GenericMessageCodec
-import kotlinw.remoting.core.GenericTextMessageCodec
-import kotlinw.remoting.core.RawMessage
-import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.remoting.processor.test.ExampleService
-import kotlinw.remoting.processor.test.ExampleServiceClientProxy
-import kotlinw.remoting.processor.test.ExampleServiceRemoteCallDelegator
+import kotlinw.remoting.processor.test.clientProxy
+import kotlinw.remoting.processor.test.remoteCallDelegator
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -50,8 +47,7 @@ class SpringSupportTest {
         }
 
         @Bean
-        fun exampleServiceReceivedCallProcessor(): RemoteCallDelegator =
-            ExampleServiceRemoteCallDelegator(exampleService())
+        fun exampleServiceReceivedCallProcessor() = ExampleService.remoteCallDelegator(exampleService())
     }
 
     @Value("\${local.server.port}")
@@ -66,7 +62,7 @@ class SpringSupportTest {
     @Test
     fun test() {
         val proxy: ExampleService =
-            ExampleServiceClientProxy(
+            ExampleService.clientProxy(
                 HttpRemotingClient(
                     messageCodec,
                     KtorRemotingHttpClientImplementor(),

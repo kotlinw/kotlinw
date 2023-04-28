@@ -5,6 +5,8 @@ import kotlinw.remoting.api.SupportsRemoting
 @SupportsRemoting
 interface ExampleService {
 
+    companion object;
+
     suspend fun noParameterReturnsUnit()
 
     suspend fun noParameterReturnsString(): String
