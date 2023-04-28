@@ -21,7 +21,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwUtilCoreMp)
-                api(projects.shared.kotlinwLoggingMp)
+                api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.datetime)
             }

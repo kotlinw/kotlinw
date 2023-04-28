@@ -1,6 +1,5 @@
 package kotlinw.statemachine2
 
-import kotlinw.logging.mp.LoggerFactoryImpl
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -12,9 +11,7 @@ class TurnstileStateMachineTest {
     @Test
     fun test() {
         runBlocking {
-            val loggerFactory = LoggerFactoryImpl()
-
-            val configuredStateMachine = TurnstileStateMachineDefinition.configure(loggerFactory, this)
+            val configuredStateMachine = TurnstileStateMachineDefinition.configure(this)
 
             val loggerJob = launch(start = CoroutineStart.UNDISPATCHED) {
                 configuredStateMachine.stateFlow.collect { println("New state: ${it.definition.name}") }

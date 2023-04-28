@@ -1,6 +1,5 @@
 package kotlinw.statemachine2
 
-import kotlinw.logging.mp.LoggerFactoryImpl
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -14,14 +13,12 @@ class DataFetchStateMachineTest {
     @Test
     fun test() {
         runBlocking {
-            val loggerFactory = LoggerFactoryImpl()
-
             // TODO runTest {}
             data class FilteringData(val filterFragment: String)
 
             val smd = DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
 
-            val configuredStateMachine = smd.configure(loggerFactory,this) {
+            val configuredStateMachine = smd.configure(this) {
                 inState(smd.inProgress) {
                     println(it)
                     try {

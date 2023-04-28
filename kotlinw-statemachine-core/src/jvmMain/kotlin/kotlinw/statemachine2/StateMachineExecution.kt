@@ -2,10 +2,8 @@ package kotlinw.statemachine2
 
 import arrow.atomic.AtomicBoolean
 import arrow.core.continuations.AtomicRef
-import kotlinw.logging.mp.LoggerFactory
-import kotlinw.logging.mp.debug
-import kotlinw.logging.mp.error
-import kotlinw.logging.mp.getLogger
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.coroutine.withReentrantLock
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.*
@@ -253,7 +251,6 @@ sealed interface ConfiguredStateMachine<StateDataBaseType, SMD : StateMachineDef
 }
 
 private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>>(
-    private val loggerFactory: LoggerFactory,
     private val stateMachineDefinition: SMD,
     private val executionConfiguration: ExecutionConfiguration<StateDataBaseType, SMD>
 ) :
@@ -268,7 +265,6 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
             initialTransitionProvider(InitialTransitionProviderContextImpl(stateMachineDefinition))
         val executor =
             StateMachineExecutorImpl(
-                loggerFactory,
                 stateMachineDefinition,
                 mutableStateFlow,
                 stateFlow,
@@ -280,12 +276,10 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
 }
 
 fun <StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> SMD.configure(
-    loggerFactory: LoggerFactory,
     coroutineScope: CoroutineScope,
     executionDefinitionBuilder: /* TODO context(SMD) */ ExecutionDefinitionContext<StateDataBaseType, SMD>.() -> Unit = {}
 ): ConfiguredStateMachine<StateDataBaseType, SMD> =
     ConfiguredStateMachineImpl(
-        loggerFactory,
         this,
         ExecutionDefinitionContextImpl<StateDataBaseType, SMD>(coroutineScope, this).also {
             executionDefinitionBuilder(
@@ -314,14 +308,13 @@ sealed interface DispatchContext<StateDataBaseType, SMD : StateMachineDefinition
 typealias StateFinalizerTask<T> = suspend (T) -> Unit
 
 internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>>(
-    loggerFactory: LoggerFactory,
     override val stateMachineDefinition: SMD,
     private val mutableStateFlow: MutableSharedFlow<State<StateDataBaseType, out StateDataBaseType>>,
     override val stateFlow: SharedFlow<State<StateDataBaseType, out StateDataBaseType>>,
     private val executionConfiguration: ExecutionConfiguration<StateDataBaseType, SMD>
 ) : StateMachineExecutor<StateDataBaseType, SMD> {
 
-    private val logger = loggerFactory.getLogger(this)
+    private val logger = PlatformLogging.getLogger()
 
     private inner class DispatchContextImpl : DispatchContext<StateDataBaseType, SMD> {
 
