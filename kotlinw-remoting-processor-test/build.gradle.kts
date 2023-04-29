@@ -8,19 +8,7 @@ plugins {
 
 kotlin {
     jvm { }
-
-//    js(IR) {
-//        browser {}
-//    }
-
-//    val hostOs = System.getProperty("os.name")
-//    val isMingwX64 = hostOs.startsWith("Windows")
-//    val nativeTarget = when {
-//        hostOs == "Mac OS X" -> macosX64("native")
-//        hostOs == "Linux" -> linuxX64("native")
-//        isMingwX64 -> mingwX64("native")
-//        else -> throw GradleException("Host OS is not supported in Kotlin/Native: $hostOs")
-//    }
+    linuxX64()
 
     sourceSets {
         val commonMain by getting {
@@ -32,7 +20,6 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(projects.kotlinw.kotlinwRemotingClientKtor)
-                implementation(libs.mockk)
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
@@ -42,6 +29,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.logback.classic)
+                implementation(libs.mockk)
             }
         }
 //        val jsMain by getting {

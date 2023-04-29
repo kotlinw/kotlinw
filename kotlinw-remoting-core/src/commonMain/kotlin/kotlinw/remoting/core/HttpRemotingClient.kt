@@ -1,6 +1,7 @@
 package kotlinw.remoting.core
 
 import kotlinw.remoting.client.core.RemotingClientImplementor
+import kotlinw.util.stdlib.Url
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -8,7 +9,7 @@ import kotlin.reflect.KFunction
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
     private val httpClient: RemotingHttpClientImplementor,
-    private val remotingServerBaseUrl: String
+    private val remoteServerBaseUrl: Url
 ) : RemotingClientImplementor {
 
     interface RemotingHttpClientImplementor {
@@ -21,7 +22,7 @@ class HttpRemotingClient<M : RawMessage>(
     }
 
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
-        "$remotingServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO
+        "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO
 
     override suspend fun <T : Any, P : Any, R : Any> call(
         serviceKClass: KClass<T>,

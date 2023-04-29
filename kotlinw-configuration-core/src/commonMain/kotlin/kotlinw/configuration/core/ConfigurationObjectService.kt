@@ -6,14 +6,14 @@ import kotlin.reflect.KClass
 
 interface ConfigurationObjectService {
 
-    fun <T : Any> getConfigurationObjectInstances(configurationType: KClass<T>): List<T>
+    fun <T : Any> getConfigurationObjects(configurationType: KClass<T>): List<T>
 }
 
-inline fun <reified T : Any> ConfigurationObjectService.getConfigurationObjectInstances(): List<T> =
-    getConfigurationObjectInstances(T::class)
+inline fun <reified T : Any> ConfigurationObjectService.getConfigurationObjects(): List<T> =
+    getConfigurationObjects(T::class)
 
 fun <T : Any> ConfigurationObjectService.getOptionalSingletonConfigurationObject(configurationType: KClass<T>): T? {
-    val configurationInstances = getConfigurationObjectInstances(configurationType)
+    val configurationInstances = getConfigurationObjects(configurationType)
     return when {
         configurationInstances.size == 1 -> configurationInstances.first()
         configurationInstances.isEmpty() -> null
@@ -48,7 +48,7 @@ class ConfigurationObjectServiceImpl(
 
     private val sortedConfigurationProviders = configurationProviders.sortedWith(HasPriority.comparator)
 
-    override fun <T : Any> getConfigurationObjectInstances(configurationType: KClass<T>): List<T> =
+    override fun <T : Any> getConfigurationObjects(configurationType: KClass<T>): List<T> =
         sortedConfigurationProviders
             .filter { it.supports(configurationType) }
             .map { it.resolveConfigurationInstances(ResolutionContextImpl(), configurationType) }

@@ -11,6 +11,7 @@ import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallDelegator
+import kotlinw.util.stdlib.Url
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -30,7 +31,7 @@ class KtorSupportTest {
 
         val remotingHttpClientImplementor = KtorRemotingHttpClientImplementor(client)
         val remotingClient =
-            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, "")
+            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""))
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
         assertEquals("abc", clientProxy.p1IntReturnsString(123))

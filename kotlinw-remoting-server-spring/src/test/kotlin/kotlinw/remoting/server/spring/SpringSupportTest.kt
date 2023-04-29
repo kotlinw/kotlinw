@@ -13,6 +13,7 @@ import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallDelegator
 import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,8 +66,8 @@ class SpringSupportTest {
             ExampleService.clientProxy(
                 HttpRemotingClient(
                     messageCodec,
-                    KtorRemotingHttpClientImplementor(),
-                    "http://localhost:$port"
+                    KtorRemotingHttpClientImplementor(HttpClient()),
+                    Url("http://localhost:$port")
                 )
             )
 

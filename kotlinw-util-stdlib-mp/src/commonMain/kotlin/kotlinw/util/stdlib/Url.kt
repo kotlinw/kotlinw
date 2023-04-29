@@ -6,6 +6,7 @@ import kotlin.jvm.JvmInline
 @JvmInline
 @Serializable
 value class Url(val value: String) {
+
     override fun toString() = value
 }
 

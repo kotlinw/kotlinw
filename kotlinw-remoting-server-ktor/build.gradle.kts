@@ -7,19 +7,9 @@ plugins {
 }
 
 kotlin {
+    targetHierarchy.default()
     jvm { }
-
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    if (!isMingwX64) {
-        // Windows is not supported as a Kotlin/Native server environment: https://ktor.io/docs/native-server.html
-
-        val nativeTarget = when {
-            hostOs == "Mac OS X" -> macosX64("native")
-            hostOs == "Linux" -> linuxX64("native")
-            else -> throw GradleException("Host OS is not supported in Kotlin/Native: $hostOs")
-        }
-    }
+    linuxX64()
 
     sourceSets {
         val commonMain by getting {
@@ -34,13 +24,11 @@ kotlin {
             dependencies {
                 implementation(projects.kotlinw.kotlinwRemotingProcessorTest)
                 implementation(projects.kotlinw.kotlinwRemotingClientKtor)
-                implementation(libs.mockk)
                 implementation(libs.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.server.test.host)
                 implementation(libs.ktor.client.logging)
-                implementation(libs.logback.classic)
                 implementation(kotlin("test"))
             }
         }
@@ -50,6 +38,8 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
+                implementation(libs.logback.classic)
+                implementation(libs.mockk)
             }
         }
     }

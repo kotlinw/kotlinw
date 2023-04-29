@@ -26,6 +26,8 @@ sealed interface LogMessageBuilder {
 
     operator fun div(namedArgument: Pair<String, Any?>): LogMessageBuilder
 
+    fun named(name: String, value: Any?) = name to value
+
     operator fun div(namedArguments: Map<String, Any?>): LogMessageBuilder
 
     operator fun div(namedArguments: List<Pair<String, Any?>>): LogMessageBuilder = div(namedArguments.toMap())
@@ -96,6 +98,7 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
 
     override operator fun String.div(argument: Any?): LogMessageBuilder {
         text(this)
+        // TODO szétszedni két overloaded metódusra
         if (argument is Pair<*, *>) {
             addNamedArgument(safeToString(argument.first), argument.second)
         } else {

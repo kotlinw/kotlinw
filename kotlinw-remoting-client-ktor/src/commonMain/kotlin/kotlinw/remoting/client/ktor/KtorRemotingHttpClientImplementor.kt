@@ -16,7 +16,7 @@ import kotlinw.util.stdlib.toReadOnlyByteArray
 import kotlinw.util.stdlib.view
 
 class KtorRemotingHttpClientImplementor(
-    private val httpClient: HttpClient = HttpClient()
+    private val httpClient: HttpClient
 ) : HttpRemotingClient.RemotingHttpClientImplementor {
 
     constructor(engine: HttpClientEngine) : this(HttpClient(engine))
