@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.8.20"
+kotlin = "1.8.21"
 
 # https://junit.org/junit5/docs/current/release-notes/index.html
 junit = "5.9.0"
@@ -28,7 +28,7 @@ logback = "1.4.5"
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.0-RC"
 
-ksp = "1.8.20-1.0.11"
+ksp = "1.8.21-1.0.11"
 
 [libraries]
 
