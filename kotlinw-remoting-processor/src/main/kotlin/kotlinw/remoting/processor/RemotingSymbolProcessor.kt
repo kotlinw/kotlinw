@@ -298,8 +298,6 @@ class RemotingSymbolProcessor(
 
         generatedFile.addType(generateClientProxyClass())
 
-        // fun ExampleService.Companion.clientProxy(remotingClient: RemotingClient) = ExampleServiceClientProxy(remotingClient)
-
         generatedFile.addFunction(
             FunSpec.builder("clientProxy")
                 .receiver(definitionInterfaceName.nestedClass("Companion"))
@@ -347,13 +345,12 @@ class RemotingSymbolProcessor(
                         }
                     )
                     .also {
-// TODO https://github.com/Kotlin/kotlinx.serialization/issues/2286
-//                        if (parameterTypes.size == 1) {
-//                            it.addModifiers(KModifier.VALUE)
-//                            it.addAnnotation(JvmInline::class)
-//                        } else {
+                        if (parameterTypes.size == 1) {
+                            it.addModifiers(KModifier.VALUE)
+                            it.addAnnotation(JvmInline::class)
+                        } else {
                             it.addModifiers(KModifier.DATA)
-//                        }
+                        }
                     }
             }
 
