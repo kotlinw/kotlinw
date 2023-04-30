@@ -8,7 +8,9 @@ plugins {
 
 kotlin {
     jvm { }
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {

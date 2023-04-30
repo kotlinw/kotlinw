@@ -9,8 +9,10 @@ kotlin {
     js(IR) {
         browser()
     }
-    mingwX64()
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {

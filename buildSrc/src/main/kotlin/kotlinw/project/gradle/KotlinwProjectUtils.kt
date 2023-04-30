@@ -65,3 +65,5 @@ fun Project.readOssrhAccountData(): OssrhAccountData {
         getLocalPropertyValue("ossrh.password")!!
     )
 }
+
+fun Project.isNativeTargetEnabled(): Boolean = getLocalPropertyValue("com.erinors.targets.native.enable") == "true"

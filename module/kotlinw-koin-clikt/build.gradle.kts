@@ -6,8 +6,10 @@ plugins {
 kotlin {
     targetHierarchy.default()
     jvm { }
-    mingwX64()
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {

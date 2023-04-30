@@ -9,7 +9,9 @@ plugins {
 kotlin {
     targetHierarchy.default()
     jvm { }
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {

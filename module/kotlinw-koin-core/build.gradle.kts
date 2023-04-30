@@ -9,8 +9,10 @@ kotlin {
     js(IR) {
         browser()
     }
-    mingwX64()
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -41,14 +43,16 @@ kotlin {
                 implementation(libs.ktor.client.js)
             }
         }
-        val mingwX64Main by getting {
-            dependencies {
-                implementation(libs.ktor.client.winhttp)
+        if (isNativeTargetEnabled()) {
+            val mingwX64Main by getting {
+                dependencies {
+                    implementation(libs.ktor.client.winhttp)
+                }
             }
-        }
-        val linuxX64Main by getting {
-            dependencies {
-                implementation(libs.ktor.client.cio)
+            val linuxX64Main by getting {
+                dependencies {
+                    implementation(libs.ktor.client.cio)
+                }
             }
         }
     }

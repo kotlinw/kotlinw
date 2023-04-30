@@ -9,8 +9,10 @@ kotlin {
     js(IR) {
         browser()
     }
-    mingwX64()
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -45,7 +47,9 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
-        val nativeMain by getting
-        val nativeTest by getting
+        if (isNativeTargetEnabled()) {
+            val nativeMain by getting
+            val nativeTest by getting
+        }
     }
 }

@@ -9,8 +9,10 @@ kotlin {
     js(IR) {
         browser()
     }
-    mingwX64()
-    linuxX64()
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -34,9 +36,11 @@ kotlin {
                 implementation(libs.logback.classic)
             }
         }
-        val nativeMain by getting {
-            dependencies {
-                api(projects.kotlinw.kotlinwLoggingStdout)
+        if (isNativeTargetEnabled()) {
+            val nativeMain by getting {
+                dependencies {
+                    api(projects.kotlinw.kotlinwLoggingStdout)
+                }
             }
         }
     }
