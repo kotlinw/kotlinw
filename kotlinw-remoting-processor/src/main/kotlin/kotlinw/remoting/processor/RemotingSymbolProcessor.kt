@@ -243,7 +243,7 @@ class RemotingSymbolProcessor(
                                     function.resultClassName(nestedClassIdentifier)
                                 )
                             }
-                            add(").associateBy { it.methodId }")
+                            add(")\n.associateBy { it.methodId }")
                         }.build()
                     )
             builder.addProperty(methodDescriptorsBuilder.build())
