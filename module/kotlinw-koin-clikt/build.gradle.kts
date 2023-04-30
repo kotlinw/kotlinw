@@ -6,14 +6,7 @@ plugins {
 kotlin {
     targetHierarchy.default()
     jvm { }
-    js(IR) {
-        browser()
-    }
-    mingwX64() {
-        binaries {
-            executable()
-        }
-    }
+    mingwX64()
     linuxX64()
 
     sourceSets {

@@ -4,10 +4,13 @@ plugins {
 }
 
 kotlin {
+    targetHierarchy.default()
     jvm { }
     js(IR) {
         browser()
     }
+    mingwX64()
+    linuxX64()
 
     sourceSets {
         val commonMain by getting {
