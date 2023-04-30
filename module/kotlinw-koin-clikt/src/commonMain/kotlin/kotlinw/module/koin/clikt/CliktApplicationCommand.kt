@@ -2,6 +2,7 @@ package kotlinw.module.koin.clikt
 
 import com.github.ajalt.clikt.core.CliktCommand
 import kotlinw.koin.core.api.koinCoreModule
+import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -9,7 +10,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 abstract class CliktApplicationCommand(
-    private val applicationModule: Module = module {  },
+    private val applicationModule: Module = module { },
     help: String = "",
     epilog: String = "",
     name: String? = null,
@@ -34,7 +35,7 @@ abstract class CliktApplicationCommand(
         hidden
     ) {
 
-    protected fun KoinApplication.customizeApplication() {
+    protected open fun KoinApplication.customizeApplication() {
     }
 
     final override fun run() {
@@ -44,11 +45,13 @@ abstract class CliktApplicationCommand(
         }
 
         try {
-            application.koin.runCommand()
+            runBlocking {
+                application.koin.runCommand()
+            }
         } finally {
             application.close()
         }
     }
 
-    protected abstract fun Koin.runCommand()
+    protected abstract suspend fun Koin.runCommand()
 }
