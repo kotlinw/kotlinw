@@ -1,5 +1,7 @@
 package kotlinw.remoting.processor
 
+import com.google.devtools.ksp.getClassDeclarationByName
+import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -32,10 +34,18 @@ import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.api.client.ClientProxy
 import kotlinw.remoting.api.client.RemotingClient
+import kotlinw.remoting.client.core.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RemotingMethodDescriptor
+import kotlinw.uuid.Uuid
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.serializer
+import java.util.UUID
 
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -67,7 +77,7 @@ class RemotingSymbolProcessor(
             definitionInterfaceName.packageName,
             definitionInterfaceDeclaration.toClassName().clientProxyClassName.simpleName
         )
-        generateClientProxyClass(definitionInterfaceDeclaration, generatedFile)
+        generateClientProxyClass(definitionInterfaceDeclaration, generatedFile, resolver)
         generatedFile.build().writeTo(codeGenerator, false)
     }
 
@@ -81,7 +91,8 @@ class RemotingSymbolProcessor(
 
     private fun generateClientProxyClass(
         definitionInterfaceDeclaration: KSClassDeclaration,
-        generatedFile: FileSpec.Builder
+        generatedFile: FileSpec.Builder,
+        resolver: Resolver
     ) {
         val serializerFunctionName = MemberName("kotlinx.serialization", "serializer")
 
@@ -89,7 +100,8 @@ class RemotingSymbolProcessor(
         val clientProxyClassName = definitionInterfaceName.clientProxyClassName
 
         val remotingClientParameterName = "remotingClient"
-        val remotingClientImplementorPropertyName = "remotingClientImplementor"
+        val remotingClientSynchronousCallSupportPropertyName = "remotingClientSynchronousCallSupport"
+        val remotingClientDownstreamFlowSupportPropertyName = "remotingClientDownstreamFlowSupport"
         val servicePathPropertyName = "servicePath"
 
         val processedMemberFunctions = definitionInterfaceDeclaration.getAllFunctions().toList()
@@ -105,6 +117,14 @@ class RemotingSymbolProcessor(
 
         val servicePath = definitionInterfaceName.simpleName // TODO customizable
 
+        val processedSharedFlowProperties = definitionInterfaceDeclaration
+            .getAllProperties().toList()
+            .filter {
+                it.isAbstract() &&
+                        resolver.getClassDeclarationByName(SharedFlow::class.qualifiedName!!)!!.asStarProjectedType()
+                            .isAssignableFrom(it.type.resolve())
+            }
+
         fun generateClientProxyClass(): TypeSpec {
             val builder = TypeSpec.classBuilder(clientProxyClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
@@ -117,9 +137,37 @@ class RemotingSymbolProcessor(
                         .build()
                 )
                 .addProperty(
-                    PropertySpec.builder(remotingClientImplementorPropertyName, RemotingClientSynchronousCallSupport::class)
+                    PropertySpec.builder(remotingClientParameterName, RemotingClient::class)
                         .addModifiers(KModifier.PRIVATE)
-                        .initializer("""$remotingClientParameterName as ${RemotingClientSynchronousCallSupport::class.qualifiedName}""")
+                        .initializer(remotingClientParameterName)
+                        .build()
+                )
+                .addProperty(
+                    PropertySpec.builder(
+                        remotingClientSynchronousCallSupportPropertyName,
+                        RemotingClientSynchronousCallSupport::class
+                    )
+                        .addModifiers(KModifier.PRIVATE)
+                        .getter(
+                            FunSpec.getterBuilder().addStatement(
+                                "return $remotingClientParameterName as %T",
+                                RemotingClientSynchronousCallSupport::class
+                            ).build()
+                        ) // TODO runtime hibaell.
+                        .build()
+                )
+                .addProperty(
+                    PropertySpec.builder(
+                        remotingClientDownstreamFlowSupportPropertyName,
+                        RemotingClientDownstreamFlowSupport::class
+                    )
+                        .addModifiers(KModifier.PRIVATE)
+                        .getter(
+                            FunSpec.getterBuilder().addStatement(
+                                "return $remotingClientParameterName as %T",
+                                RemotingClientDownstreamFlowSupport::class
+                            ).build()
+                        ) // TODO runtime hibaell.
                         .build()
                 )
                 .addProperty(
@@ -129,9 +177,41 @@ class RemotingSymbolProcessor(
                         .build()
                 )
 
+            processedSharedFlowProperties.forEach { property ->
+                val propertyName = property.simpleName.asString()
+                val mutableSharedFlowType = MutableSharedFlow::class.asTypeName()
+                    .parameterizedBy(property.type.element!!.typeArguments[0].toTypeName())
+                val immutableSharedFlowType = SharedFlow::class.asTypeName()
+                    .parameterizedBy(property.type.element!!.typeArguments[0].toTypeName())
+                builder
+                    .addProperty(
+                        PropertySpec.builder(
+                            propertyName,
+                            immutableSharedFlowType,
+                            KModifier.OVERRIDE
+                        )
+                            .initializer(
+                                CodeBlock.of(
+                                    "%N.getDownstreamSharedFlow(%T::class, %T::%N, %N, %S, %M<%T>())",
+                                    remotingClientDownstreamFlowSupportPropertyName,
+                                    definitionInterfaceName,
+                                    definitionInterfaceName,
+                                    propertyName,
+                                    servicePathPropertyName,
+                                    propertyName,
+                                    serializerFunctionName,
+                                    property.type.element!!.typeArguments[0].toTypeName()
+                                )
+                            )
+                            .build()
+                    )
+            }
+
             processedMemberFunctions.forEachIndexed { nestedClassClassifier, function ->
                 val functionName = function.simpleName.asString()
                 val returnType = function.returnType
+                val returnsFlow =
+                    (returnType?.resolve()?.declaration as? KSClassDeclaration)?.toClassName() == Flow::class.asClassName()
                 val parameters = function.parameters
                 val hasParameters = parameters.isNotEmpty()
                 val parameterClassName = function.parameterClassName(nestedClassClassifier)
@@ -140,7 +220,7 @@ class RemotingSymbolProcessor(
                 builder.addType(buildPayloadClass(parameterClassName, function.parameters))
 
                 val funBuilder = FunSpec.builder(functionName)
-                    .addModifiers(KModifier.OVERRIDE)
+                    .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
                     .addParameters(
                         function.parameters.map {
                             ParameterSpec.builder(it.name!!.asString(), it.type.toTypeName()).build()
@@ -149,35 +229,55 @@ class RemotingSymbolProcessor(
 
                 if (returnType != null) {
                     val methodPath = function.remotingMethodPath(nestedClassClassifier)
-                    funBuilder.addStatement(
-                        """
-                        ${if (returnType.isUnit) "" else "return "}$remotingClientImplementorPropertyName.call<%T, %T, %T>(
-                            %T::class, 
-                            %T::%N,
-                            $servicePathPropertyName,
-                            "$methodPath",
-                            %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
-                            %M<%T>(),
-                            %M<%T>()
-                        )
-                    """.trimIndent(),
-                        definitionInterfaceName, parameterClassName, resultClassName, // call<...> type arguments
-                        definitionInterfaceName, // T::class
-                        definitionInterfaceName, functionName, // T::function
-                        parameterClassName, // parameter value
-                        serializerFunctionName, parameterClassName, // serializer
-                        serializerFunctionName, resultClassName // deserializer
-                    )
 
-                    if (returnType.isUnit) {
-                        funBuilder.addStatement("return Unit")
+                    if (returnsFlow) {
+                        funBuilder.addStatement(
+                            """
+                                return $remotingClientDownstreamFlowSupportPropertyName.requestDownstreamColdFlow(
+                                    %T::class, 
+                                    %T::%N,
+                                    $servicePathPropertyName,
+                                    "$methodPath",
+                                    %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
+                                    %M<%T>(),
+                                    %M<%T>(),
+                                    %M().toString()
+                                )
+                            """.trimIndent(),
+                            definitionInterfaceName,
+                            definitionInterfaceName,
+                            functionName,
+                            parameterClassName,
+                            serializerFunctionName,
+                            parameterClassName,
+                            serializerFunctionName,
+                            function.returnType?.element?.typeArguments?.get(0)?.toTypeName()
+                                ?: Nothing::class.asClassName(),
+                            MemberName(Uuid.Companion::class.asClassName(), "randomUuid")
+                        )
+                    } else {
+                        funBuilder.addStatement(
+                            """
+                                ${if (returnType.isUnit) "" else "return "}$remotingClientSynchronousCallSupportPropertyName.call<%T, %T, %T>(
+                                    %T::class, 
+                                    %T::%N,
+                                    $servicePathPropertyName,
+                                    "$methodPath",
+                                    %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
+                                    %M<%T>(),
+                                    %M<%T>()
+                                )
+                            """.trimIndent(),
+                            definitionInterfaceName, parameterClassName, resultClassName,
+                            definitionInterfaceName,
+                            definitionInterfaceName, functionName,
+                            parameterClassName,
+                            serializerFunctionName, parameterClassName,
+                            serializerFunctionName, resultClassName
+                        )
                     }
                 } else {
                     funBuilder.addStatement("return TODO(\"Cannot be implemented until other errors are resolved.\")")
-                }
-
-                if (function.modifiers.contains(Modifier.SUSPEND)) {
-                    funBuilder.addModifiers(KModifier.SUSPEND)
                 }
 
                 if (returnType != null) {

@@ -40,6 +40,10 @@ sealed class RemotingMessageKind {
 
         @Serializable
         @SerialName("ColdFlowValue")
+        data class CollectColdFlowKind(val callId: String) : ColdFlowMessageKind()
+
+        @Serializable
+        @SerialName("ColdFlowValue")
         data class ColdFlowValueKind(val callId: String) : ColdFlowMessageKind()
 
         @Serializable
