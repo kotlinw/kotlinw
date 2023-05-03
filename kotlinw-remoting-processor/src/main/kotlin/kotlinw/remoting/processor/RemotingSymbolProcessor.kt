@@ -98,8 +98,7 @@ class RemotingSymbolProcessor(
         fun KSFunctionDeclaration.parameterClassName(nestedClassClassifier: Int) =
             clientProxyClassName.nestedClass("Parameter_" + simpleName.asString() + "_cid" + nestedClassClassifier)
 
-        fun KSFunctionDeclaration.resultClassName(nestedClassClassifier: Int) =
-            clientProxyClassName.nestedClass("Result_" + simpleName.asString() + "_cid" + nestedClassClassifier)
+        fun KSFunctionDeclaration.returnTypeName() = returnType?.toTypeName() ?: Nothing::class.asClassName()
 
         fun KSFunctionDeclaration.remotingMethodPath(nestedClassClassifier: Int) =
             simpleName.asString() + "_" + nestedClassClassifier // TODO customizable
@@ -136,18 +135,9 @@ class RemotingSymbolProcessor(
                 val parameters = function.parameters
                 val hasParameters = parameters.isNotEmpty()
                 val parameterClassName = function.parameterClassName(nestedClassClassifier)
-                val resultClassName = function.resultClassName(nestedClassClassifier)
+                val resultClassName = function.returnTypeName()
 
                 builder.addType(buildPayloadClass(parameterClassName, function.parameters))
-
-                if (returnType != null) {
-                    builder.addType(
-                        buildPayloadClass(
-                            function.resultClassName(nestedClassClassifier),
-                            if (returnType.isUnit) emptyMap() else mapOf("returnValue" to returnType)
-                        )
-                    )
-                }
 
                 val funBuilder = FunSpec.builder(functionName)
                     .addModifiers(KModifier.OVERRIDE)
@@ -169,7 +159,7 @@ class RemotingSymbolProcessor(
                             %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
                             %M<%T>(),
                             %M<%T>()
-                        )${if (returnType.isUnit) "" else ".returnValue"}
+                        )
                     """.trimIndent(),
                         definitionInterfaceName, parameterClassName, resultClassName, // call<...> type arguments
                         definitionInterfaceName, // T::class
@@ -240,7 +230,7 @@ class RemotingSymbolProcessor(
                                     serializerFunctionName,
                                     function.parameterClassName(nestedClassIdentifier),
                                     serializerFunctionName,
-                                    function.resultClassName(nestedClassIdentifier)
+                                    function.returnTypeName()
                                 )
                             }
                             add(")\n.associateBy { it.methodId }")
@@ -257,7 +247,6 @@ class RemotingSymbolProcessor(
             processCallFunctionBuilder.beginControlFlow("return when (methodId)")
 
             processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
-                val returnType = function.returnType
                 val functionName = function.simpleName.asString()
 
                 processCallFunctionBuilder.beginControlFlow(
@@ -272,16 +261,7 @@ class RemotingSymbolProcessor(
                 fun buildTargetFunctionCall() =
                     "target.%N(${function.parameters.joinToString { "p." + it.name!!.asString() }})"
 
-                if (returnType.isUnit) {
-                    processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
-                    processCallFunctionBuilder.addStatement("%T", function.resultClassName(nestedClassIdentifier))
-                } else {
-                    processCallFunctionBuilder.addStatement(
-                        "%T(${buildTargetFunctionCall()})",
-                        function.resultClassName(nestedClassIdentifier),
-                        functionName
-                    )
-                }
+                processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
 
                 processCallFunctionBuilder.endControlFlow()
             }
