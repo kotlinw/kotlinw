@@ -2,6 +2,7 @@ package kotlinw.remoting.core
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -15,8 +16,37 @@ import kotlinx.serialization.serializer
 @Serializable
 data class RemotingMessageMetadata(
     val timestamp: Instant? = null,
-    val serviceLocator: ServiceLocator? = null
+    val serviceLocator: ServiceLocator? = null,
+    val messageKind: RemotingMessageKind? = null
 )
+
+@Serializable
+sealed class RemotingMessageKind {
+
+    @Serializable
+    @SerialName("Request")
+    data class CallRequestKind(val callId: String) : RemotingMessageKind()
+
+    @Serializable
+    @SerialName("Response")
+    data class CallResponseKind(val callId: String) : RemotingMessageKind()
+
+    @Serializable
+    @SerialName("SharedFlowValue")
+    object SharedFlowValueKind : RemotingMessageKind()
+
+    @Serializable
+    sealed class ColdFlowMessageKind() : RemotingMessageKind() {
+
+        @Serializable
+        @SerialName("ColdFlowValue")
+        data class ColdFlowValueKind(val callId: String) : ColdFlowMessageKind()
+
+        @Serializable
+        @SerialName("ColdFlowCompleted")
+        data class ColdFlowCompleted(val callId: String, val normally: Boolean) : ColdFlowMessageKind()
+    }
+}
 
 @Serializable(with = RemotingMessageSerializer::class)
 data class RemotingMessage<T : Any>(
@@ -30,7 +60,7 @@ class RemotingMessageSerializer<T : Any>(private val payloadSerializer: KSeriali
     private val metadataSerializer = serializer<RemotingMessageMetadata?>()
 
     override val descriptor =
-        buildClassSerialDescriptor("Request") {
+        buildClassSerialDescriptor("kotlinw.remoting.core.RemotingMessage") {
             element("payload", payloadSerializer.descriptor)
             element<RemotingMessageMetadata?>("metadata")
         }

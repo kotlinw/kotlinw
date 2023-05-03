@@ -1,16 +1,12 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.client.core.RemotingClientImplementor
-import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import okio.BufferedSink
 import okio.BufferedSource
-import okio.Sink
-import okio.Source
-import okio.buffer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -18,13 +14,13 @@ class StreamBasedSynchronousRemotingClient(
     private val messageCodec: BinaryMessageCodec,
     private val source: BufferedSource,
     private val sink: BufferedSink
-) : RemotingClientImplementor {
+) : RemotingClientSynchronousCallSupport {
 
     private val mutex = Mutex()
 
     override suspend fun <T : Any, P : Any, R : Any> call(
         serviceKClass: KClass<T>,
-        methodKFunction: KFunction<*>,
+        methodKFunction: KFunction<R>,
         serviceName: String,
         methodName: String,
         parameter: P,

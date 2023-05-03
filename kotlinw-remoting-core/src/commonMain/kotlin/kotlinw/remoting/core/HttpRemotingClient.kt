@@ -1,6 +1,6 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.client.core.RemotingClientImplementor
+import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
@@ -10,7 +10,7 @@ class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
     private val httpClient: RemotingHttpClientImplementor,
     private val remoteServerBaseUrl: Url
-) : RemotingClientImplementor {
+) : RemotingClientSynchronousCallSupport {
 
     interface RemotingHttpClientImplementor {
 
@@ -26,7 +26,7 @@ class HttpRemotingClient<M : RawMessage>(
 
     override suspend fun <T : Any, P : Any, R : Any> call(
         serviceKClass: KClass<T>,
-        methodKFunction: KFunction<*>,
+        methodKFunction: KFunction<R>,
         serviceName: String,
         methodName: String,
         parameter: P,

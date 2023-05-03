@@ -32,7 +32,7 @@ import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.api.client.ClientProxy
 import kotlinw.remoting.api.client.RemotingClient
-import kotlinw.remoting.client.core.RemotingClientImplementor
+import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RemotingMethodDescriptor
 import kotlinx.serialization.Serializable
@@ -117,9 +117,9 @@ class RemotingSymbolProcessor(
                         .build()
                 )
                 .addProperty(
-                    PropertySpec.builder(remotingClientImplementorPropertyName, RemotingClientImplementor::class)
+                    PropertySpec.builder(remotingClientImplementorPropertyName, RemotingClientSynchronousCallSupport::class)
                         .addModifiers(KModifier.PRIVATE)
-                        .initializer("""$remotingClientParameterName as ${RemotingClientImplementor::class.qualifiedName}""")
+                        .initializer("""$remotingClientParameterName as ${RemotingClientSynchronousCallSupport::class.qualifiedName}""")
                         .build()
                 )
                 .addProperty(
