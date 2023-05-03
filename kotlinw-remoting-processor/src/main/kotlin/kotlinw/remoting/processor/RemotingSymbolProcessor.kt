@@ -12,7 +12,6 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
-import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -32,7 +31,6 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.remoting.api.SupportsRemoting
-import kotlinw.remoting.api.client.ClientProxy
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.core.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
@@ -42,10 +40,7 @@ import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.serializer
-import java.util.UUID
 
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -130,7 +125,6 @@ class RemotingSymbolProcessor(
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
                 .addModifiers(KModifier.PRIVATE)
                 .addSuperinterface(definitionInterfaceName)
-                .addSuperinterface(ClientProxy::class.asClassName().parameterizedBy(definitionInterfaceName))
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter(remotingClientParameterName, RemotingClient::class)
