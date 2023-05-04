@@ -13,6 +13,8 @@ interface ExampleService {
 
     suspend fun coldFlow(): Flow<Double>
 
+    suspend fun numberFlow(offset: Int): Flow<Int>
+
     suspend fun noParameterReturnsUnit()
 
     suspend fun noParameterReturnsString(): String

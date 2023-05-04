@@ -36,6 +36,7 @@ import kotlinw.remoting.client.core.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RemotingMethodDescriptor
+import kotlinw.remoting.server.core.SynchronousCallDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -310,7 +311,7 @@ class RemotingSymbolProcessor(
             val methodDescriptorsBuilder =
                 PropertySpec.builder(
                     "methodDescriptors",
-                    typeNameOf<Map<String, RemotingMethodDescriptor<*, *>>>(),
+                    typeNameOf<Map<String, RemotingMethodDescriptor>>(),
                     KModifier.OVERRIDE
                 )
                     .initializer(
@@ -319,7 +320,7 @@ class RemotingSymbolProcessor(
                             processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
                                 add(
                                     "%T(%S, %M<%T>(), %M<%T>()),",
-                                    RemotingMethodDescriptor::class,
+                                    SynchronousCallDescriptor::class,
                                     function.remotingMethodPath(nestedClassIdentifier),
                                     serializerFunctionName,
                                     function.parameterClassName(nestedClassIdentifier),
@@ -327,7 +328,7 @@ class RemotingSymbolProcessor(
                                     function.returnTypeName()
                                 )
                             }
-                            add(")\n.associateBy { it.methodId }")
+                            add(")\n.associateBy { it.memberId }")
                         }.build()
                     )
             builder.addProperty(methodDescriptorsBuilder.build())

@@ -17,6 +17,7 @@ import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
+import kotlinw.remoting.server.core.SynchronousCallDescriptor
 import kotlinw.util.stdlib.toReadOnlyByteArray
 import kotlinw.util.stdlib.view
 import kotlinx.serialization.KSerializer
@@ -42,6 +43,7 @@ fun <M : RawMessage> Routing.remotingServerRouting(
                         if (methodId != null) {
                             val methodDescriptor = delegator.methodDescriptors[methodId]
                             if (methodDescriptor != null) {
+                                check(methodDescriptor is SynchronousCallDescriptor<*, *>)
                                 // TODO handle errors
 
                                 val rawRequestMessage =
