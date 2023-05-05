@@ -5,6 +5,7 @@ import kotlinw.util.stdlib.HasPriority
 interface ConfigurationPropertyLookup {
 
     fun getConfigurationPropertyValueOrNull(key: String): String?
+
     fun filterEnumerableConfigurationProperties(predicate: (key: String) -> Boolean): Map<String, String>
 }
 

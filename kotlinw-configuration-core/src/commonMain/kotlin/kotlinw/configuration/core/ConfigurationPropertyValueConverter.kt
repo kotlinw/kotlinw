@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 
 interface ConfigurationPropertyValueConverter {
 
-    fun <T : Any> parseConfigurationPropertyValue(value: String, targetType: KClass<T>): T
+    fun <T : Any> decode(value: String, targetType: KClass<T>): T?
 }
 
 class ConfigurationPropertyValueConverterImpl(
@@ -24,7 +24,15 @@ class ConfigurationPropertyValueConverterImpl(
 
     private val configurationValueParsers = parsers.sortedWith(HasPriority.comparator)
 
-    override fun <T : Any> parseConfigurationPropertyValue(value: String, targetType: KClass<T>): T {
+    override fun <T : Any> decode(value: String, targetType: KClass<T>): T? {
+        if (value.isEmpty()) {
+            return null
+        }
+
+        if (value.isBlank()) {
+            throw ConfigurationException("Blank configuration property value is not allowed.")
+        }
+
         val parser = configurationValueParsers.firstOrNull { it.supports(targetType) }
             ?: throw ConfigurationException("No parser found: value=$value, targetType=$targetType")
 
