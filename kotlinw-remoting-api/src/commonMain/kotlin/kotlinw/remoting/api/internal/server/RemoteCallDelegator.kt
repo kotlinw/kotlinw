@@ -1,7 +1,4 @@
-package kotlinw.remoting.server.core
-
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.serialization.KSerializer
+package kotlinw.remoting.api.internal.server
 
 interface RemoteCallDelegator {
 

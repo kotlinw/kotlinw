@@ -1,6 +1,6 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

@@ -1,4 +1,4 @@
-package kotlinw.remoting.client.core
+package kotlinw.remoting.api.internal.client
 
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinx.serialization.KSerializer

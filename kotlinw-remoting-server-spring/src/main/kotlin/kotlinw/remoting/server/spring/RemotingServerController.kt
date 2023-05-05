@@ -4,8 +4,8 @@ import jakarta.annotation.PostConstruct
 import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
-import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.RemotingMethodDescriptor
+import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinx.serialization.KSerializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

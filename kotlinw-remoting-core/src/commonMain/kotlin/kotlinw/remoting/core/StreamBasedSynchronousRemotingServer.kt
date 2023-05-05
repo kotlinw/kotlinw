@@ -1,7 +1,7 @@
 package kotlinw.remoting.core
 
-import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.RemotingMethodDescriptor
+import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.yield
 import kotlinx.serialization.KSerializer

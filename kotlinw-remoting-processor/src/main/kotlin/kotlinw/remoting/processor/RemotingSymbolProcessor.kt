@@ -1,7 +1,5 @@
 package kotlinw.remoting.processor
 
-import com.google.devtools.ksp.getClassDeclarationByName
-import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -20,7 +18,6 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
@@ -32,10 +29,10 @@ import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.api.client.RemotingClient
-import kotlinw.remoting.client.core.RemotingClientDownstreamFlowSupport
-import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
-import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.RemotingMethodDescriptor
+import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
+import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable

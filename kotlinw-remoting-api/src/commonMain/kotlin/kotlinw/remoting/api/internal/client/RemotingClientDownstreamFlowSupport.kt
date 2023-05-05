@@ -1,12 +1,10 @@
-package kotlinw.remoting.client.core
+package kotlinw.remoting.api.internal.client
 
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty1
 
 interface RemotingClientDownstreamFlowSupport : RemotingClient {
 

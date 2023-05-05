@@ -1,17 +1,15 @@
 package kotlinw.remoting.core
 
 import arrow.core.continuations.AtomicRef
-import kotlinw.remoting.client.core.RemotingClientDownstreamFlowSupport
-import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
+import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.core.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.util.stdlib.concurrent.value
-import kotlinw.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -23,7 +21,6 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty1
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
