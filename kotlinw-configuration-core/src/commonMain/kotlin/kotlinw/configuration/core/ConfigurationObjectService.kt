@@ -33,7 +33,7 @@ inline fun <reified T : Any> ConfigurationObjectService.getSingletonConfiguratio
 
 class ConfigurationObjectServiceImpl(
     val configurationPropertyLookup: ConfigurationPropertyLookup,
-    val configurationPropertyValueResolver: ConfigurationPropertyValueResolver,
+    val configurationPropertyValueConverter: ConfigurationPropertyValueConverter,
     configurationProviders: List<ConfigurationObjectResolver<*>>
 ) : ConfigurationObjectService {
 
@@ -42,8 +42,8 @@ class ConfigurationObjectServiceImpl(
         override val configurationPropertyLookup: ConfigurationPropertyLookup
             get() = this@ConfigurationObjectServiceImpl.configurationPropertyLookup
 
-        override val configurationPropertyValueResolver: ConfigurationPropertyValueResolver
-            get() = this@ConfigurationObjectServiceImpl.configurationPropertyValueResolver
+        override val configurationPropertyValueConverter: ConfigurationPropertyValueConverter
+            get() = this@ConfigurationObjectServiceImpl.configurationPropertyValueConverter
     }
 
     private val sortedConfigurationProviders = configurationProviders.sortedWith(HasPriority.comparator)

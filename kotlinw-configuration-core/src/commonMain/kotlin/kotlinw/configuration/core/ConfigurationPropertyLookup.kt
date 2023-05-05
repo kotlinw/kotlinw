@@ -5,7 +5,6 @@ import kotlinw.util.stdlib.HasPriority
 interface ConfigurationPropertyLookup {
 
     fun getConfigurationPropertyValueOrNull(key: String): String?
-
     fun filterEnumerableConfigurationProperties(predicate: (key: String) -> Boolean): Map<String, String>
 }
 
@@ -16,11 +15,11 @@ class ConfigurationPropertyLookupImpl(
     configurationPropertySources: Iterable<ConfigurationPropertySource>
 ) : ConfigurationPropertyLookup {
 
-    private val sortedConfigurationPropertyValueSources =
+    private val sources: List<ConfigurationPropertySource> =
         configurationPropertySources.sortedWith(HasPriority.comparator)
 
     override fun getConfigurationPropertyValueOrNull(key: String): String? {
-        sortedConfigurationPropertyValueSources.forEach {
+        sources.forEach {
             val value = it.getPropertyValue(key)
             if (value != null) {
                 return value
@@ -31,7 +30,7 @@ class ConfigurationPropertyLookupImpl(
     }
 
     override fun filterEnumerableConfigurationProperties(predicate: (key: String) -> Boolean): Map<String, String> =
-        sortedConfigurationPropertyValueSources
+        sources
             .filterIsInstance<EnumerableConfigurationPropertySource>()
             .flatMap { it.getPropertyKeys() }
             .filter(predicate)

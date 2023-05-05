@@ -10,12 +10,12 @@ interface ConfigurationObjectResolver<T> : HasPriority {
 
         val configurationPropertyLookup: ConfigurationPropertyLookup
 
-        val configurationPropertyValueResolver: ConfigurationPropertyValueResolver
+        val configurationPropertyValueConverter: ConfigurationPropertyValueConverter
     }
 
     fun supports(configurationType: KClass<*>): Boolean
 
-    // TODO context(ConfigurationResolutionContext)
+    // TODO context(ResolutionContext)
     fun resolveConfigurationInstances(
         context: ResolutionContext,
         configurationType: KClass<*>

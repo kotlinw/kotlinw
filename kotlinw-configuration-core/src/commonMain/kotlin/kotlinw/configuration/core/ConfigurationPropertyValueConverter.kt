@@ -3,14 +3,14 @@ package kotlinw.configuration.core
 import kotlinw.util.stdlib.HasPriority
 import kotlin.reflect.KClass
 
-interface ConfigurationPropertyValueResolver {
+interface ConfigurationPropertyValueConverter {
 
     fun <T : Any> parseConfigurationPropertyValue(value: String, targetType: KClass<T>): T
 }
 
-class ConfigurationPropertyValueResolverImpl(
-    configurationPropertyValueParsers: Iterable<ConfigurationPropertyValueParser<*>>
-) : ConfigurationPropertyValueResolver {
+class ConfigurationPropertyValueConverterImpl(
+    parsers: Iterable<ConfigurationPropertyValueParser<*>>
+) : ConfigurationPropertyValueConverter {
 
     companion object {
 
@@ -22,7 +22,7 @@ class ConfigurationPropertyValueResolverImpl(
         )
     }
 
-    private val configurationValueParsers = configurationPropertyValueParsers.sortedWith(HasPriority.comparator)
+    private val configurationValueParsers = parsers.sortedWith(HasPriority.comparator)
 
     override fun <T : Any> parseConfigurationPropertyValue(value: String, targetType: KClass<T>): T {
         val parser = configurationValueParsers.firstOrNull { it.supports(targetType) }
