@@ -12,11 +12,16 @@ import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallDelegator
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 import io.ktor.server.websocket.WebSockets.Plugin as ServerWebSockets
 
@@ -55,9 +60,12 @@ class KtorSupportTest {
                 return flowOf(1.0, 2.0, 3.0)
             }
 
-            override suspend fun numberFlow(offset: Int): Flow<Int> {
-                TODO("Not yet implemented")
-            }
+            override suspend fun numberFlow(offset: Int): Flow<Int> =
+                flow {
+                    (1..5).forEach {
+                        emit(offset + it)
+                    }
+                }
 
             override suspend fun noParameterReturnsUnit() {
                 TODO("Not yet implemented")
@@ -97,10 +105,10 @@ class KtorSupportTest {
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(httpClient)
         val remotingClient =
             HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""))
+        val clientProxy = ExampleService.clientProxy(remotingClient)
 
-        coroutineScope {
-            val clientProxy = ExampleService.clientProxy(remotingClient)
-            assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
-        }
+        assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
+
+        assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
     }
 }
