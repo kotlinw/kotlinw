@@ -55,44 +55,21 @@ class KtorSupportTest {
 
     @Test
     fun testFlowReturnType() = testApplication {
-        val service = object : ExampleService {
-            override suspend fun coldFlow(): Flow<Double> {
-                return flowOf(1.0, 2.0, 3.0)
-            }
-
-            override suspend fun numberFlow(offset: Int): Flow<Int> =
-                flow {
-                    (1..5).forEach {
-                        emit(offset + it)
-                    }
+        val service = mockk<ExampleService>(relaxed = true)
+        coEvery { service.coldFlow() } returns flowOf(1.0, 2.0, 3.0)
+        coEvery { service.numberFlow(any()) } answers {
+            flow {
+                (1..5).forEach {
+                    emit(arg<Int>(0) + it)
                 }
-
-            override suspend fun noParameterReturnsUnit() {
-                TODO("Not yet implemented")
             }
-
-            override suspend fun noParameterReturnsString(): String {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun p1IntReturnsUnit(p1: Int) {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun p1IntReturnsString(p1: Int): String {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun p1IntP2DoubleReturnsFloat(p1: Int, p2: Double): Float {
-                TODO("Not yet implemented")
-            }
-
         }
 
         val messageCodec = JsonMessageCodec.Default
 
         install(ServerWebSockets)
-        install(RemotingPlugin) {
+        install(RemotingPlugin)
+        {
             this.messageCodec = messageCodec
             this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
             this.identifyClient = { 1 }
