@@ -1,0 +1,6 @@
+public abstract interface annotation class kotlinw/remoting/api/SupportsRemoting : java/lang/annotation/Annotation {
+}
+
+public abstract interface class kotlinw/remoting/api/client/RemotingClient {
+}
+

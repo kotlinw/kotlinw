@@ -16,19 +16,19 @@ import okio.BufferedSource
 import kotlin.jvm.JvmInline
 
 @Serializable
-data class BinaryMessageHeader(
+private data class BinaryMessageHeader(
     val payloadSize: Int,
     val metadata: RemotingMessageMetadata?
 )
 
 @JvmInline
-value class BinaryMessageCodec(
-    private val wrappedCodec: GenericMessageCodec<RawMessage.Binary>
+value class BinaryMessageCodecWithMetadataPrefetchSupport(
+    private val wrappedCodec: KotlinxSerializationMessageCodec<RawMessage.Binary>
 ) : MessageCodecWithMetadataPrefetchSupport<RawMessage.Binary> {
 
     override val isBinary get() = true
 
-    override val contentType get() = GenericBinaryMessageCodec.defaultBinaryContentType
+    override val contentType get() = KotlinxSerializationBinaryMessageCodec.defaultBinaryContentType
 
     override fun <T : Any> encode(message: T, serializer: KSerializer<T>): RawMessage.Binary =
         wrappedCodec.encode(message, serializer)

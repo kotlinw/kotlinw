@@ -4,7 +4,7 @@ import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.ServiceLocator
-import kotlinw.remoting.core.codec.BinaryMessageCodec
+import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class StreamBasedSynchronousRemotingClient(
-    private val messageCodec: BinaryMessageCodec,
+    private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
     private val source: BufferedSource,
     private val sink: BufferedSink
 ) : RemotingClientSynchronousCallSupport {

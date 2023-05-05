@@ -3,7 +3,7 @@ package kotlinw.remoting.core.server
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RemotingMessage
-import kotlinw.remoting.core.codec.BinaryMessageCodec
+import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.yield
 import kotlinx.serialization.KSerializer
@@ -11,7 +11,7 @@ import okio.BufferedSink
 import okio.BufferedSource
 
 class StreamBasedSynchronousRemotingServer(
-    private val messageCodec: BinaryMessageCodec,
+    private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
     remoteCallDelegators: Iterable<RemoteCallDelegator>,
     private val source: BufferedSource,
     private val sink: BufferedSink,

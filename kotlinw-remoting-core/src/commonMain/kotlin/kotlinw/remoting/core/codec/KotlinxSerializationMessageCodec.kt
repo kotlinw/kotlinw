@@ -8,12 +8,12 @@ import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.StringFormat
 
-sealed class GenericMessageCodec<M : RawMessage> : MessageCodec<M>
+sealed class KotlinxSerializationMessageCodec<M : RawMessage> : MessageCodec<M>
 
-class GenericTextMessageCodec(
+class KotlinxSerializationTextMessageCodec(
     private val serialFormat: StringFormat,
     override val contentType: String,
-) : GenericMessageCodec<RawMessage.Text>() {
+) : KotlinxSerializationMessageCodec<RawMessage.Text>() {
 
     override val isBinary = false
 
@@ -24,10 +24,10 @@ class GenericTextMessageCodec(
         RawMessage.Text(serialFormat.encodeToString(serializer, message))
 }
 
-class GenericBinaryMessageCodec(
+class KotlinxSerializationBinaryMessageCodec(
     private val serialFormat: BinaryFormat,
     override val contentType: String = defaultBinaryContentType
-) : GenericMessageCodec<RawMessage.Binary>() {
+) : KotlinxSerializationMessageCodec<RawMessage.Binary>() {
 
     companion object {
 
@@ -49,10 +49,10 @@ class GenericBinaryMessageCodec(
         RawMessage.Binary(serialFormat.encodeToByteArray(serializer, message).view())
 }
 
-private class GenericTextMessageCodecAsBinary(private val textCodec: GenericMessageCodec<RawMessage.Text>) :
-    GenericMessageCodec<RawMessage.Binary>() {
+private class KotlinxSerializationTextMessageCodecAsBinary(private val textCodec: KotlinxSerializationMessageCodec<RawMessage.Text>) :
+    KotlinxSerializationMessageCodec<RawMessage.Binary>() {
 
-    override val contentType = GenericBinaryMessageCodec.defaultBinaryContentType
+    override val contentType = KotlinxSerializationBinaryMessageCodec.defaultBinaryContentType
 
     override val isBinary = true
 
@@ -63,5 +63,5 @@ private class GenericTextMessageCodecAsBinary(private val textCodec: GenericMess
         textCodec.decode(RawMessage.Text(rawMessage.byteArrayView.decodeToString()), deserializer)
 }
 
-fun GenericTextMessageCodec.asBinaryMessageCodec(): GenericMessageCodec<RawMessage.Binary> =
-    GenericTextMessageCodecAsBinary(this)
+fun KotlinxSerializationTextMessageCodec.asBinaryMessageCodec(): KotlinxSerializationMessageCodec<RawMessage.Binary> =
+    KotlinxSerializationTextMessageCodecAsBinary(this)
