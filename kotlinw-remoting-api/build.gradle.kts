@@ -1,6 +1,11 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.binary-compatibility-validator")
+}
+
+apiValidation {
+    this.ignoredPackages += "kotlinw.remoting.api.internal"
 }
 
 kotlin {
