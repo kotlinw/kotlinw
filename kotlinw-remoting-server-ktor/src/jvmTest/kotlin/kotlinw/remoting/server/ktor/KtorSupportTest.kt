@@ -87,5 +87,10 @@ class KtorSupportTest {
         assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
 
         assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
+
+        coVerify {
+            service.coldFlow()
+            service.numberFlow(4)
+        }
     }
 }
