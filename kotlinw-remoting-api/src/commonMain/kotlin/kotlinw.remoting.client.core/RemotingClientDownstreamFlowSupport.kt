@@ -10,14 +10,6 @@ import kotlin.reflect.KProperty1
 
 interface RemotingClientDownstreamFlowSupport : RemotingClient {
 
-    fun <T : Any, F : Any> getDownstreamSharedFlow(
-        serviceKClass: KClass<T>,
-        kProperty: KProperty1<T, SharedFlow<F>>,
-        serviceId: String,
-        propertyId: String,
-        flowValueDeserializer: KSerializer<F>
-    ): SharedFlow<F>
-
     suspend fun <T : Any, P : Any, F : Any> requestDownstreamColdFlow(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<Flow<F>>,

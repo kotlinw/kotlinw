@@ -248,8 +248,6 @@ private fun Route.setupWebsocketRouting(
 
             is RemotingMessageKind.ColdFlowValueCollected ->
                 webSocketConnection.onColdFlowValueCollected(messageKind.callId)
-
-            RemotingMessageKind.SharedFlowValue -> TODO(messageKind.toString())
         }
     }
 

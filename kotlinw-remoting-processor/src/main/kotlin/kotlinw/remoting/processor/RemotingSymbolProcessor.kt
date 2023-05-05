@@ -38,8 +38,6 @@ import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
 
 class RemotingSymbolProcessor(
@@ -112,14 +110,6 @@ class RemotingSymbolProcessor(
 
         val servicePath = definitionInterfaceName.simpleName // TODO customizable
 
-        val processedSharedFlowProperties = definitionInterfaceDeclaration
-            .getAllProperties().toList()
-            .filter {
-                it.isAbstract() &&
-                        resolver.getClassDeclarationByName(SharedFlow::class.qualifiedName!!)!!.asStarProjectedType()
-                            .isAssignableFrom(it.type.resolve())
-            }
-
         fun generateClientProxyClass(): TypeSpec {
             val builder = TypeSpec.classBuilder(clientProxyClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
@@ -170,36 +160,6 @@ class RemotingSymbolProcessor(
                         .initializer("\"$servicePath\"")
                         .build()
                 )
-
-            processedSharedFlowProperties.forEach { property ->
-                val propertyName = property.simpleName.asString()
-                val mutableSharedFlowType = MutableSharedFlow::class.asTypeName()
-                    .parameterizedBy(property.type.element!!.typeArguments[0].toTypeName())
-                val immutableSharedFlowType = SharedFlow::class.asTypeName()
-                    .parameterizedBy(property.type.element!!.typeArguments[0].toTypeName())
-                builder
-                    .addProperty(
-                        PropertySpec.builder(
-                            propertyName,
-                            immutableSharedFlowType,
-                            KModifier.OVERRIDE
-                        )
-                            .initializer(
-                                CodeBlock.of(
-                                    "%N.getDownstreamSharedFlow(%T::class, %T::%N, %N, %S, %M<%T>())",
-                                    remotingClientDownstreamFlowSupportPropertyName,
-                                    definitionInterfaceName,
-                                    definitionInterfaceName,
-                                    propertyName,
-                                    servicePathPropertyName,
-                                    propertyName,
-                                    serializerFunctionName,
-                                    property.type.element!!.typeArguments[0].toTypeName()
-                                )
-                            )
-                            .build()
-                    )
-            }
 
             processedMemberFunctions.forEachIndexed { nestedClassClassifier, function ->
                 val functionName = function.simpleName.asString()

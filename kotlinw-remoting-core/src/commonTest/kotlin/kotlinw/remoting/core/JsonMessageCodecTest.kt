@@ -17,7 +17,7 @@ class JsonMessageCodecTest {
         val metadata = RemotingMessageMetadata(
             timestamp = Clock.System.now(),
             serviceLocator = ServiceLocator("serviceId", "memberId"),
-            messageKind = RemotingMessageKind.SharedFlowValue
+            messageKind = RemotingMessageKind.CallRequest("test")
         )
         val message = RemotingMessage(payload, metadata)
 

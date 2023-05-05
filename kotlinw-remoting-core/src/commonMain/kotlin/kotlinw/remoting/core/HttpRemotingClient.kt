@@ -152,16 +152,6 @@ class HttpRemotingClient<M : RawMessage>(
         return resultMessage.payload
     }
 
-    override fun <T : Any, F : Any> getDownstreamSharedFlow(
-        serviceKClass: KClass<T>,
-        kProperty: KProperty1<T, SharedFlow<F>>,
-        serviceId: String,
-        propertyId: String,
-        flowValueDeserializer: KSerializer<F>
-    ): SharedFlow<F> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun <T : Any, P : Any, F : Any> requestDownstreamColdFlow(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<Flow<F>>,

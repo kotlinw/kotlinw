@@ -30,10 +30,6 @@ sealed class RemotingMessageKind {
         HasCallId // TODO : SynchronousCallMessage()
 
     @Serializable
-    @SerialName("SharedFlowValue")
-    object SharedFlowValue : RemotingMessageKind() // TODO : SharedFlowMessage() + cancelled
-
-    @Serializable
     @SerialName("CollectColdFlow")
     data class CollectColdFlow(override val callId: String) : RemotingMessageKind(), HasCallId
 
@@ -53,5 +49,4 @@ sealed class RemotingMessageKind {
     @Serializable
     @SerialName("ColdFlowValueCollected")
     data class ColdFlowValueCollected(override val callId: String) : RemotingMessageKind(), HasCallId
-
 }
