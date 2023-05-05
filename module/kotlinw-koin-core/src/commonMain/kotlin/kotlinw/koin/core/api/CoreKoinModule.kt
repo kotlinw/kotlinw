@@ -13,7 +13,7 @@ import kotlinw.module.core.impl.defaultLoggingIntegrator
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.HttpRemotingClient
-import kotlinw.remoting.core.client.HttpRemotingClient.SynchronousCallSupportImplementor
+import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.util.stdlib.Url
 import kotlinx.serialization.json.Json
@@ -32,10 +32,13 @@ fun koinCoreModule() =
         single<ApplicationCoroutineService> { ApplicationCoroutineServiceImpl() }
         single { LocalEventBusImpl(get()) }
         single { HttpClient() }
-        single<SynchronousCallSupportImplementor> { KtorHttpRemotingClientImplementor(get<HttpClient>()) }
+        single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
+            bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
+            bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
+        }
         factory<RemotingClient> { (remoteServerBaseUrl: Url) ->
             HttpRemotingClient(
-                GenericTextMessageCodec(Json, ContentType.Application.Json),
+                JsonMessageCodec.Default,
                 get(),
                 remoteServerBaseUrl
             )

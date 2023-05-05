@@ -3,14 +3,14 @@ package kotlinw.remoting.core.client
 import arrow.core.continuations.AtomicRef
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
-import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.codec.MessageCodecDescriptor
-import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.client.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
+import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodecDescriptor
+import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
@@ -31,7 +31,7 @@ import kotlin.reflect.KFunction
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
-    private val httpClient: SynchronousCallSupportImplementor,
+    private val httpSupportImplementor: SynchronousCallSupportImplementor,
     private val remoteServerBaseUrl: Url
 ) : RemotingClientSynchronousCallSupport, RemotingClientDownstreamFlowSupport {
 
@@ -80,7 +80,8 @@ class HttpRemotingClient<M : RawMessage>(
                         suspendedCoroutines.remove(messageKind.callId)?.also {
                             when (messageKind) {
                                 is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
-                                    val message = metadataHolder.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
+                                    val message =
+                                        metadataHolder.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
                                     it.continuation.resume(message as RemotingMessage<Nothing>)
                                 }
 
@@ -117,8 +118,8 @@ class HttpRemotingClient<M : RawMessage>(
     private suspend fun ensureConnected(): BidirectionalMessagingSupport =
         bidirectionalMessagingSupportLock.withLock {
             bidirectionalMessagingSupportHolder.value ?: run {
-                check(httpClient is BidirectionalCommunicationImplementor)
-                httpClient.connect<M>(Url("$remoteServerBaseUrl/remoting/websocket"), messageCodec)
+                check(httpSupportImplementor is BidirectionalCommunicationImplementor)
+                httpSupportImplementor.connect<M>(Url("$remoteServerBaseUrl/remoting/websocket"), messageCodec)
                     .let { // TODO fix string
                         BidirectionalMessagingSupport(it).also {
                             bidirectionalMessagingSupportHolder.value = it
@@ -143,7 +144,7 @@ class HttpRemotingClient<M : RawMessage>(
         val rawResultMessage =
             messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
-        val rawResponseMessage = httpClient.post(
+        val rawResponseMessage = httpSupportImplementor.post(
             buildServiceUrl(serviceName, methodName),
             rawResultMessage,
             messageCodec
@@ -209,7 +210,7 @@ class HttpRemotingClient<M : RawMessage>(
         val rawResultMessage =
             messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
-        httpClient.post(
+        httpSupportImplementor.post(
             buildServiceUrl(serviceId, methodId),
             rawResultMessage,
             messageCodec
