@@ -56,7 +56,8 @@ import kotlin.coroutines.resume
 private typealias ClientSessionId = Any
 
 enum class ServerToClientCommunicationType {
-    WebSockets, ServerSentEvents
+    WebSockets
+    // TODO ServerSentEvents
 }
 
 class RemotingConfiguration {
@@ -94,9 +95,6 @@ val RemotingPlugin =
                     if (application.pluginOrNull(WebSockets) == null) {
                         throw IllegalStateException(MissingApplicationPluginException(WebSockets.key)) // TODO szövegben help link
                     }
-
-                ServerToClientCommunicationType.ServerSentEvents ->
-                    TODO()
             }
 
             if (messageCodec !is MessageCodecWithMetadataPrefetchSupport) {
