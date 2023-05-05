@@ -1,5 +1,9 @@
-package kotlinw.remoting.core
+package kotlinw.remoting.core.codec
 
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageKind
+import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.ServiceLocator
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer

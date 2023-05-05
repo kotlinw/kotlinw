@@ -1,12 +1,12 @@
-package kotlinw.remoting.core
+package kotlinw.remoting.core.codec
 
+import kotlinw.remoting.core.RawMessage
 import kotlinw.util.stdlib.decodeToString
 import kotlinw.util.stdlib.toReadOnlyByteArray
 import kotlinw.util.stdlib.view
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.StringFormat
-import kotlin.io.encoding.Base64
 
 sealed class GenericMessageCodec<M : RawMessage> : MessageCodec<M>
 

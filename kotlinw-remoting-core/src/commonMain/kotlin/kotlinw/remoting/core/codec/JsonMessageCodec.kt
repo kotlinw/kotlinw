@@ -1,8 +1,10 @@
-package kotlinw.remoting.core
+package kotlinw.remoting.core.codec
 
-import kotlinw.remoting.core.MessageDecoderMetadataPrefetchSupport.ExtractedMetadata
+import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.codec.MessageDecoderMetadataPrefetchSupport.ExtractedMetadata
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.StringFormat
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject

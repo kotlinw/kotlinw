@@ -12,6 +12,9 @@ data class RemotingMessageMetadata(
 )
 
 @Serializable
+data class ServiceLocator(val serviceId: String, val methodId: String)
+
+@Serializable
 sealed class RemotingMessageKind {
 
     interface HasCallId {

@@ -6,9 +6,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.GenericTextMessageCodec
-import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.MessageCodec
+import kotlinw.remoting.core.codec.GenericTextMessageCodec
+import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallDelegator

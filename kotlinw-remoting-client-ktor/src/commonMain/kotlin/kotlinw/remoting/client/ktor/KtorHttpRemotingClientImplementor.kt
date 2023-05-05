@@ -15,9 +15,9 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
-import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
-import kotlinw.remoting.core.MessageCodecDescriptor
+import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlinw.remoting.core.client.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
+import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.CoroutineContext
 
 class KtorHttpRemotingClientImplementor(
     private val httpClient: HttpClient

@@ -1,5 +1,9 @@
-package kotlinw.remoting.core
+package kotlinw.remoting.core.codec
 
+import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.RemotingMessageSerializer
 import kotlinx.serialization.KSerializer
 
 interface MessageCodecDescriptor {
@@ -43,4 +47,5 @@ interface MessageDecoderMetadataPrefetchSupport<M : RawMessage> : MessageDecoder
     fun extractMetadata(rawMessage: M): ExtractedMetadata
 }
 
-interface MessageCodecWithMetadataPrefetchSupport<M : RawMessage> : MessageCodec<M>, MessageDecoderMetadataPrefetchSupport<M>
+interface MessageCodecWithMetadataPrefetchSupport<M : RawMessage> : MessageCodec<M>,
+    MessageDecoderMetadataPrefetchSupport<M>

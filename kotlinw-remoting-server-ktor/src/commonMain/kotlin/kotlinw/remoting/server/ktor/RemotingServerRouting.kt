@@ -28,8 +28,8 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
-import kotlinw.remoting.core.MessageCodec
-import kotlinw.remoting.core.MessageCodecWithMetadataPrefetchSupport
+import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind

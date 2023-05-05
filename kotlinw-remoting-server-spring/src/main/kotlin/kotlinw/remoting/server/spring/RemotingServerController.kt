@@ -1,7 +1,7 @@
 package kotlinw.remoting.server.spring
 
 import jakarta.annotation.PostConstruct
-import kotlinw.remoting.core.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator

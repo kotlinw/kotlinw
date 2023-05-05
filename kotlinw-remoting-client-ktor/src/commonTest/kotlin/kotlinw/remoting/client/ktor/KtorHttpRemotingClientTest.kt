@@ -6,7 +6,7 @@ import io.ktor.client.utils.buildHeaders
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
-import kotlinw.remoting.core.HttpRemotingClient
+import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageSerializer
 import kotlinw.remoting.core.ktor.GenericTextMessageCodec

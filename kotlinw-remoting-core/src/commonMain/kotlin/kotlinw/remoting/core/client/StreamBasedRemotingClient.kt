@@ -1,6 +1,10 @@
-package kotlinw.remoting.core
+package kotlinw.remoting.core.client
 
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.ServiceLocator
+import kotlinw.remoting.core.codec.BinaryMessageCodec
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

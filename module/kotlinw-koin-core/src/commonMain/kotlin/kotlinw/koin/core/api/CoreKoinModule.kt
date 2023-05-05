@@ -12,8 +12,8 @@ import kotlinw.module.core.impl.ApplicationCoroutineServiceImpl
 import kotlinw.module.core.impl.defaultLoggingIntegrator
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.HttpRemotingClient
-import kotlinw.remoting.core.HttpRemotingClient.SynchronousCallSupportImplementor
+import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlinw.remoting.core.client.HttpRemotingClient.SynchronousCallSupportImplementor
 import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.util.stdlib.Url
 import kotlinx.serialization.json.Json

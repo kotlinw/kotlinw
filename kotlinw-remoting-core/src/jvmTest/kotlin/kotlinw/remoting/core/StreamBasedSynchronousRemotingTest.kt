@@ -1,6 +1,11 @@
 // TODO move to commonTest
 package kotlinw.remoting.core
 
+import kotlinw.remoting.core.client.StreamBasedSynchronousRemotingClient
+import kotlinw.remoting.core.codec.BinaryMessageCodec
+import kotlinw.remoting.core.codec.GenericTextMessageCodec
+import kotlinw.remoting.core.codec.asBinaryMessageCodec
+import kotlinw.remoting.core.server.StreamBasedSynchronousRemotingServer
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking

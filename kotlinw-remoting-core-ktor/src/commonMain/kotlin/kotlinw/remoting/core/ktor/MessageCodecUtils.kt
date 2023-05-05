@@ -1,9 +1,7 @@
 package kotlinw.remoting.core.ktor
 
 import io.ktor.http.ContentType
-import kotlinw.remoting.core.GenericMessageCodec
-import kotlinw.remoting.core.GenericTextMessageCodec
-import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.codec.GenericTextMessageCodec
 import kotlinx.serialization.StringFormat
 
 fun GenericTextMessageCodec(

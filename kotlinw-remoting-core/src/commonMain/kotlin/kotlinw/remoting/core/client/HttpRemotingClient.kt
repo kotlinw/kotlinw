@@ -1,9 +1,16 @@
-package kotlinw.remoting.core
+package kotlinw.remoting.core.client
 
 import arrow.core.continuations.AtomicRef
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
-import kotlinw.remoting.core.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
+import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodecDescriptor
+import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
+import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageKind
+import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.client.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
