@@ -21,6 +21,7 @@ kotlin {
                 implementation(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingCoreKtor)
                 api(libs.ktor.client.core)
+                api(libs.ktor.client.websockets)
             }
         }
         val commonTest by getting {

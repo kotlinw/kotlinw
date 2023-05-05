@@ -5,7 +5,7 @@ import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.SynchronousCallDescriptor
+import kotlinw.remoting.server.core.RemotingMethodDescriptor
 import kotlinx.serialization.KSerializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -52,7 +52,7 @@ class RemotingServerController {
         if (service != null) {
             val methodDescriptor = service.methodDescriptors[methodName]
             if (methodDescriptor != null) {
-                check(methodDescriptor is SynchronousCallDescriptor<*, *>)
+                check(methodDescriptor is RemotingMethodDescriptor.SynchronousCall<*, *>)
                 val requestMessage =
                     messageCodec.decodeMessage(RawMessage.Text(requestBody), methodDescriptor.parameterSerializer)
                 // TODO metadata

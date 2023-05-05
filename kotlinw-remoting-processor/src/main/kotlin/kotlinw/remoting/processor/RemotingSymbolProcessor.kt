@@ -36,7 +36,6 @@ import kotlinw.remoting.client.core.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.client.core.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.remoting.server.core.RemotingMethodDescriptor
-import kotlinw.remoting.server.core.SynchronousCallDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -318,15 +317,31 @@ class RemotingSymbolProcessor(
                         CodeBlock.builder().apply {
                             add("listOf(")
                             processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
-                                add(
-                                    "%T(%S, %M<%T>(), %M<%T>()),",
-                                    SynchronousCallDescriptor::class,
-                                    function.remotingMethodPath(nestedClassIdentifier),
-                                    serializerFunctionName,
-                                    function.parameterClassName(nestedClassIdentifier),
-                                    serializerFunctionName,
-                                    function.returnTypeName()
-                                )
+                                val returnsFlow =
+                                    (function.returnType?.resolve()?.declaration as? KSClassDeclaration)?.toClassName() == Flow::class.asClassName()
+
+                                if (returnsFlow) {
+                                    add(
+                                        "%T(%S, %M<%T>(), %M<%T>()),",
+                                        RemotingMethodDescriptor.DownstreamColdFlow::class,
+                                        function.remotingMethodPath(nestedClassIdentifier),
+                                        serializerFunctionName,
+                                        function.parameterClassName(nestedClassIdentifier),
+                                        serializerFunctionName,
+                                        function.returnType?.element?.typeArguments?.get(0)?.toTypeName()
+                                            ?: Nothing::class.asClassName()
+                                    )
+                                } else {
+                                    add(
+                                        "%T(%S, %M<%T>(), %M<%T>()),",
+                                        RemotingMethodDescriptor.SynchronousCall::class,
+                                        function.remotingMethodPath(nestedClassIdentifier),
+                                        serializerFunctionName,
+                                        function.parameterClassName(nestedClassIdentifier),
+                                        serializerFunctionName,
+                                        function.returnTypeName()
+                                    )
+                                }
                             }
                             add(")\n.associateBy { it.memberId }")
                         }.build()

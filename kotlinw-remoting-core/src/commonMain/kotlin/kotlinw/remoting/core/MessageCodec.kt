@@ -35,7 +35,12 @@ interface MessageDecoderMetadataPrefetchSupport<M : RawMessage> : MessageDecoder
         val metadata: RemotingMessageMetadata?
 
         fun <T : Any> decodePayload(deserializer: KSerializer<T>): T
+
+        fun <T : Any> decodeMessage(deserializer: KSerializer<T>): RemotingMessage<T> =
+            RemotingMessage(decodePayload(deserializer), metadata)
     }
 
     fun extractMetadata(rawMessage: M): ExtractedMetadata
 }
+
+interface MessageCodecWithMetadataPrefetchSupport<M : RawMessage> : MessageCodec<M>, MessageDecoderMetadataPrefetchSupport<M>

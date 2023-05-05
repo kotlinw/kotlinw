@@ -5,14 +5,13 @@ import io.ktor.http.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinw.remoting.client.ktor.KtorRemotingHttpClientImplementor
+import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.GenericTextMessageCodec
 import kotlinw.remoting.core.HttpRemotingClient
 import kotlinw.remoting.core.MessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallDelegator
-import kotlinw.remoting.server.core.RemoteCallDelegator
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -66,7 +65,7 @@ class SpringSupportTest {
             ExampleService.clientProxy(
                 HttpRemotingClient(
                     messageCodec,
-                    KtorRemotingHttpClientImplementor(HttpClient()),
+                    KtorHttpRemotingClientImplementor(HttpClient()),
                     Url("http://localhost:$port")
                 )
             )

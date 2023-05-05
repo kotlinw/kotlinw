@@ -10,8 +10,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import okio.BufferedSource
-import okio.Source
-import okio.buffer
 import kotlin.jvm.JvmInline
 
 @Serializable
@@ -23,7 +21,7 @@ data class BinaryMessageHeader(
 @JvmInline
 value class BinaryMessageCodec(
     private val wrappedCodec: GenericMessageCodec<RawMessage.Binary>
-) : MessageCodec<RawMessage.Binary>, MessageDecoderMetadataPrefetchSupport<RawMessage.Binary> {
+) : MessageCodecWithMetadataPrefetchSupport<RawMessage.Binary> {
 
     override val isBinary get() = true
 

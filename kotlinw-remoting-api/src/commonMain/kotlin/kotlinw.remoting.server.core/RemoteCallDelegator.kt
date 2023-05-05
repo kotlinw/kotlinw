@@ -1,5 +1,8 @@
 package kotlinw.remoting.server.core
 
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.serialization.KSerializer
+
 interface RemoteCallDelegator {
 
     val servicePath: String

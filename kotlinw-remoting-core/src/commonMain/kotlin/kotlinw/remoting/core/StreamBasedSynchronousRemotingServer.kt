@@ -1,7 +1,7 @@
 package kotlinw.remoting.core
 
 import kotlinw.remoting.server.core.RemoteCallDelegator
-import kotlinw.remoting.server.core.SynchronousCallDescriptor
+import kotlinw.remoting.server.core.RemotingMethodDescriptor
 import kotlinw.util.stdlib.write
 import kotlinx.coroutines.yield
 import kotlinx.serialization.KSerializer
@@ -33,7 +33,7 @@ class StreamBasedSynchronousRemotingServer(
             val methodId = serviceLocator.methodId
             val methodDescriptor = delegator.methodDescriptors[methodId]
             check(methodDescriptor != null) { "Method not found: $serviceLocator" }
-            check(methodDescriptor is SynchronousCallDescriptor<*, *>)
+            check(methodDescriptor is RemotingMethodDescriptor.SynchronousCall<*, *>)
 
             val parameter = extractedMetadata.decodePayload(methodDescriptor.parameterSerializer)
             val result = delegator.processCall(methodId, parameter)

@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("com.google.devtools.ksp")
+// TODO nem működött a teszt class-okra:    id("com.google.devtools.ksp")
 }
 
 kotlin {
@@ -20,6 +20,8 @@ kotlin {
                 implementation(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingCoreKtor)
                 api(libs.ktor.server.core)
+                api(libs.ktor.server.sessions)
+                api(libs.ktor.server.websockets)
             }
         }
         val commonTest by getting {
@@ -47,8 +49,8 @@ kotlin {
     }
 }
 
-dependencies {
-    add("kspCommonMainMetadata", projects.kotlinw.kotlinwRemotingProcessor)
-    add("kspJvm", projects.kotlinw.kotlinwRemotingProcessor)
-    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
-}
+//dependencies {
+//    add("kspCommonMainMetadata", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJvm", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
+//}

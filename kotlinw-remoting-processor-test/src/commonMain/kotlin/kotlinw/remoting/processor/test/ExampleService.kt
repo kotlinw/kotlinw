@@ -9,7 +9,7 @@ interface ExampleService {
 
     companion object;
 
-    val sharedFlow: SharedFlow<String>
+    // TODO val sharedFlow: SharedFlow<String>
 
     suspend fun coldFlow(): Flow<Double>
 

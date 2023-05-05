@@ -56,7 +56,7 @@ class KtorHttpRemotingClientTest {
 
         val remotingClient = HttpRemotingClient(
             GenericTextMessageCodec(Json, ContentType.Application.Json),
-            KtorRemotingHttpClientImplementor(mockEngine),
+            KtorHttpRemotingClientImplementor(mockEngine),
             Url("")
         )
 
