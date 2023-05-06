@@ -3,14 +3,29 @@
 # https://github.com/JetBrains/kotlin
 kotlin = "1.8.21"
 
+# https://github.com/spring-projects/spring-boot/releases
+springBoot = "3.0.6"
+
+# https://github.com/ktorio/ktor/releases
+ktor = "2.3.0"
+
 # https://junit.org/junit5/docs/current/release-notes/index.html
-junit = "5.9.0"
+junit = "5.9.2"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
-serialization = "1.4.0"
+serialization = "1.5.0"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.6.4"
+
+# https://github.com/arrow-kt/arrow/releases
+arrow = "1.2.0-RC"
+
+# https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-optics-ksp-plugin/
+arrowOpticsKspPlugin = "1.2.0-RC"
+
+# https://github.com/arrow-kt/arrow-gradle-config/releases
+arrowGradleConfig = "0.12.0-rc.1"
 
 # https://github.com/DevSrSouza/compose-icons/releases
 devsrsouzaComposeIcons = "1.0.0"
@@ -18,29 +33,103 @@ devsrsouzaComposeIcons = "1.0.0"
 # https://github.com/JetBrains/compose-jb/releases
 composeVersion = "1.3.1"
 
+# https://github.com/huxi/sulky/tags
+huxiSulky = "8.3.0"
+
+# https://github.com/keycloak/keycloak/releases
+keycloak = "20.0.0"
+
+# https://github.com/JetBrains/skiko/releases
+skiko = "0.7.37"
+
+# https://github.com/mipt-npm/kmath/releases
+kmath = "0.3.0"
+
+# https://github.com/arkivanov/Decompose/releases
+decompose = "1.0.0-alpha-07"
+
+#jaxb = "2.3.2"
+
+#cxf = "3.5.3"
+
+jaxws = "4.0.0"
+
+# https://github.com/mockk/mockk/releases
 mockk = "1.12.7"
 
 # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinWrappers = "1.0.0-pre.449"
+kotlinWrappers = "1.0.0-pre.455"
+
+# https://github.com/kosi-libs/Kodein/releases
+kodein = "7.20.1"
+
+koin = "3.4.0"
+
+# https://github.com/testcontainers/testcontainers-java/releases
+testcontainers = "1.17.6"
+
+cache4k = "0.9.0"
+
+slf4j = "2.0.6"
 
 logback = "1.4.5"
 
-# https://github.com/arrow-kt/arrow/releases
-arrow = "1.2.0-RC"
+flowredux = "1.0.2"
+
+mina = "2.9.2"
 
 ksp = "1.8.21-1.0.11"
+
+kotlinpoet = "1.13.0"
+
+okio = "3.3.0"
 
 [libraries]
 
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+ksp-impl = { module = "com.google.devtools.ksp:symbol-processing", version.ref = "ksp" }
 
-kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version = "1.13.0" }
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
+kotlinpoet-metadata = { module = "com.squareup:kotlinpoet-metadata", version.ref = "kotlinpoet" }
 
 tschuchortdev-compiletesting-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version = "1.5.0" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
+jaxws-ri = { module = "com.sun.xml.ws:jaxws-ri", version.ref = "jaxws" }
+
+#cxf-rt-frontend-jaxws = { module = "org.apache.cxf:cxf-rt-frontend-jaxws", version.ref = "cxf" }
+#cxf-rt-transports-http = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "cxf" }
+#cxf-spring-boot-starter-jaxrs = { module = "org.apache.cxf:cxf-spring-boot-starter-jaxrs", version.ref = "cxf" }
+#cxf-spring-boot-starter-jaxws = { module = "org.apache.cxf:cxf-spring-boot-starter-jaxws", version.ref = "cxf" }
+
+#jaxb-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jaxb" }
+#jaxb-impl = { module = "com.sun.xml.bind:jaxb-ri", version.ref = "jaxb" }
+
+decompose-core = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-extensions-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "decompose" }
+
+keycloak-adapter-installed = { module = "org.keycloak:keycloak-installed-adapter", version.ref = "keycloak" }
+
+kmath-complex = { module = "space.kscience:kmath-complex", version.ref = "kmath" }
+kmath-core = { module = "space.kscience:kmath-core", version.ref = "kmath" }
+kmath-real = { module = "space.kscience:kmath-real", version.ref = "kmath" }
+
+jetbrains-skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
+jetbrains-markdown = { module = "org.jetbrains:markdown", version = "0.3.1" }
+
+jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeVersion" }
+jetbrains-compose-web-core = { module = "org.jetbrains.compose.web:web-core", version.ref = "composeVersion" }
+jetbrains-compose-web-core-js = { module = "org.jetbrains.compose.web:web-core-js", version.ref = "composeVersion" }
+jetbrains-compose-material-materialiconsextended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeVersion" }
+
+arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
+arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+arrow-optics-ksp-plugin = { module = "io.arrow-kt:arrow-optics-ksp-plugin", version.ref = "arrowOpticsKspPlugin" }
+
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 kotlinjs-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlinjs-wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinWrappers" }
@@ -80,9 +169,72 @@ kotlinjs-wrappers-tanstack-virtual-core = { module = "org.jetbrains.kotlin-wrapp
 kotlinjs-wrappers-typescript = { module = "org.jetbrains.kotlin-wrappers:kotlin-typescript", version.ref = "kotlinWrappers" }
 kotlinjs-wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web", version.ref = "kotlinWrappers" }
 
-jetbrains-compose-web-core = { module = "org.jetbrains.compose.web:web-core", version.ref = "composeVersion" }
-jetbrains-compose-web-core-js = { module = "org.jetbrains.compose.web:web-core-js", version.ref = "composeVersion" }
-jetbrains-compose-material-materialiconsextended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeVersion" }
+# https://github.com/johnrengelman/shadow/releases
+gradle-plugin-shadow = { module = "gradle.plugin.com.github.jengelman.gradle.plugins:shadow", version = "7.1.2" }
+
+# https://github.com/Kotlin/kotlinx.collections.immutable/releases
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.3.5" }
+
+# https://github.com/Kotlin/kotlinx-datetime/releases
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.4.0" }
+
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "coroutines" }
+kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
+kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+#kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version="0.19.0" }
+
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
+gradle-plugin-spring-boot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
+spring-context = { module = "org.springframework:spring-context" }
+spring-web = { module = "org.springframework:spring-web" }
+
+jakarta-mail = { module = "jakarta.mail:jakarta.mail-api", version = "2.1.0" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version = "2.1.1" }
+
+ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
+ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
+ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+ktor-client-resources = { module = "io.ktor:ktor-client-resources", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktor" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+
+kodein-di-core = { module = "org.kodein.di:kodein-di", version.ref = "kodein" }
+kodein-di-framework-compose = { module = "org.kodein.di:kodein-di-framework-compose", version.ref = "kodein" }
+
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+
+hibernate-core = { module = "org.hibernate.orm:hibernate-core" }
+hibernate-envers = { module = "org.hibernate.orm:hibernate-envers" }
+
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version = "3.18.0" }
 
 # https://github.com/DevSrSouza/compose-icons/blob/master/simple-icons/DOCUMENTATION.md
 devsrsouza-compose-icons-simpleicons = { module = "br.com.devsrsouza.compose.icons.jetbrains:simple-icons", version.ref = "devsrsouzaComposeIcons" }
@@ -105,24 +257,50 @@ devsrsouza-compose-icons-erikflowersweathericons = { module = "br.com.devsrsouza
 # https://github.com/DevSrSouza/compose-icons/blob/master/css-gg/DOCUMENTATION.md
 devsrsouza-compose-icons-cssgg = { module = "br.com.devsrsouza.compose.icons.jetbrains:css-gg", version.ref = "devsrsouzaComposeIcons" }
 
-# https://github.com/Kotlin/kotlinx.collections.immutable/releases
-kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.3.5" }
+# https://jdbc.postgresql.org/
+postgresql-driver = { module = "org.postgresql:postgresql", version = "42.5.0" }
 
-# https://github.com/Kotlin/kotlinx-datetime/releases
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.4.0" }
+# https://github.com/vladmihalcea/hibernate-types/tags
+# vladmihalcea-hibernatetypes = { module = "com.vladmihalcea:hibernate-types-60", version = "2.17.0" }
 
-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+# https://github.com/zeroturnaround/zt-process-killer/tags
+zt-processkiller = { module = "org.zeroturnaround:zt-process-killer", version = "1.10" }
 
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+# https://github.com/zeroturnaround/zt-exec/tags
+zt-exec = { module = "org.zeroturnaround:zt-exec", version = "1.12" }
 
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+huxi-sulky-ulid = { module = "de.huxhorn.sulky:de.huxhorn.sulky.ulid", version.ref = "huxiSulky" }
 
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback"}
+servlet-api = { module = "jakarta-servlet:servlet-api" }
 
-arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
-arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
-arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter" }
+
+cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
+
+springmockk = { module = "com.ninja-squad:springmockk", version = "4.0.0" }
+
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.10.0" }
+
+flowredux-jvm = { module = "com.freeletics.flowredux:flowredux-jvm", version.ref = "flowredux" }
+flowredux-compose = { module = "com.freeletics.flowredux:compose", version.ref = "flowredux" }
+flowredux-multiplatform = { module = "com.freeletics.flowredux:flowredux", version.ref = "flowredux" }
+
+kotter = { module = "com.varabyte.kotter:kotter", version = "1.0.2" }
+
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.1" }
+
+mina-sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "mina" }
+mina-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "mina" }
+
+okio-core = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 [plugins]
+
+arrowGradleConfig-jvm = { id = "io.arrow-kt.arrow-gradle-config-jvm", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-multiplatform = { id = "io.arrow-kt.arrow-gradle-config-multiplatform", version.ref = "arrowGradleConfig" }

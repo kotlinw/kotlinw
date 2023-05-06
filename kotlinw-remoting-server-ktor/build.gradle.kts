@@ -1,3 +1,4 @@
+import kotlinw.project.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 plugins {

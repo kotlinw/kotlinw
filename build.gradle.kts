@@ -1,7 +1,11 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+import kotlinw.project.gradle.*
 
 buildscript {
     repositories {
@@ -22,12 +26,14 @@ buildscript {
 plugins {
     kotlin("multiplatform") version "1.8.21" apply false
     kotlin("plugin.serialization") version "1.8.21" apply false
+    kotlin("plugin.spring") version "1.8.21" apply false
     id("com.google.devtools.ksp") version "1.8.21-1.0.11" apply false
     id("org.jetbrains.compose") version "1.4.0" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.1" apply false
 }
 
 val isPublicationActive = buildMode == DevelopmentMode.Production
@@ -78,7 +84,7 @@ subprojects {
         )
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon> {
+    tasks.withType<KotlinCompileCommon> {
         kotlinOptions.configureCommonOptions()
     }
     tasks.withType<KotlinCompile> {
@@ -92,8 +98,13 @@ subprojects {
             )
         }
     }
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
+    tasks.withType<Kotlin2JsCompile> {
         kotlinOptions.configureCommonOptions()
+    }
+    tasks.withType<KotlinNativeCompile> {
+        kotlinOptions {
+            configureCommonOptions()
+        }
     }
 
     tasks.withType<Test> {

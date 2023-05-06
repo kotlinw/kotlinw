@@ -1,3 +1,5 @@
+import kotlinw.project.gradle.*
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")

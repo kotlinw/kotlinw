@@ -17,7 +17,7 @@ kotlin {
         }
     }
     jvm {
-        jvmToolchain(19)
+        jvmToolchain(17)
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
