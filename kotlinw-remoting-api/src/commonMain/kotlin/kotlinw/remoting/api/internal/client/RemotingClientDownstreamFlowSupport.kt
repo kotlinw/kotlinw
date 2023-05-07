@@ -8,7 +8,7 @@ import kotlin.reflect.KFunction
 
 interface RemotingClientDownstreamFlowSupport : RemotingClient {
 
-    suspend fun <T : Any, P : Any, F : Any> requestDownstreamColdFlow(
+    suspend fun <T : Any, P : Any, F> requestDownstreamColdFlow(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<Flow<F>>,
         serviceId: String,

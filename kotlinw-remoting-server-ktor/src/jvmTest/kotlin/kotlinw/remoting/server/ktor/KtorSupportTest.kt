@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 import io.ktor.server.websocket.WebSockets.Plugin as ServerWebSockets
 
@@ -25,6 +26,7 @@ class KtorSupportTest {
     fun testSynchronousCall() = testApplication {
         val service = mockk<ExampleService>(relaxed = true)
         coEvery { service.p1IntReturnsString(any()) } returns "abc"
+        coEvery { service.noParameterReturnsNullableString() } returns null
 
         val messageCodec = JsonMessageCodec.Default
 
@@ -40,10 +42,13 @@ class KtorSupportTest {
             HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""))
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
+
         assertEquals("abc", clientProxy.p1IntReturnsString(123))
+        assertNull(clientProxy.noParameterReturnsNullableString())
 
         coVerify {
             service.p1IntReturnsString(123)
+            service.noParameterReturnsNullableString()
         }
     }
 
@@ -58,6 +63,7 @@ class KtorSupportTest {
                 }
             }
         }
+        coEvery { service.nullableFlow() } returns flowOf("a", null, "b", null)
 
         val messageCodec = JsonMessageCodec.Default
 
@@ -82,9 +88,12 @@ class KtorSupportTest {
 
         assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
 
+        assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+
         coVerify {
             service.coldFlow()
             service.numberFlow(4)
+            service.nullableFlow()
         }
     }
 }

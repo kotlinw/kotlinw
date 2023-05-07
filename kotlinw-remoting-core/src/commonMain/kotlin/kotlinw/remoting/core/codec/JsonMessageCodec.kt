@@ -38,15 +38,15 @@ class JsonMessageCodec(
 
             override val metadata get() = metadata
 
-            override fun <T : Any> decodePayload(deserializer: KSerializer<T>): T =
+            override fun <T> decodePayload(deserializer: KSerializer<T>): T =
                 json.decodeFromJsonElement(deserializer, payloadJsonElement)
         }
     }
 
-    override fun <T : Any> decode(rawMessage: RawMessage.Text, deserializer: KSerializer<T>): T =
+    override fun <T> decode(rawMessage: RawMessage.Text, deserializer: KSerializer<T>): T =
         json.decodeFromString(deserializer, rawMessage.text)
 
-    override fun <T : Any> encode(message: T, serializer: KSerializer<T>): RawMessage.Text =
+    override fun <T> encode(message: T, serializer: KSerializer<T>): RawMessage.Text =
         RawMessage.Text(json.encodeToString(serializer, message))
 
     override val contentType: String = "application/json"

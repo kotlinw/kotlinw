@@ -2,6 +2,7 @@ package kotlinw.remoting.core
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
@@ -12,12 +13,12 @@ import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.serializer
 
 @Serializable(with = RemotingMessageSerializer::class)
-data class RemotingMessage<out T : Any>(
+data class RemotingMessage<out T>(
     val payload: T,
     val metadata: RemotingMessageMetadata?
 )
 
-class RemotingMessageSerializer<T : Any>(private val payloadSerializer: KSerializer<T>) :
+class RemotingMessageSerializer<T>(private val payloadSerializer: KSerializer<T>) :
     KSerializer<RemotingMessage<T>> {
 
     companion object {
@@ -49,7 +50,7 @@ class RemotingMessageSerializer<T : Any>(private val payloadSerializer: KSeriali
                 }
             }
 
-            RemotingMessage(payload!!, metadata)
+            RemotingMessage(payload as T, metadata)
         }
 
     override fun serialize(encoder: Encoder, value: RemotingMessage<T>) {

@@ -43,7 +43,7 @@ class StreamBasedSynchronousRemotingServer(
 
             val rawResult = messageCodec.encodeMessage(
                 RemotingMessage(result, null),
-                methodDescriptor.resultSerializer as KSerializer<Any>
+                methodDescriptor.resultSerializer as KSerializer<Any?>
             ).byteArrayView
 
             sink.write(rawResult)

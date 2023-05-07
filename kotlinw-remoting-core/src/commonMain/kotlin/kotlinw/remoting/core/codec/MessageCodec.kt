@@ -15,17 +15,17 @@ interface MessageCodecDescriptor {
 
 interface MessageDecoder<in M : RawMessage> : MessageCodecDescriptor {
 
-    fun <T : Any> decode(rawMessage: M, deserializer: KSerializer<T>): T
+    fun <T> decode(rawMessage: M, deserializer: KSerializer<T>): T
 
-    fun <T : Any> decodeMessage(rawMessage: M, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
+    fun <T> decodeMessage(rawMessage: M, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
         decode(rawMessage, RemotingMessageSerializer(payloadDeserializer))
 }
 
 interface MessageEncoder<out M : RawMessage> : MessageCodecDescriptor {
 
-    fun <T : Any> encode(message: T, serializer: KSerializer<T>): M
+    fun <T> encode(message: T, serializer: KSerializer<T>): M
 
-    fun <T : Any> encodeMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>): M =
+    fun <T> encodeMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>): M =
         encode(message, RemotingMessageSerializer(payloadSerializer))
 }
 
@@ -38,9 +38,9 @@ interface MessageDecoderMetadataPrefetchSupport<M : RawMessage> : MessageDecoder
 
         val metadata: RemotingMessageMetadata?
 
-        fun <T : Any> decodePayload(deserializer: KSerializer<T>): T
+        fun <T> decodePayload(deserializer: KSerializer<T>): T
 
-        fun <T : Any> decodeMessage(deserializer: KSerializer<T>): RemotingMessage<T> =
+        fun <T> decodeMessage(deserializer: KSerializer<T>): RemotingMessage<T> =
             RemotingMessage(decodePayload(deserializer), metadata)
     }
 

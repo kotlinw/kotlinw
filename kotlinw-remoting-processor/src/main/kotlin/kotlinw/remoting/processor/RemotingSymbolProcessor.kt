@@ -307,7 +307,7 @@ class RemotingSymbolProcessor(
 
             val processCallFunctionBuilder = FunSpec.builder("processCall")
                 .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
-                .returns(Any::class)
+                .returns(typeNameOf<Any?>())
                 .addParameter("methodId", String::class)
                 .addParameter("parameter", Any::class)
 

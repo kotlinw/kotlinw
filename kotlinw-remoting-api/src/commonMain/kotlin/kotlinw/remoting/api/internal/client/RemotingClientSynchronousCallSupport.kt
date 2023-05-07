@@ -7,7 +7,7 @@ import kotlin.reflect.KFunction
 
 interface RemotingClientSynchronousCallSupport : RemotingClient {
 
-    suspend fun <T : Any, P: Any, R : Any> call(
+    suspend fun <T : Any, P: Any, R> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<R>,
         serviceName: String,

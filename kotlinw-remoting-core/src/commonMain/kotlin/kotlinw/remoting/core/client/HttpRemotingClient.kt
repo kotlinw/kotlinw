@@ -59,7 +59,7 @@ class HttpRemotingClient<M : RawMessage>(
         ): BidirectionalConnection<M>
     }
 
-    private data class SuspendedCoroutineData<T : Any>(
+    private data class SuspendedCoroutineData<T>(
         val continuation: Continuation<RemotingMessage<T>>,
         val payloadDeserializer: KSerializer<T>
     )
@@ -101,12 +101,12 @@ class HttpRemotingClient<M : RawMessage>(
         // TODO disconnect esetén clear()
         private val suspendedCoroutines: ConcurrentMutableMap<String, SuspendedCoroutineData<*>> = ConcurrentHashMap()
 
-        suspend fun <T : Any> awaitMessage(callId: String, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
+        suspend fun <T> awaitMessage(callId: String, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
             suspendCancellableCoroutine {
                 suspendedCoroutines[callId] = SuspendedCoroutineData(it, payloadDeserializer)
             }
 
-        suspend fun <T : Any> sendMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
+        suspend fun <T> sendMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
             bidirectionalConnection.sendMessage(messageCodec.encodeMessage(message, payloadSerializer))
         }
     }
@@ -131,7 +131,7 @@ class HttpRemotingClient<M : RawMessage>(
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
         "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO
 
-    override suspend fun <T : Any, P : Any, R : Any> call(
+    override suspend fun <T : Any, P : Any, R> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<R>,
         serviceName: String,
@@ -157,7 +157,7 @@ class HttpRemotingClient<M : RawMessage>(
         return resultMessage.payload
     }
 
-    override suspend fun <T : Any, P : Any, F : Any> requestDownstreamColdFlow(
+    override suspend fun <T : Any, P : Any, F> requestDownstreamColdFlow(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<Flow<F>>,
         serviceId: String,

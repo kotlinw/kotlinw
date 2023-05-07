@@ -60,7 +60,7 @@ class RemotingServerController {
                 val responseMessage = RemotingMessage(result, null) // TODO metadata
                 return messageCodec.encodeMessage(
                     responseMessage,
-                    methodDescriptor.resultSerializer as KSerializer<Any>
+                    methodDescriptor.resultSerializer as KSerializer<Any?>
                 ).text
             } else {
                 throw ResponseStatusException(HttpStatus.NOT_FOUND);

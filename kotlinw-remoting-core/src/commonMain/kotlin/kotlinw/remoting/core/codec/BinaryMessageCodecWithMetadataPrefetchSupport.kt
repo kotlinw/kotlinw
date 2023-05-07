@@ -30,10 +30,10 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
 
     override val contentType get() = KotlinxSerializationBinaryMessageCodec.defaultBinaryContentType
 
-    override fun <T : Any> encode(message: T, serializer: KSerializer<T>): RawMessage.Binary =
+    override fun <T> encode(message: T, serializer: KSerializer<T>): RawMessage.Binary =
         wrappedCodec.encode(message, serializer)
 
-    override fun <T : Any> encodeMessage(
+    override fun <T> encodeMessage(
         message: RemotingMessage<T>,
         payloadSerializer: KSerializer<T>
     ): RawMessage.Binary {
@@ -54,10 +54,10 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
         return RawMessage.Binary(messageBytes.view())
     }
 
-    override fun <T : Any> decode(rawMessage: RawMessage.Binary, deserializer: KSerializer<T>): T =
+    override fun <T> decode(rawMessage: RawMessage.Binary, deserializer: KSerializer<T>): T =
         wrappedCodec.decode(rawMessage, deserializer)
 
-    override fun <T : Any> decodeMessage(
+    override fun <T> decodeMessage(
         rawMessage: RawMessage.Binary,
         payloadDeserializer: KSerializer<T>
     ): RemotingMessage<T> =
@@ -87,14 +87,14 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
 
             override val metadata get() = header.metadata
 
-            override fun <T : Any> decodePayload(deserializer: KSerializer<T>): T {
+            override fun <T> decodePayload(deserializer: KSerializer<T>): T {
                 val payloadBytes = sourceBytes.view(offset, offset + payloadSize)
                 return decode(RawMessage.Binary(payloadBytes), deserializer)
             }
         }
     }
 
-    fun <T : Any> decodeMessage(
+    fun <T> decodeMessage(
         messageSource: BufferedSource,
         payloadDeserializer: KSerializer<T>
     ): RemotingMessage<T> =
@@ -114,7 +114,7 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
 
             override val metadata get() = header.metadata
 
-            override fun <T : Any> decodePayload(deserializer: KSerializer<T>): T {
+            override fun <T> decodePayload(deserializer: KSerializer<T>): T {
                 return decode(RawMessage.Binary(payloadBytes.view()), deserializer)
             }
         }

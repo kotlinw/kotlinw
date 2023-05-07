@@ -15,6 +15,8 @@ interface ExampleService {
 
     suspend fun numberFlow(offset: Int): Flow<Int>
 
+    suspend fun nullableFlow(): Flow<String?>
+
     suspend fun noParameterReturnsUnit()
 
     suspend fun noParameterReturnsString(): String
@@ -24,4 +26,6 @@ interface ExampleService {
     suspend fun p1IntReturnsString(p1: Int): String
 
     suspend fun p1IntP2DoubleReturnsFloat(p1: Int, p2: Double): Float
+
+    suspend fun noParameterReturnsNullableString(): String?
 }

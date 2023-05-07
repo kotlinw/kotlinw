@@ -17,10 +17,10 @@ class KotlinxSerializationTextMessageCodec(
 
     override val isBinary = false
 
-    override fun <T : Any> decode(rawMessage: RawMessage.Text, deserializer: KSerializer<T>): T =
+    override fun <T> decode(rawMessage: RawMessage.Text, deserializer: KSerializer<T>): T =
         serialFormat.decodeFromString(deserializer, rawMessage.text)
 
-    override fun <T : Any> encode(message: T, serializer: KSerializer<T>): RawMessage.Text =
+    override fun <T> encode(message: T, serializer: KSerializer<T>): RawMessage.Text =
         RawMessage.Text(serialFormat.encodeToString(serializer, message))
 }
 
@@ -36,16 +36,10 @@ class KotlinxSerializationBinaryMessageCodec(
 
     override val isBinary = true
 
-    override fun <T : Any> decode(
-        rawMessage: RawMessage.Binary,
-        deserializer: KSerializer<T>
-    ): T =
+    override fun <T> decode(rawMessage: RawMessage.Binary, deserializer: KSerializer<T>): T =
         serialFormat.decodeFromByteArray(deserializer, rawMessage.byteArrayView.toReadOnlyByteArray())
 
-    override fun <T : Any> encode(
-        message: T,
-        serializer: KSerializer<T>
-    ): RawMessage.Binary =
+    override fun <T> encode(message: T, serializer: KSerializer<T>): RawMessage.Binary =
         RawMessage.Binary(serialFormat.encodeToByteArray(serializer, message).view())
 }
 
@@ -56,10 +50,10 @@ private class KotlinxSerializationTextMessageCodecAsBinary(private val textCodec
 
     override val isBinary = true
 
-    override fun <T : Any> encode(message: T, serializer: KSerializer<T>): RawMessage.Binary =
+    override fun <T> encode(message: T, serializer: KSerializer<T>): RawMessage.Binary =
         RawMessage.Binary(textCodec.encode(message, serializer).text.encodeToByteArray().view())
 
-    override fun <T : Any> decode(rawMessage: RawMessage.Binary, deserializer: KSerializer<T>): T =
+    override fun <T> decode(rawMessage: RawMessage.Binary, deserializer: KSerializer<T>): T =
         textCodec.decode(RawMessage.Text(rawMessage.byteArrayView.decodeToString()), deserializer)
 }
 

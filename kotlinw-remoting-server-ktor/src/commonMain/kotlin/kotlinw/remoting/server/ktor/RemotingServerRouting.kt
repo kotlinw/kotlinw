@@ -85,7 +85,7 @@ val RemotingPlugin =
         val needsServerToClientMessaging =
             remoteCallDelegators.any {
                 it.methodDescriptors.values.any {
-                    it is RemotingMethodDescriptor.DownstreamSharedFlow<*> || it is RemotingMethodDescriptor.DownstreamColdFlow<*, *>
+                    it is RemotingMethodDescriptor.DownstreamColdFlow<*, *>
                 }
             }
 
@@ -128,7 +128,7 @@ val RemotingPlugin =
                     delegators,
                     identifyClient,
                     addActiveColdFlow = { clientId, flow, flowId, flowValueSerializer ->
-                        connections[clientId]?.addActiveColdFlow(flowId, flow, flowValueSerializer as KSerializer<Any>)
+                        connections[clientId]?.addActiveColdFlow(flowId, flow, flowValueSerializer as KSerializer<Any?>)
                             ?: throw IllegalStateException("Websocket connection is not active for clientId=$clientId")
                     }
                 )
@@ -156,7 +156,7 @@ private class WebSocketConnection(
         continuation.resume(Unit)
     }
 
-    fun addActiveColdFlow(flowId: String, flow: Flow<Any>, flowValueSerializer: KSerializer<Any>) {
+    fun addActiveColdFlow(flowId: String, flow: Flow<Any?>, flowValueSerializer: KSerializer<Any?>) {
         activeColdFlows[flowId] = ActiveColdFlowData(
             websocketSessionSupervisorScope.launch(start = CoroutineStart.LAZY) {
                 try {
@@ -198,7 +198,7 @@ private class WebSocketConnection(
         )
     }
 
-    suspend fun <T: Any> send(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
+    suspend fun <T> send(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
         if (messageCodec.isBinary) {
             webSocketSession.send(
                 (messageCodec.encodeMessage(message, payloadSerializer) as RawMessage.Binary)
@@ -279,7 +279,7 @@ private fun Route.setupRemoteCallRouting(
     messageCodec: MessageCodec<out RawMessage>,
     remoteCallDelegators: Map<String, RemoteCallDelegator>,
     identifyClient: (ApplicationCall) -> ClientSessionId,
-    addActiveColdFlow: (clientSessionId: ClientSessionId, flow: Flow<Any>, flowId: String, flowValueSerializer: KSerializer<out Any>) -> Unit
+    addActiveColdFlow: (clientSessionId: ClientSessionId, flow: Flow<Any?>, flowId: String, flowValueSerializer: KSerializer<out Any?>) -> Unit
 ) {
     val contentType = ContentType.parse(messageCodec.contentType)
 
@@ -313,8 +313,6 @@ private fun Route.setupRemoteCallRouting(
                                             methodDescriptor,
                                             delegator
                                         )
-
-                                    is RemotingMethodDescriptor.DownstreamSharedFlow<*> -> throw IllegalStateException() // Should have been handled elsewhere
                                 }
                             }
                         }
@@ -331,7 +329,7 @@ private suspend fun <M : RawMessage> handleDownstreamColdFlowProviderCall(
     callDescriptor: RemotingMethodDescriptor.DownstreamColdFlow<*, *>,
     delegator: RemoteCallDelegator,
     identifyClient: (ApplicationCall) -> ClientSessionId,
-    addActiveColdFlow: (clientSessionId: ClientSessionId, flow: Flow<Any>, flowId: String, flowValueSerializer: KSerializer<out Any>) -> Unit
+    addActiveColdFlow: (clientSessionId: ClientSessionId, flow: Flow<Any?>, flowId: String, flowValueSerializer: KSerializer<out Any?>) -> Unit
 ) {
     val (parameter, metadata) =
         decodeRequest(call, messageCodec, callDescriptor.parameterSerializer)
@@ -377,7 +375,7 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     val responseMessage = RemotingMessage(result, null) // TODO metadata
     val rawResponseMessage = messageCodec.encodeMessage(
         responseMessage,
-        callDescriptor.resultSerializer as KSerializer<Any>
+        callDescriptor.resultSerializer as KSerializer<Any?>
     )
 
     call.response.status(HttpStatusCode.OK)
