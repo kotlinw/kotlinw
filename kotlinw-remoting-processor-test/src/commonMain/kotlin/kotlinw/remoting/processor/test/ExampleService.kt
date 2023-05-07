@@ -2,14 +2,11 @@ package kotlinw.remoting.processor.test
 
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
 
 @SupportsRemoting
 interface ExampleService {
 
     companion object;
-
-    // TODO val sharedFlow: SharedFlow<String>
 
     suspend fun coldFlow(): Flow<Double>
 
