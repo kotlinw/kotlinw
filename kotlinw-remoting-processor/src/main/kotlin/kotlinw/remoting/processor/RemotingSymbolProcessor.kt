@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -51,9 +52,8 @@ class RemotingSymbolProcessor(
                 .toSet()
 
         val validSymbols = symbols.filter { it.validate() }.toSet()
-
-        validSymbols.forEach {
-            validateAnnotatedClass(it)
+        val validSymbolsWithoutErrors = validSymbols.filter { validateAnnotatedClass(it) }
+        validSymbolsWithoutErrors.forEach {
             generateProxyClass(it, resolver)
         }
 
@@ -407,7 +407,16 @@ class RemotingSymbolProcessor(
             .build()
     }
 
-    private fun validateAnnotatedClass(declaration: KSClassDeclaration) {
+    private fun validateAnnotatedClass(classDeclaration: KSClassDeclaration): Boolean {
+        if (classDeclaration.classKind != ClassKind.INTERFACE) {
+            logger.error(
+                "Only interface declarations should be annotated with @${SupportsRemoting::class.simpleName}.",
+                classDeclaration
+            )
+            return false
+        }
+
         // TODO("Not yet implemented")
+        return true
     }
 }

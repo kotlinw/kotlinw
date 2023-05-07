@@ -8,7 +8,10 @@ import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.symbolProcessorProviders
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
+import java.io.File
+import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 fun Result.assertCompilationFailed() {
@@ -19,10 +22,24 @@ fun Result.assertCompilationSucceeded() {
     assertEquals(OK, exitCode)
 }
 
-fun KotlinCompilation.Result.assertHasKspError(message: String) {
+private val kspErrorLineRegex = Regex("""e: \[ksp] (.+?)/sources/(.+?:\d+): (.+?)""")
+
+fun KotlinCompilation.Result.assertHasKspError(message: String, location: String? = null) {
     assertTrue {
         messages.lines().any {
-            Regex("e: \\[ksp] .*?$message").matches(it)
+            if (it.startsWith("e: [ksp] ")) {
+                kspErrorLineRegex.matchEntire(it)?.let { matchResult ->
+                    val currentLocation = matchResult.groupValues.get(2)
+                    val locationMatch = location == null || location == currentLocation
+
+                    val currentMessage = matchResult.groupValues.get(3)
+                    val messageMatch = message == currentMessage
+
+                    messageMatch && locationMatch
+                } ?: false
+            } else {
+                false
+            }
         }
     }
 }
@@ -42,3 +59,17 @@ fun compile(sourceFile: SourceFile, vararg additionalSymbolProcessorProviders: S
         messageOutputStream = System.out
         inheritClassPath = true
     }.compile()
+
+internal val KotlinCompilation.Result.workingDir: File
+    get() =
+        outputDirectory.parentFile!!
+
+val KotlinCompilation.Result.kspGeneratedSources: List<File>
+    get() {
+        val kspWorkingDir = workingDir.resolve("ksp")
+        val kspGeneratedDir = kspWorkingDir.resolve("sources")
+        val kotlinGeneratedDir = kspGeneratedDir.resolve("kotlin")
+        val javaGeneratedDir = kspGeneratedDir.resolve("java")
+        return kotlinGeneratedDir.walkTopDown().toList() +
+                javaGeneratedDir.walkTopDown()
+    }
