@@ -28,4 +28,6 @@ interface ExampleService {
     suspend fun p1IntP2DoubleReturnsFloat(p1: Int, p2: Double): Float
 
     suspend fun noParameterReturnsNullableString(): String?
+
+    suspend fun p1NullableIntParameterReturnsNullableString(p1: Int?): String?
 }
