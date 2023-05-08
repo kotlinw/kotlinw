@@ -1,5 +1,8 @@
 package kotlinw.remoting.processor
 
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getClassDeclarationByName
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -8,9 +11,11 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSClassifierReference
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
+import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -19,6 +24,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
@@ -37,6 +43,7 @@ import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -52,7 +59,11 @@ class RemotingSymbolProcessor(
                 .toSet()
 
         val validSymbols = symbols.filter { it.validate() }.toSet()
-        val validSymbolsWithoutErrors = validSymbols.filter { validateAnnotatedClass(it) }
+        val validSymbolsWithoutErrors = validSymbols.filter {
+            with(resolver) {
+                isAnnotatedClassValid(it)
+            }
+        }
         validSymbolsWithoutErrors.forEach {
             generateProxyClass(it, resolver)
         }
@@ -94,8 +105,7 @@ class RemotingSymbolProcessor(
         val remotingClientDownstreamFlowSupportPropertyName = "remotingClientDownstreamFlowSupport"
         val servicePathPropertyName = "servicePath"
 
-        val processedMemberFunctions = definitionInterfaceDeclaration.getAllFunctions().toList()
-            .filter { it.functionKind == FunctionKind.MEMBER && it.isAbstract }
+        val processedMemberFunctions = getProcessedMemberFunctions(definitionInterfaceDeclaration)
 
         fun KSFunctionDeclaration.parameterClassName(nestedClassClassifier: Int) =
             clientProxyClassName.nestedClass("Parameter_" + simpleName.asString() + "_cid" + nestedClassClassifier)
@@ -366,6 +376,10 @@ class RemotingSymbolProcessor(
         )
     }
 
+    private fun getProcessedMemberFunctions(definitionInterfaceDeclaration: KSClassDeclaration) =
+        definitionInterfaceDeclaration.getAllFunctions().toList()
+            .filter { it.functionKind == FunctionKind.MEMBER && it.isAbstract }
+
     private fun buildPayloadClass(className: ClassName, parameterTypes: List<KSValueParameter>): TypeSpec =
         buildPayloadClass(className, parameterTypes.associate { it.name!!.asString() to it.type })
 
@@ -407,7 +421,8 @@ class RemotingSymbolProcessor(
             .build()
     }
 
-    private fun validateAnnotatedClass(classDeclaration: KSClassDeclaration): Boolean {
+    context (Resolver)
+    private fun isAnnotatedClassValid(classDeclaration: KSClassDeclaration): Boolean {
         if (classDeclaration.classKind != ClassKind.INTERFACE) {
             logger.error(
                 "Only interface declarations should be annotated with @${SupportsRemoting::class.simpleName}.",
@@ -416,7 +431,75 @@ class RemotingSymbolProcessor(
             return false
         }
 
-        // TODO("Not yet implemented")
-        return true
+        var hasMemberFunctionError = false
+        getProcessedMemberFunctions(classDeclaration).forEach { memberFunctionDeclaration ->
+            if (!memberFunctionDeclaration.modifiers.contains(Modifier.SUSPEND)) {
+                logger.error("Member function should be 'suspend' to support remoting.", memberFunctionDeclaration)
+                hasMemberFunctionError = true
+            }
+
+            if (memberFunctionDeclaration.extensionReceiver != null) {
+                logger.error(
+                    "Member function should not have extension receiver to support remoting.",
+                    memberFunctionDeclaration
+                )
+                hasMemberFunctionError = true
+            }
+
+            val returnTypeReference = memberFunctionDeclaration.returnType
+            if (returnTypeReference != null) {
+                val returnType = returnTypeReference.resolve()
+                if (returnType.declaration.qualifiedName?.asString() == Flow::class.qualifiedName!!) {
+                    val flowValueTypeReference = returnType.arguments[0].type
+                    if (flowValueTypeReference == null || !flowValueTypeReference.isSerializable) {
+                        logger.error(
+                            "Flow value type should be serializable to support remoting.",
+                            flowValueTypeReference
+                        )
+                        hasMemberFunctionError = true
+                    }
+                } else if (!returnTypeReference.isSerializable) {
+                    logger.error("Return type should be serializable to support remoting.", memberFunctionDeclaration)
+                    hasMemberFunctionError = true
+                }
+            }
+
+            memberFunctionDeclaration.parameters.forEach { parameter ->
+                if (!parameter.type.isSerializable) {
+                    logger.error("Parameter ${parameter.name?.let { "'${it.asString()}' " } ?: ""}should be serializable to support remoting",
+                        parameter)
+                    hasMemberFunctionError = true
+                }
+            }
+        }
+
+        return !hasMemberFunctionError
     }
+
 }
+
+context(Resolver)
+private val KSTypeReference.isSerializable: Boolean
+    get() {
+        val ksType = resolve().makeNotNullable()
+        val ksDeclaration = ksType.declaration
+        return ksType == builtIns.booleanType ||
+                ksType == builtIns.byteType ||
+                ksType == builtIns.shortType ||
+                ksType == builtIns.intType ||
+                ksType == builtIns.longType ||
+                ksType == builtIns.floatType ||
+                ksType == builtIns.doubleType ||
+                ksType == builtIns.charType ||
+                ksType == builtIns.stringType ||
+                ksDeclaration.modifiers.contains(Modifier.ENUM) ||
+                ksDeclaration == getClassDeclarationByName<Pair<*, *>>() || // TODO rekurzív ellenőrzést
+                ksDeclaration == getClassDeclarationByName<Triple<*, *, *>>() || // TODO rekurzív ellenőrzést
+                ksDeclaration == getClassDeclarationByName<List<*>>() || // TODO rekurzív ellenőrzést
+                ksDeclaration == getClassDeclarationByName<Set<*>>() || // TODO rekurzív ellenőrzést
+                ksDeclaration == getClassDeclarationByName<Map<*, *>>() || // TODO rekurzív ellenőrzést
+                (ksDeclaration as? KSClassDeclaration)?.classKind == ClassKind.OBJECT ||
+                ksDeclaration == getClassDeclarationByName<Duration>() ||
+                ksType == builtIns.nothingType ||
+                ksDeclaration.annotations.any { it.annotationType.resolve().declaration == getClassDeclarationByName<Serializable>() }
+    }

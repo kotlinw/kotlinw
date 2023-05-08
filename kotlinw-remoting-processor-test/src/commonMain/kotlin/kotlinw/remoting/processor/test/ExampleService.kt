@@ -2,6 +2,7 @@ package kotlinw.remoting.processor.test
 
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 
 @SupportsRemoting
 interface ExampleService {
@@ -27,4 +28,9 @@ interface ExampleService {
     suspend fun noParameterReturnsNullableString(): String?
 
     suspend fun p1NullableIntParameterReturnsNullableString(p1: Int?): String?
+
+    @Serializable
+    data class MapValueData(val n: Int)
+
+    suspend fun noParameterReturnsNestedCollection(): List<Map<String, MapValueData>>
 }
