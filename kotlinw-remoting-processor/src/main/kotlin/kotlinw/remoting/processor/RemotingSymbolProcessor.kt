@@ -474,7 +474,7 @@ class RemotingSymbolProcessor(
 
 context(Resolver, KSPLogger)
 private fun KSTypeArgument.isSerializable(ksNodeDescription: String, depth: Int, maxDepth: AtomicInteger): Boolean {
-    return type?.isSerializable(ksNodeDescription, depth + 1, maxDepth) ?: true
+    return type?.isSerializable(ksNodeDescription, depth + 1, maxDepth) ?: false
 }
 
 context(Resolver, KSPLogger)

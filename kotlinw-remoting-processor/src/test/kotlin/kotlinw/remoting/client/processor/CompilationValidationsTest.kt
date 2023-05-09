@@ -90,4 +90,21 @@ class CompilationValidationsTest {
             assertCompilationSucceeded()
         }
     }
+
+    @Test
+    fun testStarProjection() {
+        checkCompilationResult(
+            """
+                import ${SupportsRemoting::class.qualifiedName}
+                
+                @SupportsRemoting
+                interface RemoteService {
+                    
+                    suspend fun a(): List<*>
+                }
+            """.trimIndent()
+        ) {
+            assertCompilationFailed()
+        }
+    }
 }
