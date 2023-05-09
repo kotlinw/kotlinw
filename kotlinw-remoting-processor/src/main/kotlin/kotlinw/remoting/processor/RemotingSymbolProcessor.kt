@@ -1,8 +1,6 @@
 package kotlinw.remoting.processor
 
-import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getClassDeclarationByName
-import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -11,8 +9,8 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSClassifierReference
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
@@ -24,7 +22,6 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
-import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
@@ -43,6 +40,8 @@ import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.max
 import kotlin.time.Duration
 
 class RemotingSymbolProcessor(
@@ -61,7 +60,9 @@ class RemotingSymbolProcessor(
         val validSymbols = symbols.filter { it.validate() }.toSet()
         val validSymbolsWithoutErrors = validSymbols.filter {
             with(resolver) {
-                isAnnotatedClassValid(it)
+                with(logger) {
+                    isAnnotatedClassValid(it)
+                }
             }
         }
         validSymbolsWithoutErrors.forEach {
@@ -421,7 +422,7 @@ class RemotingSymbolProcessor(
             .build()
     }
 
-    context (Resolver)
+    context (Resolver, KSPLogger)
     private fun isAnnotatedClassValid(classDeclaration: KSClassDeclaration): Boolean {
         if (classDeclaration.classKind != ClassKind.INTERFACE) {
             logger.error(
@@ -451,23 +452,16 @@ class RemotingSymbolProcessor(
                 val returnType = returnTypeReference.resolve()
                 if (returnType.declaration.qualifiedName?.asString() == Flow::class.qualifiedName!!) {
                     val flowValueTypeReference = returnType.arguments[0].type
-                    if (flowValueTypeReference == null || !flowValueTypeReference.isSerializable) {
-                        logger.error(
-                            "Flow value type should be serializable to support remoting.",
-                            flowValueTypeReference
-                        )
+                    if (flowValueTypeReference == null || !flowValueTypeReference.isSerializable("Flow value type")) {
                         hasMemberFunctionError = true
                     }
-                } else if (!returnTypeReference.isSerializable) {
-                    logger.error("Return type should be serializable to support remoting.", memberFunctionDeclaration)
+                } else if (!returnTypeReference.isSerializable("Return type")) {
                     hasMemberFunctionError = true
                 }
             }
 
             memberFunctionDeclaration.parameters.forEach { parameter ->
-                if (!parameter.type.isSerializable) {
-                    logger.error("Parameter ${parameter.name?.let { "'${it.asString()}' " } ?: ""}should be serializable to support remoting",
-                        parameter)
+                if (!parameter.type.isSerializable("Parameter ${parameter.name?.let { "'${it.asString()}' " } ?: ""}")) {
                     hasMemberFunctionError = true
                 }
             }
@@ -478,28 +472,74 @@ class RemotingSymbolProcessor(
 
 }
 
-context(Resolver)
-private val KSTypeReference.isSerializable: Boolean
-    get() {
-        val ksType = resolve().makeNotNullable()
-        val ksDeclaration = ksType.declaration
-        return ksType == builtIns.booleanType ||
-                ksType == builtIns.byteType ||
-                ksType == builtIns.shortType ||
-                ksType == builtIns.intType ||
-                ksType == builtIns.longType ||
-                ksType == builtIns.floatType ||
-                ksType == builtIns.doubleType ||
-                ksType == builtIns.charType ||
-                ksType == builtIns.stringType ||
-                ksDeclaration.modifiers.contains(Modifier.ENUM) ||
-                ksDeclaration == getClassDeclarationByName<Pair<*, *>>() || // TODO rekurzív ellenőrzést
-                ksDeclaration == getClassDeclarationByName<Triple<*, *, *>>() || // TODO rekurzív ellenőrzést
-                ksDeclaration == getClassDeclarationByName<List<*>>() || // TODO rekurzív ellenőrzést
-                ksDeclaration == getClassDeclarationByName<Set<*>>() || // TODO rekurzív ellenőrzést
-                ksDeclaration == getClassDeclarationByName<Map<*, *>>() || // TODO rekurzív ellenőrzést
-                (ksDeclaration as? KSClassDeclaration)?.classKind == ClassKind.OBJECT ||
-                ksDeclaration == getClassDeclarationByName<Duration>() ||
-                ksType == builtIns.nothingType ||
-                ksDeclaration.annotations.any { it.annotationType.resolve().declaration == getClassDeclarationByName<Serializable>() }
+context(Resolver, KSPLogger)
+private fun KSTypeArgument.isSerializable(ksNodeDescription: String, depth: Int, maxDepth: AtomicInteger): Boolean {
+    return type?.isSerializable(ksNodeDescription, depth + 1, maxDepth) ?: true
+}
+
+context(Resolver, KSPLogger)
+private fun KSTypeReference.isSerializable(ksNodeDescription: String): Boolean {
+    val maxDepth = AtomicInteger(0)
+    return isSerializable(ksNodeDescription, 0, maxDepth)
+}
+
+context(Resolver, KSPLogger)
+private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int, maxDepth: AtomicInteger): Boolean {
+    maxDepth.set(max(depth, maxDepth.get()))
+
+    val ksType = resolve()
+    val notNullKsType = ksType.makeNotNullable()
+    val ksDeclaration = notNullKsType.declaration
+    val result =
+        notNullKsType == builtIns.booleanType
+                ||
+                notNullKsType == builtIns.byteType
+                ||
+                notNullKsType == builtIns.shortType
+                ||
+                notNullKsType == builtIns.intType
+                ||
+                notNullKsType == builtIns.longType
+                ||
+                notNullKsType == builtIns.floatType
+                ||
+                notNullKsType == builtIns.doubleType
+                ||
+                notNullKsType == builtIns.charType
+                ||
+                notNullKsType == builtIns.stringType
+                ||
+                ksDeclaration.modifiers.contains(Modifier.ENUM)
+                ||
+                (ksDeclaration == getClassDeclarationByName<Pair<*, *>>()
+                        && notNullKsType.arguments[0].isSerializable("Pair's first element", depth, maxDepth)
+                        && notNullKsType.arguments[1].isSerializable("Pair's second element", depth, maxDepth)) ||
+                (ksDeclaration == getClassDeclarationByName<Triple<*, *, *>>()
+                        && notNullKsType.arguments[0].isSerializable("Triple's first element", depth, maxDepth)
+                        && notNullKsType.arguments[1].isSerializable("Triple's second element", depth, maxDepth)
+                        && notNullKsType.arguments[2].isSerializable("Triple's third element", depth, maxDepth))
+                ||
+                (ksDeclaration == getClassDeclarationByName<List<*>>()
+                        && notNullKsType.arguments[0].isSerializable("List element", depth, maxDepth))
+                ||
+                (ksDeclaration == getClassDeclarationByName<Set<*>>()
+                        && notNullKsType.arguments[0].isSerializable("Set element", depth, maxDepth))
+                ||
+                (ksDeclaration == getClassDeclarationByName<Map<*, *>>()
+                        && notNullKsType.arguments[0].isSerializable("Map key", depth, maxDepth)
+                        && notNullKsType.arguments[1].isSerializable("Map value", depth, maxDepth))
+                ||
+                (ksDeclaration as? KSClassDeclaration)?.classKind == ClassKind.OBJECT
+                ||
+                ksDeclaration == getClassDeclarationByName<Duration>()
+                ||
+                notNullKsType == builtIns.nothingType
+                ||
+                ksDeclaration.annotations.any { it.annotationType.resolve().declaration == getClassDeclarationByName<Serializable>() } // TODO support generic
+
+    if (!result && (depth == 0 || depth == maxDepth.get())) {
+        error("$ksNodeDescription $ksType should be serializable to support remoting.")
     }
+
+    return result
+}
