@@ -1,7 +1,8 @@
 package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
-import io.ktor.http.ContentType
+import kotlinw.configuration.core.ConfigurationPropertyLookup
+import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.eventbus.local.LocalEventBusImpl
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.spi.LoggingConfigurationManager
@@ -14,14 +15,14 @@ import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.JsonMessageCodec
-import kotlinw.remoting.core.ktor.GenericTextMessageCodec
 import kotlinw.util.stdlib.Url
-import kotlinx.serialization.json.Json
+import kotlinw.util.stdlib.collection.ConcurrentHashMap
+import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 
-fun koinCoreModule() =
+fun coreKoinModule() =
     module {
         single { defaultLoggingIntegrator } withOptions {
             bind<LoggingConfigurationManager>()
@@ -30,17 +31,33 @@ fun koinCoreModule() =
             bind<LoggingContextManager>()
         }
         single<ApplicationCoroutineService> { ApplicationCoroutineServiceImpl() }
+        single<ConfigurationPropertyLookup> { ConfigurationPropertyLookupImpl(getAll()) }
         single { LocalEventBusImpl(get()) }
         single { HttpClient() }
         single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
             bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
             bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
         }
-        factory<RemotingClient> { (remoteServerBaseUrl: Url) ->
+        single<RemotingClientManager> { RemotingClientManagerImpl(get()) }
+    }
+
+interface RemotingClientManager {
+
+    operator fun get(remoteServerBaseUrl: Url): RemotingClient
+}
+
+internal class RemotingClientManagerImpl(
+    private val synchronousCallSupportImplementor: HttpRemotingClient.SynchronousCallSupportImplementor
+) : RemotingClientManager {
+
+    private val remotingClientCache: ConcurrentMutableMap<Url, RemotingClient> = ConcurrentHashMap()
+
+    override fun get(remoteServerBaseUrl: Url): RemotingClient =
+        remotingClientCache.computeIfAbsent(remoteServerBaseUrl) {
             HttpRemotingClient(
-                JsonMessageCodec.Default,
-                get(),
+                JsonMessageCodec.Default, // TODO configurable
+                synchronousCallSupportImplementor,
                 remoteServerBaseUrl
             )
-        }
-    }
+        }!!
+}

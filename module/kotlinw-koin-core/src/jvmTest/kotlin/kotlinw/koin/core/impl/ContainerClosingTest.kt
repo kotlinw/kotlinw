@@ -3,7 +3,7 @@ package kotlinw.koin.core.impl
 import io.mockk.Ordering
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinw.koin.core.api.koinCoreModule
+import kotlinw.koin.core.api.coreKoinModule
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.koin.dsl.onClose
@@ -21,7 +21,7 @@ class ContainerClosingTest {
         val m2 = mockk<Service2>(relaxed = true)
 
         val testModule = module {
-            includes(koinCoreModule())
+            includes(coreKoinModule())
 
             single { m1 } onClose { m1.close() }
             single { m2 } onClose { m2.close() }

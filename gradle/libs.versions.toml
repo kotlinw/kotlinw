@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.8.21"
+kotlin = "1.8.20"
 
 # https://github.com/spring-projects/spring-boot/releases
 springBoot = "3.0.6"
@@ -31,7 +31,7 @@ arrowGradleConfig = "0.12.0-rc.1"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-composeVersion = "1.3.1"
+composeVersion = "1.4.0"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -78,7 +78,7 @@ flowredux = "1.0.2"
 
 mina = "2.9.2"
 
-ksp = "1.8.21-1.0.11"
+ksp = "1.8.20-1.0.11"
 
 kotlinpoet = "1.13.0"
 

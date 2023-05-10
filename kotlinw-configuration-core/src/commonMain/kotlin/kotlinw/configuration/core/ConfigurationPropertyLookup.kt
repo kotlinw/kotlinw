@@ -9,6 +9,10 @@ interface ConfigurationPropertyLookup {
     fun filterEnumerableConfigurationProperties(predicate: (key: String) -> Boolean): Map<String, String>
 }
 
+fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: String): String =
+    getConfigurationPropertyValueOrNull(key)
+        ?: throw ConfigurationException("Configuration property not found: $key")
+
 fun ConfigurationPropertyLookup.getMatchingEnumerableConfigurationProperties(keyRegex: Regex): Map<String, String> =
     filterEnumerableConfigurationProperties { it.matches(keyRegex) }
 
