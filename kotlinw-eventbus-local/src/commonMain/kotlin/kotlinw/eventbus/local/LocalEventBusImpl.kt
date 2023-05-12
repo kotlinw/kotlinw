@@ -1,11 +1,9 @@
 package kotlinw.eventbus.local
 
-import kotlinw.logging.api.LoggerFactory
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 class LocalEventBusImpl(
-    loggerFactory: LoggerFactory,
     dispatchBufferCapacity: Int = 1000
 ) : LocalEventBus {
 

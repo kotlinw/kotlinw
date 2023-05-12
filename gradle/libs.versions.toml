@@ -300,6 +300,8 @@ mina-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "mina" }
 
 okio-core = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
+turbine = { module = "app.cash.turbine:turbine", version = "0.13.0" }
+
 [plugins]
 
 arrowGradleConfig-jvm = { id = "io.arrow-kt.arrow-gradle-config-jvm", version.ref = "arrowGradleConfig" }
