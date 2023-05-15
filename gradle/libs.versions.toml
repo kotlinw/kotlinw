@@ -13,7 +13,7 @@ ktor = "2.3.0"
 junit = "5.9.2"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
-serialization = "1.5.0"
+serialization = "1.5.1"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.6.4"
@@ -180,6 +180,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version 
 
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-serialization-properties = { module = "org.jetbrains.kotlinx:kotlinx-serialization-properties", version.ref = "serialization" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "coroutines" }

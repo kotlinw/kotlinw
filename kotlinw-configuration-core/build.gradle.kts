@@ -21,6 +21,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwEventbusLocal)
                 api(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.serialization.properties)
             }
         }
         val commonTest by getting {
