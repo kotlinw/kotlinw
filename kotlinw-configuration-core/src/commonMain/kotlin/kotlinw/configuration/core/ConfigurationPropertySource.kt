@@ -18,7 +18,7 @@ class ConfigurationPropertyKeySegment(internal val value: String) {
         require(!(value.contains('\'') && value.contains('\"')))
     }
 
-    val quoteCharacter: Char? =
+    internal val quoteCharacter: Char? =
         if (value.contains('\''))
             '\"'
         else if (value.contains('\"'))
