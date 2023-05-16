@@ -47,9 +47,9 @@ class ReadTomlTest {
     fun testArray() {
         assertEquals(
             mapOf(
-                ConfigurationPropertyKey("integers.0") to 1,
-                ConfigurationPropertyKey("integers.1") to 2,
-                ConfigurationPropertyKey("integers.2") to 3
+                ConfigurationPropertyKey("integers.0") to 1L,
+                ConfigurationPropertyKey("integers.1") to 2L,
+                ConfigurationPropertyKey("integers.2") to 3L
             ),
             readToml("integers = [ 1, 2, 3 ]".trimIndent())
         )
