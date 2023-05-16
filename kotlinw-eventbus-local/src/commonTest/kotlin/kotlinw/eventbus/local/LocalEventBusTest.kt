@@ -21,7 +21,7 @@ class LocalEventBusTest {
             class Event1
             class Event2
 
-            val eventBus = LocalEventBusImpl(PlatformLogging,)
+            val eventBus = LocalEventBusImpl()
 
             var event1Count = 0
             val job1 = eventBus.on<Event1>(this) { event1Count++ }
@@ -68,7 +68,7 @@ class LocalEventBusTest {
         runTest {
             class Event
 
-            val eventBus = LocalEventBusImpl(PlatformLogging,)
+            val eventBus = LocalEventBusImpl()
 
             withContext(Dispatchers.Default) {
                 var eventCount = 0

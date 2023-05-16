@@ -14,31 +14,31 @@ import kotlin.time.Duration
 
 suspend fun ConfigurationPropertyLookup.pollEnumerableConfigurationProperties(
     pollingDelay: Duration,
-    configurationPropertyNamePredicate: (key: String) -> Boolean
+    configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean
 ) =
     pollConfigurationPropertiesImpl(pollingDelay) {
         resolveEnumerableConfigurationProperties(configurationPropertyNamePredicate)
     }
 
-private fun ConfigurationPropertyLookup.resolveEnumerableConfigurationProperties(configurationPropertyNamePredicate: (key: String) -> Boolean) =
+private fun ConfigurationPropertyLookup.resolveEnumerableConfigurationProperties(configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean) =
     filterEnumerableConfigurationProperties(configurationPropertyNamePredicate)
 
 suspend fun ConfigurationPropertyLookup.pollConfigurationProperties(
     pollingDelay: Duration,
-    propertyNames: Set<String>
+    propertyNames: Set<ConfigurationPropertyKey>
 ) =
     pollConfigurationPropertiesImpl(pollingDelay) {
         resolveConfigurationPropertiesByName(propertyNames)
     }
 
-private fun ConfigurationPropertyLookup.resolveConfigurationPropertiesByName(propertyNames: Set<String>) =
+private fun ConfigurationPropertyLookup.resolveConfigurationPropertiesByName(propertyNames: Set<ConfigurationPropertyKey>) =
     propertyNames
         .associateWith { getConfigurationPropertyValueOrNull(it) }
         .filterNotNullValues()
 
 private suspend fun pollConfigurationPropertiesImpl(
     pollingDelay: Duration,
-    resolveConfigurationProperties: suspend () -> Map<String, String>
+    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>
 ) =
     flow {
         val initialValues = resolveConfigurationProperties()
@@ -57,14 +57,14 @@ private suspend fun pollConfigurationPropertiesImpl(
     }
 
 data class ConfigurationPropertyChangeEvent(
-    val name: String,
-    val newValue: String
+    val name: ConfigurationPropertyKey,
+    val newValue: ConfigurationPropertyValue
 )
 
 suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
     eventBus: LocalEventBus,
     pollingDelay: Duration,
-    configurationPropertyNamePredicate: (key: String) -> Boolean
+    configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean
 ) =
     watchConfigurationPropertiesImpl(
         eventBus,
@@ -77,7 +77,7 @@ suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
 suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
     eventBus: LocalEventBus,
     pollingDelay: Duration,
-    propertyNames: Set<String>
+    propertyNames: Set<ConfigurationPropertyKey>
 ) =
     watchConfigurationPropertiesImpl(
         eventBus,
@@ -89,9 +89,9 @@ suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
 private suspend fun watchConfigurationPropertiesImpl(
     eventBus: LocalEventBus,
     pollingDelay: Duration,
-    configurationPropertyNamePredicate: (key: String) -> Boolean,
-    resolveConfigurationProperties: suspend () -> Map<String, String>
-): Flow<Map<String, String>> {
+    configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean,
+    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>
+): Flow<Map<ConfigurationPropertyKey, ConfigurationPropertyValue>> {
     val pollingFlow = pollConfigurationPropertiesImpl(pollingDelay, resolveConfigurationProperties)
 
     val watcherFlow = channelFlow {

@@ -1,10 +1,19 @@
 package kotlinw.configuration.core
 
+import kotlinw.util.stdlib.Priority
+
 class ConstantConfigurationPropertySource(
-    private val properties: Map<String, String>
-) : AbstractConfigurationPropertySource(), EnumerableConfigurationPropertySource {
+    private val properties: Map<ConfigurationPropertyKey, ConfigurationPropertyValue>,
+    override val priority: Priority = Priority.Normal
+) : EnumerableConfigurationPropertySource {
 
-    override fun getPropertyValue(key: String): String? = properties[key]
+    companion object {
 
-    override fun getPropertyKeys(): Set<String> = properties.keys
+        fun of(properties: Map<String, ConfigurationPropertyValue>, priority: Priority = Priority.Normal) =
+            ConstantConfigurationPropertySource(properties.mapKeys { ConfigurationPropertyKey(it.key) }, priority)
+    }
+
+    override fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
+
+    override fun getPropertyKeys(): Set<ConfigurationPropertyKey> = properties.keys
 }

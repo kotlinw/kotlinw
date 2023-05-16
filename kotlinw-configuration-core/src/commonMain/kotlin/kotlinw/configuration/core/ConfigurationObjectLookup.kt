@@ -7,36 +7,51 @@ sealed interface ConfigurationObjectLookup {
 
     fun <T : Any> getConfigurationObjectOrNull(
         deserializer: DeserializationStrategy<T>,
-        prefix: String? = null
+        prefix: ConfigurationPropertyKey? = null
     ): T?
 }
 
+fun <T : Any> ConfigurationObjectLookup.getConfigurationObjectOrNull(
+    deserializer: DeserializationStrategy<T>,
+    prefix: String? = null
+): T? =
+    getConfigurationObjectOrNull(deserializer, prefix?.let { ConfigurationPropertyKey(it) })
+
 fun <T : Any> ConfigurationObjectLookup.getConfigurationObject(
     configurationType: DeserializationStrategy<T>,
-    prefix: String
+    prefix: ConfigurationPropertyKey? = null
 ): T =
     getConfigurationObjectOrNull(configurationType, prefix)
-        ?: throw ConfigurationException("Required configuration of type '$configurationType' not found.")
+        ?: throw ConfigurationException("Required configuration object of type '$configurationType' not found (corresponding configuration key prefix: $prefix).")
+
+fun <T : Any> ConfigurationObjectLookup.getConfigurationObject(
+    configurationType: DeserializationStrategy<T>,
+    prefix: String? = null
+): T =
+    getConfigurationObject(configurationType, prefix?.let { ConfigurationPropertyKey(it) })
 
 class ConfigurationObjectLookupImpl(
     private val configurationPropertyLookup: ConfigurationPropertyLookup,
     private val serialFormat: Properties = Properties.Default
 ) : ConfigurationObjectLookup {
 
-    override fun <T : Any> getConfigurationObjectOrNull(deserializer: DeserializationStrategy<T>, prefix: String?): T? =
+    override fun <T : Any> getConfigurationObjectOrNull(
+        deserializer: DeserializationStrategy<T>,
+        prefix: ConfigurationPropertyKey?
+    ): T? =
         if (prefix == null) {
             configurationPropertyLookup
                 .filterEnumerableConfigurationProperties { true }
         } else {
-            val finalPrefix = "$prefix."
-            val nestedPropertyNameStartIndex = finalPrefix.length
             configurationPropertyLookup
-                .filterEnumerableConfigurationProperties { it.startsWith(finalPrefix) }
+                .filterEnumerableConfigurationProperties { it.startsWith(prefix) }
                 .mapKeys {
-                    it.key.substring(nestedPropertyNameStartIndex)
+                    it.key.subKeyAfterPrefix(prefix)
                 }
         }
             .let {
+                it as Map<String, String> // TODO
+
                 if (it.isNotEmpty()) {
                     serialFormat.decodeFromStringMap(deserializer, it)
                 } else {

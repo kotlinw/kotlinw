@@ -3,6 +3,7 @@ package kotlinw.configuration.core
 import app.cash.turbine.test
 import arrow.core.continuations.AtomicRef
 import kotlinw.eventbus.local.LocalEventBusImpl
+import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
@@ -20,13 +21,15 @@ class ConfigurationPropertyChangeTest {
         val propertyName = "a"
         val propertyValueHolder = AtomicRef<String?>(null)
 
-        val source = object : AbstractConfigurationPropertySource() {
+        val source = object : ConfigurationPropertySource {
 
-            override fun getPropertyValue(key: String): String? =
-                if (key == propertyName) propertyValueHolder.value else null
+            override fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue? =
+                if (key.name == propertyName) propertyValueHolder.value else null
+
+            override val priority = Priority.Normal
         }
         val lookup =
-            ConfigurationPropertyLookupImpl(listOf(source, ConstantConfigurationPropertySource(mapOf("b" to "x"))))
+            ConfigurationPropertyLookupImpl(listOf(source, ConstantConfigurationPropertySource.of(mapOf("b" to "x"))))
         val eventBus = LocalEventBusImpl()
 
         coroutineScope {
@@ -34,15 +37,18 @@ class ConfigurationPropertyChangeTest {
             lookup.watchConfigurationProperties(
                 eventBus,
                 pollingDelayMillis.milliseconds,
-                setOf("a", "b")
+                setOf(ConfigurationPropertyKey("a"), ConfigurationPropertyKey("b"))
             ).test {
                 assertEquals(0, currentTime)
-                assertEquals(mapOf("b" to "x"), awaitItem())
+                assertEquals(mapOf(ConfigurationPropertyKey("b") to "x"), awaitItem())
                 assertEquals(0, currentTime)
 
                 propertyValueHolder.value = "1"
 
-                assertEquals(mapOf("a" to "1", "b" to "x"), awaitItem())
+                assertEquals(
+                    mapOf(ConfigurationPropertyKey("a") to "1", ConfigurationPropertyKey("b") to "x"),
+                    awaitItem()
+                )
                 assertEquals(pollingDelayMillis, currentTime)
             }
             currentCoroutineContext().cancelChildren()
@@ -51,35 +57,40 @@ class ConfigurationPropertyChangeTest {
 
     @Test
     fun testWatchEnumerablePropertyValueSource() = runTest {
-        val propertyName = "a"
+        val propertyName = ConfigurationPropertyKey("a")
         val propertyValueHolder = AtomicRef<String?>(null)
 
-        val source = object : AbstractConfigurationPropertySource(), EnumerableConfigurationPropertySource {
+        val source = object : EnumerableConfigurationPropertySource {
 
-            override fun getPropertyKeys()= setOf(propertyName)
+            override val priority = Priority.Normal
 
-            override fun getPropertyValue(key: String): String? =
+            override fun getPropertyKeys() = setOf(propertyName)
+
+            override fun getPropertyValue(key: ConfigurationPropertyKey): String? =
                 if (key == propertyName) propertyValueHolder.value else null
         }
         val lookup =
-            ConfigurationPropertyLookupImpl(listOf(source, ConstantConfigurationPropertySource(mapOf("b" to "x"))))
+            ConfigurationPropertyLookupImpl(listOf(source, ConstantConfigurationPropertySource.of(mapOf("b" to "x"))))
         val eventBus = LocalEventBusImpl()
 
         coroutineScope {
             lookup.watchConfigurationProperties(
                 eventBus,
                 100.milliseconds,
-                setOf("a", "b")
+                setOf(ConfigurationPropertyKey("a"), ConfigurationPropertyKey("b"))
             ).test {
                 assertEquals(0, currentTime)
-                assertEquals(mapOf("b" to "x"), awaitItem())
+                assertEquals(mapOf(ConfigurationPropertyKey("b") to "x"), awaitItem())
                 assertEquals(0, currentTime)
 
                 val newValue = "1"
                 propertyValueHolder.value = newValue
                 eventBus.dispatch(ConfigurationPropertyChangeEvent(propertyName, newValue))
 
-                assertEquals(mapOf("a" to "1", "b" to "x"), awaitItem())
+                assertEquals(
+                    mapOf(ConfigurationPropertyKey("a") to "1", ConfigurationPropertyKey("b") to "x"),
+                    awaitItem()
+                )
                 assertEquals(0, currentTime)
             }
             currentCoroutineContext().cancelChildren()

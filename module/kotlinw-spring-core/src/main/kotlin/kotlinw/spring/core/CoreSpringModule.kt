@@ -20,5 +20,5 @@ class CoreSpringModule {
     fun applicationCoroutineService(): ApplicationCoroutineService = ApplicationCoroutineServiceImpl()
 
     @Bean
-    fun localEventBus(loggerFactory: LoggerFactory): LocalEventBus = LocalEventBusImpl(loggerFactory)
+    fun localEventBus(loggerFactory: LoggerFactory): LocalEventBus = LocalEventBusImpl(1000) // TODO config
 }
