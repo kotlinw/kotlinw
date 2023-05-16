@@ -54,4 +54,56 @@ class ReadTomlTest {
             readToml("integers = [ 1, 2, 3 ]".trimIndent())
         )
     }
+
+    @Test
+    fun testInlineTable() {
+        assertEquals(
+            mapOf(
+                ConfigurationPropertyKey("name.first") to "Tom",
+                ConfigurationPropertyKey("name.last") to "Preston-Werner",
+                ConfigurationPropertyKey("point.x") to 1L,
+                ConfigurationPropertyKey("point.y") to 2L,
+                ConfigurationPropertyKey("animal.type.name") to "pug",
+            ),
+            readToml(
+                """
+                    name = { first = "Tom", last = "Preston-Werner" }
+                    point = { x = 1, y = 2 }
+                    animal = { type.name = "pug" }
+                """.trimIndent()
+            )
+        )
+    }
+
+    @Test
+    fun testSourceInfo() {
+        val properties = readToml(
+            """
+                    [fruit]
+                    apple.color = "red"
+                    apple.taste.sweet = true
+
+                    # [fruit.apple]  # INVALID
+                    # [fruit.apple.taste]  # INVALID
+
+                    [fruit.apple.texture]  # you can add sub-tables
+                    smooth = true
+                """.trimIndent(),
+            "demo.toml"
+        )
+        assertEquals(
+            mapOf(
+                ConfigurationPropertyKey("fruit.apple.color") to "red",
+                ConfigurationPropertyKey("fruit.apple.taste.sweet") to true,
+                ConfigurationPropertyKey("fruit.apple.texture.smooth") to true
+            ),
+            properties
+        )
+
+        assertEquals("demo.toml@9", properties.keys.first { it.name == "fruit.apple.texture.smooth" }.sourceInfo)
+        assertEquals(
+            "fruit.apple.texture.smooth (source: demo.toml@9)",
+            properties.keys.first { it.name == "fruit.apple.texture.smooth" }.toString()
+        )
+    }
 }

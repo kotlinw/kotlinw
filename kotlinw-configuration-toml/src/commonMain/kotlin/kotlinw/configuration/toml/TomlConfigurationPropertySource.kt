@@ -21,22 +21,23 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 
 class TomlConfigurationPropertySource(
-    private val source: Sequence<String>,
+    tomlContents: String,
+    sourceInfo: String? = null,
     override val priority: Priority = Priority.Normal
 ) : ConfigurationPropertySource {
 
-    override fun getPropertyValue(key: ConfigurationPropertyKey): Any? {
-        TODO("Not yet implemented")
-    }
+    private val properties = readToml(tomlContents)
+
+    override fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
 }
 
-internal fun readToml(tomlContents: String): Map<ConfigurationPropertyKey, ConfigurationPropertyValue> =
+internal fun readToml(tomlContents: String, sourceInfo: String? = null) =
     buildMap {
         val tomlFile = TomlParser(TomlInputConfig()).parseString(tomlContents)
 
         fun processTomlNode(node: TomlNode, keyPrefixSegments: PersistentList<ConfigurationPropertyKeySegment>) {
 
-            fun convertValue(value: TomlValue) = value.content
+            fun convertValue(value: TomlValue): ConfigurationPropertyValue = value.content
 
             fun convertKey(key: String) =
                 ConfigurationPropertyKeySegment(
@@ -49,40 +50,56 @@ internal fun readToml(tomlContents: String): Map<ConfigurationPropertyKey, Confi
                     }
                 )
 
+            fun createConfigurationPropertyKey(segments: PersistentList<ConfigurationPropertyKeySegment>, line: Int) =
+                ConfigurationPropertyKey(segments, sourceInfo?.let { "$it@$line" })
+
             fun processKeyValuePrimitive(
-                node: TomlKeyValuePrimitive,
+                keyValuePrimitive: TomlKeyValuePrimitive,
                 keyPrefixSegments: PersistentList<ConfigurationPropertyKeySegment>
             ) {
-                this[ConfigurationPropertyKey(keyPrefixSegments.add(convertKey(node.key.toString())))] =
-                    convertValue(node.value)
+                this[
+                    createConfigurationPropertyKey(
+                        keyPrefixSegments.add(convertKey(keyValuePrimitive.key.toString())),
+                        keyValuePrimitive.lineNo
+                    )
+                ] =
+                    convertValue(keyValuePrimitive.value)
             }
 
             fun processTable(table: TomlTable, keyPrefixSegments: PersistentList<ConfigurationPropertyKeySegment>) {
-                table.getAllChildTomlTables().forEach {
-                    val tablePrefixSegments =
-                        keyPrefixSegments.add(ConfigurationPropertyKeySegment(it.fullTableKey.toString()))
-                    it.children.forEach {
-                        processTomlNode(it, tablePrefixSegments)
-                    }
+                val tableKeyPrefixSegments = keyPrefixSegments.add(ConfigurationPropertyKeySegment(table.name))
+                table.children.forEach {
+                    processTomlNode(it, tableKeyPrefixSegments)
                 }
             }
 
             fun processTomlArray(
-                node: TomlKeyValueArray,
+                keyValueArray: TomlKeyValueArray,
                 keyPrefixSegments: PersistentList<ConfigurationPropertyKeySegment>
             ) {
-                val arrayPrefixSegments = keyPrefixSegments.add(convertKey(node.key.toString()))
+                val arrayPrefixSegments = keyPrefixSegments.add(convertKey(keyValueArray.key.toString()))
 
                 @Suppress("UNCHECKED_CAST")
-                ((node.value as TomlArray).content as List<TomlValue>).forEachIndexed { index, value ->
-                    this[ConfigurationPropertyKey(arrayPrefixSegments.add(convertKey(index.toString())))] =
+                ((keyValueArray.value as TomlArray).content as List<TomlValue>).forEachIndexed { index, value ->
+                    this[
+                        createConfigurationPropertyKey(
+                            arrayPrefixSegments.add(convertKey(index.toString())),
+                            keyValueArray.lineNo
+                        )
+                    ] =
                         convertValue(value)
+                }
+            }
+
+            fun processFile(node: TomlFile, keyPrefixSegments: PersistentList<ConfigurationPropertyKeySegment>) {
+                node.children.forEach {
+                    processTomlNode(it, keyPrefixSegments)
                 }
             }
 
             when (node) {
                 is TomlArrayOfTablesElement -> TODO()
-                is TomlFile -> node.children.forEach { processTomlNode(it, keyPrefixSegments) }
+                is TomlFile -> processFile(node, keyPrefixSegments)
                 is TomlInlineTable -> TODO()
                 is TomlKeyValueArray -> processTomlArray(node, keyPrefixSegments)
                 is TomlKeyValuePrimitive -> processKeyValuePrimitive(node, keyPrefixSegments)

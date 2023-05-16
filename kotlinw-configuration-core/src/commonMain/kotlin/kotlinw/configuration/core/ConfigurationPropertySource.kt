@@ -64,9 +64,13 @@ private fun parseConfigurationPropertyKey(name: String) =
         addSegment()
     }
 
-class ConfigurationPropertyKey(private val segments: List<ConfigurationPropertyKeySegment>) {
+class ConfigurationPropertyKey(
+    private val segments: List<ConfigurationPropertyKeySegment>,
+    val sourceInfo: String? = null
+) {
 
-    constructor(name: String) : this(parseConfigurationPropertyKey(name))
+    constructor(name: String, sourceInfo: String? = null) :
+            this(parseConfigurationPropertyKey(name), sourceInfo)
 
     val name =
         buildString {
@@ -94,6 +98,7 @@ class ConfigurationPropertyKey(private val segments: List<ConfigurationPropertyK
     }
 
     fun subKeyAfterPrefix(prefix: ConfigurationPropertyKey): ConfigurationPropertyKey {
+        // assert(startsWith(prefix))
         return ConfigurationPropertyKey(segments.subList(prefix.segments.size, segments.size))
     }
 
@@ -108,12 +113,12 @@ class ConfigurationPropertyKey(private val segments: List<ConfigurationPropertyK
         return name.hashCode()
     }
 
-    override fun toString() = name
+    override fun toString() = if (sourceInfo != null) "$name (source: $sourceInfo)" else "$name (unknown source)"
 }
 
 interface ConfigurationPropertySource : HasPriority {
 
-    fun getPropertyValue(key: ConfigurationPropertyKey): Any?
+    fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue?
 }
 
 interface EnumerableConfigurationPropertySource : ConfigurationPropertySource {
