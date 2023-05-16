@@ -2,6 +2,16 @@ package kotlinw.configuration.core
 
 import kotlinw.util.stdlib.HasPriority
 
+interface ConfigurationPropertySource : HasPriority {
+
+    fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue?
+}
+
+interface EnumerableConfigurationPropertySource : ConfigurationPropertySource {
+
+    fun getPropertyKeys(): Set<ConfigurationPropertyKey>
+}
+
 class ConfigurationPropertyKeySegment(internal val value: String) {
 
     init {
@@ -114,14 +124,4 @@ class ConfigurationPropertyKey(
     }
 
     override fun toString() = if (sourceInfo != null) "$name (source: $sourceInfo)" else "$name (unknown source)"
-}
-
-interface ConfigurationPropertySource : HasPriority {
-
-    fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue?
-}
-
-interface EnumerableConfigurationPropertySource : ConfigurationPropertySource {
-
-    fun getPropertyKeys(): Set<ConfigurationPropertyKey>
 }
