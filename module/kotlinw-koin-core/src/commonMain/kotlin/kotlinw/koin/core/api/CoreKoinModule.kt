@@ -5,7 +5,7 @@ import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.eventbus.local.LocalEventBusImpl
 import kotlinw.logging.api.LoggerFactory
-import kotlinw.logging.spi.LoggingConfigurationManager
+import kotlinw.logging.spi.LoggingConfigurationProvider
 import kotlinw.logging.spi.LoggingContextManager
 import kotlinw.logging.spi.LoggingDelegator
 import kotlinw.module.core.api.ApplicationCoroutineService
@@ -25,7 +25,7 @@ import org.koin.dsl.module
 fun coreKoinModule() =
     module {
         single { defaultLoggingIntegrator } withOptions {
-            bind<LoggingConfigurationManager>()
+            bind<LoggingConfigurationProvider>()
             bind<LoggerFactory>()
             bind<LoggingDelegator>()
             bind<LoggingContextManager>()

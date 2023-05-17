@@ -13,7 +13,8 @@ import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.slf4j.MarkerFactory
-import org.slf4j.event.Level
+import org.slf4j.Logger as Slf4jLogger
+import org.slf4j.event.Level as Slf4jLevel
 
 class Slf4jLoggingIntegrator : LoggingIntegrator {
 
@@ -22,19 +23,17 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
         private const val ArgumentPlaceholder = "{}"
     }
 
-    private inner class Slf4jLogger(
-        val slf4jLogger: org.slf4j.Logger
-    ) : LoggerImplementor {
+    inner class Slf4jLoggerWrapper(val slf4jLogger: Slf4jLogger) : LoggerImplementor {
 
         override val loggingIntegrator: LoggingIntegrator get() = this@Slf4jLoggingIntegrator
 
         override val name: String get() = slf4jLogger.name
     }
 
-    override fun getLogger(loggerName: String): Logger = Slf4jLogger(LoggerFactory.getLogger(loggerName))
+    override fun getLogger(loggerName: String): Logger = Slf4jLoggerWrapper(LoggerFactory.getLogger(loggerName))
 
     override fun isLogLevelEnabled(logger: LoggerImplementor, level: LogLevel): Boolean {
-        check(logger is Slf4jLogger)
+        check(logger is Slf4jLoggerWrapper)
         return with(logger.slf4jLogger) {
             when (level) {
                 LogLevel.Trace -> isTraceEnabled
@@ -46,13 +45,13 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
         }
     }
 
-    private fun LogLevel.asSlf4jLevel(): Level =
+    private fun LogLevel.asSlf4jLevel(): Slf4jLevel =
         when (this) {
-            LogLevel.Error -> Level.ERROR
-            LogLevel.Warning -> Level.WARN
-            LogLevel.Info -> Level.INFO
-            LogLevel.Debug -> Level.DEBUG
-            LogLevel.Trace -> Level.TRACE
+            LogLevel.Error -> Slf4jLevel.ERROR
+            LogLevel.Warning -> Slf4jLevel.WARN
+            LogLevel.Info -> Slf4jLevel.INFO
+            LogLevel.Debug -> Slf4jLevel.DEBUG
+            LogLevel.Trace -> Slf4jLevel.TRACE
         }
 
     override fun log(
@@ -62,7 +61,7 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
         message: LogMessage,
         attributes: Collection<LogEntryAttribute>
     ) {
-        check(logger is Slf4jLogger)
+        check(logger is Slf4jLoggerWrapper)
         val slf4jLogger = logger.slf4jLogger
 
         val builder = slf4jLogger.makeLoggingEventBuilder(level.asSlf4jLevel())
