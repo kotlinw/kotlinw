@@ -5,29 +5,55 @@ import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.io.FileLocation
 import kotlinx.coroutines.CoroutineScope
 import java.io.StringReader
+import java.lang.reflect.Constructor
 import java.util.Properties
 import kotlin.time.Duration
 
-class JavaPropertiesFileConfigurationPropertySource(
-    fileLocation: FileLocation,
-    override val priority: Priority = Priority.Normal,
-    watcherCoroutineScope: CoroutineScope? = null,
-    eventBus: LocalEventBus? = null,
-    watchDelay: Duration = Duration.INFINITE
+class JavaPropertiesFileConfigurationPropertySource private constructor(
+    override val priority: Priority,
+    private val delegate: DelegatingFileConfigurationPropertySource
 ) : EnumerableConfigurationPropertySource {
 
-    private val delegate =
-        DelegatingFileConfigurationPropertySource(
-            fileLocation = fileLocation,
-            delegateFactory = { contents ->
-                JavaPropertiesConfigurationPropertySource(Properties().also {
+    companion object {
+
+        private val delegateFactory = { contents: String ->
+            JavaPropertiesConfigurationPropertySource(
+                Properties().also {
                     it.load(StringReader(contents))
-                })
-            },
-            watcherCoroutineScope = watcherCoroutineScope,
-            eventBus = eventBus,
-            watchDelay = watchDelay
-        )
+                }
+            )
+        }
+    }
+
+    constructor(
+        fileLocation: FileLocation,
+        priority: Priority = Priority.Normal
+    ) :
+            this(
+                priority,
+                DelegatingFileConfigurationPropertySource(
+                    fileLocation = fileLocation,
+                    delegateFactory = delegateFactory
+                )
+            )
+
+    constructor(
+        fileLocation: FileLocation,
+        watcherCoroutineScope: CoroutineScope,
+        eventBus: LocalEventBus,
+        watchDelay: Duration,
+        priority: Priority = Priority.Normal
+    ) :
+            this(
+                priority,
+                DelegatingFileConfigurationPropertySource(
+                    fileLocation = fileLocation,
+                    delegateFactory = delegateFactory,
+                    watcherCoroutineScope = watcherCoroutineScope,
+                    eventBus = eventBus,
+                    watchDelay = watchDelay
+                )
+            )
 
     override fun getPropertyKeys() = delegate.getPropertyKeys()
 
