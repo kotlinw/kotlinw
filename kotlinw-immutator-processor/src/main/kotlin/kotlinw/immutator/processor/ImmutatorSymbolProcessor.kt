@@ -28,7 +28,6 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.KModifier.PRIVATE
 import com.squareup.kotlinpoet.ParameterSpec
-import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.STAR
@@ -198,7 +197,7 @@ class ImmutatorSymbolProcessor(
 
         if (hasMutableProperty) {
             throw ImmutatorException(
-                "Only val properties are allowed in $annotationDisplayName annotated interfaces.",
+                "Only `val` properties are allowed in $annotationDisplayName annotated interfaces.",
                 classDeclaration
             )
         }
@@ -710,29 +709,24 @@ internal val KSTypeReference.mutableTypeName: TypeName
                     } else if (ksType.isImmutable) {
                         this@mutableTypeName.toTypeName()
                     } else {
-                        when (val typeName = ksType.toTypeName()) {
-                            is ParameterizedTypeName ->
-                                when (typeName.rawType) {
-                                    ImmutableList::class.asClassName() -> ConfinedMutableList::class.asClassName()
-                                        .parameterizedBy(
-                                            typeArguments[0].type!!.mutableTypeName,
-                                            typeArguments[0].type!!.immutableTypeName
-                                        )
+                        when (val typeName = ksType.toClassName()) {
+                            ImmutableList::class.asClassName() -> ConfinedMutableList::class.asClassName()
+                                .parameterizedBy(
+                                    typeArguments[0].type!!.mutableTypeName,
+                                    typeArguments[0].type!!.immutableTypeName
+                                )
 
-                                    List::class.asClassName() -> ConfinedMutableList::class.asClassName()
-                                        .parameterizedBy(
-                                            typeArguments[0].type!!.mutableTypeName,
-                                            typeArguments[0].type!!.immutableTypeName
-                                        )
+                            List::class.asClassName() -> ConfinedMutableList::class.asClassName()
+                                .parameterizedBy(
+                                    typeArguments[0].type!!.mutableTypeName,
+                                    typeArguments[0].type!!.immutableTypeName
+                                )
 
-                                    Set::class.asClassName() -> ClassName("kotlin.collections", "MutableSet")
-                                        .parameterizedBy(typeArguments.map { it.type!!.mutableTypeName })
+                            Set::class.asClassName() -> ClassName("kotlin.collections", "MutableSet")
+                                .parameterizedBy(typeArguments.map { it.type!!.mutableTypeName })
 
-                                    Map::class.asClassName() -> ClassName("kotlin.collections", "MutableMap")
-                                        .parameterizedBy(typeArguments.map { it.type!!.mutableTypeName })
-
-                                    else -> throw UnsupportedOperationException(typeName.toString()) // TODO
-                                }
+                            Map::class.asClassName() -> ClassName("kotlin.collections", "MutableMap")
+                                .parameterizedBy(typeArguments.map { it.type!!.mutableTypeName })
 
                             else -> throw UnsupportedOperationException(typeName.toString()) // TODO
                         }
@@ -750,6 +744,7 @@ private val KSTypeReference.immutableTypeName: TypeName
 
 private fun getImmutableTypeName(ksType: KSType, typeArguments: List<KSTypeArgument>): TypeName {
     val declaration = ksType.declaration
+    val isNullable = ksType.isMarkedNullable
     val resultType = if (declaration is KSClassDeclaration) {
         if (declaration.isImmutated) {
             declaration.immutableDataClassName
@@ -774,20 +769,16 @@ private fun getImmutableTypeName(ksType: KSType, typeArguments: List<KSTypeArgum
             } else if (ksType.declaration.modifiers.contains(SEALED)) {
                 typeName
             } else {
-                when (typeName) {
-                    is ParameterizedTypeName ->
-                        when (typeName.rawType) {
-                            List::class.asClassName() -> ImmutableList::class.asClassName()
-                                .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
-                            Set::class.asClassName() -> ImmutableSet::class.asClassName()
-                                .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
-                            Map::class.asClassName() -> ImmutableMap::class.asClassName()
-                                .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
-                            else -> throw UnsupportedOperationException(typeName.toString()) // TODO
-                        }
-
+                when (ksType.makeNotNullable().toClassName()) {
+                    List::class.asClassName() -> ImmutableList::class.asClassName()
+                        .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
+                    Set::class.asClassName() -> ImmutableSet::class.asClassName()
+                        .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
+                    Map::class.asClassName() -> ImmutableMap::class.asClassName()
+                        .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
                     else -> throw UnsupportedOperationException(typeName.toString()) // TODO
                 }
+                    .let { if (isNullable) it.copy(nullable = true) else it }
             }
         }
     } else {
