@@ -28,7 +28,7 @@ class TomlConfigurationPropertySource(
 
     private val properties = readToml(tomlContents)
 
-    override fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
+    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
 }
 
 internal fun readToml(tomlContents: String, sourceInfo: String? = null) =

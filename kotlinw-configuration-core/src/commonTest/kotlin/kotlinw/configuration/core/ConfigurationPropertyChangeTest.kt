@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 class ConfigurationPropertyChangeTest {
@@ -23,7 +24,7 @@ class ConfigurationPropertyChangeTest {
 
         val source = object : ConfigurationPropertySource {
 
-            override fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue? =
+            override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue? =
                 if (key.name == propertyName) propertyValueHolder.value else null
 
             override val priority = Priority.Normal
@@ -35,8 +36,10 @@ class ConfigurationPropertyChangeTest {
         coroutineScope {
             val pollingDelayMillis = 100L
             lookup.watchConfigurationProperties(
+                this,
                 eventBus,
                 pollingDelayMillis.milliseconds,
+                Duration.ZERO,
                 setOf(ConfigurationPropertyKey("a"), ConfigurationPropertyKey("b"))
             ).test {
                 assertEquals(0, currentTime)
@@ -66,7 +69,7 @@ class ConfigurationPropertyChangeTest {
 
             override fun getPropertyKeys() = setOf(propertyName)
 
-            override fun getPropertyValue(key: ConfigurationPropertyKey): String? =
+            override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): String? =
                 if (key == propertyName) propertyValueHolder.value else null
         }
         val lookup =
@@ -75,8 +78,10 @@ class ConfigurationPropertyChangeTest {
 
         coroutineScope {
             lookup.watchConfigurationProperties(
+                this,
                 eventBus,
                 100.milliseconds,
+                Duration.ZERO,
                 setOf(ConfigurationPropertyKey("a"), ConfigurationPropertyKey("b"))
             ).test {
                 assertEquals(0, currentTime)

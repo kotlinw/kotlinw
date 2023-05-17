@@ -50,10 +50,13 @@ class ConfigurationObjectLookupImpl(
                 }
         }
             .let {
-                it as Map<String, String> // TODO
+                val propertiesMap =
+                    it
+                        .mapKeys { it.key.name }
+                        .mapValues { it.value.toString() }
 
                 if (it.isNotEmpty()) {
-                    serialFormat.decodeFromStringMap(deserializer, it)
+                    serialFormat.decodeFromStringMap(deserializer, propertiesMap)
                 } else {
                     null
                 }

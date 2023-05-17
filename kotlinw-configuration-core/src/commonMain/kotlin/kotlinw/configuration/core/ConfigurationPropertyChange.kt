@@ -1,15 +1,20 @@
 package kotlinw.configuration.core
 
+import arrow.core.continuations.AtomicRef
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.on
 import kotlinw.util.stdlib.collection.filterNotNullValues
+import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
 
 suspend fun ConfigurationPropertyLookup.pollEnumerableConfigurationProperties(
@@ -38,23 +43,47 @@ private fun ConfigurationPropertyLookup.resolveConfigurationPropertiesByName(pro
 
 private suspend fun pollConfigurationPropertiesImpl(
     pollingDelay: Duration,
-    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>
+    eventListenerCoroutineScope: CoroutineScope? = null,
+    eventBus: LocalEventBus? = null,
+    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>,
 ) =
     flow {
         val initialValues = resolveConfigurationProperties()
         emit(initialValues)
 
-        var previousValues = initialValues
-        while (true) {
-            delay(pollingDelay)
+        val previousValues = AtomicRef(initialValues)
+        val updateLock = Mutex()
 
-            val currentValues = resolveConfigurationProperties()
-            if (currentValues != previousValues) {
-                emit(currentValues)
-                previousValues = currentValues
+        suspend fun refresh() {
+            updateLock.withLock {
+                val currentValues = resolveConfigurationProperties()
+                if (currentValues != previousValues.value) {
+                    emit(currentValues)
+                    previousValues.value = currentValues
+                }
             }
         }
+
+        suspend fun pollingLoop() {
+            while (true) {
+                delay(pollingDelay)
+                refresh()
+            }
+        }
+
+        if (eventListenerCoroutineScope != null && eventBus != null) {
+            eventListenerCoroutineScope.launch {
+                eventBus.on<ConfigurationPropertySourceChangeEvent> {
+                    refresh()
+                }
+            }
+        }
+
+        pollingLoop()
     }
+        .distinctUntilChanged()
+
+data class ConfigurationPropertySourceChangeEvent(val configurationSource: ConfigurationPropertySource)
 
 data class ConfigurationPropertyChangeEvent(
     val name: ConfigurationPropertyKey,
@@ -62,11 +91,13 @@ data class ConfigurationPropertyChangeEvent(
 )
 
 suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
+    eventListenerCoroutineScope: CoroutineScope,
     eventBus: LocalEventBus,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean
 ) =
     watchConfigurationPropertiesImpl(
+        eventListenerCoroutineScope,
         eventBus,
         pollingDelay,
         configurationPropertyNamePredicate
@@ -75,11 +106,13 @@ suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
     }
 
 suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
+    eventListenerCoroutineScope: CoroutineScope,
     eventBus: LocalEventBus,
     pollingDelay: Duration,
     propertyNames: Set<ConfigurationPropertyKey>
 ) =
     watchConfigurationPropertiesImpl(
+        eventListenerCoroutineScope,
         eventBus,
         pollingDelay,
         configurationPropertyNamePredicate = { propertyNames.contains(it) },
@@ -87,22 +120,31 @@ suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
     )
 
 private suspend fun watchConfigurationPropertiesImpl(
+    eventListenerCoroutineScope: CoroutineScope,
     eventBus: LocalEventBus,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean,
     resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>
 ): Flow<Map<ConfigurationPropertyKey, ConfigurationPropertyValue>> {
-    val pollingFlow = pollConfigurationPropertiesImpl(pollingDelay, resolveConfigurationProperties)
+    val pollingFlow =
+        pollConfigurationPropertiesImpl(
+            pollingDelay,
+            eventListenerCoroutineScope,
+            eventBus,
+            resolveConfigurationProperties
+        )
 
     val watcherFlow = channelFlow {
         send(emptyMap())
 
-        eventBus.on<ConfigurationPropertyChangeEvent> {
+        eventBus.on<ConfigurationPropertyChangeEvent>(eventListenerCoroutineScope) {
             if (configurationPropertyNamePredicate(it.name)) {
                 send(mapOf(it.name to it.newValue))
             }
         }
+            .join()
     }
+        .distinctUntilChanged()
 
     return pollingFlow.combine(watcherFlow) { pollerMap, watcherMap ->
         pollerMap.toMutableMap().apply { putAll(watcherMap) }

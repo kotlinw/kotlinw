@@ -27,7 +27,7 @@ class ConfigurationPropertyLookupImpl(
 
     override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue? {
         sources.forEach {
-            val value = it.getPropertyValue(key)
+            val value = it.getPropertyValueOrNull(key)
             if (value != null) {
                 return value
             }

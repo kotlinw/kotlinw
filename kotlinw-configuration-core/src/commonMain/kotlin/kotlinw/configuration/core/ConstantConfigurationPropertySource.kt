@@ -13,7 +13,7 @@ class ConstantConfigurationPropertySource(
             ConstantConfigurationPropertySource(properties.mapKeys { ConfigurationPropertyKey(it.key) }, priority)
     }
 
-    override fun getPropertyValue(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
+    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
 
     override fun getPropertyKeys(): Set<ConfigurationPropertyKey> = properties.keys
 }
