@@ -1,7 +1,8 @@
 package kotlinw.immutator.util
 
-import kotlinw.uuid.randomUuid
 import kotlinw.immutator.annotation.Immutable
+import kotlinw.uuid.Uuid
+import kotlinw.uuid.Uuid.Companion.randomUuid
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlin.reflect.KMutableProperty0

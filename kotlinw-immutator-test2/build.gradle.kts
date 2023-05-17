@@ -53,3 +53,8 @@ dependencies {
     add("kspJvm", projects.kotlinw.kotlinwImmutatorProcessor)
     add("kspJvmTest", projects.kotlinw.kotlinwImmutatorProcessor)
 }
+
+compose {
+    kotlinCompilerPlugin.set(dependencies.compiler.forKotlin("1.8.20"))
+    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.8.21")
+}

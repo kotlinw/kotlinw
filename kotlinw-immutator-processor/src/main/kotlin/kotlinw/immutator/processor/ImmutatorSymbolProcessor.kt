@@ -1,5 +1,3 @@
-@file:OptIn(KotlinPoetKspPreview::class, KspExperimental::class, KotlinPoetKspPreview::class)
-
 package kotlinw.immutator.processor
 
 import com.google.devtools.ksp.KspExperimental
@@ -38,7 +36,6 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.buildCodeBlock
-import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
@@ -69,54 +66,59 @@ class ImmutatorException(override val message: String, val ksNode: KSNode, overr
 
 internal val annotationQualifiedName = Immutate::class.qualifiedName!!
 
-@KotlinPoetKspPreview
 class ImmutatorSymbolProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
-    private val annotationSimpleName = Immutate::class.simpleName!!
 
-    private val annotationDisplayName = "@$annotationSimpleName"
+    companion object {
+
+        private val annotationSimpleName = Immutate::class.simpleName!!
+
+        private val annotationDisplayName = "@$annotationSimpleName"
+
+        private val convertToImmutableMethodName = MutableObject<*>::_immutator_convertToImmutable.name
+
+        private val convertToMutableFunctionName = ImmutableObject<*>::_immutator_convertToMutable.name
+
+        private val isModifiedPropertyName = MutableObjectImplementor<*, *>::_immutator_isModified.name
+    }
 
     private val abstractPropertiesCache = ConcurrentHashMap<KSClassDeclaration, List<KSPropertyDeclaration>>()
-
-    private val convertToImmutableMethodName = MutableObject<*>::_immutator_convertToImmutable.name
-
-    private val convertToMutableFunctionName = ImmutableObject<*>::_immutator_convertToMutable.name
-
-    private val isModifiedPropertyName = MutableObjectImplementor<*, *>::_immutator_isModified.name
 
     private lateinit var knownSubclasses: ImmutableMap<String, List<KSClassDeclaration>>
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val symbols = resolver
+        val annotatedSymbols = resolver
             .getSymbolsWithAnnotation(annotationQualifiedName)
             .toList()
 
-        symbols
-            .filter { it !is KSClassDeclaration || it.qualifiedName == null }
-            .forEach {
-                logger.error("Invalid annotated element, expected class declaration with qualified name: $it")
-            }
+        val validClassDeclarations =
+            annotatedSymbols
+                .filter {
+                    if (it !is KSClassDeclaration || it.classKind != INTERFACE) {
+                        logger.error("Only interface declarations are supported by ${annotationDisplayName}.", it)
+                        false
+                    } else {
+                        true
+                    }
+                }
 
-        val validSymbols = symbols
-            .filterIsInstance<KSClassDeclaration>()
-            .filter { it.qualifiedName != null }
+        @Suppress("UNCHECKED_CAST")
+        val symbolsToProcess = validClassDeclarations
             .filter { it.validate() }
-            .toList()
-
-        val invalidSymbols = symbols.filter { !it.validate() }.toList()
+            .toList() as List<KSClassDeclaration>
 
         fun KSClassDeclaration.mapKey(): String = qualifiedName!!.asString()
 
         fun KSTypeReference.mapKey(): String = resolve().declaration.asClassDeclaration!!.mapKey()
 
-        validSymbols.forEach { classDeclaration ->
+        symbolsToProcess.forEach { classDeclaration ->
             classDeclaration.superTypes
                 .filter { it.resolve().declaration.qualifiedName?.asString() != Any::class.qualifiedName!! }
                 .forEach {
-                    if (!validSymbols.map { it.mapKey() }.contains(it.mapKey())) {
+                    if (!symbolsToProcess.map { it.mapKey() }.contains(it.mapKey())) {
                         logger.error("Supertypes must be in the same module: ${it.resolve()}", classDeclaration)
                     }
                 }
@@ -126,9 +128,9 @@ class ImmutatorSymbolProcessor(
         // TODO kizárni a nem egy modulban levő subinterface-eket
 
         knownSubclasses = buildMap<String, List<KSClassDeclaration>> {
-            validSymbols.forEach { symbol ->
+            symbolsToProcess.forEach { symbol ->
                 symbol.superTypes.filter {
-                    validSymbols.map { it.mapKey() }.contains(it.mapKey())
+                    symbolsToProcess.map { it.mapKey() }.contains(it.mapKey())
                 }.forEach {
                     val key = it.mapKey()
                     this[key] = (this[key] ?: emptyList()) + symbol
@@ -136,7 +138,7 @@ class ImmutatorSymbolProcessor(
             }
         }.toPersistentHashMap()
 
-        validSymbols.forEach { symbol ->
+        symbolsToProcess.forEach { symbol ->
             try {
                 processClassDeclaration(symbol)
             } catch (e: ImmutatorException) {
@@ -146,7 +148,7 @@ class ImmutatorSymbolProcessor(
             }
         }
 
-        return invalidSymbols
+        return annotatedSymbols.filter { !it.validate() }.toList()
     }
 
     private fun KSClassDeclaration.getKnownSubclasses(): List<KSClassDeclaration> =
@@ -222,11 +224,14 @@ class ImmutatorSymbolProcessor(
             definitionInterfaceName.packageName,
             definitionInterfaceName.simpleName + "ImmutateImpl"
         )
-            .addImport("kotlinw.immutator.internal", "mutableValueProperty")
-            .addImport("kotlinw.immutator.internal", "mutableReferenceProperty")
-            .addImport("kotlinw.immutator.internal", "mutableNullableReferenceProperty")
-            .addImport("kotlinw.immutator.internal", "mutableListProperty")
-            .addImport("kotlinw.immutator.internal", "mutableListOfImmutableElements")
+            .addImport(
+                "kotlinw.immutator.internal",
+                "mutableValueProperty",
+                "mutableReferenceProperty",
+                "mutableNullableReferenceProperty",
+                "mutableListProperty",
+                "mutableListOfImmutableElements"
+            )
 
         when (classDeclaration.classKind) {
             INTERFACE -> {
@@ -241,6 +246,7 @@ class ImmutatorSymbolProcessor(
                     generateImmutableInterface(classDeclaration, generatedFile)
                 }
             }
+
             else -> {
                 logger.error("Unsupported class type: $classDeclaration", classDeclaration)
             }
@@ -366,6 +372,7 @@ class ImmutatorSymbolProcessor(
                                             } else {
                                                 "mutableListOfImmutableElements(_objectState, source.${it.simpleName.asString()})"
                                             }
+
                                         PropertyType.Map -> "mutableMapProperty(_objectState, source.${it.simpleName.asString()}, ::${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclaration!!.mutableClassName.simpleName}, ${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclaration!!.mutableClassName.simpleName}::toImmutable)"
                                         PropertyType.Unsupported -> throwInternalCompilerError(
                                             it.type.resolve()
@@ -711,17 +718,22 @@ internal val KSTypeReference.mutableTypeName: TypeName
                                             typeArguments[0].type!!.mutableTypeName,
                                             typeArguments[0].type!!.immutableTypeName
                                         )
+
                                     List::class.asClassName() -> ConfinedMutableList::class.asClassName()
                                         .parameterizedBy(
                                             typeArguments[0].type!!.mutableTypeName,
                                             typeArguments[0].type!!.immutableTypeName
                                         )
+
                                     Set::class.asClassName() -> ClassName("kotlin.collections", "MutableSet")
                                         .parameterizedBy(typeArguments.map { it.type!!.mutableTypeName })
+
                                     Map::class.asClassName() -> ClassName("kotlin.collections", "MutableMap")
                                         .parameterizedBy(typeArguments.map { it.type!!.mutableTypeName })
+
                                     else -> throw UnsupportedOperationException(typeName.toString()) // TODO
                                 }
+
                             else -> throw UnsupportedOperationException(typeName.toString()) // TODO
                         }
                     }
@@ -773,6 +785,7 @@ private fun getImmutableTypeName(ksType: KSType, typeArguments: List<KSTypeArgum
                                 .parameterizedBy(typeArguments.map { it.type!!.immutableTypeName }) // TODO !!
                             else -> throw UnsupportedOperationException(typeName.toString()) // TODO
                         }
+
                     else -> throw UnsupportedOperationException(typeName.toString()) // TODO
                 }
             }
@@ -831,9 +844,11 @@ private val knownImmutableClassNames =
         .map { it.qualifiedName!! }
         .toImmutableSet()
 
+@OptIn(KspExperimental::class)
 internal val KSDeclaration.isImmutated
     get() = isAnnotationPresent(Immutate::class)
 
+@OptIn(KspExperimental::class)
 internal val KSDeclaration.isMarkedImmutable
     get() = isAnnotationPresent(Immutable::class)
 
