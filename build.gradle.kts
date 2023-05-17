@@ -27,7 +27,7 @@ plugins {
     kotlin("plugin.serialization") version "1.8.21" apply false
     kotlin("plugin.spring") version "1.8.21" apply false
     id("com.google.devtools.ksp") version "1.8.21-1.0.11" apply false
-    id("org.jetbrains.compose") version "1.4.0" apply false
+    id("org.jetbrains.compose") version "1.5.0-dev1049" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
