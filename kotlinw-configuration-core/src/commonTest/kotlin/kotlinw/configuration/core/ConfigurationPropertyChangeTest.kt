@@ -12,7 +12,6 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 class ConfigurationPropertyChangeTest {
@@ -24,7 +23,7 @@ class ConfigurationPropertyChangeTest {
 
         val source = object : ConfigurationPropertySource {
 
-            override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue? =
+            override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
                 if (key.name == propertyName) propertyValueHolder.value else null
 
             override val priority = Priority.Normal

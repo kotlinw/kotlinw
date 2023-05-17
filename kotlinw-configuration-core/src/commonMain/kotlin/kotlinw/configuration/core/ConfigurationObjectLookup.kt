@@ -53,7 +53,6 @@ class ConfigurationObjectLookupImpl(
                 val propertiesMap =
                     it
                         .mapKeys { it.key.name }
-                        .mapValues { it.value.toString() }
 
                 if (it.isNotEmpty()) {
                     serialFormat.decodeFromStringMap(deserializer, propertiesMap)

@@ -4,7 +4,7 @@ import kotlinw.util.stdlib.HasPriority
 
 interface ConfigurationPropertySource : HasPriority {
 
-    fun getPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue?
+    fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 }
 
 interface EnumerableConfigurationPropertySource : ConfigurationPropertySource {

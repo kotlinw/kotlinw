@@ -15,7 +15,7 @@ import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlValue
 import kotlinw.configuration.core.ConfigurationPropertyKey
 import kotlinw.configuration.core.ConfigurationPropertyKeySegment
 import kotlinw.configuration.core.ConfigurationPropertySource
-import kotlinw.configuration.core.ConfigurationPropertyValue
+import kotlinw.configuration.core.EncodedConfigurationPropertyValue
 import kotlinw.util.stdlib.Priority
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -28,7 +28,7 @@ class TomlConfigurationPropertySource(
 
     private val properties = readToml(tomlContents)
 
-    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): ConfigurationPropertyValue? = properties[key]
+    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? = properties[key]
 }
 
 internal fun readToml(tomlContents: String, sourceInfo: String? = null) =
@@ -37,7 +37,7 @@ internal fun readToml(tomlContents: String, sourceInfo: String? = null) =
 
         fun processTomlNode(node: TomlNode, keyPrefixSegments: PersistentList<ConfigurationPropertyKeySegment>) {
 
-            fun convertValue(value: TomlValue): ConfigurationPropertyValue = value.content
+            fun convertValue(value: TomlValue): EncodedConfigurationPropertyValue = value.content.toString()
 
             fun convertKey(key: String) =
                 ConfigurationPropertyKeySegment(

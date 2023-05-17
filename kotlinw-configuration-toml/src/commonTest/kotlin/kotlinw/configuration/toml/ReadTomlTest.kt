@@ -30,7 +30,7 @@ class ReadTomlTest {
                 ConfigurationPropertyKey("name") to "Orange",
                 ConfigurationPropertyKey("physical.color") to "orange",
                 ConfigurationPropertyKey("physical.shape") to "round",
-                ConfigurationPropertyKey("""site."google.com"""") to true
+                ConfigurationPropertyKey("""site."google.com"""") to "true"
             ),
             readToml(
                 """
@@ -47,9 +47,9 @@ class ReadTomlTest {
     fun testArray() {
         assertEquals(
             mapOf(
-                ConfigurationPropertyKey("integers.0") to 1L,
-                ConfigurationPropertyKey("integers.1") to 2L,
-                ConfigurationPropertyKey("integers.2") to 3L
+                ConfigurationPropertyKey("integers.0") to "1",
+                ConfigurationPropertyKey("integers.1") to "2",
+                ConfigurationPropertyKey("integers.2") to "3"
             ),
             readToml("integers = [ 1, 2, 3 ]".trimIndent())
         )
@@ -61,8 +61,8 @@ class ReadTomlTest {
             mapOf(
                 ConfigurationPropertyKey("name.first") to "Tom",
                 ConfigurationPropertyKey("name.last") to "Preston-Werner",
-                ConfigurationPropertyKey("point.x") to 1L,
-                ConfigurationPropertyKey("point.y") to 2L,
+                ConfigurationPropertyKey("point.x") to "1",
+                ConfigurationPropertyKey("point.y") to "2",
                 ConfigurationPropertyKey("animal.type.name") to "pug",
             ),
             readToml(
@@ -94,8 +94,8 @@ class ReadTomlTest {
         assertEquals(
             mapOf(
                 ConfigurationPropertyKey("fruit.apple.color") to "red",
-                ConfigurationPropertyKey("fruit.apple.taste.sweet") to true,
-                ConfigurationPropertyKey("fruit.apple.texture.smooth") to true
+                ConfigurationPropertyKey("fruit.apple.taste.sweet") to "true",
+                ConfigurationPropertyKey("fruit.apple.texture.smooth") to "true"
             ),
             properties
         )

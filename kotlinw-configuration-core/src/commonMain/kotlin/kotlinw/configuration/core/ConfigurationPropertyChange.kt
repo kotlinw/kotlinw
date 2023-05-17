@@ -45,7 +45,7 @@ private suspend fun pollConfigurationPropertiesImpl(
     pollingDelay: Duration,
     eventListenerCoroutineScope: CoroutineScope? = null,
     eventBus: LocalEventBus? = null,
-    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>,
+    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>,
 ) =
     flow {
         val initialValues = resolveConfigurationProperties()
@@ -87,7 +87,7 @@ data class ConfigurationPropertySourceChangeEvent(val configurationSource: Confi
 
 data class ConfigurationPropertyChangeEvent(
     val name: ConfigurationPropertyKey,
-    val newValue: ConfigurationPropertyValue
+    val newValue: EncodedConfigurationPropertyValue
 )
 
 suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
@@ -124,8 +124,8 @@ private suspend fun watchConfigurationPropertiesImpl(
     eventBus: LocalEventBus,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean,
-    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, ConfigurationPropertyValue>
-): Flow<Map<ConfigurationPropertyKey, ConfigurationPropertyValue>> {
+    resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>
+): Flow<Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>> {
     val pollingFlow =
         pollConfigurationPropertiesImpl(
             pollingDelay,
