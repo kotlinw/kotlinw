@@ -39,7 +39,6 @@ class ConfigurationPropertyChangeTest {
                 this,
                 eventBus,
                 pollingDelayMillis.milliseconds,
-                Duration.ZERO,
                 setOf(ConfigurationPropertyKey("a"), ConfigurationPropertyKey("b"))
             ).test {
                 assertEquals(0, currentTime)
@@ -81,7 +80,6 @@ class ConfigurationPropertyChangeTest {
                 this,
                 eventBus,
                 100.milliseconds,
-                Duration.ZERO,
                 setOf(ConfigurationPropertyKey("a"), ConfigurationPropertyKey("b"))
             ).test {
                 assertEquals(0, currentTime)
