@@ -83,8 +83,6 @@ class ImmutatorSymbolProcessor(
         private val isModifiedPropertyName = MutableObjectImplementor<*, *>::_immutator_isModified.name
     }
 
-    private val abstractPropertiesCache = ConcurrentHashMap<KSClassDeclaration, List<KSPropertyDeclaration>>()
-
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val annotatedSymbols = resolver
             .getSymbolsWithAnnotation(annotationQualifiedName)
@@ -122,10 +120,7 @@ class ImmutatorSymbolProcessor(
     private fun KSClassDeclaration.getKnownSubclasses(): List<KSClassDeclaration> = getSealedSubclasses().toList()
 
     private val KSClassDeclaration.abstractProperties: List<KSPropertyDeclaration>
-        get() =
-            abstractPropertiesCache.computeIfAbsent(this) {
-                it.getAllProperties().filter { it.isAbstract() }.toList()
-            }
+        get() = getAllProperties().filter { it.isAbstract() }.toList()
 
     private fun processClassDeclaration(classDeclaration: KSClassDeclaration) {
         if (classDeclaration.classKind != INTERFACE) {
