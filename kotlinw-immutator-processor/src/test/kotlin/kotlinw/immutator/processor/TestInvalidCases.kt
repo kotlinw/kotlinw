@@ -29,7 +29,7 @@ class TestInvalidCases {
                 import kotlinw.immutator.annotation.Immutate
                 
                 data class Data(var s: String)
-                            
+                
                 @Immutate
                 sealed interface TestCase {
                     val d: Data
@@ -37,7 +37,8 @@ class TestInvalidCases {
             """
         ) {
             assertCompilationFailed()
-            assertHasKspError("TODO") // TODO
+            assertHasKspError("Test.kt:7: Property has type that is not supported by @Immutate.")
+            assertHasKspError("Test.kt:6: Only properties of supported types are allowed in @Immutate annotated interfaces.")
         }
     }
 }

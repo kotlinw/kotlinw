@@ -56,7 +56,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KProperty1
 
 class ImmutatorException(override val message: String, val ksNode: KSNode, override val cause: Throwable? = null) :
@@ -166,21 +165,20 @@ class ImmutatorSymbolProcessor(
             )
         }
 
-        // TODO
-//        var hasInvalidPropertyType = false
-//        classDeclaration.abstractProperties.forEach {
-//            if (it.type.resolve().propertyType == PropertyType.Unsupported) {
-//                hasInvalidPropertyType = true
-//                logger.error("Invalid property of unsupported type.", it)
-//            }
-//        }
-//
-//        if (hasInvalidPropertyType) {
-//            throw ImmutatorException(
-//                "Only properties of supported immutable types are allowed in $annotationDisplayName annotated interfaces.",
-//                classDeclaration
-//            )
-//        }
+        var hasInvalidPropertyType = false
+        classDeclaration.abstractProperties.forEach {
+            if (it.type.resolve().propertyKind is PropertyKind.Unsupported) {
+                hasInvalidPropertyType = true
+                logger.error("Property has type that is not supported by $annotationDisplayName.", it)
+            }
+        }
+
+        if (hasInvalidPropertyType) {
+            throw ImmutatorException(
+                "Only properties of supported types are allowed in $annotationDisplayName annotated interfaces.",
+                classDeclaration
+            )
+        }
 
         val definitionInterfaceName = classDeclaration.toClassName()
         val generatedFile = FileSpec.builder(
@@ -315,25 +313,28 @@ class ImmutatorSymbolProcessor(
                                     it.type.mutableTypeName,
                                     OVERRIDE
                                 )
-                                .mutable(!it.type.resolve().propertyType.isCollection)
+                                .mutable(it.type.resolve().propertyKind !is PropertyKind.Collection)
                                 .delegate(
-                                    when (it.type.resolve().propertyType) {
-                                        PropertyType.Value -> "mutableValueProperty(_objectState)"
-                                        PropertyType.Immutated -> if (it.type.resolve().isMarkedNullable) "mutableNullableReferenceProperty(_objectState, source.${it.simpleName.asString()})" else "mutableReferenceProperty(_objectState, source.${it.simpleName.asString()})"
-                                        PropertyType.Set -> TODO(definitionInterfaceDeclaration.toString())
-                                        PropertyType.List ->
-                                            if (it.type.resolve().arguments[0].type!!.resolve().declaration.isImmutated) {
-                                                "mutableListProperty(_objectState, source.${it.simpleName.asString()})"
-                                            } else {
-                                                "mutableListOfImmutableElements(_objectState, source.${it.simpleName.asString()})"
-                                            }
-
-                                        PropertyType.Map -> "mutableMapProperty(_objectState, source.${it.simpleName.asString()}, ::${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclaration!!.mutableClassName.simpleName}, ${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclaration!!.mutableClassName.simpleName}::toImmutable)"
-                                        PropertyType.Unsupported -> throwInternalCompilerError(
+                                    when (val propertyKind = it.type.resolve().propertyKind) {
+                                        is PropertyKind.Value -> "mutableValueProperty(_objectState)"
+                                        is PropertyKind.Immutated -> if (it.type.resolve().isMarkedNullable) "mutableNullableReferenceProperty(_objectState, source.${it.simpleName.asString()})" else "mutableReferenceProperty(_objectState, source.${it.simpleName.asString()})"
+                                        is PropertyKind.Unsupported -> throwInternalCompilerError(
                                             it.type.resolve()
                                                 .toString() + ", " + it.type.resolve().declaration.qualifiedName?.asString(),
                                             it
                                         ) // TODO
+                                        is PropertyKind.Collection ->
+                                            when (propertyKind.kind) {
+                                                PropertyKind.Collection.Kind.Set -> TODO(definitionInterfaceDeclaration.toString())
+                                                PropertyKind.Collection.Kind.List ->
+                                                    if (it.type.resolve().arguments[0].type!!.resolve().declaration.isImmutated) {
+                                                        "mutableListProperty(_objectState, source.${it.simpleName.asString()})"
+                                                    } else {
+                                                        "mutableListOfImmutableElements(_objectState, source.${it.simpleName.asString()})"
+                                                    }
+
+                                                PropertyKind.Collection.Kind.Map -> "mutableMapProperty(_objectState, source.${it.simpleName.asString()}, ::${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclarationOrNull()!!.mutableClassName.simpleName}, ${it.type.resolve().arguments[1].type!!.resolve().declaration.asClassDeclarationOrNull()!!.mutableClassName.simpleName}::toImmutable)"
+                                            }
                                     }
                                 )
                                 .build()
@@ -350,17 +351,20 @@ class ImmutatorSymbolProcessor(
                              ${immutableDataClassName}(${
                                 definitionInterfaceDeclaration.abstractProperties.joinToString {
                                     val propertyName = it.simpleName.asString()
-                                    when (it.type.resolve().propertyType) {
-                                        PropertyType.Value -> propertyName
-                                        PropertyType.Immutated -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
-                                        PropertyType.Set -> TODO()
-                                        PropertyType.List -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
-                                        PropertyType.Map -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
-                                        PropertyType.Unsupported -> throwInternalCompilerError(
+                                    when (val propertyKind = it.type.resolve().propertyKind) {
+                                        is PropertyKind.Value -> propertyName
+                                        is PropertyKind.Immutated -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
+                                        is PropertyKind.Unsupported -> throwInternalCompilerError(
                                             it.type.resolve()
                                                 .toString() + ", " + it.type.resolve().declaration.qualifiedName?.asString(),
                                             it
                                         ) // TODO
+                                        is PropertyKind.Collection ->
+                                            when (propertyKind.kind) {
+                                                PropertyKind.Collection.Kind.Set -> TODO()
+                                                PropertyKind.Collection.Kind.List -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
+                                                PropertyKind.Collection.Kind.Map -> if (it.type.resolve().isMarkedNullable) "$propertyName?.${convertToImmutableMethodName}()" else "$propertyName.${convertToImmutableMethodName}()"
+                                            }
                                     }
                                 }
                             })
@@ -376,24 +380,38 @@ class ImmutatorSymbolProcessor(
         )
     }
 
-    private enum class PropertyType(val isCollection: Boolean) {
-        Unsupported(false), Value(false), Immutated(false), Set(true), List(true), Map(true)
+    private sealed interface PropertyKind {
+
+        val ksType: KSType
+
+        data class Unsupported(override val ksType: KSType) : PropertyKind
+
+        data class Value(override val ksType: KSType) : PropertyKind
+
+        data class Immutated(override val ksType: KSType) : PropertyKind
+
+        data class Collection(override val ksType: KSType, val kind: Kind) : PropertyKind {
+
+            enum class Kind {
+                Set, List, Map
+            }
+        }
     }
 
-    private val KSType.propertyType: PropertyType
+    private val KSType.propertyKind: PropertyKind
         get() =
             if (declaration.qualifiedName?.asString() == Set::class.qualifiedName) {
-                PropertyType.Set
+                PropertyKind.Collection(this, PropertyKind.Collection.Kind.Set)
             } else if (declaration.qualifiedName?.asString() == List::class.qualifiedName) {
-                PropertyType.List
+                PropertyKind.Collection(this, PropertyKind.Collection.Kind.List)
             } else if (declaration.qualifiedName?.asString() == Map::class.qualifiedName) {
-                PropertyType.Map
+                PropertyKind.Collection(this, PropertyKind.Collection.Kind.Map)
             } else if (declaration.isImmutated) {
-                PropertyType.Immutated
+                PropertyKind.Immutated(this)
             } else if (isImmutable) {
-                PropertyType.Value
+                PropertyKind.Value(this)
             } else {
-                PropertyType.Unsupported
+                PropertyKind.Unsupported(this)
             }
 
     private fun TypeSpec.Builder.generateEqualsAndHashCodeAndToString(definitionInterfaceDeclaration: KSClassDeclaration): TypeSpec.Builder {
@@ -519,7 +537,7 @@ class ImmutatorSymbolProcessor(
                 .apply {
                     val parentDefinitionInterface = definitionInterfaceDeclaration.parentDefinitionInterface
                     if (parentDefinitionInterface != null) {
-                        addSuperinterface(parentDefinitionInterface.resolve().declaration.asClassDeclaration!!.immutableDataClassName)
+                        addSuperinterface(parentDefinitionInterface.resolve().declaration.asClassDeclarationOrNull()!!.immutableDataClassName)
                     } else {
                         addSuperinterface(
                             ImmutableObject::class.asClassName()
@@ -540,7 +558,7 @@ class ImmutatorSymbolProcessor(
                 .apply {
                     val parentDefinitionInterface = definitionInterfaceDeclaration.parentDefinitionInterface
                     if (parentDefinitionInterface != null) {
-                        addSuperinterface(parentDefinitionInterface.resolve().declaration.asClassDeclaration!!.mutableInterfaceName)
+                        addSuperinterface(parentDefinitionInterface.resolve().declaration.asClassDeclarationOrNull()!!.mutableInterfaceName)
                     } else {
                         addSuperinterface(
                             MutableObjectImplementor::class.asClassName()
@@ -557,20 +575,24 @@ class ImmutatorSymbolProcessor(
                         addProperty(
                             PropertySpec.builder(
                                 propertyDeclaration.simpleName.asString(),
-                                when (resolvedPropertyType.propertyType) {
-                                    PropertyType.Value -> propertyType.toTypeName() // TODO ez egységesen legyen kezelve
-                                    PropertyType.Immutated -> propertyType.mutableTypeName
-                                    PropertyType.Set -> propertyType.mutableTypeName
-                                    PropertyType.List -> propertyType.mutableTypeName
-                                    PropertyType.Map -> propertyType.mutableTypeName
-                                    PropertyType.Unsupported -> throwInternalCompilerError(
+                                when (val propertyKind = resolvedPropertyType.propertyKind) {
+                                    is PropertyKind.Value -> propertyType.toTypeName() // TODO ez egységesen legyen kezelve
+                                    is PropertyKind.Immutated -> propertyType.mutableTypeName
+                                    is PropertyKind.Unsupported -> throwInternalCompilerError(
                                         resolvedPropertyType.toString() + ", " + resolvedPropertyType.declaration.qualifiedName?.asString(),
                                         propertyDeclaration
                                     )
+
+                                    is PropertyKind.Collection ->
+                                        when (propertyKind.kind) {
+                                            PropertyKind.Collection.Kind.Set -> propertyType.mutableTypeName
+                                            PropertyKind.Collection.Kind.List -> propertyType.mutableTypeName
+                                            PropertyKind.Collection.Kind.Map -> propertyType.mutableTypeName
+                                        }
                                 },
                                 OVERRIDE
                             )
-                                .mutable(!resolvedPropertyType.propertyType.isCollection)
+                                .mutable(resolvedPropertyType.propertyKind !is PropertyKind.Collection)
                                 .build()
                         )
                     }
@@ -771,13 +793,12 @@ val KSClassDeclaration.mutableClassName: ClassName
             )
         }
 
-private val KSDeclaration.asClassDeclaration: KSClassDeclaration?
-    get() =
-        when (this) {
-            is KSClassDeclaration -> this
-            is KSTypeAlias -> type.resolve().declaration.asClassDeclaration
-            else -> null
-        }
+private fun KSDeclaration.asClassDeclarationOrNull(): KSClassDeclaration? =
+    when (this) {
+        is KSClassDeclaration -> this
+        is KSTypeAlias -> type.resolve().declaration.asClassDeclarationOrNull()
+        else -> null
+    }
 
 private val knownImmutableClassNames =
     listOf(
@@ -813,14 +834,14 @@ internal val KSType.isImmutable: Boolean
     get() = (
             declaration.qualifiedName?.asString() !in listOf(List::class.qualifiedName!!) && (
                     declaration.qualifiedName?.asString() == ImmutableBox::class.qualifiedName ||
-                            (declaration.asClassDeclaration?.isEnumClass ?: false) ||
+                            (declaration.asClassDeclarationOrNull()?.isEnumClass ?: false) ||
                             declaration.isMarkedImmutable ||
                             (
                                     arguments.all {
                                         (it.variance in supportedVariances) && (it.type?.resolve()?.isImmutable
                                             ?: false)
                                     } &&
-                                            (declaration.asClassDeclaration?.isImmutable ?: false)
+                                            (declaration.asClassDeclarationOrNull()?.isImmutable ?: false)
                                     )
                     )
             )

@@ -1,6 +1,6 @@
 package kotlinw.remoting.api
 
-@Retention(AnnotationRetention.SOURCE)
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 @MustBeDocumented
 annotation class SupportsRemoting
