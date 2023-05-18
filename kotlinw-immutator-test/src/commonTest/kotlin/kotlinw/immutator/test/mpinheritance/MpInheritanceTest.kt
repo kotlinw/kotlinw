@@ -5,6 +5,6 @@ import kotlin.test.Test
 class MpInheritanceTest {
     @Test
     fun test() {
-        val o = MpSubClass.new("a")
+        val o = MpSubClass.immutable("a")
     }
 }

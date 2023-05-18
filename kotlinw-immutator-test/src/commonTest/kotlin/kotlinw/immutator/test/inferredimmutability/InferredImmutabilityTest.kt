@@ -8,11 +8,11 @@ import kotlin.test.assertSame
 class InferredImmutabilityTest {
     @Test
     fun test() {
-        val o = TestClass.new(Data("a"))
+        val o = TestClass.immutable(Data("a"))
         assertSame(o, o.toMutable().toImmutable())
 
         assertEquals(
-            TestClass.new(Data("b")),
+            TestClass.immutable(Data("b")),
             o.mutate { it.d = Data("b") }
         )
     }

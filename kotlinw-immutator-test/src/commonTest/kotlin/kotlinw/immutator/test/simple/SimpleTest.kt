@@ -14,13 +14,13 @@ import kotlin.test.assertSame
 class SimpleTest {
     @Test
     fun testIdentitySemantics() {
-        val original = Person.new(
-            PersonName.new(null, "John", "Doe"),
+        val original = Person.immutable(
+            PersonName.immutable(null, "John", "Doe"),
             LocalDate(1985, FEBRUARY, 22),
             Address("City", "Street"),
             persistentListOf(
-                Pet.new(kind = Rabbit, name = "Bunny"),
-                Pet.new(kind = Dog, name = "Doggy")
+                Pet.immutable(kind = Rabbit, name = "Bunny"),
+                Pet.immutable(kind = Dog, name = "Doggy")
             )
         )
 

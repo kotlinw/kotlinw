@@ -577,7 +577,7 @@ class ImmutatorSymbolProcessor(
     private fun FileSpec.Builder.generateExtensionMethods(definitionInterfaceDeclaration: KSClassDeclaration) {
         if (definitionInterfaceDeclaration.getKnownSubclasses().isEmpty()) {
             addFunction(
-                FunSpec.builder("new")
+                FunSpec.builder("immutable")
                     .receiver(definitionInterfaceDeclaration.companionObjectOrNull!!.toClassName())
                     .returns(definitionInterfaceDeclaration.immutableDataClassName)
                     .addParameters(
