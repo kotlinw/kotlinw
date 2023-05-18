@@ -18,23 +18,23 @@ class TestInvalidCases {
             )
         ) {
             assertCompilationFailed()
-            assertHasKspError("Person.kt:4: Only interfaces are allowed to be annotated with @Immutate.")
+            assertHasKspError("Person.kt:4: Only interface declarations are supported by @Immutate.")
         }
     }
 
     @Test
     fun testInvalidPropertyType() {
         checkCompilationResult(
-                """
-                        import kotlinw.immutator.annotation.Immutate
-                        
-                        data class Data(var s: String)
-                                    
-                        @Immutate
-                        sealed interface TestCase {
-                            val d: Data
-                        }
-                        """
+            """
+                import kotlinw.immutator.annotation.Immutate
+                
+                data class Data(var s: String)
+                            
+                @Immutate
+                sealed interface TestCase {
+                    val d: Data
+                }
+            """
         ) {
             assertCompilationFailed()
             assertHasKspError("TODO") // TODO

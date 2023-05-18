@@ -123,12 +123,7 @@ class ImmutatorSymbolProcessor(
         get() = getAllProperties().filter { it.isAbstract() }.toList()
 
     private fun processClassDeclaration(classDeclaration: KSClassDeclaration) {
-        if (classDeclaration.classKind != INTERFACE) {
-            throw ImmutatorException(
-                "Only interfaces are allowed to be annotated with $annotationDisplayName.",
-                classDeclaration
-            )
-        }
+        check(classDeclaration.classKind == INTERFACE)
 
         if (!classDeclaration.modifiers.contains(SEALED)) {
             throw ImmutatorException(
