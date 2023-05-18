@@ -106,20 +106,6 @@ class ImmutatorSymbolProcessor(
             .filter { it.validate() }
             .toList() as List<KSClassDeclaration>
 
-        fun KSClassDeclaration.mapKey(): String = qualifiedName!!.asString()
-
-        fun KSTypeReference.mapKey(): String = resolve().declaration.asClassDeclaration!!.mapKey()
-
-        symbolsToProcess.forEach { classDeclaration ->
-            classDeclaration.superTypes
-                .filter { it.resolve().declaration.qualifiedName?.asString() != Any::class.qualifiedName!! }
-                .forEach {
-                    if (!symbolsToProcess.map { it.mapKey() }.contains(it.mapKey())) {
-                        logger.error("Supertypes must be in the same module: ${it.resolve()}", classDeclaration)
-                    }
-                }
-        }
-
         symbolsToProcess.forEach { symbol ->
             try {
                 processClassDeclaration(symbol)
