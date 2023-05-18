@@ -199,7 +199,7 @@ class TestValidCases {
         checkCompilationResult(
             """
                     import kotlinw.immutator.annotation.Immutate
-                    import kotlinw.common.util.Uuid
+                    import kotlinw.uuid.Uuid
                     
                     value class Data(val value: Uuid)
                     

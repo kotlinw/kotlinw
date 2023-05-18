@@ -83,10 +83,10 @@ class TestProcessorUtils {
                             val listOfStringType = listClassDeclaration.asType(
                                 listOf(resolver.getTypeArgument(stringTypeRef, Variance.INVARIANT))
                             )
-                            assertFalse(listOfStringType.isImmutable)
+                            assertFalse(listOfStringType.isValueType)
 
                             val uuidTypeRef = resolver.createTypeReference<Uuid>()
-                            assertTrue(uuidTypeRef.resolve().isImmutable)
+                            assertTrue(uuidTypeRef.resolve().isValueType)
 
                             val personClassDeclaration = resolver.getSymbolsWithAnnotation(annotationQualifiedName)
                                 .first { it is KSClassDeclaration && it.simpleName.asString() == "Person" } as KSClassDeclaration

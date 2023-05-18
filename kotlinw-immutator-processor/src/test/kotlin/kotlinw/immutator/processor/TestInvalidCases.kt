@@ -38,7 +38,7 @@ class TestInvalidCases {
         ) {
             assertCompilationFailed()
             assertHasKspError("Test.kt:7: Property has type that is not supported by @Immutate.")
-            assertHasKspError("Test.kt:6: Only properties of supported types are allowed in @Immutate annotated interfaces.")
+            assertHasKspError("Test.kt:6: Only properties of supported types are allowed in interfaces annotated with @Immutate.")
         }
     }
 }
