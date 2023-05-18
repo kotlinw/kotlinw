@@ -34,10 +34,6 @@ kotlin {
                 implementation(libs.mockk)
             }
         }
-//        val jsMain by getting {
-//        }
-//        val jsTest by getting {
-//        }
     }
 }
 

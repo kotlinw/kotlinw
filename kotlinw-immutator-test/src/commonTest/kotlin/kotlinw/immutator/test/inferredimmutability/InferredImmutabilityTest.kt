@@ -1,19 +1,11 @@
 package kotlinw.immutator.test.inferredimmutability
 
-import kotlinw.immutator.annotation.Immutate
 import kotlinw.immutator.util.mutate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
-data class Data(val s: String)
-
-@Immutate
-sealed interface TestClass {
-    val d: Data
-}
-
-class InferredImmutability {
+class InferredImmutabilityTest {
     @Test
     fun test() {
         val o = TestClassImmutable(Data("a"))

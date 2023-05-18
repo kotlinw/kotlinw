@@ -1,4 +1,4 @@
-import org.jetbrains.compose.compose
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
@@ -9,7 +9,6 @@ plugins {
 
 kotlin {
     jvm { }
-// HOMEAUT-123
 //    js(IR) {
 //        browser {}
 //    }
@@ -18,7 +17,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.kotlinw.kotlinwImmutatorApi)
-                implementation(projects.kotlinw.kotlinwImmutatorTest2)
 
                 implementation(compose.runtime)
                 implementation(libs.kotlinx.collections.immutable)
@@ -33,34 +31,39 @@ kotlin {
             }
         }
         val jvmMain by getting {
-            kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
             }
         }
         val jvmTest by getting {
-            kotlin.srcDir("build/generated/ksp/jvm/jvmTest/kotlin")
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.logback.classic)
             }
         }
-// HOMEAUT-123
-//        val jsMain by getting {
-//        }
-//        val jsTest by getting {
-//        }
     }
-}
-
-dependencies {
-//    add("kspMetadata", projects.lib.kotlinw:kotlinw-immutator-processor)
-    add("kspJvm", projects.kotlinw.kotlinwImmutatorProcessor)
-    add("kspJvmTest", projects.kotlinw.kotlinwImmutatorProcessor)
 }
 
 compose {
     kotlinCompilerPlugin.set(dependencies.compiler.forKotlin("1.8.20"))
     kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.8.21")
+}
+
+dependencies {
+    add("kspCommonMainMetadata", projects.kotlinw.kotlinwImmutatorProcessor)
+//    add("kspJs", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJsTest", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJvm", projects.kotlinw.kotlinwRemotingProcessor)
+//    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
+}
+
+tasks.withType<KotlinCompile<*>>().all {
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
+}
+
+kotlin.sourceSets.commonMain {
+    kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 }

@@ -51,7 +51,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toImmutableSet
-import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -85,8 +84,6 @@ class ImmutatorSymbolProcessor(
     }
 
     private val abstractPropertiesCache = ConcurrentHashMap<KSClassDeclaration, List<KSPropertyDeclaration>>()
-
-    private lateinit var knownSubclasses: ImmutableMap<String, List<KSClassDeclaration>>
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val annotatedSymbols = resolver
@@ -123,20 +120,6 @@ class ImmutatorSymbolProcessor(
                 }
         }
 
-        // TODO már itt legyenek az ellenőrzések a valid-okra
-        // TODO kizárni a nem egy modulban levő subinterface-eket
-
-        knownSubclasses = buildMap<String, List<KSClassDeclaration>> {
-            symbolsToProcess.forEach { symbol ->
-                symbol.superTypes.filter {
-                    symbolsToProcess.map { it.mapKey() }.contains(it.mapKey())
-                }.forEach {
-                    val key = it.mapKey()
-                    this[key] = (this[key] ?: emptyList()) + symbol
-                }
-            }
-        }.toPersistentHashMap()
-
         symbolsToProcess.forEach { symbol ->
             try {
                 processClassDeclaration(symbol)
@@ -150,12 +133,7 @@ class ImmutatorSymbolProcessor(
         return annotatedSymbols.filter { !it.validate() }.toList()
     }
 
-    private fun KSClassDeclaration.getKnownSubclasses(): List<KSClassDeclaration> =
-        if (this.qualifiedName != null) {
-            knownSubclasses[this.qualifiedName!!.asString()] ?: emptyList()
-        } else {
-            emptyList()
-        }
+    private fun KSClassDeclaration.getKnownSubclasses(): List<KSClassDeclaration> = getSealedSubclasses().toList()
 
     private val KSClassDeclaration.abstractProperties: List<KSPropertyDeclaration>
         get() =
@@ -171,6 +149,13 @@ class ImmutatorSymbolProcessor(
             )
         }
 
+        if (!classDeclaration.modifiers.contains(SEALED)) {
+            throw ImmutatorException(
+                "Interface annotated with $annotationDisplayName must be `sealed`.",
+                classDeclaration
+            )
+        }
+
         if (classDeclaration.typeParameters.isNotEmpty()) {
             throw ImmutatorException(
                 "Type parameters are not supported in case of $annotationDisplayName annotated interfaces.",
@@ -178,8 +163,8 @@ class ImmutatorSymbolProcessor(
             )
         }
 
-        if (classDeclaration.abstractProperties.isEmpty() && classDeclaration.getKnownSubclasses().toList()
-                .isEmpty()
+        if (classDeclaration.abstractProperties.isEmpty()
+            && classDeclaration.getKnownSubclasses().toList().isEmpty()
         ) {
             throw ImmutatorException(
                 "An interface annotated with $annotationDisplayName must have at least one declared abstract property or have sub-interfaces.",
