@@ -27,6 +27,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.KModifier.PRIVATE
+import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -126,6 +127,13 @@ class ImmutatorSymbolProcessor(
         if (!classDeclaration.modifiers.contains(SEALED)) {
             throw ImmutatorException(
                 "Interface annotated with $annotationDisplayName must be `sealed`.",
+                classDeclaration
+            )
+        }
+
+        if (!classDeclaration.hasCompanionObject) {
+            throw ImmutatorException(
+                "Interface annotated with $annotationDisplayName should have a `companion object`.",
                 classDeclaration
             )
         }
@@ -567,6 +575,33 @@ class ImmutatorSymbolProcessor(
     }
 
     private fun FileSpec.Builder.generateExtensionMethods(definitionInterfaceDeclaration: KSClassDeclaration) {
+        if (definitionInterfaceDeclaration.getKnownSubclasses().isEmpty()) {
+            addFunction(
+                FunSpec.builder("new")
+                    .receiver(definitionInterfaceDeclaration.companionObjectOrNull!!.toClassName())
+                    .returns(definitionInterfaceDeclaration.immutableDataClassName)
+                    .addParameters(
+                        definitionInterfaceDeclaration.abstractProperties
+                            .map {
+                                ParameterSpec.builder(
+                                    it.simpleName.asString(),
+                                    it.type.immutableTypeName
+                                ).build()
+                            }
+                            .toList()
+                    )
+                    .addStatement(
+                        """
+                        return %T(${definitionInterfaceDeclaration.abstractProperties.joinToString { "%N" }})
+                    """.trimIndent(),
+                        definitionInterfaceDeclaration.immutableDataClassName,
+                        *definitionInterfaceDeclaration.abstractProperties.map { it.simpleName.asString() }
+                            .toTypedArray()
+                    )
+                    .build()
+            )
+        }
+
         addFunction(
             FunSpec.builder("toMutable")
                 .receiver(definitionInterfaceDeclaration.toClassName())

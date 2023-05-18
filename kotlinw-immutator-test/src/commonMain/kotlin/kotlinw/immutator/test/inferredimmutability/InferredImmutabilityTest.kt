@@ -6,5 +6,8 @@ data class Data(val s: String)
 
 @Immutate
 sealed interface TestClass {
+
+    companion object
+
     val d: Data
 }

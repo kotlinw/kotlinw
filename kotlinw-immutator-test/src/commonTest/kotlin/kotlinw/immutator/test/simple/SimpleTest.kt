@@ -14,17 +14,17 @@ import kotlin.test.assertSame
 class SimpleTest {
     @Test
     fun testIdentitySemantics() {
-        val original = PersonImmutable(
-            PersonNameImmutable(null, "John", "Doe"),
+        val original = Person.new(
+            PersonName.new(null, "John", "Doe"),
             LocalDate(1985, FEBRUARY, 22),
             Address("City", "Street"),
             persistentListOf(
-                PetImmutable(kind = Rabbit, name = "Bunny"),
-                PetImmutable(kind = Dog, name = "Doggy")
+                Pet.new(kind = Rabbit, name = "Bunny"),
+                Pet.new(kind = Dog, name = "Doggy")
             )
         )
 
-        assertSame(original, original._immutator_convertToMutable()._immutator_convertToImmutable())
+        assertSame(original, original.toMutable().toImmutable())
 
         val mutated = original.mutate {
             it.pets[1].name = "Doggo"

@@ -16,8 +16,8 @@ import kotlin.test.assertSame
 class InheritanceTest {
     @Test
     fun testNoModification() {
-        val immutable = PersonImmutable(
-            PersonNameImmutable(
+        val immutable = Person.new(
+            PersonName.new(
                 "Dr.",
                 "Béla",
                 "Kormos"
@@ -25,13 +25,13 @@ class InheritanceTest {
             LocalDate(2000, JANUARY, 1),
             "123456AB",
             persistentListOf(
-                PetImmutable("Kutyi", Dog),
-                PetImmutable("Nyuszi", Rabbit),
+                Pet.new("Kutyi", Dog),
+                Pet.new("Nyuszi", Rabbit),
             ),
-            HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU"),
+            HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU"),
             persistentListOf(
-                InternationalAddressImmutable("Somewhere...", "US"),
-                HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU")
+                InternationalAddress.new("Somewhere...", "US"),
+                HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU")
             ).toImmutableList()
         )
 
@@ -40,9 +40,9 @@ class InheritanceTest {
 
     @Test
     fun testInstanceCreation() {
-        val immutable = PersonNameImmutable(null, "Béla", "Kovács")
+        val immutable = PersonName.new(null, "Béla", "Kovács")
 
-        val mutable: PersonNameMutable = immutable.toMutable()
+        val mutable = immutable.toMutable()
         assertEquals(immutable.title, mutable.title)
         assertEquals(immutable.firstName, mutable.firstName)
         assertEquals(immutable.lastName, mutable.lastName)
@@ -54,7 +54,7 @@ class InheritanceTest {
 
     @Test
     fun testValuePropertyModification() {
-        val immutable = PersonNameImmutable(null, "Béla", "Kovács")
+        val immutable = PersonName.new(null, "Béla", "Kovács")
 
         val mutable = immutable.toMutable()
         mutable.title = "Dr."
@@ -69,19 +69,19 @@ class InheritanceTest {
 
     @Test
     fun testReferencedObjectModification() {
-        val immutable = PersonImmutable(
-            PersonNameImmutable(
+        val immutable = Person.new(
+            PersonName.new(
                 null,
                 "Béla",
                 "Kormos"
             ),
             LocalDate(2000, JANUARY, 1),
             "123456AB",
-            listOf(
-                PetImmutable("Kutyi", Dog),
-                PetImmutable("Nyuszi", Rabbit),
-            ).toImmutableList(),
-            HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU"),
+            persistentListOf(
+                Pet.new("Kutyi", Dog),
+                Pet.new("Nyuszi", Rabbit),
+            ),
+            HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU"),
             persistentListOf()
         )
 
@@ -102,26 +102,26 @@ class InheritanceTest {
 
     @Test
     fun testReferencePropertyModification() {
-        val immutable = PersonImmutable(
-            PersonNameImmutable(
+        val immutable = Person.new(
+            PersonName.new(
                 "Dr.",
                 "Béla",
                 "Kormos"
             ),
             LocalDate(2000, JANUARY, 1),
             "123456AB",
-            listOf(
-                PetImmutable("Kutyi", Dog),
-                PetImmutable("Nyuszi", Rabbit),
-            ).toImmutableList(),
-            HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU"),
+            persistentListOf(
+                Pet.new("Kutyi", Dog),
+                Pet.new("Nyuszi", Rabbit),
+            ),
+            HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU"),
             persistentListOf()
         )
 
         val mutable = immutable.toMutable()
         assertEquals<Person>(immutable, mutable) // TODO report Idea bug: type inference fails
 
-        mutable.name = PersonNameImmutable("Prof.", "Géza", "Heves").toMutable()
+        mutable.name = PersonName.new("Prof.", "Géza", "Heves").toMutable()
 
         val immutable2 = mutable.toImmutable()
         assertNotSame(immutable, immutable2)
@@ -135,19 +135,19 @@ class InheritanceTest {
 
     @Test
     fun testListPropertyModification() {
-        val immutable = PersonImmutable(
-            PersonNameImmutable(
+        val immutable = Person.new(
+            PersonName.new(
                 "Dr.",
                 "Béla",
                 "Kormos"
             ),
             LocalDate(2000, JANUARY, 1),
             "123456AB",
-            listOf(
-                PetImmutable("Kutyi", Dog),
-                PetImmutable("Nyuszi", Rabbit),
-            ).toImmutableList(),
-            HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU"),
+            persistentListOf(
+                Pet.new("Kutyi", Dog),
+                Pet.new("Nyuszi", Rabbit),
+            ),
+            HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU"),
             persistentListOf()
         )
 
@@ -166,8 +166,8 @@ class InheritanceTest {
 
     @Test
     fun testDeepModification() {
-        val immutable = PersonImmutable(
-            PersonNameImmutable(
+        val immutable = Person.new(
+            PersonName.new(
                 "Dr.",
                 "Béla",
                 "Kormos"
@@ -175,14 +175,14 @@ class InheritanceTest {
             LocalDate(2000, JANUARY, 1),
             "123456AB",
             persistentListOf(
-                PetImmutable("Kutyi", Dog),
-                PetImmutable("Nyuszi", Rabbit),
+                Pet.new("Kutyi", Dog),
+                Pet.new("Nyuszi", Rabbit),
             ),
-            HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU"),
+            HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU"),
             persistentListOf(
-                InternationalAddressImmutable("Somewhere...", "US"),
-                HungarianAddressImmutable(1111, "Budapest", "Nyúl u. 1.", "HU")
-            ).toImmutableList()
+                InternationalAddress.new("Somewhere...", "US"),
+                HungarianAddress.new(1111, "Budapest", "Nyúl u. 1.", "HU")
+            )
         )
 
         val mutable = immutable.toMutable()
@@ -190,7 +190,9 @@ class InheritanceTest {
         assertEquals<Person>(immutable, mutable) // TODO report Idea bug: type inference fails
         assertEquals<Person>(immutable, mutable.toImmutable())
 
-        mutable.otherAddresses.mutate { (it[1] as HungarianAddressMutable).zipCode = 1112 }
+        mutable.otherAddresses.mutate {
+            (it[1] as HungarianAddressMutable).zipCode = 1112
+        }
 
         val newImmutable = mutable.toImmutable()
 

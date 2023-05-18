@@ -11,6 +11,9 @@ data class Address(
 
 @Immutate
 sealed interface Person {
+
+    companion object
+
     val name: PersonName
 
     val birthDate: LocalDate
@@ -22,6 +25,9 @@ sealed interface Person {
 
 @Immutate
 sealed interface PersonName {
+
+    companion object
+
     val title: String?
 
     val firstName: String
@@ -37,6 +43,9 @@ enum class PetKind {
 
 @Immutate
 sealed interface Pet {
+
+    companion object
+
     val kind: PetKind
 
     val name: String

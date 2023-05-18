@@ -11,6 +11,9 @@ class TestValidCases {
             
                         @Immutate
                         sealed interface TestCase {
+                            
+                            companion object
+                            
                             val booleanProperty: Boolean
                             val booleanPropertyNullable: Boolean?
                             val charProperty: Char
@@ -62,6 +65,9 @@ class TestValidCases {
             
                         @Immutate
                         sealed interface TestCase {
+                        
+                            companion object
+
                             val listOfBoolean: List<Boolean>
                             val nullableListOfBoolean: List<Boolean>?
                             val listOfBooleanNullable: List<Boolean?>
@@ -168,6 +174,9 @@ class TestValidCases {
                                     
                         @Immutate
                         sealed interface TestCase {
+                        
+                            companion object
+
                             val d: Data
                         }
                         """
@@ -186,6 +195,9 @@ class TestValidCases {
 
                         @Immutate
                         sealed interface TestCase {
+                        
+                            companion object
+
                             val d: Data
                         }
                         """
@@ -205,6 +217,9 @@ class TestValidCases {
                     
                     @Immutate
                     sealed interface TestCase {
+                    
+                        companion object
+
                         val d: Data
                     }
                     """

@@ -32,12 +32,15 @@ class TestInvalidCases {
                 
                 @Immutate
                 sealed interface TestCase {
+                    
+                    companion object
+                    
                     val d: Data
                 }
             """
         ) {
             assertCompilationFailed()
-            assertHasKspError("Test.kt:7: Property has type that is not supported by @Immutate.")
+            assertHasKspError("Test.kt:10: Property has type that is not supported by @Immutate.")
             assertHasKspError("Test.kt:6: Only properties of supported types are allowed in interfaces annotated with @Immutate.")
         }
     }

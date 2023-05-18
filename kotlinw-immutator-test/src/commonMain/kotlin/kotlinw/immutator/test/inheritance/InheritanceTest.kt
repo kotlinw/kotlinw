@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDate
 
 @Immutate
 sealed interface Person {
+
     companion object
 
     val name: PersonName
@@ -22,11 +23,17 @@ sealed interface Person {
 
 @Immutate
 sealed interface Address {
+
+    companion object
+
     val countryCode: String
 }
 
 @Immutate
 sealed interface HungarianAddress: Address {
+
+    companion object
+
     val zipCode: Int
     val city: String
     val address: String
@@ -34,11 +41,15 @@ sealed interface HungarianAddress: Address {
 
 @Immutate
 sealed interface InternationalAddress: Address {
+
+    companion object
+
     val genericAddress: String
 }
 
 @Immutate
 sealed interface Pet {
+
     companion object
 
     val name: String
@@ -52,6 +63,7 @@ enum class PetKind {
 
 @Immutate
 sealed interface PersonName {
+
     companion object
 
     val title: String?
