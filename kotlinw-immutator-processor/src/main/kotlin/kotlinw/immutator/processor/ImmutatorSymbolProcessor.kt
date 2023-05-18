@@ -157,7 +157,10 @@ class ImmutatorSymbolProcessor(
         classDeclaration.abstractProperties.forEach {
             if (it.isMutable) {
                 hasMutableProperty = true
-                logger.error("Mutable property is not allowed.", it)
+                logger.error(
+                    "Mutable property is not allowed in an interface annotated with $annotationDisplayName.",
+                    it
+                )
             }
         }
 
@@ -198,23 +201,15 @@ class ImmutatorSymbolProcessor(
                 "mutableListOfImmutableElements"
             )
 
-        when (classDeclaration.classKind) {
-            INTERFACE -> {
-                generatedFile.generateExtensionMethods(classDeclaration)
+        generatedFile.generateExtensionMethods(classDeclaration)
 
-                generatedFile.generateMutableInterface(classDeclaration)
+        generatedFile.generateMutableInterface(classDeclaration)
 
-                if (classDeclaration.getKnownSubclasses().toList().isEmpty()) {
-                    generateImmutableDataClass(classDeclaration, generatedFile)
-                    generateMutableClass(classDeclaration, generatedFile)
-                } else {
-                    generateImmutableInterface(classDeclaration, generatedFile)
-                }
-            }
-
-            else -> {
-                logger.error("Unsupported class type: $classDeclaration", classDeclaration)
-            }
+        if (classDeclaration.getKnownSubclasses().toList().isEmpty()) {
+            generateImmutableDataClass(classDeclaration, generatedFile)
+            generateMutableClass(classDeclaration, generatedFile)
+        } else {
+            generateImmutableInterface(classDeclaration, generatedFile)
         }
 
         generatedFile.build().writeTo(codeGenerator, false)
