@@ -255,14 +255,14 @@ class ImmutatorSymbolProcessor(
                                     buildCodeBlock {
                                         addStatement(
                                             """
-                                        listOf(
-                                            ${
+                                                listOf(
+                                                    ${
                                                 definitionInterfaceDeclaration.abstractProperties.joinToString {
                                                     immutableDataClassName.simpleName + "::" + it.simpleName.asString()
                                                 }
                                             }
-                                        ).associateBy { it.name }
-                                        """.trimIndent()
+                                                ).associateBy { it.name }
+                                            """.trimIndent()
                                         )
                                     }
                                 )
