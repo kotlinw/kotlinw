@@ -91,7 +91,7 @@ The most important ones are (with simplified code examples):
 ## Create immutable instances
 
 ```kotlin
-val original = Person.immutable(
+val original: PersonImmutable = Person.immutable(
     PersonName.immutable(null, "John", "Doe"),
     LocalDate(1985, FEBRUARY, 22),
     Address("City", "Street"),
@@ -107,7 +107,7 @@ val original = Person.immutable(
 ```kotlin
 assertSame(original, original.toMutable().toImmutable())
 
-val mutated = original.mutate { /* it: PersonMutable -> */
+val mutated: PersonImmutable = original.mutate { /* it: PersonMutable -> */
     it.pets[1].name = "Doggo"
 }
 
