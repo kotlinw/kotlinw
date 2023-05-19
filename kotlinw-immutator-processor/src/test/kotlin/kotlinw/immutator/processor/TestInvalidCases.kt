@@ -1,6 +1,9 @@
 package kotlinw.immutator.processor
 
 import com.tschuchort.compiletesting.SourceFile
+import kotlinw.ksp.testutil.assertCompilationFailed
+import kotlinw.ksp.testutil.assertHasKspError
+import kotlinw.ksp.testutil.checkCompilationResult
 import kotlin.test.Test
 
 class TestInvalidCases {
@@ -15,10 +18,11 @@ class TestInvalidCases {
                         @Immutate
                         class Person
                         """
-            )
+            ),
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationFailed()
-            assertHasKspError("Person.kt:4: Only interface declarations are supported by @Immutate.")
+            assertHasKspError("Only interface declarations are supported by @Immutate.", "Person.kt:4")
         }
     }
 
@@ -37,11 +41,15 @@ class TestInvalidCases {
                     
                     val d: Data
                 }
-            """
+            """,
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationFailed()
-            assertHasKspError("Test.kt:10: Property has type that is not supported by @Immutate.")
-            assertHasKspError("Test.kt:6: Only properties of supported types are allowed in interfaces annotated with @Immutate.")
+            assertHasKspError("Property has type that is not supported by @Immutate.", "Test.kt:10")
+            assertHasKspError(
+                "Only properties of supported types are allowed in interfaces annotated with @Immutate.",
+                "Test.kt:6"
+            )
         }
     }
 }

@@ -1,6 +1,11 @@
 package kotlinw.remoting.client.processor
 
+import kotlinw.ksp.testutil.assertCompilationFailed
+import kotlinw.ksp.testutil.assertCompilationSucceeded
+import kotlinw.ksp.testutil.assertHasKspError
+import kotlinw.ksp.testutil.checkCompilationResult
 import kotlinw.remoting.api.SupportsRemoting
+import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlinx.serialization.Serializable
 import java.util.concurrent.Flow
 import kotlin.test.Test
@@ -15,7 +20,8 @@ class CompilationValidationsTest {
                 
                 @SupportsRemoting
                 interface RemoteService
-            """.trimIndent()
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -29,7 +35,8 @@ class CompilationValidationsTest {
                 
                 @SupportsRemoting
                 class RemoteService
-            """.trimIndent()
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertHasKspError("Only interface declarations should be annotated with @SupportsRemoting.", "Test.kt:4")
         }
@@ -47,7 +54,8 @@ class CompilationValidationsTest {
                 
                     suspend fun returnsFlow(): Flow<String?>
                 }
-            """.trimIndent()
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -68,7 +76,8 @@ class CompilationValidationsTest {
                     
                     suspend fun a(): A
                 }
-            """.trimIndent()
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -85,7 +94,8 @@ class CompilationValidationsTest {
                     
                     suspend fun a(): List<String>
                 }
-            """.trimIndent()
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -102,7 +112,8 @@ class CompilationValidationsTest {
                     
                     suspend fun a(): List<*>
                 }
-            """.trimIndent()
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationFailed()
         }

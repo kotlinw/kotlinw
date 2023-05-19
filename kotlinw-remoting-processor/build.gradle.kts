@@ -17,14 +17,12 @@ kotlin {
 
 dependencies {
     implementation(projects.kotlinw.kotlinwRemotingApi)
-    implementation(libs.ksp.api)
-    implementation(libs.kotlinpoet.ksp)
-    implementation(libs.kotlinpoet.metadata)
+    implementation(projects.kotlinw.kotlinwKspUtil)
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 
+    testImplementation(projects.kotlinw.kotlinwKspTestutil)
     testImplementation(kotlin("test-junit5"))
     testImplementation(libs.logback.classic)
-    testImplementation(libs.tschuchortdev.compiletesting.ksp)
 }

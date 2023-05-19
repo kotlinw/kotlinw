@@ -10,6 +10,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Variance
 import com.tschuchort.compiletesting.SourceFile
+import kotlinw.ksp.testutil.compile
 import kotlinw.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -73,36 +74,39 @@ class TestProcessorUtils {
                 }
                 """.trimIndent()
             ),
-            object : SymbolProcessorProvider {
-                override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
-                    object : SymbolProcessor {
-                        override fun process(resolver: Resolver): List<KSAnnotated> {
-                            val stringTypeRef = resolver.createTypeReference<String>()
+            listOf(
+                object : SymbolProcessorProvider {
+                    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
+                        object : SymbolProcessor {
+                            override fun process(resolver: Resolver): List<KSAnnotated> {
+                                val stringTypeRef = resolver.createTypeReference<String>()
 
-                            val listClassDeclaration = resolver.getClassDeclarationByName<List<*>>()!!
-                            val listOfStringType = listClassDeclaration.asType(
-                                listOf(resolver.getTypeArgument(stringTypeRef, Variance.INVARIANT))
-                            )
-                            assertFalse(listOfStringType.isValueType)
+                                val listClassDeclaration = resolver.getClassDeclarationByName<List<*>>()!!
+                                val listOfStringType = listClassDeclaration.asType(
+                                    listOf(resolver.getTypeArgument(stringTypeRef, Variance.INVARIANT))
+                                )
+                                assertFalse(listOfStringType.isValueType)
 
-                            val uuidTypeRef = resolver.createTypeReference<Uuid>()
-                            assertTrue(uuidTypeRef.resolve().isValueType)
+                                val uuidTypeRef = resolver.createTypeReference<Uuid>()
+                                assertTrue(uuidTypeRef.resolve().isValueType)
 
-                            val personClassDeclaration = resolver.getSymbolsWithAnnotation(annotationQualifiedName)
-                                .first { it is KSClassDeclaration && it.simpleName.asString() == "Person" } as KSClassDeclaration
-                            val petsProperty =
-                                personClassDeclaration.getAllProperties().first { it.simpleName.asString() == "pets" }
+                                val personClassDeclaration = resolver.getSymbolsWithAnnotation(annotationQualifiedName)
+                                    .first { it is KSClassDeclaration && it.simpleName.asString() == "Person" } as KSClassDeclaration
+                                val petsProperty =
+                                    personClassDeclaration.getAllProperties()
+                                        .first { it.simpleName.asString() == "pets" }
 
-                            return emptyList()
+                                return emptyList()
+                            }
                         }
-                    }
 
-                inline fun <reified T> Resolver.createTypeReference(): KSTypeReference {
-                    val classDeclaration = getClassDeclarationByName<T>()!!
-                    val type = classDeclaration.asType(emptyList())
-                    return createKSTypeReferenceFromKSType(type)
+                    inline fun <reified T> Resolver.createTypeReference(): KSTypeReference {
+                        val classDeclaration = getClassDeclarationByName<T>()!!
+                        val type = classDeclaration.asType(emptyList())
+                        return createKSTypeReferenceFromKSType(type)
+                    }
                 }
-            }
+            )
         )
     }
 }

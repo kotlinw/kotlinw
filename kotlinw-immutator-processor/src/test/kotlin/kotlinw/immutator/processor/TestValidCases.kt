@@ -1,5 +1,7 @@
 package kotlinw.immutator.processor
 
+import kotlinw.ksp.testutil.assertCompilationSucceeded
+import kotlinw.ksp.testutil.checkCompilationResult
 import org.junit.jupiter.api.Test
 
 class TestValidCases {
@@ -51,7 +53,8 @@ class TestValidCases {
                             val javaUuidProperty: java.util.UUID
                             val javaUuidPropertyNullable: java.util.UUID?
                         }
-                        """
+                        """,
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -158,7 +161,8 @@ class TestValidCases {
                             val listOfJavaUuidNullable: List<java.util.UUID?>
                             val nullableListOfJavaUuidNullable: List<java.util.UUID?>?
                         }
-                        """
+                        """,
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -179,7 +183,8 @@ class TestValidCases {
 
                             val d: Data
                         }
-                        """
+                        """,
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -200,7 +205,8 @@ class TestValidCases {
 
                             val d: Data
                         }
-                        """
+                        """,
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }
@@ -222,7 +228,8 @@ class TestValidCases {
 
                         val d: Data
                     }
-                    """
+                    """,
+            listOf(ImmutatorSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
         }

@@ -47,6 +47,9 @@ import kotlinw.immutator.internal.ImmutableObject
 import kotlinw.immutator.internal.MutableObject
 import kotlinw.immutator.internal.MutableObjectImplementor
 import kotlinw.immutator.internal.MutableObjectState
+import kotlinw.ksp.util.companionObjectOrNull
+import kotlinw.ksp.util.hasCompanionObject
+import kotlinw.ksp.util.isEnumClass
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet

@@ -1,4 +1,4 @@
-package kotlinw.remoting.client.processor
+package kotlinw.ksp.testutil
 
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.tschuchort.compiletesting.KotlinCompilation
@@ -7,11 +7,8 @@ import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.symbolProcessorProviders
-import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import java.io.File
-import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 fun Result.assertCompilationFailed() {
@@ -44,20 +41,21 @@ fun KotlinCompilation.Result.assertHasKspError(message: String, location: String
     }
 }
 
-inline fun checkCompilationResult(sourceFile: SourceFile, block: KotlinCompilation.Result.() -> Unit) {
-    block(compile(sourceFile))
+inline fun checkCompilationResult(sourceFile: SourceFile, kspProcessorProviders: List<SymbolProcessorProvider>, block: KotlinCompilation.Result.() -> Unit) {
+    block(compile(sourceFile, kspProcessorProviders))
 }
 
-inline fun checkCompilationResult(sourceFile: String, block: KotlinCompilation.Result.() -> Unit) {
-    block(compile(SourceFile.kotlin("Test.kt", sourceFile)))
+inline fun checkCompilationResult(sourceFile: String, kspProcessorProviders: List<SymbolProcessorProvider>, block: KotlinCompilation.Result.() -> Unit) {
+    block(compile(SourceFile.kotlin("Test.kt", sourceFile), kspProcessorProviders))
 }
 
-fun compile(sourceFile: SourceFile, vararg additionalSymbolProcessorProviders: SymbolProcessorProvider) =
+fun compile(sourceFile: SourceFile, kspProcessorProviders: List<SymbolProcessorProvider>) =
     KotlinCompilation().apply {
         sources = listOf(sourceFile)
-        symbolProcessorProviders = listOf(RemotingSymbolProcessorProvider()).plus(additionalSymbolProcessorProviders)
+        symbolProcessorProviders = kspProcessorProviders.toList()
         messageOutputStream = System.out
         inheritClassPath = true
+        kotlincArguments += "-Xskip-prerelease-check"
     }.compile()
 
 internal val KotlinCompilation.Result.workingDir: File

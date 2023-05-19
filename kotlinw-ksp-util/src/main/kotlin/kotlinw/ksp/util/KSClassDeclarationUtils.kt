@@ -1,4 +1,4 @@
-package kotlinw.immutator.processor
+package kotlinw.ksp.util
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.Modifier

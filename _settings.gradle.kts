@@ -31,6 +31,10 @@ include(":kotlinw-immutator-annotations")
 //include(":kotlinw-statemachine-example-webapp")
 //
 //include(":lib:kotlinw:kotlinw-compose")
+
+include(":kotlinw-ksp-testutil")
+include(":kotlinw-ksp-util")
+
 include(":kotlinw-logging-api")
 include(":kotlinw-logging-js-console")
 include(":kotlinw-logging-jvm-logback")

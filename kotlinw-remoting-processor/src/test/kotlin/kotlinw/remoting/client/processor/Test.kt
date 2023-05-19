@@ -1,5 +1,8 @@
 package kotlinw.remoting.client.processor
 
+import kotlinw.ksp.testutil.assertCompilationSucceeded
+import kotlinw.ksp.testutil.checkCompilationResult
+import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlin.test.Test
 
 class Test {
@@ -25,7 +28,8 @@ class Test {
                         suspend fun test(remotingClient: RemotingClient) {
                             remotingClient.proxy(::Service).a()
                         }
-                    """
+                    """,
+            listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
             println(generatedFiles)
