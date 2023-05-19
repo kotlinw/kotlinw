@@ -82,6 +82,9 @@ val mutated = original.mutate {
     it.pets[1].name = "Doggo"
 }
 
+assertEquals("Doggy", original.pets[1].name)
+assertEquals("Doggo", mutated.pets[1].name)
+
 assertNotSame(original, mutated)
 assertSame(original.name, mutated.name)
 assertSame(original.address, mutated.address)

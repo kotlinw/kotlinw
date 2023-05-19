@@ -8,6 +8,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import java.time.Month.FEBRUARY
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 
@@ -30,6 +31,9 @@ class SimpleTest {
         val mutated = original.mutate {
             it.pets[1].name = "Doggo"
         }
+
+        assertEquals("Doggy", original.pets[1].name)
+        assertEquals("Doggo", mutated.pets[1].name)
 
         assertNotSame(original, mutated)
         assertSame(original.name, mutated.name)
