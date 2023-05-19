@@ -12,6 +12,7 @@ import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 
 class SimpleTest {
+
     @Test
     fun testIdentitySemantics() {
         val original = Person.immutable(
