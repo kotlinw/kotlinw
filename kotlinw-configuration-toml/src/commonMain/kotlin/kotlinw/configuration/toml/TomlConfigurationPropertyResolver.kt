@@ -14,19 +14,22 @@ import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlArray
 import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlValue
 import kotlinw.configuration.core.ConfigurationPropertyKey
 import kotlinw.configuration.core.ConfigurationPropertyKeySegment
+import kotlinw.configuration.core.ConfigurationPropertyResolver
 import kotlinw.configuration.core.ConfigurationPropertySource
 import kotlinw.configuration.core.EncodedConfigurationPropertyValue
+import kotlinw.configuration.core.EnumerableConfigurationPropertyResolver
 import kotlinw.util.stdlib.Priority
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 
-class TomlConfigurationPropertySource(
+class TomlConfigurationPropertyResolver(
     tomlContents: String,
-    sourceInfo: String? = null,
-    override val priority: Priority = Priority.Normal
-) : ConfigurationPropertySource {
+    sourceInfo: String? = null
+) : EnumerableConfigurationPropertyResolver {
 
     private val properties = readToml(tomlContents)
+
+    override fun getPropertyKeys() = properties.keys
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? = properties[key]
 }

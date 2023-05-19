@@ -1,12 +1,11 @@
 package kotlinw.configuration.core
 
-import kotlinw.util.stdlib.Priority
 import java.util.Properties
 
-class JavaPropertiesConfigurationPropertySource(
+class JavaPropertiesConfigurationPropertyResolver(
     private val properties: Properties,
-    override val priority: Priority = Priority.Normal
-) : EnumerableConfigurationPropertySource {
+    sourceInfo: String? = null
+) : EnumerableConfigurationPropertyResolver {
 
     override fun getPropertyKeys(): Set<ConfigurationPropertyKey> =
         properties.keys.map { ConfigurationPropertyKey(it.toString()) }.toSet()

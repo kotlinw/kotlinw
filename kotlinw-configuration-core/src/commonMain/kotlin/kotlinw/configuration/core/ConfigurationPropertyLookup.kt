@@ -22,6 +22,8 @@ class ConfigurationPropertyLookupImpl(
     configurationPropertySources: Iterable<ConfigurationPropertySource>
 ) : ConfigurationPropertyLookup {
 
+    constructor(vararg configurationPropertySources: ConfigurationPropertySource) : this(configurationPropertySources.toList())
+
     private val sources: List<ConfigurationPropertySource> =
         configurationPropertySources.sortedWith(HasPriority.comparator)
 

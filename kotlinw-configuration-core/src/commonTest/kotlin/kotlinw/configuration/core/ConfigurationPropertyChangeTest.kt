@@ -29,7 +29,10 @@ class ConfigurationPropertyChangeTest {
             override val priority = Priority.Normal
         }
         val lookup =
-            ConfigurationPropertyLookupImpl(listOf(source, ConstantConfigurationPropertySource.of(mapOf("b" to "x"))))
+            ConfigurationPropertyLookupImpl(
+                source,
+                ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
+            )
         val eventBus = LocalEventBusImpl()
 
         coroutineScope {
@@ -71,7 +74,10 @@ class ConfigurationPropertyChangeTest {
                 if (key == propertyName) propertyValueHolder.value else null
         }
         val lookup =
-            ConfigurationPropertyLookupImpl(listOf(source, ConstantConfigurationPropertySource.of(mapOf("b" to "x"))))
+            ConfigurationPropertyLookupImpl(
+                source,
+                ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
+            )
         val eventBus = LocalEventBusImpl()
 
         coroutineScope {

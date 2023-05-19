@@ -1,15 +1,36 @@
 package kotlinw.configuration.core
 
 import kotlinw.util.stdlib.HasPriority
+import kotlinw.util.stdlib.Priority
 
 interface ConfigurationPropertySource : HasPriority {
 
     fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 }
 
+class ConfigurationPropertySourceImpl(
+    private val resolver: ConfigurationPropertyResolver,
+    override val priority: Priority = Priority.Normal
+) : ConfigurationPropertySource, HasPriority {
+
+    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
+        resolver.getPropertyValueOrNull(key)
+}
+
 interface EnumerableConfigurationPropertySource : ConfigurationPropertySource {
 
     fun getPropertyKeys(): Set<ConfigurationPropertyKey>
+}
+
+class EnumerableConfigurationPropertySourceImpl(
+    private val resolver: EnumerableConfigurationPropertyResolver,
+    override val priority: Priority = Priority.Normal
+) : EnumerableConfigurationPropertySource, HasPriority {
+
+    override fun getPropertyKeys(): Set<ConfigurationPropertyKey> = resolver.getPropertyKeys()
+
+    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
+        resolver.getPropertyValueOrNull(key)
 }
 
 class ConfigurationPropertyKeySegment(internal val value: String) {

@@ -44,11 +44,9 @@ class ConfigurationObjectLookupTest {
     @Test
     fun testRootObject() {
         val configurationPropertyLookup = ConfigurationPropertyLookupImpl(
-            listOf(
-                ConstantConfigurationPropertySource.of(
-                    mapOf("a" to "13", "b" to "abc")
-                )
-            )
+            ConstantConfigurationPropertyResolver.of(
+                mapOf("a" to "13", "b" to "abc")
+            ).asConfigurationPropertySource()
         )
         val configurationObjectLookup = ConfigurationObjectLookupImpl(configurationPropertyLookup)
 

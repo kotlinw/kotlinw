@@ -83,7 +83,7 @@ private suspend fun pollConfigurationPropertiesImpl(
     }
         .distinctUntilChanged()
 
-data class ConfigurationPropertySourceChangeEvent(val configurationSource: ConfigurationPropertySource)
+object ConfigurationPropertySourceChangeEvent
 
 data class ConfigurationPropertyChangeEvent(
     val name: ConfigurationPropertyKey,

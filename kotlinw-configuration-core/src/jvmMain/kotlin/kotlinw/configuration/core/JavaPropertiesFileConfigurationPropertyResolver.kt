@@ -5,19 +5,17 @@ import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.io.FileLocation
 import kotlinx.coroutines.CoroutineScope
 import java.io.StringReader
-import java.lang.reflect.Constructor
 import java.util.Properties
 import kotlin.time.Duration
 
-class JavaPropertiesFileConfigurationPropertySource private constructor(
-    override val priority: Priority,
-    private val delegate: DelegatingFileConfigurationPropertySource
-) : EnumerableConfigurationPropertySource {
+class JavaPropertiesFileConfigurationPropertyResolver private constructor(
+    private val delegate: DelegatingFileConfigurationPropertyResolver
+) : EnumerableConfigurationPropertyResolver {
 
     companion object {
 
         private val delegateFactory = { contents: String ->
-            JavaPropertiesConfigurationPropertySource(
+            JavaPropertiesConfigurationPropertyResolver(
                 Properties().also {
                     it.load(StringReader(contents))
                 }
@@ -25,13 +23,9 @@ class JavaPropertiesFileConfigurationPropertySource private constructor(
         }
     }
 
-    constructor(
-        fileLocation: FileLocation,
-        priority: Priority = Priority.Normal
-    ) :
+    constructor(fileLocation: FileLocation) :
             this(
-                priority,
-                DelegatingFileConfigurationPropertySource(
+                DelegatingFileConfigurationPropertyResolver(
                     fileLocation = fileLocation,
                     delegateFactory = delegateFactory
                 )
@@ -41,12 +35,10 @@ class JavaPropertiesFileConfigurationPropertySource private constructor(
         fileLocation: FileLocation,
         watcherCoroutineScope: CoroutineScope,
         eventBus: LocalEventBus,
-        watchDelay: Duration,
-        priority: Priority = Priority.Normal
+        watchDelay: Duration
     ) :
             this(
-                priority,
-                DelegatingFileConfigurationPropertySource(
+                DelegatingFileConfigurationPropertyResolver(
                     fileLocation = fileLocation,
                     delegateFactory = delegateFactory,
                     watcherCoroutineScope = watcherCoroutineScope,
