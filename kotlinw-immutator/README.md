@@ -66,18 +66,27 @@ sealed interface Pet {
 
 By building the project, KSP generates various declarations from the annotated *definition interface* declarations.
 
-For user code, the only important is the extension function used to create immutable instances,
-for example in case of `Pet` the following is generated:
+The most important ones are (with simplified code examples):
 
-```kotlin
-fun Pet.Companion.immutable(kind: PetKind, name: String): PetImmutable = ...
-```
-
-Besides, the following class declarations are generated as well for each *definition interface*:
-
-- a `data class` with the immutable implementation
-- an `interface` with the mutable variant of the *definition interface*
-- (an internal `data class` with the mutable implementation)
+- a `class` with the immutable implementation, e.g.
+    ```kotlin
+    class PetImmutable(
+        override val kind: PetKind,
+        override val name: String,
+    ) : Pet
+    ```
+- an extension function to create immutable instances, e.g.
+    ```kotlin
+    fun Pet.Companion.immutable(kind: PetKind, name: String): PetImmutable = ...
+    ```
+- an `interface` with the mutable variant of the *definition interface*, e.g.
+    ```kotlin
+    interface PetMutable : Pet {
+        override var kind: PetKind
+        override var name: String
+    }
+    ```
+- an internally used `class` with the mutable implementation, e.g. `class PetMutableImpl(...): PetMutable`
 
 ## Create immutable instances
 
