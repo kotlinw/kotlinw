@@ -84,6 +84,8 @@ kotlinpoet = "1.13.0"
 
 okio = "3.3.0"
 
+kotlinresult = "1.1.17"
+
 [libraries]
 
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
@@ -302,6 +304,9 @@ mina-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "mina" }
 okio-core = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 turbine = { module = "app.cash.turbine:turbine", version = "0.13.0" }
+
+kotlinresult-core = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinresult" }
+kotlinresult-coroutines = { module = "com.michael-bull.kotlin-result:kotlin-result-coroutines", version.ref = "kotlinresult" }
 
 [plugins]
 
