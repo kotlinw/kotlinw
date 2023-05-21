@@ -4,10 +4,10 @@ import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageDecoderMetadataPrefetchSupport.ExtractedMetadata
-import kotlinw.util.stdlib.copyInto
+import kotlinw.util.stdlib.ByteArrayView.Companion.copyInto
 import kotlinw.util.stdlib.readFromByteArray
 import kotlinw.util.stdlib.readFromByteArrayView
-import kotlinw.util.stdlib.view
+import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.writeToByteArray
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

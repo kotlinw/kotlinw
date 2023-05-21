@@ -1,7 +1,8 @@
 package kotlinw.remoting.core
 
 import kotlinw.util.stdlib.ByteArrayView
-import kotlinw.util.stdlib.decodeToString
+import kotlinw.util.stdlib.ByteArrayView.Companion.decodeToString
+import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlin.jvm.JvmInline
 
 sealed interface RawMessage {
@@ -15,7 +16,10 @@ sealed interface RawMessage {
             fun of(bytes: ByteArrayView) = Text(bytes.decodeToString())
         }
 
-        override val byteArrayView by lazy { ByteArrayView(text.encodeToByteArray()) }
+        override val byteArrayView by lazy {
+            @Suppress("OPT_IN_USAGE")
+            text.encodeToByteArray().view()
+        }
     }
 
     @JvmInline

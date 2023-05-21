@@ -21,8 +21,8 @@ import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
-import kotlinw.util.stdlib.toReadOnlyByteArray
-import kotlinw.util.stdlib.view
+import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
+import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

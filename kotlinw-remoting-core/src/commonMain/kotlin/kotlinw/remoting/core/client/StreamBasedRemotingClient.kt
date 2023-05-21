@@ -5,7 +5,7 @@ import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
-import kotlinw.util.stdlib.write
+import kotlinw.util.stdlib.ByteArrayView.Companion.write
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer

@@ -1,9 +1,9 @@
 package kotlinw.remoting.core.codec
 
 import kotlinw.remoting.core.RawMessage
-import kotlinw.util.stdlib.decodeToString
-import kotlinw.util.stdlib.toReadOnlyByteArray
-import kotlinw.util.stdlib.view
+import kotlinw.util.stdlib.ByteArrayView.Companion.decodeToString
+import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
+import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.StringFormat

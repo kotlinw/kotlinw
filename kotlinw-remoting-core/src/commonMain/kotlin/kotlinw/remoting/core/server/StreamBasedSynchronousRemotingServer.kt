@@ -4,7 +4,7 @@ import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
-import kotlinw.util.stdlib.write
+import kotlinw.util.stdlib.ByteArrayView.Companion.write
 import kotlinx.coroutines.yield
 import kotlinx.serialization.KSerializer
 import okio.BufferedSink

@@ -38,8 +38,8 @@ import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import kotlinw.util.stdlib.toReadOnlyByteArray
-import kotlinw.util.stdlib.view
+import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
+import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
