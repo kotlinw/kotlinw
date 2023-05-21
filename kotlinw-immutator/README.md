@@ -105,19 +105,28 @@ val original: PersonImmutable = Person.immutable(
 ## Mutate the instances
 
 ```kotlin
+// Mutation is effecient, if nothing is modified then no new object is created
 assertSame(original, original.toMutable().toImmutable())
 
-val mutated: PersonImmutable = original.mutate { /* it: PersonMutable -> */
-    it.pets[1].name = "Doggo"
+// Mutation works on truly mutable instances, not by explicitly copying the existing instances
+// (copying happens implicitly in the background if needed)
+val mutated = original.mutate {
+  it.name.title = "Prof."
+  it.pets[1].name = "Doggo"
 }
 
+assertNotSame(original, mutated)
+
+// Non-mutated properties retain referential equality (no unnecessary copies are created)
+assertSame(original.address, mutated.address)
+assertSame(original.pets[0], mutated.pets[0])
+
+assertNotSame(original.name, mutated.name)
+assertNull(original.name.title)
+assertEquals("Prof.", mutated.name.title)
+
+assertNotSame(original.pets, mutated.pets)
+assertNotSame(original.pets[1], mutated.pets[1])
 assertEquals("Doggy", original.pets[1].name)
 assertEquals("Doggo", mutated.pets[1].name)
-
-assertNotSame(original, mutated)
-assertSame(original.name, mutated.name)
-assertSame(original.address, mutated.address)
-assertNotSame(original.pets, mutated.pets)
-assertSame(original.pets[0], mutated.pets[0])
-assertNotSame(original.pets[1], mutated.pets[1])
 ```
