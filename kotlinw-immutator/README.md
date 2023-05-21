@@ -117,7 +117,7 @@ val mutated = original.mutate {
 
 assertNotSame(original, mutated)
 
-// Non-mutated properties retain referential equality (no unnecessary copies are created)
+// Non-mutated properties retain referential equality
 assertSame(original.address, mutated.address)
 assertSame(original.pets[0], mutated.pets[0])
 
