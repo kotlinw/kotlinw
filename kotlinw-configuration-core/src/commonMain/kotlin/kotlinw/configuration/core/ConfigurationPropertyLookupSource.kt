@@ -3,29 +3,29 @@ package kotlinw.configuration.core
 import kotlinw.util.stdlib.HasPriority
 import kotlinw.util.stdlib.Priority
 
-interface ConfigurationPropertySource : HasPriority {
+interface ConfigurationPropertyLookupSource : HasPriority {
 
     fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 }
 
-class ConfigurationPropertySourceImpl(
+class ConfigurationPropertyLookupSourceImpl(
     private val resolver: ConfigurationPropertyResolver,
     override val priority: Priority = Priority.Normal
-) : ConfigurationPropertySource, HasPriority {
+) : ConfigurationPropertyLookupSource, HasPriority {
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
         resolver.getPropertyValueOrNull(key)
 }
 
-interface EnumerableConfigurationPropertySource : ConfigurationPropertySource {
+interface EnumerableConfigurationPropertyLookupSource : ConfigurationPropertyLookupSource {
 
     fun getPropertyKeys(): Set<ConfigurationPropertyKey>
 }
 
-class EnumerableConfigurationPropertySourceImpl(
+class EnumerableConfigurationPropertyLookupSourceImpl(
     private val resolver: EnumerableConfigurationPropertyResolver,
     override val priority: Priority = Priority.Normal
-) : EnumerableConfigurationPropertySource, HasPriority {
+) : EnumerableConfigurationPropertyLookupSource, HasPriority {
 
     override fun getPropertyKeys(): Set<ConfigurationPropertyKey> = resolver.getPropertyKeys()
 
@@ -144,5 +144,5 @@ class ConfigurationPropertyKey(
         return name.hashCode()
     }
 
-    override fun toString() = if (sourceInfo != null) "$name (source: $sourceInfo)" else "$name (unknown source)"
+    override fun toString() = if (sourceInfo != null) "'$name' (source: $sourceInfo)" else "'$name'"
 }

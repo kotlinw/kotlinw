@@ -21,7 +21,7 @@ class ConfigurationPropertyChangeTest {
         val propertyName = "a"
         val propertyValueHolder = AtomicRef<String?>(null)
 
-        val source = object : ConfigurationPropertySource {
+        val source = object : ConfigurationPropertyLookupSource {
 
             override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
                 if (key.name == propertyName) propertyValueHolder.value else null
@@ -64,7 +64,7 @@ class ConfigurationPropertyChangeTest {
         val propertyName = ConfigurationPropertyKey("a")
         val propertyValueHolder = AtomicRef<String?>(null)
 
-        val source = object : EnumerableConfigurationPropertySource {
+        val source = object : EnumerableConfigurationPropertyLookupSource {
 
             override val priority = Priority.Normal
 

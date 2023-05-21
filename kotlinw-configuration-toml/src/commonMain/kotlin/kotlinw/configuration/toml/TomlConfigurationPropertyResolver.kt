@@ -14,11 +14,8 @@ import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlArray
 import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlValue
 import kotlinw.configuration.core.ConfigurationPropertyKey
 import kotlinw.configuration.core.ConfigurationPropertyKeySegment
-import kotlinw.configuration.core.ConfigurationPropertyResolver
-import kotlinw.configuration.core.ConfigurationPropertySource
 import kotlinw.configuration.core.EncodedConfigurationPropertyValue
 import kotlinw.configuration.core.EnumerableConfigurationPropertyResolver
-import kotlinw.util.stdlib.Priority
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 

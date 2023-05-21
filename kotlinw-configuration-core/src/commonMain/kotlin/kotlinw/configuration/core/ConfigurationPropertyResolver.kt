@@ -14,6 +14,6 @@ interface EnumerableConfigurationPropertyResolver : ConfigurationPropertyResolve
 
 fun <T : ConfigurationPropertyResolver> T.asConfigurationPropertySource(priority: Priority = Priority.Normal) =
     when (this) {
-        is EnumerableConfigurationPropertyResolver -> EnumerableConfigurationPropertySourceImpl(this, priority)
-        else -> ConfigurationPropertySourceImpl(this, priority)
+        is EnumerableConfigurationPropertyResolver -> EnumerableConfigurationPropertyLookupSourceImpl(this, priority)
+        else -> ConfigurationPropertyLookupSourceImpl(this, priority)
     }

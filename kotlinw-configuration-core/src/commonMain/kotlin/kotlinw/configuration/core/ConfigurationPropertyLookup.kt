@@ -15,17 +15,42 @@ fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: Configuration
     getConfigurationPropertyValueOrNull(key)
         ?: throw ConfigurationException("Configuration property not found: $key")
 
+inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: ConfigurationPropertyKey): T? =
+    getConfigurationPropertyValueOrNull(key)?.decode()
+
+@PublishedApi
+internal inline fun <reified T> String.decode(): T? =
+    if (isBlank()) {
+        null
+    } else {
+        try {
+            when (T::class) {
+                Boolean::class -> toBooleanStrict()
+                Byte::class -> toByte()
+                Short::class -> toShort()
+                Int::class -> toInt()
+                Long::class -> toLong()
+                Float::class -> toFloat()
+                Double::class -> toDouble()
+                Char::class -> if (length == 1) first() else throw IllegalArgumentException("Single character expected but got: '$this'")
+                else -> throw IllegalArgumentException("Unsupported type: ${T::class}")
+            } as T
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Failed to decode value '$this' as target type ${T::class}.")
+        }
+    }
+
 fun ConfigurationPropertyLookup.getMatchingEnumerableConfigurationProperties(keyRegex: Regex): Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue> =
     filterEnumerableConfigurationProperties { it.name.matches(keyRegex) }
 
 class ConfigurationPropertyLookupImpl(
-    configurationPropertySources: Iterable<ConfigurationPropertySource>
+    configurationPropertyLookupSources: Iterable<ConfigurationPropertyLookupSource>
 ) : ConfigurationPropertyLookup {
 
-    constructor(vararg configurationPropertySources: ConfigurationPropertySource) : this(configurationPropertySources.toList())
+    constructor(vararg configurationPropertyLookupSources: ConfigurationPropertyLookupSource) : this(configurationPropertyLookupSources.toList())
 
-    private val sources: List<ConfigurationPropertySource> =
-        configurationPropertySources.sortedWith(HasPriority.comparator)
+    private val sources: List<ConfigurationPropertyLookupSource> =
+        configurationPropertyLookupSources.sortedWith(HasPriority.comparator)
 
     override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? {
         sources.forEach {
@@ -40,7 +65,7 @@ class ConfigurationPropertyLookupImpl(
 
     override fun filterEnumerableConfigurationProperties(predicate: (key: ConfigurationPropertyKey) -> Boolean): Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue> =
         sources
-            .filterIsInstance<EnumerableConfigurationPropertySource>()
+            .filterIsInstance<EnumerableConfigurationPropertyLookupSource>()
             .flatMap { it.getPropertyKeys() }
             .filter(predicate)
             .associateWith { getConfigurationPropertyValueOrNull(it)!! }
