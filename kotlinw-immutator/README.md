@@ -105,11 +105,12 @@ val original: PersonImmutable = Person.immutable(
 ## Mutate the instances
 
 ```kotlin
-// Mutation is effecient, if nothing is modified then no new object is created
+// If no property is modified then the "mutated" immutable instance
+// will be the referentially equal to the "original" immutable instance 
 assertSame(original, original.toMutable().toImmutable())
 
-// Mutation works on truly mutable instances, not by explicitly copying the existing instances
-// (copying happens implicitly in the background if needed)
+// Mutation works on truly mutable instances, 
+// not by explicitly copying the existing instances
 val mutated = original.mutate {
   it.name.title = "Prof."
   it.pets[1].name = "Doggo"
