@@ -9,6 +9,9 @@ import kotlinx.coroutines.launch
 
 typealias LocalEvent = Any
 
+/**
+ * Event bus for local (in-process) events.
+ */
 sealed interface LocalEventBus {
 
     suspend fun dispatch(event: LocalEvent)
