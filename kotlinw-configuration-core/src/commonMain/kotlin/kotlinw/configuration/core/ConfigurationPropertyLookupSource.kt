@@ -144,5 +144,5 @@ class ConfigurationPropertyKey(
         return name.hashCode()
     }
 
-    override fun toString() = if (sourceInfo != null) "'$name' (source: $sourceInfo)" else "'$name'"
+    override fun toString() = if (sourceInfo != null) "$name (source: $sourceInfo)" else name
 }
