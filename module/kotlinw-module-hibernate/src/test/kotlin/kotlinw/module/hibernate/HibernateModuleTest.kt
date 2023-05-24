@@ -4,12 +4,13 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import kotlinw.hibernate.core.api.createTypeSafeEntityManager
+import kotlinw.hibernate.core.api.jdbcTask
+import kotlinw.hibernate.core.api.jpaTask
+import kotlinw.hibernate.core.api.transactional
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
-import kotlinw.hibernate.core.api.createTypeSafeEntityManager
-import kotlinw.hibernate.core.api.transactional
 import kotlinw.jdbc.util.executeStatements
-import org.hibernate.Session
 import org.hibernate.SessionFactory
 import org.koin.core.context.startKoin
 import kotlin.test.Test
@@ -48,24 +49,24 @@ class HibernateModuleTest {
                 val sessionFactory = get<SessionFactory>()
 
                 sessionFactory.createTypeSafeEntityManager().use {
-                    it.unwrap(Session::class.java).doWork {
-                        it.executeStatements(createSchemaScript)
+                    it.jdbcTask {
+                        executeStatements(createSchemaScript)
                     }
                 }
 
                 fun EntityManager.findAllPersons() =
                     createQuery("FROM PersonEntity", PersonEntity::class.java).resultList
 
-                sessionFactory.createTypeSafeEntityManager().use {
-                    assertEquals(emptyList(), it.findAllPersons())
+                sessionFactory.jpaTask {
+                    assertEquals(emptyList(), findAllPersons())
                 }
 
-                sessionFactory.createTypeSafeEntityManager().use {
-                    it.transactional {
+                sessionFactory.jpaTask {
+                    transactional {
                         persistEntity(PersonEntity(1, "Joe"))
                     }
 
-                    assertEquals(1, it.findAllPersons().size)
+                    assertEquals(1, findAllPersons().size)
                 }
             }
         } finally {
