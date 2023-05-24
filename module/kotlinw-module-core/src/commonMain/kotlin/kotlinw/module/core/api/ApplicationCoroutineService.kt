@@ -12,11 +12,3 @@ interface ApplicationCoroutineService {
 
     val coroutineScope: CoroutineScope
 }
-
-// TODO törölni
-fun CoroutineScope.createNestedScope(additionalCoroutineContext: CoroutineContext = EmptyCoroutineContext): CoroutineScope =
-    CoroutineScope(Job(coroutineContext.job) + additionalCoroutineContext)
-
-// TODO törölni
-fun CoroutineScope.createNestedSupervisorScope(additionalCoroutineContext: CoroutineContext = EmptyCoroutineContext): CoroutineScope =
-    CoroutineScope(SupervisorJob(coroutineContext.job) + additionalCoroutineContext)

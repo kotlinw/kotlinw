@@ -12,7 +12,7 @@ import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerOnShutdownTask
 import kotlinw.koin.core.api.registerOnStartupTask
 import kotlinw.module.core.api.ApplicationCoroutineService
-import kotlinw.module.core.api.createNestedSupervisorScope
+import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
