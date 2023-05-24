@@ -7,11 +7,7 @@ plugins {
 kotlin {
     targetHierarchy.default()
     jvm { }
-    js(IR) {
-        browser()
-    }
     if (isNativeTargetEnabled()) {
-        mingwX64()
         linuxX64()
     }
 
@@ -19,11 +15,15 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.module.kotlinwKoinCore)
+                api(libs.ktor.server.core)
+                api(libs.ktor.server.host.common)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                // TODO implementation(libs.ktor.server.test.host)
+                implementation(libs.ktor.server.cio)
             }
         }
     }

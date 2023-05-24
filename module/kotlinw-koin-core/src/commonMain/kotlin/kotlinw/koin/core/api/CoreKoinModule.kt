@@ -4,12 +4,15 @@ import io.ktor.client.HttpClient
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.eventbus.local.LocalEventBusImpl
-import kotlinw.koin.core.internal.ContainerCloseCoordinator
-import kotlinw.koin.core.internal.ContainerCloseCoordinatorImpl
+import kotlinw.koin.core.internal.ContainerShutdownCoordinator
+import kotlinw.koin.core.internal.ContainerShutdownCoordinatorImpl
+import kotlinw.koin.core.internal.ContainerStartupCoordinator
+import kotlinw.koin.core.internal.ContainerStartupCoordinatorImpl
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.spi.LoggingConfigurationProvider
 import kotlinw.logging.spi.LoggingContextManager
 import kotlinw.logging.spi.LoggingDelegator
+import kotlinw.logging.spi.LoggingIntegrator
 import kotlinw.module.core.api.ApplicationCoroutineService
 import kotlinw.module.core.impl.ApplicationCoroutineServiceImpl
 import kotlinw.module.core.impl.defaultLoggingIntegrator
@@ -20,17 +23,16 @@ import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import org.koin.core.definition.KoinDefinition
-import org.koin.core.definition.OnCloseCallback
-import org.koin.core.module.OptionDslMarker
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
 fun coreKoinModule() = module {
-    single<ContainerCloseCoordinator> { ContainerCloseCoordinatorImpl() } onClose { it?.close() }
-    single { defaultLoggingIntegrator } withOptions {
+    single<ContainerStartupCoordinator>(createdAtStart = true) { ContainerStartupCoordinatorImpl() }
+    single<ContainerShutdownCoordinator> { ContainerShutdownCoordinatorImpl() } onClose { it?.close() }
+
+    single<LoggingIntegrator> { defaultLoggingIntegrator } withOptions {
         bind<LoggingConfigurationProvider>()
         bind<LoggerFactory>()
         bind<LoggingDelegator>()

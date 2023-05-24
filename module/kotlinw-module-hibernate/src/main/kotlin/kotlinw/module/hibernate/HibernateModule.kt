@@ -6,7 +6,7 @@ import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
 import kotlinw.koin.core.api.coreKoinModule
-import kotlinw.koin.core.internal.registerOnCloseTask
+import kotlinw.koin.core.api.registerOnShutdownTask
 import org.hibernate.SessionFactory
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.MetadataBuilder
@@ -52,8 +52,6 @@ fun interface SessionFactoryCustomizer {
 fun hibernateModule(vararg persistentClasses: KClass<*>) = hibernateModule(persistentClasses.toList())
 
 fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
-    includes(coreKoinModule())
-
     single<BootstrapServiceRegistry> {
         BootstrapServiceRegistryBuilder()
             .apply {
@@ -62,7 +60,7 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 }
             }
             .build()
-            .registerOnCloseTask(this) {
+            .registerOnShutdownTask(this) {
                 it?.close()
             }
     }
@@ -83,7 +81,7 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 }
             }
             .build()
-            .registerOnCloseTask(this) {
+            .registerOnShutdownTask(this) {
                 it?.close()
             }
     }
@@ -126,7 +124,7 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 }
             }
             .build()
-            .registerOnCloseTask(this) {
+            .registerOnShutdownTask(this) {
                 it?.close()
             }
     }

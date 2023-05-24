@@ -11,8 +11,8 @@ import kotlinw.hibernate.core.api.transactional
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.jdbc.util.executeStatements
+import kotlinw.koin.core.api.startKoin
 import org.hibernate.SessionFactory
-import org.koin.core.context.startKoin
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -26,7 +26,7 @@ class PersonEntity(
     var name: String
 )
 
-class HibernateModuleTest {
+class HibernateModuleIntegrationTest {
 
     @Test
     fun testBootstrap() {
