@@ -1,6 +1,6 @@
-package kotlinw.module.core.impl
+package kotlinw.koin.core.internal
 
-import kotlinw.module.core.api.ApplicationCoroutineService
+import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel

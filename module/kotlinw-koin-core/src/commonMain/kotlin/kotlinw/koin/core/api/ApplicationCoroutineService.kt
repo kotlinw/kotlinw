@@ -1,4 +1,4 @@
-package kotlinw.module.core.api
+package kotlinw.koin.core.api
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

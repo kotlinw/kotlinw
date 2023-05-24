@@ -1,4 +1,4 @@
-package kotlinw.module.core.impl
+package kotlinw.koin.core.internal
 
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.logging.spi.LoggingIntegrator
