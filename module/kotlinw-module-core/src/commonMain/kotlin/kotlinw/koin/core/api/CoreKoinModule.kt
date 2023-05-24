@@ -27,7 +27,7 @@ import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
-fun coreKoinModule() = module {
+fun coreModule() = module {
     single<ContainerStartupCoordinator>(createdAtStart = true) { ContainerStartupCoordinatorImpl() }
     single<ContainerShutdownCoordinator> { ContainerShutdownCoordinatorImpl() } onClose { it?.close() }
 

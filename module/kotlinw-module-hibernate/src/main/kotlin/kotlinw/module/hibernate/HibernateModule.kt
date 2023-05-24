@@ -5,7 +5,6 @@ import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
-import kotlinw.koin.core.api.coreKoinModule
 import kotlinw.koin.core.api.registerOnShutdownTask
 import org.hibernate.SessionFactory
 import org.hibernate.boot.Metadata

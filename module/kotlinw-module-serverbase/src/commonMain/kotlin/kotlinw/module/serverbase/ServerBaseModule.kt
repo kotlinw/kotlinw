@@ -8,7 +8,6 @@ import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.koin.core.api.ApplicationCoroutineService
-import kotlinw.koin.core.api.coreKoinModule
 import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerOnShutdownTask
 import kotlinw.koin.core.api.registerOnStartupTask

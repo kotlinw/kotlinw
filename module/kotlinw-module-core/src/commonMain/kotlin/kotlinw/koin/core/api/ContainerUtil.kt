@@ -10,8 +10,6 @@ import org.koin.core.KoinApplication
 import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.scope.Scope
 import org.koin.dsl.KoinAppDeclaration
-import org.koin.dsl.module
-import org.koin.mp.KoinPlatformTools
 
 inline fun <reified T : Any> Scope.getAllSortedByPriority(): List<T> =
     getAll<T>(T::class).sortedBy {
@@ -37,7 +35,7 @@ fun <T : Any> T.registerOnShutdownTask(scope: Scope, onShutdownTask: OnShutdownT
 @KoinApplicationDslMarker
 fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
     org.koin.core.context.startKoin {
-        modules(coreKoinModule())
+        modules(coreModule())
         appDeclaration()
     }.apply {
         koin.get<ContainerStartupCoordinator>().runStartupTasks()
