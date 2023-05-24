@@ -146,3 +146,5 @@ class ConfigurationPropertyKey(
 
     override fun toString() = if (sourceInfo != null) "$name (source: $sourceInfo)" else name
 }
+
+fun ConfigurationPropertyKey.startsWith(prefix: String) = startsWith(ConfigurationPropertyKey(prefix))
