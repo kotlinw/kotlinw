@@ -33,7 +33,7 @@ kotlin {
 dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
     api(projects.kotlinw.kotlinwHibernateCore)
-    api(projects.kotlinw.module.kotlinwKoinCore)
+    api(projects.kotlinw.module.kotlinwModuleCore)
 
     testImplementation(kotlin("test"))
     testImplementation(projects.kotlinw.kotlinwJdbcUtil)

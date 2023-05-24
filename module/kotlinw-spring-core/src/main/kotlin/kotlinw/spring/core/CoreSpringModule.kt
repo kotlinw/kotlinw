@@ -2,11 +2,11 @@ package kotlinw.spring.core
 
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.LocalEventBusImpl
+import kotlinw.koin.core.api.ApplicationCoroutineService
+import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
+import kotlinw.koin.core.internal.defaultLoggingIntegrator
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.spi.LoggingIntegrator
-import kotlinw.module.core.api.ApplicationCoroutineService
-import kotlinw.module.core.impl.ApplicationCoroutineServiceImpl
-import kotlinw.module.core.impl.defaultLoggingIntegrator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

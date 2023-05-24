@@ -7,11 +7,11 @@ import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
+import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.koin.core.api.coreKoinModule
 import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerOnShutdownTask
 import kotlinw.koin.core.api.registerOnStartupTask
-import kotlinw.module.core.api.ApplicationCoroutineService
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope

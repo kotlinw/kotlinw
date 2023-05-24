@@ -14,7 +14,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.module.kotlinwKoinCore)
+                api(projects.kotlinw.module.kotlinwModuleCore)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(libs.ktor.server.core)
                 api(libs.ktor.server.host.common)
