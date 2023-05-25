@@ -2,7 +2,7 @@ package kotlinw.module.serverbase
 
 import io.ktor.server.application.Application
 
-abstract class KtorServerApplicationModule  {
+abstract class KtorServerApplicationConfigurer  {
 
     @PublishedApi
     internal fun setupModule(application: Application) = application.setup()
@@ -11,7 +11,7 @@ abstract class KtorServerApplicationModule  {
     abstract fun Application.setup()
 }
 
-fun KtorServerApplicationModule(block: Application.() -> Unit) = object: KtorServerApplicationModule() {
+fun KtorServerApplicationConfigurer(block: Application.() -> Unit) = object: KtorServerApplicationConfigurer() {
 
     override fun Application.setup() {
         block()

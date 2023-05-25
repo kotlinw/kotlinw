@@ -1,0 +1,5 @@
+package kotlinw.hibernate.core.schemaupgrade
+
+import kotlinw.module.api.ApplicationInitializerService
+
+interface DatabaseUpgradeManager: ApplicationInitializerService

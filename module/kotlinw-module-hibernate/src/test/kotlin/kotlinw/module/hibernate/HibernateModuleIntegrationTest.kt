@@ -12,6 +12,7 @@ import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.jdbc.util.executeStatements
 import kotlinw.koin.core.api.startKoin
+import kotlinw.module.hibernate.core.hibernateModule
 import org.hibernate.SessionFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals

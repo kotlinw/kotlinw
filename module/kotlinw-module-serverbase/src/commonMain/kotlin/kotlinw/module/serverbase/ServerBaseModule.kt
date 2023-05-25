@@ -9,18 +9,19 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.koin.core.api.getAllSortedByPriority
-import kotlinw.koin.core.api.registerOnShutdownTask
-import kotlinw.koin.core.api.registerOnStartupTask
+import kotlinw.koin.core.api.registerShutdownTask
+import kotlinw.koin.core.api.registerStartupTask
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 inline fun <reified TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> serverBaseModule(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     crossinline configure: TConfiguration.(Scope) -> Unit = {} //TODO context(Scope)
 ) = module {
-    single<TEngine>(createdAtStart = true) {
+    single {
         val ktorServerCoroutineScope = get<ApplicationCoroutineService>().coroutineScope.createNestedSupervisorScope()
 
         val environment = applicationEngineEnvironment {
@@ -29,7 +30,7 @@ inline fun <reified TEngine : ApplicationEngine, TConfiguration : ApplicationEng
             this.log = KtorSimpleLogger("ktor.application") // TODO
 
             this.module {
-                getAllSortedByPriority<KtorServerApplicationModule>().forEach {
+                getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
                     it.setupModule(this)
                 }
             }
@@ -58,13 +59,14 @@ inline fun <reified TEngine : ApplicationEngine, TConfiguration : ApplicationEng
             .create(environment) {
                 configure(this, this@single)
             }
-            .registerOnStartupTask(this) {
+            .registerStartupTask(this) {
                 ktorServerCoroutineScope.launch {
                     it.start(wait = true)
                 }
             }
-            .registerOnShutdownTask(this) {
+            .registerShutdownTask(this) {
                 it.stop()
             }
     }
+        .bind<TEngine>()
 }

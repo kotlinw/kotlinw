@@ -16,6 +16,7 @@ kotlin {
 }
 
 dependencies {
+    api(projects.kotlinw.kotlinwJdbcUtil)
     api(libs.hibernate.core)
     api(libs.hibernate.envers)
 }

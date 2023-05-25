@@ -1,11 +1,11 @@
-package kotlinw.module.hibernate
+package kotlinw.module.hibernate.core
 
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
-import kotlinw.koin.core.api.registerOnShutdownTask
+import kotlinw.koin.core.api.registerShutdownTask
 import org.hibernate.SessionFactory
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.MetadataBuilder
@@ -15,6 +15,8 @@ import org.hibernate.boot.registry.BootstrapServiceRegistry
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder
 import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
+import org.hibernate.cfg.AvailableSettings
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 
@@ -51,7 +53,7 @@ fun interface SessionFactoryCustomizer {
 fun hibernateModule(vararg persistentClasses: KClass<*>) = hibernateModule(persistentClasses.toList())
 
 fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
-    single<BootstrapServiceRegistry> {
+    single {
         BootstrapServiceRegistryBuilder()
             .apply {
                 getAll<BootstrapServiceRegistryCustomizer>().forEach {
@@ -59,10 +61,10 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 }
             }
             .build()
-            .registerOnShutdownTask(this) {
+            .registerShutdownTask(this) {
                 it?.close()
             }
-    }
+    }.bind<BootstrapServiceRegistry>()
 
     single<StandardServiceRegistry> {
         StandardServiceRegistryBuilder(get())
@@ -73,17 +75,20 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                         applySetting(it.key.name, it.value)
                     }
 
-                applySetting("hibernate.connection.url", "jdbc:h2:mem:")
+                // TODO applySetting("hibernate.connection.url", "jdbc:h2:mem:")
+                applySetting(AvailableSettings.URL, "jdbc:postgresql://localhost:5432/whocos-gateway2")
+                applySetting(AvailableSettings.USER, "whocos")
+                applySetting(AvailableSettings.PASS, "whocos")
 
                 getAll<StandardServiceRegistryCustomizer>().forEach {
                     it.customize()
                 }
             }
             .build()
-            .registerOnShutdownTask(this) {
+            .registerShutdownTask(this) {
                 it?.close()
             }
-    }
+    }.bind<StandardServiceRegistry>()
 
     single<MetadataSources> {
         MetadataSources(get<StandardServiceRegistry>()).apply {
@@ -101,7 +106,7 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 it.customize()
             }
         }
-    }
+    }.bind<MetadataSources>()
 
     single<Metadata> {
         get<MetadataSources>()
@@ -112,7 +117,7 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 }
             }
             .build()
-    }
+    }.bind<Metadata>()
 
     single<SessionFactory> {
         get<Metadata>()
@@ -123,10 +128,10 @@ fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
                 }
             }
             .build()
-            .registerOnShutdownTask(this) {
+            .registerShutdownTask(this) {
                 it?.close()
             }
-    }
+    }.bind<SessionFactory>()
 
-    single<HibernateSqlSchemaExporter> { HibernateSqlSchemaExporterImpl(get(), get()) }
+    single { HibernateSqlSchemaExporterImpl(get(), get()) }.bind<HibernateSqlSchemaExporter>()
 }

@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.jpa")
 }
 
 kotlin {
@@ -17,5 +18,7 @@ kotlin {
 
 dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
+    api(projects.kotlinw.kotlinwLoggingPlatform)
+    api(projects.kotlinw.module.kotlinwModuleApi)
     api(libs.arrow.core)
 }

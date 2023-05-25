@@ -83,6 +83,8 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
                 { name, value -> builder.addKeyValue(name, value) }
             )
         )
+
+        builder.log()
     }
 
     private fun applyContextChange(map: Map<String, String?>) {

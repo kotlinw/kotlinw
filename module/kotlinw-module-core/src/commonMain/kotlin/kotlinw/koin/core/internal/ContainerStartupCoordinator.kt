@@ -8,7 +8,6 @@ import org.koin.core.scope.Scope
 
 typealias OnStartupTask<T> = (T) -> Unit
 
-@OptIn(ExperimentalStdlibApi::class)
 interface ContainerStartupCoordinator {
 
     fun <T : Any> registerOnStartupTask(instance: T, onStartupTask: OnStartupTask<T>)

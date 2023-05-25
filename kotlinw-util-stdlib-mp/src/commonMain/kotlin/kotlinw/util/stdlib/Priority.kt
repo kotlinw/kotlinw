@@ -32,3 +32,12 @@ interface HasPriority {
 
     val priority: Priority
 }
+
+fun <T> Iterable<T>.sortedByPriority(defaultPriority: Priority = Priority.Normal) =
+    sortedBy {
+        if (it is HasPriority) {
+            it.priority
+        } else {
+            defaultPriority
+        }
+    }

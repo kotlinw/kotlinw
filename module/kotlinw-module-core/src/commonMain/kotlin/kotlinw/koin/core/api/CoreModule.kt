@@ -3,6 +3,7 @@ package kotlinw.koin.core.api
 import io.ktor.client.HttpClient
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
+import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.LocalEventBusImpl
 import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
 import kotlinw.koin.core.internal.ContainerShutdownCoordinator
@@ -24,22 +25,29 @@ import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
 fun coreModule() = module {
-    single<ContainerStartupCoordinator>(createdAtStart = true) { ContainerStartupCoordinatorImpl() }
-    single<ContainerShutdownCoordinator> { ContainerShutdownCoordinatorImpl() } onClose { it?.close() }
+    single { ContainerStartupCoordinatorImpl() }.bind<ContainerStartupCoordinator>()
+    single { ContainerShutdownCoordinatorImpl() }.bind<ContainerShutdownCoordinator>().onClose { it?.close() }
 
-    single<LoggingIntegrator> { defaultLoggingIntegrator } withOptions {
+    single { defaultLoggingIntegrator } withOptions {
+        bind<LoggingIntegrator>()
         bind<LoggingConfigurationProvider>()
         bind<LoggerFactory>()
         bind<LoggingDelegator>()
         bind<LoggingContextManager>()
     }
-    single<ApplicationCoroutineService> { ApplicationCoroutineServiceImpl() }
-    single<ConfigurationPropertyLookup> { ConfigurationPropertyLookupImpl(getAll()) }
-    single { LocalEventBusImpl(get()) }
+    single { ApplicationCoroutineServiceImpl() }.bind<ApplicationCoroutineService>()
+
+    single { ConfigurationPropertyLookupImpl(getAll()) }.bind<ConfigurationPropertyLookup>()
+
+    single {
+        LocalEventBusImpl(1000) // TODO config
+    }
+        .bind<LocalEventBus>()
 
     // TODO az alábbiakat külön modulba
     single { HttpClient() }
@@ -47,7 +55,7 @@ fun coreModule() = module {
         bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
         bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
     }
-    single<RemotingClientManager> { RemotingClientManagerImpl(get()) }
+    single { RemotingClientManagerImpl(get()) }.bind<RemotingClientManager>()
 }
 
 // TODO move to remoting-client module

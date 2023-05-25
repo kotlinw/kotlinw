@@ -11,6 +11,7 @@ import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toClassName
@@ -71,6 +72,7 @@ class HibernateSymbolProcessor(
                             .addSuperinterface(PersistentClassProvider::class)
                             .addFunction(
                                 FunSpec.builder("getPersistentClasses")
+                                    .addModifiers(KModifier.OVERRIDE)
                                     .returns(typeNameOf<List<KClass<*>>>())
                                     .addStatement(
                                         """
@@ -83,7 +85,8 @@ class HibernateSymbolProcessor(
                             )
                             .build()
                     )
-                    .build().writeTo(codeGenerator, true)
+                    .build()
+                    .writeTo(codeGenerator, true, entityClassDeclarations.map { it.containingFile }.filterNotNull())
             }
 
         return annotatedSymbols.filter { !it.validate() }.toList()

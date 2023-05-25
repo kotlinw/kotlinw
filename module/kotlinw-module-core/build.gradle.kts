@@ -18,6 +18,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(projects.kotlinw.module.kotlinwModuleApi)
+
                 api(projects.kotlinw.kotlinwConfigurationCore)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwEventbusLocal)

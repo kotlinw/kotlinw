@@ -26,4 +26,3 @@ fun <T, E : EntityManager> E.transactional(block: context(TransactionContext) E.
 val EntityManager.hibernateSession: Session get() = unwrap(Session::class.java)
 
 fun <T> EntityManager.jdbcTask(block: Connection.() -> T): T = hibernateSession.doReturningWork(block)
-
