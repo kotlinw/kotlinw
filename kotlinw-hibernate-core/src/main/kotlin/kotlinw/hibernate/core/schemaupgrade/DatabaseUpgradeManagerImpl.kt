@@ -2,14 +2,11 @@ package kotlinw.hibernate.core.schemaupgrade
 
 import jakarta.persistence.EntityManager
 import kotlinw.hibernate.core.api.TransactionContext
-import kotlinw.hibernate.core.api.TypeSafeEntityManager
 import kotlinw.hibernate.core.api.createTypeSafeEntityManager
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.transactional
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.hibernate.SessionFactory
 import java.sql.Connection
 
@@ -31,11 +28,8 @@ class DatabaseUpgradeManagerImpl(
 
     private val logger = PlatformLogging.getLogger()
 
-    override fun performInitialization() {
-        upgradeSchema(sessionFactory.createTypeSafeEntityManager())
-    }
-
-    private fun upgradeSchema(entityManager: TypeSafeEntityManager) {
+    override fun upgradeSchema() {
+        val entityManager = sessionFactory.createTypeSafeEntityManager()
         val currentSchemaVersion: String =
             entityManager.jdbcTask { findCurrentSchemaVersion(this) } ?: emptySchemaVersion
 

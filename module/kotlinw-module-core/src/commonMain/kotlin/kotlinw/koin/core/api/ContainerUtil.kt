@@ -47,6 +47,4 @@ fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
                 throw e
             }
         }
-
-        koin.get<ContainerStartupCoordinator>().runStartupTasks()
     }

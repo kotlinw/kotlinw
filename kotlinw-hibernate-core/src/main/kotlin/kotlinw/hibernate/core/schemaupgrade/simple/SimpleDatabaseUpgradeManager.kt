@@ -14,6 +14,7 @@ fun SimpleDatabaseUpgradeManager(
     checkSchemaVersionTableExistsQueryString: String = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE LOWER(table_name)=LOWER('DatabaseSchemaVersionInfo'))",
     selectSchemaVersionQueryString: String = "SELECT currentSchemaVersion FROM DatabaseSchemaVersionInfo"
 ): DatabaseUpgradeManager {
+
     fun updateSchemaVersionInfo(entityManager: EntityManager, schemaVersion: String) {
         entityManager.createQuery("FROM DatabaseSchemaVersionInfoEntity", DatabaseSchemaVersionInfoEntity::class.java)
             .singleResult

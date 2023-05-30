@@ -1,6 +1,20 @@
 plugins {
     kotlin("jvm")
     kotlin("plugin.jpa")
+    kotlin("plugin.noarg")
+    kotlin("plugin.allopen")
+}
+
+noArg {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
 }
 
 kotlin {
@@ -20,5 +34,6 @@ dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
     api(projects.kotlinw.kotlinwLoggingPlatform)
     api(projects.kotlinw.module.kotlinwModuleApi)
+    api(projects.shared.kotlinwUlid)
     api(libs.arrow.core)
 }

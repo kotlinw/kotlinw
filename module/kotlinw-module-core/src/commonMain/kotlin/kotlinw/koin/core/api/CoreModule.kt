@@ -16,10 +16,13 @@ import kotlinw.logging.spi.LoggingConfigurationProvider
 import kotlinw.logging.spi.LoggingContextManager
 import kotlinw.logging.spi.LoggingDelegator
 import kotlinw.logging.spi.LoggingIntegrator
+import kotlinw.module.api.ApplicationInitializerService
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.JsonMessageCodec
+import kotlinw.util.stdlib.Priority
+import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
@@ -31,6 +34,12 @@ import org.koin.dsl.onClose
 
 fun coreModule() = module {
     single { ContainerStartupCoordinatorImpl() }.bind<ContainerStartupCoordinator>()
+    single {
+        ApplicationInitializerService(Priority.Normal.lowerBy(1)) {
+            get<ContainerStartupCoordinator>().runStartupTasks()
+        }
+    }
+
     single { ContainerShutdownCoordinatorImpl() }.bind<ContainerShutdownCoordinator>().onClose { it?.close() }
 
     single { defaultLoggingIntegrator } withOptions {

@@ -1,5 +1,6 @@
 package kotlinw.hibernate.core.schemaupgrade
 
-import kotlinw.module.api.ApplicationInitializerService
+interface DatabaseUpgradeManager {
 
-interface DatabaseUpgradeManager: ApplicationInitializerService
+    fun upgradeSchema()
+}
