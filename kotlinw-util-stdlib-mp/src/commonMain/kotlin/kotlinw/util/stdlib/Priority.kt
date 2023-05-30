@@ -15,9 +15,9 @@ value class Priority(val value: Int) : Comparable<Priority> {
 
         val Highest = Priority(Int.MIN_VALUE)
 
-        fun Priority.lowerBy(value: Int) = Priority(this.value + 1)
+        fun Priority.lowerBy(value: Int) = Priority(this.value + value)
 
-        fun Priority.higherBy(value: Int) = Priority(this.value - 1)
+        fun Priority.higherBy(value: Int) = Priority(this.value - value)
     }
 
     override fun compareTo(other: Priority): Int = value.compareTo(other.value)

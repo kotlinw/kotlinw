@@ -50,88 +50,84 @@ fun interface SessionFactoryCustomizer {
     fun customize()
 }
 
-fun hibernateModule(vararg persistentClasses: KClass<*>) = hibernateModule(persistentClasses.toList())
-
-fun hibernateModule(persistentClasses: List<KClass<*>> = emptyList()) = module {
-    single {
-        BootstrapServiceRegistryBuilder()
-            .apply {
-                getAll<BootstrapServiceRegistryCustomizer>().forEach {
-                    it.customize()
-                }
-            }
-            .build()
-            .registerShutdownTask(this) {
-                it?.close()
-            }
-    }.bind<BootstrapServiceRegistry>()
-
-    single<StandardServiceRegistry> {
-        StandardServiceRegistryBuilder(get())
-            .apply {
-                get<ConfigurationPropertyLookup>()
-                    .filterEnumerableConfigurationProperties { it.startsWith("hibernate") }
-                    .forEach {
-                        applySetting(it.key.name, it.value)
+val hibernateModule by lazy {
+    module {
+        single {
+            BootstrapServiceRegistryBuilder()
+                .apply {
+                    getAll<BootstrapServiceRegistryCustomizer>().forEach {
+                        it.customize()
                     }
+                }
+                .build()
+                .registerShutdownTask(this) {
+                    it?.close()
+                }
+        }.bind<BootstrapServiceRegistry>()
 
-                // TODO applySetting("hibernate.connection.url", "jdbc:h2:mem:")
-                applySetting(AvailableSettings.URL, "jdbc:postgresql://localhost:5432/whocos-gateway2")
-                applySetting(AvailableSettings.USER, "whocos")
-                applySetting(AvailableSettings.PASS, "whocos")
+        single<StandardServiceRegistry> {
+            StandardServiceRegistryBuilder(get())
+                .apply {
+                    get<ConfigurationPropertyLookup>()
+                        .filterEnumerableConfigurationProperties { it.startsWith("hibernate") }
+                        .forEach {
+                            applySetting(it.key.name, it.value)
+                        }
 
-                getAll<StandardServiceRegistryCustomizer>().forEach {
+                    // TODO applySetting("hibernate.connection.url", "jdbc:h2:mem:")
+                    applySetting(AvailableSettings.URL, "jdbc:postgresql://localhost:5432/whocos-gateway2")
+                    applySetting(AvailableSettings.USER, "whocos")
+                    applySetting(AvailableSettings.PASS, "whocos")
+
+                    getAll<StandardServiceRegistryCustomizer>().forEach {
+                        it.customize()
+                    }
+                }
+                .build()
+                .registerShutdownTask(this) {
+                    it?.close()
+                }
+        }.bind<StandardServiceRegistry>()
+
+        single<MetadataSources> {
+            MetadataSources(get<StandardServiceRegistry>()).apply {
+                getAll<PersistentClassProvider>().forEach {
+                    it.getPersistentClasses().forEach {
+                        addAnnotatedClass(it.java)
+                    }
+                }
+
+                getAll<MetadataSourcesCustomizer>().forEach {
                     it.customize()
                 }
             }
-            .build()
-            .registerShutdownTask(this) {
-                it?.close()
-            }
-    }.bind<StandardServiceRegistry>()
+        }.bind<MetadataSources>()
 
-    single<MetadataSources> {
-        MetadataSources(get<StandardServiceRegistry>()).apply {
-            persistentClasses.forEach {
-                addAnnotatedClass(it.java)
-            }
-
-            getAll<PersistentClassProvider>().forEach {
-                it.getPersistentClasses().forEach {
-                    addAnnotatedClass(it.java)
+        single<Metadata> {
+            get<MetadataSources>()
+                .metadataBuilder
+                .apply {
+                    getAll<MetadataCustomizer>().forEach {
+                        it.customize()
+                    }
                 }
-            }
+                .build()
+        }.bind<Metadata>()
 
-            getAll<MetadataSourcesCustomizer>().forEach {
-                it.customize()
-            }
-        }
-    }.bind<MetadataSources>()
-
-    single<Metadata> {
-        get<MetadataSources>()
-            .metadataBuilder
-            .apply {
-                getAll<MetadataCustomizer>().forEach {
-                    it.customize()
+        single<SessionFactory> {
+            get<Metadata>()
+                .sessionFactoryBuilder
+                .apply {
+                    getAll<SessionFactoryCustomizer>().forEach {
+                        it.customize()
+                    }
                 }
-            }
-            .build()
-    }.bind<Metadata>()
-
-    single<SessionFactory> {
-        get<Metadata>()
-            .sessionFactoryBuilder
-            .apply {
-                getAll<SessionFactoryCustomizer>().forEach {
-                    it.customize()
+                .build()
+                .registerShutdownTask(this) {
+                    it?.close()
                 }
-            }
-            .build()
-            .registerShutdownTask(this) {
-                it?.close()
-            }
-    }.bind<SessionFactory>()
+        }.bind<SessionFactory>()
 
-    single { HibernateSqlSchemaExporterImpl(get(), get()) }.bind<HibernateSqlSchemaExporter>()
+        single { HibernateSqlSchemaExporterImpl(get(), get()) }.bind<HibernateSqlSchemaExporter>()
+    }
 }

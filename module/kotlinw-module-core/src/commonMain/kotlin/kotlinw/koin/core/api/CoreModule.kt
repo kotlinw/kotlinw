@@ -32,39 +32,39 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
-fun coreModule() = module {
-    single { ContainerStartupCoordinatorImpl() }.bind<ContainerStartupCoordinator>()
-    single {
-        ApplicationInitializerService(Priority.Normal.lowerBy(1)) {
-            get<ContainerStartupCoordinator>().runStartupTasks()
+val coreModule by lazy {
+    module {
+        single<ContainerStartupCoordinator> { ContainerStartupCoordinatorImpl() }
+        single {
+            ApplicationInitializerService(Priority.Normal.lowerBy(100)) {
+                get<ContainerStartupCoordinator>().runStartupTasks()
+            }
+        }.bind<ApplicationInitializerService>()
+
+        single<ContainerShutdownCoordinator> { ContainerShutdownCoordinatorImpl() }.onClose { it?.close() }
+
+        single<LoggingIntegrator> { defaultLoggingIntegrator } withOptions {
+            bind<LoggingConfigurationProvider>()
+            bind<LoggerFactory>()
+            bind<LoggingDelegator>()
+            bind<LoggingContextManager>()
         }
+        single<ApplicationCoroutineService> { ApplicationCoroutineServiceImpl() }
+
+        single<ConfigurationPropertyLookup> { ConfigurationPropertyLookupImpl(getAll()) }
+
+        single<LocalEventBus> {
+            LocalEventBusImpl(1000) // TODO config
+        }
+
+        // TODO az alábbiakat külön modulba
+        single { HttpClient() }
+        single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
+            bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
+            bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
+        }
+        single { RemotingClientManagerImpl(get()) }.bind<RemotingClientManager>()
     }
-
-    single { ContainerShutdownCoordinatorImpl() }.bind<ContainerShutdownCoordinator>().onClose { it?.close() }
-
-    single { defaultLoggingIntegrator } withOptions {
-        bind<LoggingIntegrator>()
-        bind<LoggingConfigurationProvider>()
-        bind<LoggerFactory>()
-        bind<LoggingDelegator>()
-        bind<LoggingContextManager>()
-    }
-    single { ApplicationCoroutineServiceImpl() }.bind<ApplicationCoroutineService>()
-
-    single { ConfigurationPropertyLookupImpl(getAll()) }.bind<ConfigurationPropertyLookup>()
-
-    single {
-        LocalEventBusImpl(1000) // TODO config
-    }
-        .bind<LocalEventBus>()
-
-    // TODO az alábbiakat külön modulba
-    single { HttpClient() }
-    single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
-        bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
-        bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
-    }
-    single { RemotingClientManagerImpl(get()) }.bind<RemotingClientManager>()
 }
 
 // TODO move to remoting-client module

@@ -21,7 +21,7 @@ class ContainerClosingTest {
         val m2 = mockk<Service2>(relaxed = true)
 
         val testModule = module {
-            includes(coreModule())
+            includes(coreModule)
 
             single { m1 } onClose { m1.close() }
             single { m2 } onClose { m2.close() }

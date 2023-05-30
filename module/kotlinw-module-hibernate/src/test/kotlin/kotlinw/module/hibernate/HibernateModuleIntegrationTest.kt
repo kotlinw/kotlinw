@@ -4,6 +4,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.api.createTypeSafeEntityManager
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.jpaTask
@@ -14,6 +15,7 @@ import kotlinw.jdbc.util.executeStatements
 import kotlinw.koin.core.api.startKoin
 import kotlinw.module.hibernate.core.hibernateModule
 import org.hibernate.SessionFactory
+import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -32,7 +34,16 @@ class HibernateModuleIntegrationTest {
     @Test
     fun testBootstrap() {
         val koinApplication = startKoin {
-            modules(hibernateModule(PersonEntity::class))
+            modules(
+                hibernateModule,
+                module {
+                    single {
+                        PersistentClassProvider {
+                            listOf(PersonEntity::class)
+                        }
+                    }
+                }
+            )
         }
 
         try {

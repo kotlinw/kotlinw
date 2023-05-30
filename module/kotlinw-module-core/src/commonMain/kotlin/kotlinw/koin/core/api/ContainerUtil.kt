@@ -36,9 +36,12 @@ fun <T : Any> T.registerShutdownTask(scope: Scope, onShutdownTask: OnShutdownTas
 @KoinApplicationDslMarker
 fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
     org.koin.core.context.startKoin {
-        modules(coreModule())
+        allowOverride(false)
+        modules(coreModule)
         appDeclaration()
     }.apply {
+        println(koin.getAll<ApplicationInitializerService>())
+
         koin.getAllSortedByPriority<ApplicationInitializerService>().forEach {
             try {
                 it.performInitialization()

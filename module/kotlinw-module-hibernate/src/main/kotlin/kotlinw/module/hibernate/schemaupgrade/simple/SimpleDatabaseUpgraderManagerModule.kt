@@ -12,16 +12,20 @@ import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-fun simpleDatabaseUpgraderManagerServicesModule() = module {
-    single { SimpleDatabaseUpgradeManager(get(), getAll()) }.bind<DatabaseUpgradeManager>()
+val simpleDatabaseUpgraderManagerServicesModule by lazy {
+    module {
+        single<DatabaseUpgradeManager> { SimpleDatabaseUpgradeManager(get(), getAll()) }
 
-    single {
-        ApplicationInitializerService(Priority.Normal.higherBy(100)) {
-            get<DatabaseUpgradeManager>().upgradeSchema()
-        }
+        single {
+            ApplicationInitializerService(Priority.Normal.higherBy(100)) {
+                get<DatabaseUpgradeManager>().upgradeSchema()
+            }
+        }.bind<ApplicationInitializerService>()
     }
 }
 
-fun simpleDatabaseUpgraderManagerEntitiesModule() = module {
-    single { PersistentClassProvider { listOf(DatabaseSchemaVersionInfoEntity::class) } }.bind<PersistentClassProvider>()
+val simpleDatabaseUpgraderManagerEntitiesModule by lazy {
+    module {
+        single { PersistentClassProvider { listOf(DatabaseSchemaVersionInfoEntity::class) } }.bind<PersistentClassProvider>()
+    }
 }
