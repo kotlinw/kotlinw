@@ -74,11 +74,6 @@ val hibernateModule by lazy {
                             applySetting(it.key.name, it.value)
                         }
 
-                    // TODO applySetting("hibernate.connection.url", "jdbc:h2:mem:")
-                    applySetting(AvailableSettings.URL, "jdbc:postgresql://localhost:5432/whocos-gateway2")
-                    applySetting(AvailableSettings.USER, "whocos")
-                    applySetting(AvailableSettings.PASS, "whocos")
-
                     getAll<StandardServiceRegistryCustomizer>().forEach {
                         it.customize()
                     }

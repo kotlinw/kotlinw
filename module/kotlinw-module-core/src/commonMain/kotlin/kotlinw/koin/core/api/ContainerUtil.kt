@@ -40,8 +40,6 @@ fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
         modules(coreModule)
         appDeclaration()
     }.apply {
-        println(koin.getAll<ApplicationInitializerService>())
-
         koin.getAllSortedByPriority<ApplicationInitializerService>().forEach {
             try {
                 it.performInitialization()

@@ -5,17 +5,17 @@ plugins {
     kotlin("plugin.allopen")
 }
 
-//noArg {
-//    annotation("jakarta.persistence.Entity")
-//    annotation("jakarta.persistence.Embeddable")
-//    annotation("jakarta.persistence.MappedSuperclass")
-//}
-//
-//allOpen {
-//    annotation("jakarta.persistence.Entity")
-//    annotation("jakarta.persistence.Embeddable")
-//    annotation("jakarta.persistence.MappedSuperclass")
-//}
+noArg {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
+}
 
 kotlin {
     target {

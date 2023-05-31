@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinw.koin.core.api.coreModule
 import org.koin.core.context.startKoin
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
@@ -14,27 +15,26 @@ import kotlin.test.assertSame
 
 class OverrideSemanticsTest {
 
-    interface Service
+    interface Service<T>
 
-    class Service1: Service
-
-    class Service2: Service
+    class ServiceImpl<T>: Service<T>
 
     @Test
     fun testMultipleInstancesOfSameType() {
-        val s1 = Service1()
-        val s2 = Service2()
+        val s1 = ServiceImpl<Int>()
+        val s2 = ServiceImpl<String>()
 
         val testModule = module {
             includes(coreModule)
-            single { s1 }.bind<Service>()
-            single { s2 }.bind<Service>()
+            single<Service<*>>(named("a")) { s1 }
+            single<Service<*>>(named("b")) { s2 }
         }
 
         val application = startKoin {
+            allowOverride(false)
             modules(testModule)
         }
 
-        assertEquals(setOf(s1, s2), application.koin.getAll<Service>().toSet())
+        assertEquals(setOf(s1, s2), application.koin.getAll<Service<*>>().toSet())
     }
 }

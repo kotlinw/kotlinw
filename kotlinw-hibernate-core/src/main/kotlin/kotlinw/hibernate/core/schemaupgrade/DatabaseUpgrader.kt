@@ -1,19 +1,20 @@
 package kotlinw.hibernate.core.schemaupgrade
 
 import jakarta.persistence.EntityManager
-import kotlinw.hibernate.core.api.TransactionContext
+import kotlinw.hibernate.core.entity.JpaSessionContext
+import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
 import java.sql.Connection
 
 sealed interface DatabaseUpgrader
 
 fun interface DatabaseStructureUpgrader : DatabaseUpgrader {
 
-    context(Connection, TransactionContext)
+    context(Connection)
     fun upgradeStructure()
 }
 
 fun interface DatabaseDataUpgrader : DatabaseUpgrader {
 
-    context(EntityManager, TransactionContext)
+    context(TransactionalJpaSessionContext)
     fun upgradeData()
 }

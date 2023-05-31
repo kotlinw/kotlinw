@@ -62,9 +62,15 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
         attributes: Collection<LogEntryAttribute>
     ) {
         check(logger is Slf4jLoggerWrapper)
-        val slf4jLogger = logger.slf4jLogger
 
-        val builder = slf4jLogger.makeLoggingEventBuilder(level.asSlf4jLevel())
+        val slf4jLogger = logger.slf4jLogger
+        val slf4jLevel = level.asSlf4jLevel()
+
+        if (!slf4jLogger.isEnabledForLevel(slf4jLevel)) {
+            return
+        }
+
+        val builder = slf4jLogger.makeLoggingEventBuilder(slf4jLevel)
 
         if (cause != null) {
             builder.setCause(cause)

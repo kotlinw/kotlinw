@@ -1,28 +1,12 @@
 package kotlinw.hibernate.core.api
 
 import jakarta.persistence.EntityManager
+import kotlinw.hibernate.core.entity.JpaSessionContext
 import org.hibernate.Session
 import java.sql.Connection
 
-interface TransactionContext
+val EntityManager.asHibernateSession: Session get() = unwrap(Session::class.java)
 
-private object TransactionContextImpl : TransactionContext
+fun <T> EntityManager.jdbcTask(block: Connection.() -> T): T = asHibernateSession.doReturningWork(block)
 
-fun <T, E : EntityManager> E.transactional(block: context(TransactionContext) E.() -> T): T =
-    if (transaction.isActive) {
-        block(TransactionContextImpl, this)
-    } else {
-        transaction.begin()
-        try {
-            val result = block(TransactionContextImpl, this)
-            transaction.commit()
-            result
-        } catch (e: Exception) {
-            transaction.rollback()
-            throw e
-        }
-    }
-
-val EntityManager.hibernateSession: Session get() = unwrap(Session::class.java)
-
-fun <T> EntityManager.jdbcTask(block: Connection.() -> T): T = hibernateSession.doReturningWork(block)
+fun <T> JpaSessionContext.jdbcTask(block: Connection.() -> T): T = entityManager.jdbcTask(block)

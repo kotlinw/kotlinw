@@ -21,6 +21,8 @@ import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.JsonMessageCodec
+import kotlinw.serialization.core.SerializerService
+import kotlinw.serialization.core.SerializerServiceImpl
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import kotlinw.util.stdlib.Url
@@ -28,6 +30,7 @@ import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
@@ -35,11 +38,11 @@ import org.koin.dsl.onClose
 val coreModule by lazy {
     module {
         single<ContainerStartupCoordinator> { ContainerStartupCoordinatorImpl() }
-        single {
+        single<ApplicationInitializerService>(named("ContainerStartupCoordinatorApplicationInitializerService")) {
             ApplicationInitializerService(Priority.Normal.lowerBy(100)) {
                 get<ContainerStartupCoordinator>().runStartupTasks()
             }
-        }.bind<ApplicationInitializerService>()
+        }
 
         single<ContainerShutdownCoordinator> { ContainerShutdownCoordinatorImpl() }.onClose { it?.close() }
 
@@ -49,13 +52,20 @@ val coreModule by lazy {
             bind<LoggingDelegator>()
             bind<LoggingContextManager>()
         }
-        single<ApplicationCoroutineService> { ApplicationCoroutineServiceImpl() }
+        single<ApplicationCoroutineService>(createdAtStart = true) {
+            ApplicationCoroutineServiceImpl()
+                .registerShutdownTask(this) {
+                    it.close()
+                }
+        }
 
         single<ConfigurationPropertyLookup> { ConfigurationPropertyLookupImpl(getAll()) }
 
         single<LocalEventBus> {
             LocalEventBusImpl(1000) // TODO config
         }
+
+        single<SerializerService> { SerializerServiceImpl() }
 
         // TODO az alábbiakat külön modulba
         single { HttpClient() }

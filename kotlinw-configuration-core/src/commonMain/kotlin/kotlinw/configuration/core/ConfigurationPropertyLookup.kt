@@ -11,12 +11,29 @@ interface ConfigurationPropertyLookup {
     fun filterEnumerableConfigurationProperties(predicate: (key: ConfigurationPropertyKey) -> Boolean): Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>
 }
 
+fun ConfigurationPropertyLookup.getConfigurationPropertyValueOrNull(key: String): EncodedConfigurationPropertyValue? =
+    getConfigurationPropertyValueOrNull(ConfigurationPropertyKey(key))
+
 fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue =
     getConfigurationPropertyValueOrNull(key)
         ?: throw ConfigurationException("Configuration property not found: $key")
 
-inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: ConfigurationPropertyKey): T? =
+fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: String): EncodedConfigurationPropertyValue =
+    getConfigurationPropertyValue(ConfigurationPropertyKey(key))
+
+inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValueOrNull(key: ConfigurationPropertyKey): T? =
     getConfigurationPropertyValueOrNull(key)?.decode()
+
+inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValueOrNull(key: String): T? =
+    getConfigurationPropertyTypedValueOrNull(ConfigurationPropertyKey(key))
+
+inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: ConfigurationPropertyKey): T =
+    getConfigurationPropertyTypedValueOrNull<T>(key)
+        ?: throw ConfigurationException("Configuration property not found: $key")
+
+inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: String): T =
+    getConfigurationPropertyTypedValueOrNull(key)
+        ?: throw ConfigurationException("Configuration property not found: $key")
 
 @PublishedApi
 internal inline fun <reified T> String.decode(): T? =
@@ -47,7 +64,9 @@ class ConfigurationPropertyLookupImpl(
     configurationPropertyLookupSources: Iterable<ConfigurationPropertyLookupSource>
 ) : ConfigurationPropertyLookup {
 
-    constructor(vararg configurationPropertyLookupSources: ConfigurationPropertyLookupSource) : this(configurationPropertyLookupSources.toList())
+    constructor(vararg configurationPropertyLookupSources: ConfigurationPropertyLookupSource) : this(
+        configurationPropertyLookupSources.toList()
+    )
 
     private val sources: List<ConfigurationPropertyLookupSource> =
         configurationPropertyLookupSources.sortedWith(HasPriority.comparator)

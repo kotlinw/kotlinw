@@ -15,6 +15,9 @@ import kotlinw.uuid.toUuid
 import org.hibernate.Hibernate
 import java.util.UUID
 
+const val pgTextType = "TEXT" // TODO remove
+const val pgUuidType = "UUID" // TODO remove
+
 typealias BaseEntityId = Long
 
 @MappedSuperclass
@@ -56,6 +59,10 @@ abstract class BaseEntity(
         }
 
     final override fun hashCode() = ulid.hashCode()
+
+    override fun toString(): String {
+        return "BaseEntity(id=$id, uid=$uid)"
+    }
 }
 
 val previousEntityUlid = AtomicRef(Ulid.randomUlid())

@@ -16,6 +16,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleCore)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                implementation(projects.kotlinw.kotlinwRemotingServerKtor)
                 api(libs.ktor.server.core)
                 api(libs.ktor.server.host.common)
             }

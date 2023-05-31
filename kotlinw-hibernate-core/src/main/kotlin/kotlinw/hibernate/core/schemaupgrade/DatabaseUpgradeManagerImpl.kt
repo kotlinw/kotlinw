@@ -1,10 +1,10 @@
 package kotlinw.hibernate.core.schemaupgrade
 
-import jakarta.persistence.EntityManager
-import kotlinw.hibernate.core.api.TransactionContext
-import kotlinw.hibernate.core.api.createTypeSafeEntityManager
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.transactional
+import kotlinw.hibernate.core.api.runReadOnlyJpaTask
+import kotlinw.hibernate.core.api.runTransactionalJpaTask
+import kotlinw.hibernate.core.entity.JpaSessionContext
+import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import org.hibernate.SessionFactory
@@ -13,10 +13,10 @@ import java.sql.Connection
 class DatabaseUpgradeManagerImpl(
     private val sessionFactory: SessionFactory,
     private val databaseUpgraderProviders: Collection<DatabaseUpgraderProvider>,
-    private val onStructureUpgraded: (EntityManager, SortableDatabaseUpgraderId) -> Unit,
-    private val onDataUpgraded: (EntityManager, SortableDatabaseUpgraderId) -> Unit,
+    private val onStructureUpgraded: context(JpaSessionContext) (SortableDatabaseUpgraderId) -> Unit,
+    private val onDataUpgraded: context(JpaSessionContext) (SortableDatabaseUpgraderId) -> Unit,
     private val findCurrentSchemaVersion: (Connection) -> SortableDatabaseUpgraderId?,
-    private val checkDatabaseUpgraderAlreadyApplied: ((EntityManager, SortableDatabaseUpgraderId) -> Boolean)?
+    private val checkDatabaseUpgraderAlreadyApplied: (context(JpaSessionContext) (SortableDatabaseUpgraderId) -> Boolean)?
 ) : DatabaseUpgradeManager {
 
     companion object {
@@ -29,9 +29,9 @@ class DatabaseUpgradeManagerImpl(
     private val logger = PlatformLogging.getLogger()
 
     override fun upgradeSchema() {
-        val entityManager = sessionFactory.createTypeSafeEntityManager()
-        val currentSchemaVersion: String =
-            entityManager.jdbcTask { findCurrentSchemaVersion(this) } ?: emptySchemaVersion
+        val currentSchemaVersion: String = sessionFactory.runReadOnlyJpaTask {
+            jdbcTask { findCurrentSchemaVersion(this) } ?: emptySchemaVersion
+        }
 
         val versionsToUpgraders =
             databaseUpgraderProviders.flatMap { it.getUpgraders() }.sortedBy { it.first }
@@ -56,7 +56,13 @@ class DatabaseUpgradeManagerImpl(
                 versionsToUpgraders.filter {
                     val schemaVersion = it.first
                     schemaVersion < currentSchemaVersion &&
-                            !checkDatabaseUpgraderAlreadyApplied.invoke(entityManager, schemaVersion)
+                            sessionFactory.runReadOnlyJpaTask {
+                                !checkDatabaseUpgraderAlreadyApplied.invoke(
+                                    this,
+                                    schemaVersion
+                                )
+                            }
+
                 }
             } else {
                 logger.debug { "Out-of-order upgraders are ignored (if any exist)." }
@@ -72,7 +78,7 @@ class DatabaseUpgradeManagerImpl(
                 logger.info { "Database schema is up-to-date: " / currentSchemaVersion }
 
                 if (outOfOrderUpgraders.isNotEmpty()) {
-                    entityManager.transactional {
+                    sessionFactory.runTransactionalJpaTask {
                         applyUpgraders(outOfOrderUpgraders)
                     }
                 }
@@ -85,7 +91,7 @@ class DatabaseUpgradeManagerImpl(
             else -> {
                 logger.info { "Upgrading database schema version from " / currentSchemaVersion / " to " / applicationVersion }
 
-                entityManager.transactional {
+                sessionFactory.runTransactionalJpaTask {
                     applyUpgraders(outOfOrderUpgraders)
                     applyUpgraders(normalUpgraders)
                 }
@@ -93,8 +99,8 @@ class DatabaseUpgradeManagerImpl(
         }
     }
 
-    context (TransactionContext)
-    private fun EntityManager.applyUpgraders(upgradersToApply: List<Pair<String, DatabaseUpgrader>>) {
+    context (TransactionalJpaSessionContext)
+    private fun applyUpgraders(upgradersToApply: List<Pair<String, DatabaseUpgrader>>) {
         jdbcTask {
             upgradersToApply.forEach {
                 val upgrader = it.second
@@ -102,7 +108,7 @@ class DatabaseUpgradeManagerImpl(
                     logger.debug { "Upgrading structure to " / it.first }
                     try {
                         upgrader.upgradeStructure()
-                        onStructureUpgraded(this@applyUpgraders, it.first)
+                        onStructureUpgraded(this@TransactionalJpaSessionContext, it.first)
                     } catch (e: Exception) {
                         throw RuntimeException("Structure upgrade failed: ${it.first}", e)
                     }
@@ -118,8 +124,8 @@ class DatabaseUpgradeManagerImpl(
                     with(this) {
                         upgrader.upgradeData()
                     }
-                    onDataUpgraded(this, it.first)
-                    flush()
+                    onDataUpgraded(this@TransactionalJpaSessionContext, it.first)
+                    entityManager.flush()
                 } catch (e: Exception) {
                     throw RuntimeException("Data upgrade failed: ${it.first}", e)
                 }

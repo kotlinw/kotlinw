@@ -9,6 +9,7 @@ import kotlinw.module.api.ApplicationInitializerService
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.higherBy
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -16,11 +17,11 @@ val simpleDatabaseUpgraderManagerServicesModule by lazy {
     module {
         single<DatabaseUpgradeManager> { SimpleDatabaseUpgradeManager(get(), getAll()) }
 
-        single {
+        single<ApplicationInitializerService>(named("DatabaseUpgradeManagerApplicationInitializerService")) {
             ApplicationInitializerService(Priority.Normal.higherBy(100)) {
                 get<DatabaseUpgradeManager>().upgradeSchema()
             }
-        }.bind<ApplicationInitializerService>()
+        }
     }
 }
 

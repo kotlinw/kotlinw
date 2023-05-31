@@ -1,14 +1,13 @@
 package kotlinw.module.hibernate
 
 import jakarta.persistence.Entity
-import jakarta.persistence.EntityManager
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
-import kotlinw.hibernate.core.api.createTypeSafeEntityManager
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.jpaTask
-import kotlinw.hibernate.core.api.transactional
+import kotlinw.hibernate.core.api.runReadOnlyJpaTask
+import kotlinw.hibernate.core.api.runTransactionalJpaTask
+import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.jdbc.util.executeStatements
@@ -60,24 +59,25 @@ class HibernateModuleIntegrationTest {
 
                 val sessionFactory = get<SessionFactory>()
 
-                sessionFactory.createTypeSafeEntityManager().use {
-                    it.jdbcTask {
+                sessionFactory.runTransactionalJpaTask {
+                    jdbcTask {
                         executeStatements(createSchemaScript)
                     }
                 }
 
-                fun EntityManager.findAllPersons() =
-                    createQuery("FROM PersonEntity", PersonEntity::class.java).resultList
+                fun JpaSessionContext.findAllPersons() =
+                    entityManager.createQuery("FROM PersonEntity", PersonEntity::class.java).resultList
 
-                sessionFactory.jpaTask {
+                sessionFactory.runReadOnlyJpaTask {
                     assertEquals(emptyList(), findAllPersons())
                 }
 
-                sessionFactory.jpaTask {
-                    transactional {
-                        persistEntity(PersonEntity(1, "Joe"))
-                    }
+                sessionFactory.runTransactionalJpaTask {
+                    entityManager.persist(PersonEntity(1, "Joe"))
+                    assertEquals(1, findAllPersons().size)
+                }
 
+                sessionFactory.runReadOnlyJpaTask {
                     assertEquals(1, findAllPersons().size)
                 }
             }

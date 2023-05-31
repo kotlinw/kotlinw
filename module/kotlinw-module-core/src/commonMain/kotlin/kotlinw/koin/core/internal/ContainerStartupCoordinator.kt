@@ -33,6 +33,7 @@ internal class ContainerStartupCoordinatorImpl : ContainerStartupCoordinator {
                 }
             } catch (e: Exception) {
                 // TODO log
+                throw e
             }
         }
     }

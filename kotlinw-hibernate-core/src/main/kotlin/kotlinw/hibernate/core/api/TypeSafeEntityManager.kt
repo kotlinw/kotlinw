@@ -15,12 +15,14 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.metamodel.Metamodel
 import kotlinw.hibernate.core.annotation.NotTypeSafeJpaApi
+import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
 
 
 interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `persistEntity()` instead which enforces an existing compile-time transactional context.",
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("persistEntity(entity)")
     )
     override fun persist(entity: Any)
@@ -28,11 +30,12 @@ interface TypeSafeEntityManager : EntityManager {
     /**
      * @see [EntityManager.persist]
      */
-    context(TransactionContext)
+    context(TransactionalJpaSessionContext)
     fun <T : Any> persistEntity(entity: T): T
 
     @Deprecated(
         message = "Use `mergeEntity()` instead which enforces an existing compile-time transactional context.",
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("mergeEntity(entity)")
     )
     override fun <T : Any> merge(entity: T): T
@@ -40,16 +43,17 @@ interface TypeSafeEntityManager : EntityManager {
     /**
      * @see [EntityManager.merge]
      */
-    context(TransactionContext)
+    context(TransactionalJpaSessionContext)
     fun <T : Any> mergeEntity(entity: T): T
 
     @Deprecated(
         message = "Use `removeEntity()` instead which enforces an existing compile-time transactional context.",
+        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("removeEntity(entity)")
     )
     override fun remove(entity: Any)
 
-    context(TransactionContext)
+    context(TransactionalJpaSessionContext)
     fun removeEntity(entity: Any)
 
     @Deprecated(
@@ -200,17 +204,17 @@ interface TypeSafeEntityManager : EntityManager {
 internal class TypeSafeEntityManagerImpl(private val delegate: EntityManager) : EntityManager by delegate,
     TypeSafeEntityManager {
 
-    context(TransactionContext)
+    context(TransactionalJpaSessionContext)
     override fun <T : Any> persistEntity(entity: T): T {
         persist(entity)
         return entity
     }
 
-    context(TransactionContext)
+    context(TransactionalJpaSessionContext)
     override fun <T : Any> mergeEntity(entity: T): T =
         merge(entity)
 
-    context(TransactionContext)
+    context(TransactionalJpaSessionContext)
     override fun removeEntity(entity: Any) {
         remove(entity)
     }
