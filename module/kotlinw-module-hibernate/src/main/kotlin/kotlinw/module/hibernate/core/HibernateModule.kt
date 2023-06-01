@@ -52,7 +52,7 @@ fun interface SessionFactoryCustomizer {
 
 val hibernateModule by lazy {
     module {
-        single {
+        single<BootstrapServiceRegistry> {
             BootstrapServiceRegistryBuilder()
                 .apply {
                     getAll<BootstrapServiceRegistryCustomizer>().forEach {
@@ -63,7 +63,7 @@ val hibernateModule by lazy {
                 .registerShutdownTask(this) {
                     it?.close()
                 }
-        }.bind<BootstrapServiceRegistry>()
+        }
 
         single<StandardServiceRegistry> {
             StandardServiceRegistryBuilder(get())
@@ -82,7 +82,7 @@ val hibernateModule by lazy {
                 .registerShutdownTask(this) {
                     it?.close()
                 }
-        }.bind<StandardServiceRegistry>()
+        }
 
         single<MetadataSources> {
             MetadataSources(get<StandardServiceRegistry>()).apply {
@@ -96,7 +96,7 @@ val hibernateModule by lazy {
                     it.customize()
                 }
             }
-        }.bind<MetadataSources>()
+        }
 
         single<Metadata> {
             get<MetadataSources>()
@@ -107,7 +107,7 @@ val hibernateModule by lazy {
                     }
                 }
                 .build()
-        }.bind<Metadata>()
+        }
 
         single<SessionFactory> {
             get<Metadata>()
@@ -121,8 +121,8 @@ val hibernateModule by lazy {
                 .registerShutdownTask(this) {
                     it?.close()
                 }
-        }.bind<SessionFactory>()
+        }
 
-        single { HibernateSqlSchemaExporterImpl(get(), get()) }.bind<HibernateSqlSchemaExporter>()
+        single<HibernateSqlSchemaExporter> { HibernateSqlSchemaExporterImpl(get(), get()) }
     }
 }

@@ -3,6 +3,7 @@ package kotlinw.module.hibernate
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import kotlinw.configuration.core.*
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.runReadOnlyJpaTask
@@ -14,6 +15,8 @@ import kotlinw.jdbc.util.executeStatements
 import kotlinw.koin.core.api.startKoin
 import kotlinw.module.hibernate.core.hibernateModule
 import org.hibernate.SessionFactory
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -40,6 +43,16 @@ class HibernateModuleIntegrationTest {
                         PersistentClassProvider {
                             listOf(PersonEntity::class)
                         }
+                    }
+                    single {
+                        EnumerableConfigurationPropertyLookupSourceImpl(
+                            ConstantConfigurationPropertyResolver.of(
+                                mapOf("hibernate.connection.url" to "jdbc:h2:mem:")
+                            )
+                        )
+                    }.withOptions {
+                        bind<ConfigurationPropertyLookupSource>()
+                        bind<EnumerableConfigurationPropertyLookupSource>()
                     }
                 }
             )
