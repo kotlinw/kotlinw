@@ -73,7 +73,7 @@ class HibernateModuleIntegrationTest {
                 }
 
                 sessionFactory.runTransactionalJpaTask {
-                    entityManager.persist(PersonEntity(1, "Joe"))
+                    entityManager.persistEntity(PersonEntity(1, "Joe"))
                     assertEquals(1, findAllPersons().size)
                 }
 
