@@ -31,6 +31,7 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
+import kotlinw.ksp.util.hasCompanionObject
 import kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
@@ -427,6 +428,14 @@ class RemotingSymbolProcessor(
         if (classDeclaration.classKind != ClassKind.INTERFACE) {
             logger.error(
                 "Only interface declarations should be annotated with @${SupportsRemoting::class.simpleName}.",
+                classDeclaration
+            )
+            return false
+        }
+
+        if (!classDeclaration.hasCompanionObject) {
+            logger.error(
+                "Interface declarations annotated with @${SupportsRemoting::class.simpleName} should have a `companion object`.",
                 classDeclaration
             )
             return false
