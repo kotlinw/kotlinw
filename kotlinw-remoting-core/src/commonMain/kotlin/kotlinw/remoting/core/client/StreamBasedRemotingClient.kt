@@ -1,23 +1,23 @@
 package kotlinw.remoting.core.client
 
+import korlibs.io.stream.AsyncInputStream
+import korlibs.io.stream.AsyncOutputStream
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
-import kotlinw.util.stdlib.ByteArrayView.Companion.write
+import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
-import okio.BufferedSink
-import okio.BufferedSource
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 class StreamBasedSynchronousRemotingClient(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
-    private val source: BufferedSource,
-    private val sink: BufferedSink
+    private val source: AsyncInputStream,
+    private val sink: AsyncOutputStream
 ) : RemotingClientSynchronousCallSupport {
 
     private val mutex = Mutex()
@@ -38,9 +38,7 @@ class StreamBasedSynchronousRemotingClient(
         val rawParameterMessage = messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
         val resultMessage = mutex.withLock {
-            sink.write(rawParameterMessage.byteArrayView)
-            sink.flush()
-
+            sink.write(rawParameterMessage.byteArrayView.toReadOnlyByteArray())
             messageCodec.decodeMessage(source, resultDeserializer)
         }
 

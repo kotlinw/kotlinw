@@ -225,7 +225,7 @@ private fun Route.setupWebsocketRouting(
     removeConnection: (ClientSessionId) -> Unit
 ) {
 
-    fun processIncomingMessage(webSocketConnection: WebSocketConnection, rawMessage: RawMessage) {
+    suspend fun processIncomingMessage(webSocketConnection: WebSocketConnection, rawMessage: RawMessage) {
         val metadata = messageCodec.extractMetadata(rawMessage)
         val messageKind = metadata.metadata?.messageKind ?: throw IllegalStateException() // TODO hibaüz.
 

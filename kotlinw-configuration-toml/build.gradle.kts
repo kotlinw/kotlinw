@@ -20,7 +20,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.kotlinwConfigurationCore)
                 implementation(libs.ktoml.core)
-                implementation(libs.okio.core)
+                implementation(libs.korlibs.korio)
             }
         }
         val commonTest by getting {

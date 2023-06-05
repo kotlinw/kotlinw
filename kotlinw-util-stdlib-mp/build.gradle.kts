@@ -22,7 +22,7 @@ kotlin {
                 api(libs.kotlinresult.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.serialization.core)
-                api(libs.okio.core)
+                api(libs.korlibs.korio)
             }
         }
         val commonTest by getting {

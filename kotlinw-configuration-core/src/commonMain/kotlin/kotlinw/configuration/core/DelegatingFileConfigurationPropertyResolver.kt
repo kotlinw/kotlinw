@@ -2,10 +2,8 @@ package kotlinw.configuration.core
 
 import arrow.core.continuations.AtomicRef
 import kotlinw.eventbus.local.LocalEventBus
-import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.concurrent.value
 import kotlinw.util.stdlib.io.FileLocation
-import kotlinw.util.stdlib.io.readUtf8
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -14,8 +12,8 @@ import kotlin.time.Duration
 class DelegatingFileConfigurationPropertyResolver private constructor(
     private val fileLocation: FileLocation,
     private val delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
-    watcherCoroutineScope: CoroutineScope?,
-    eventBus: LocalEventBus?,
+    private val watcherCoroutineScope: CoroutineScope?,
+    private val eventBus: LocalEventBus?,
     private val watchDelay: Duration?,
     @Suppress("UNUSED_PARAMETER") primaryConstructorMarker: Unit
 ) : EnumerableConfigurationPropertyResolver {
@@ -39,7 +37,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
 
     private val delegate get() = delegateHolder.value
 
-    init {
+    suspend fun initialize() {
         require(watchDelay == null || watchDelay > Duration.ZERO)
 
         val initialProperties = tryReadConfiguration()
@@ -64,9 +62,9 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
         }
     }
 
-    private fun tryReadConfiguration(): String? =
+    private suspend fun tryReadConfiguration(): String? =
         try {
-            fileLocation.readUtf8()
+            fileLocation.readString()
         } catch (e: Exception) {
             // TODO log
             null

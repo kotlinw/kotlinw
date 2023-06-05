@@ -1,20 +1,20 @@
 package kotlinw.remoting.core.server
 
+import korlibs.io.stream.AsyncInputStream
+import korlibs.io.stream.AsyncOutputStream
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
-import kotlinw.util.stdlib.ByteArrayView.Companion.write
+import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinx.coroutines.yield
 import kotlinx.serialization.KSerializer
-import okio.BufferedSink
-import okio.BufferedSource
 
 class StreamBasedSynchronousRemotingServer(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
     remoteCallDelegators: Iterable<RemoteCallDelegator>,
-    private val source: BufferedSource,
-    private val sink: BufferedSink,
+    private val source: AsyncInputStream,
+    private val sink: AsyncOutputStream,
 ) {
     private val delegators = remoteCallDelegators.associateBy { it.servicePath }
 
@@ -46,8 +46,7 @@ class StreamBasedSynchronousRemotingServer(
                 methodDescriptor.resultSerializer as KSerializer<Any?>
             ).byteArrayView
 
-            sink.write(rawResult)
-            sink.flush()
+            sink.write(rawResult.toReadOnlyByteArray())
 
             yield()
         }

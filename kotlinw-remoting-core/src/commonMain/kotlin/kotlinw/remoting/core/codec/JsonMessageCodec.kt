@@ -28,7 +28,7 @@ class JsonMessageCodec(
 
     override val isBinary = false
 
-    override fun extractMetadata(rawMessage: RawMessage.Text): ExtractedMetadata {
+    override suspend fun extractMetadata(rawMessage: RawMessage.Text): ExtractedMetadata {
         val messageJsonObject = json.decodeFromString<JsonObject>(rawMessage.text)
         val payloadJsonElement = messageJsonObject[payloadPropertyName] ?: TODO()
         val metadata =

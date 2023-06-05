@@ -25,7 +25,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.serialization.json)
-                api(libs.okio.core)
+                api(libs.korlibs.korio)
             }
         }
         val commonTest by getting {

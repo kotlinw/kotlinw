@@ -4,6 +4,7 @@ import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.ServiceLocator
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
@@ -16,7 +17,7 @@ class JsonMessageCodecTest {
     private data class Payload(val number: Int)
 
     @Test
-    fun testMetadataExtraction() {
+    fun testMetadataExtraction() = runTest {
         val payload = Payload(13)
         val metadata = RemotingMessageMetadata(
             timestamp = Clock.System.now(),

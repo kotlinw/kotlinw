@@ -1,7 +1,5 @@
 package kotlinw.util.stdlib
 
-import okio.BufferedSink
-
 /**
  * Read-only view of a [ByteArray].
  *
@@ -11,12 +9,16 @@ class ByteArrayView private constructor(
     internal val source: ByteArray,
     internal val startIndex: Int = 0,
     internal val endIndexExclusive: Int = source.size
-) {
+) : Iterable<Byte> {
 
     companion object {
 
         @DelicateKotlinwApi
         fun ByteArray.view() = ByteArrayView(this)
+
+        @DelicateKotlinwApi
+        fun ByteArray.view(startIndex: Int = 0, endIndexExclusive: Int = size) =
+            ByteArrayView(this, startIndex, endIndexExclusive)
 
         @DelicateKotlinwApi
         fun ByteArrayView.view(startIndex: Int = 0, endIndexExclusive: Int = size) =
@@ -41,9 +43,6 @@ class ByteArrayView private constructor(
             } else {
                 ByteArray(size).also { copyInto(it) }
             }
-
-        fun BufferedSink.write(byteArrayView: ByteArrayView): BufferedSink =
-            write(byteArrayView.source, byteArrayView.startIndex, byteArrayView.size)
     }
 
     init {
@@ -59,7 +58,7 @@ class ByteArrayView private constructor(
         return source[startIndex + index]
     }
 
-    operator fun iterator() =
+    override operator fun iterator() =
         object : ByteIterator() {
 
             var index: Int = startIndex

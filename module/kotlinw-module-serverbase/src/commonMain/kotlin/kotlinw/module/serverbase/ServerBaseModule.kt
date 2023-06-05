@@ -39,7 +39,7 @@ val serverBaseModule by lazy {
                     install(RemotingPlugin) {
                         this.messageCodec = get<MessageCodec<*>>()
                         this.remoteCallDelegators = getAll<RemoteCallDelegator>()
-                        this.identifyClient = { 1 } // TODO
+                        this.identifyClient = { 1 } // FIXME
                     }
 
                     getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {

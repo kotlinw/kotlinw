@@ -1,5 +1,7 @@
 package kotlinw.remoting.core.codec
 
+import korlibs.io.stream.AsyncInputStream
+import korlibs.io.stream.readBytesUpTo
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
@@ -12,7 +14,6 @@ import kotlinw.util.stdlib.writeToByteArray
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
-import okio.BufferedSource
 import kotlin.jvm.JvmInline
 
 @Serializable
@@ -57,7 +58,7 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
     override fun <T> decode(rawMessage: RawMessage.Binary, deserializer: KSerializer<T>): T =
         wrappedCodec.decode(rawMessage, deserializer)
 
-    override fun <T> decodeMessage(
+    override suspend fun <T> decodeMessage(
         rawMessage: RawMessage.Binary,
         payloadDeserializer: KSerializer<T>
     ): RemotingMessage<T> =
@@ -65,7 +66,7 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
             RemotingMessage(it.decodePayload(payloadDeserializer), it.metadata)
         }
 
-    override fun extractMetadata(rawMessage: RawMessage.Binary): ExtractedMetadata {
+    override suspend fun extractMetadata(rawMessage: RawMessage.Binary): ExtractedMetadata {
         val sourceBytes = rawMessage.byteArrayView
 
         var offset = 0
@@ -94,21 +95,21 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
         }
     }
 
-    fun <T> decodeMessage(
-        messageSource: BufferedSource,
+    suspend fun <T> decodeMessage(
+        messageSource: AsyncInputStream,
         payloadDeserializer: KSerializer<T>
     ): RemotingMessage<T> =
         extractMetadata(messageSource).let {
             RemotingMessage(it.decodePayload(payloadDeserializer), it.metadata)
         }
 
-    fun extractMetadata(messageSource: BufferedSource): ExtractedMetadata {
-        val headerSize = Int.readFromByteArray(messageSource.readByteArray(Int.SIZE_BYTES.toLong()), 0)
+    suspend fun extractMetadata(messageSource: AsyncInputStream): ExtractedMetadata {
+        val headerSize = Int.readFromByteArray(messageSource.readBytesUpTo(Int.SIZE_BYTES), 0)
 
-        val headerBytes = messageSource.readByteArray(headerSize.toLong())
+        val headerBytes = messageSource.readBytesUpTo(headerSize)
         val header = decode(RawMessage.Binary(headerBytes.view()), serializer<BinaryMessageHeader>())
 
-        val payloadBytes = messageSource.readByteArray(header.payloadSize.toLong())
+        val payloadBytes = messageSource.readBytesUpTo(header.payloadSize)
 
         return object : ExtractedMetadata {
 

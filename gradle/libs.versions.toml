@@ -293,7 +293,7 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
-zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.10.0" }
+zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
 
 flowredux-jvm = { module = "com.freeletics.flowredux:flowredux-jvm", version.ref = "flowredux" }
 flowredux-compose = { module = "com.freeletics.flowredux:compose", version.ref = "flowredux" }

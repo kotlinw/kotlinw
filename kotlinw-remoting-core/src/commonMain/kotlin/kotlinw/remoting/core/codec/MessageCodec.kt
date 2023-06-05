@@ -17,7 +17,7 @@ interface MessageDecoder<in M : RawMessage> : MessageCodecDescriptor {
 
     fun <T> decode(rawMessage: M, deserializer: KSerializer<T>): T
 
-    fun <T> decodeMessage(rawMessage: M, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
+    suspend fun <T> decodeMessage(rawMessage: M, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
         decode(rawMessage, RemotingMessageSerializer(payloadDeserializer))
 }
 
@@ -44,7 +44,7 @@ interface MessageDecoderMetadataPrefetchSupport<M : RawMessage> : MessageDecoder
             RemotingMessage(decodePayload(deserializer), metadata)
     }
 
-    fun extractMetadata(rawMessage: M): ExtractedMetadata
+    suspend fun extractMetadata(rawMessage: M): ExtractedMetadata
 }
 
 interface MessageCodecWithMetadataPrefetchSupport<M : RawMessage> : MessageCodec<M>,
