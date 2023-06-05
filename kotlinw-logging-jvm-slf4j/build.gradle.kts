@@ -21,4 +21,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.slf4j)
 
     testImplementation(kotlin("test"))
+
+    constraints {
+        implementation(libs.slf4j.api)
+    }
 }

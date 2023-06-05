@@ -68,7 +68,7 @@ val coreModule by lazy {
         single<SerializerService> { SerializerServiceImpl() }
 
         // TODO az alábbiakat külön modulba
-        single { HttpClient() }
+        single { HttpClient() } // TODO close()-zal le kell zárni
         single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
             bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
             bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
