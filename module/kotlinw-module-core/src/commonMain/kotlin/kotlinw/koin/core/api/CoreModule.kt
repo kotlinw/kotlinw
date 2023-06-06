@@ -1,6 +1,8 @@
 package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
+import kotlinw.configuration.core.ConfigurationObjectLookup
+import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.eventbus.local.LocalEventBus
@@ -60,6 +62,8 @@ val coreModule by lazy {
         }
 
         single<ConfigurationPropertyLookup> { ConfigurationPropertyLookupImpl(getAll()) }
+
+        single<ConfigurationObjectLookup> { ConfigurationObjectLookupImpl(get()) }
 
         single<LocalEventBus> {
             LocalEventBusImpl(1000) // TODO config
