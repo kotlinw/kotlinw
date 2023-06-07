@@ -41,3 +41,5 @@ class LogbackLoggingIntegrator private constructor(
         }
     }
 }
+
+// TODO loggerContext.stop()

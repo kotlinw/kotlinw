@@ -3,8 +3,8 @@ package kotlinw.module.core.api
 import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
+import kotlinw.configuration.core.StandardJvmConfigurationPropertyResolver
 import kotlinw.koin.core.api.startKoin
-import kotlinw.koin.core.internal.StandardConfigurationPropertyResolver
 import kotlinw.koin.core.internal.createPidFile
 import kotlinw.koin.core.internal.deletePidFile
 import org.koin.core.module.KoinApplicationDslMarker
@@ -30,7 +30,7 @@ inline fun <reified T> runApplication(vararg modules: Module) {
 
                 single<ConfigurationPropertyLookupSource> {
                     EnumerableConfigurationPropertyLookupSourceImpl(
-                        StandardConfigurationPropertyResolver(get(), T::class.java.classLoader)
+                        StandardJvmConfigurationPropertyResolver(get(), T::class.java.classLoader)
                     )
                 }
             }

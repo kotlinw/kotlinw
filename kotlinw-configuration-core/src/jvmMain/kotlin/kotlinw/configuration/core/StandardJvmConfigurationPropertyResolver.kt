@@ -30,11 +30,9 @@ private constructor(
 
     private val delegate = AggregatingEnumerableConfigurationPropertyResolver(
         buildList {
-            val pathStringFromSystemProperty = System.getProperty("kotlinw.configuration.path")
+            val pathStringFromSystemProperty = System.getProperty("kotlinw.configuration.file")
             if (!pathStringFromSystemProperty.isNullOrBlank()) {
                 val fileLocationFromSystemProperty = LocalVfs[pathStringFromSystemProperty]
-                println(File(".").absolutePath)
-                println(fileLocationFromSystemProperty.absolutePath)
                 add(
                     if (watchLocalFiles) {
                         JavaPropertiesFileConfigurationPropertyResolver(
