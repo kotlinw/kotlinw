@@ -4,6 +4,8 @@ import kotlinw.util.stdlib.Priority
 
 interface ConfigurationPropertyResolver {
 
+    suspend fun initialize() {}
+
     fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 }
 
@@ -17,10 +19,3 @@ fun <T : ConfigurationPropertyResolver> T.asConfigurationPropertySource(priority
         is EnumerableConfigurationPropertyResolver -> EnumerableConfigurationPropertyLookupSourceImpl(this, priority)
         else -> ConfigurationPropertyLookupSourceImpl(this, priority)
     }
-
-object EmptyConfigurationPropertyResolver : EnumerableConfigurationPropertyResolver {
-
-    override fun getPropertyKeys(): Set<ConfigurationPropertyKey> = emptySet()
-
-    override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? = null
-}

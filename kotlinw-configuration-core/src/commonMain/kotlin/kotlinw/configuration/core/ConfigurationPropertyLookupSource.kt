@@ -5,6 +5,8 @@ import kotlinw.util.stdlib.Priority
 
 interface ConfigurationPropertyLookupSource : HasPriority {
 
+    suspend fun initialize()
+
     fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 }
 
@@ -12,6 +14,10 @@ class ConfigurationPropertyLookupSourceImpl(
     private val resolver: ConfigurationPropertyResolver,
     override val priority: Priority = Priority.Normal
 ) : ConfigurationPropertyLookupSource, HasPriority {
+
+    override suspend fun initialize() {
+        resolver.initialize()
+    }
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
         resolver.getPropertyValueOrNull(key)
@@ -26,6 +32,10 @@ class EnumerableConfigurationPropertyLookupSourceImpl(
     private val resolver: EnumerableConfigurationPropertyResolver,
     override val priority: Priority = Priority.Normal
 ) : EnumerableConfigurationPropertyLookupSource, HasPriority {
+
+    override suspend fun initialize() {
+        resolver.initialize()
+    }
 
     override fun getPropertyKeys(): Set<ConfigurationPropertyKey> = resolver.getPropertyKeys()
 

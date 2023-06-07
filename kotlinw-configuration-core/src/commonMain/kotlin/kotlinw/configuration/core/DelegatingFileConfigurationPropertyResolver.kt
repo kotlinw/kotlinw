@@ -37,11 +37,13 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
 
     private val delegate get() = delegateHolder.value
 
-    suspend fun initialize() {
+    override suspend fun initialize() {
         require(watchDelay == null || watchDelay > Duration.ZERO)
 
         val initialProperties = tryReadConfiguration()
-            ?: throw ConfigurationException("Failed to read configuration: ${fileLocation.path}")
+        if (initialProperties != null) {
+            delegateHolder.value = delegateFactory(initialProperties)
+        }
 
         if (watcherCoroutineScope != null && eventBus != null && watchDelay != null) {
             watcherCoroutineScope.launch {

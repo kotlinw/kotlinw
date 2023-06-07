@@ -32,4 +32,8 @@ class ApplicationCoroutineServiceImpl(
     override fun close() {
         coroutineScope.cancel("Application shutdown is in progress.")
     }
+
+    override fun <T> runBlocking(block: suspend CoroutineScope.() -> T): T = runBlockingImpl(block)
 }
+
+internal expect fun <T> runBlockingImpl(block: suspend CoroutineScope.() -> T): T

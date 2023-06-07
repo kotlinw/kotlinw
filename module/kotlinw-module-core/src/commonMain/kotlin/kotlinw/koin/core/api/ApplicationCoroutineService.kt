@@ -11,4 +11,6 @@ import kotlin.coroutines.EmptyCoroutineContext
 interface ApplicationCoroutineService {
 
     val coroutineScope: CoroutineScope
+
+    fun <T> runBlocking(block: suspend CoroutineScope.() -> T): T
 }

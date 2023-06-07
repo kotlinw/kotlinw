@@ -6,6 +6,8 @@ typealias EncodedConfigurationPropertyValue = String
 
 interface ConfigurationPropertyLookup {
 
+    suspend fun initialize()
+
     fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 
     fun filterEnumerableConfigurationProperties(predicate: (key: ConfigurationPropertyKey) -> Boolean): Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>
@@ -16,7 +18,7 @@ fun ConfigurationPropertyLookup.getConfigurationPropertyValueOrNull(key: String)
 
 fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue =
     getConfigurationPropertyValueOrNull(key)
-        ?: throw ConfigurationException("Configuration property not found: $key")
+        ?: throw ConfigurationException("Required configuration property not found: $key")
 
 fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: String): EncodedConfigurationPropertyValue =
     getConfigurationPropertyValue(ConfigurationPropertyKey(key))
@@ -29,11 +31,11 @@ inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTyped
 
 inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: ConfigurationPropertyKey): T =
     getConfigurationPropertyTypedValueOrNull<T>(key)
-        ?: throw ConfigurationException("Configuration property not found: $key")
+        ?: throw ConfigurationException("Required configuration property not found: $key")
 
 inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: String): T =
     getConfigurationPropertyTypedValueOrNull(key)
-        ?: throw ConfigurationException("Configuration property not found: $key")
+        ?: throw ConfigurationException("Required configuration property not found: $key")
 
 @PublishedApi
 internal inline fun <reified T> String.decode(): T? =
@@ -70,6 +72,10 @@ class ConfigurationPropertyLookupImpl(
 
     private val sources: List<ConfigurationPropertyLookupSource> =
         configurationPropertyLookupSources.sortedWith(HasPriority.comparator)
+
+    override suspend fun initialize() {
+        sources.forEach { it.initialize() }
+    }
 
     override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? {
         sources.forEach {
