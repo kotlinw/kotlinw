@@ -5,6 +5,6 @@ enum class DeploymentMode {
 
     companion object {
 
-        fun of(value: String) = values().first { it.name.lowercase() == value }
+        fun of(value: String) = values().first { it.name.equals(value, true) }
     }
 }

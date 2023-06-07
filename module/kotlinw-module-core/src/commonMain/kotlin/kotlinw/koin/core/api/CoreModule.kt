@@ -1,7 +1,8 @@
 package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
-import korlibs.io.async.runBlockingNoJs
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.timeout
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -37,6 +38,8 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 val coreModule by lazy {
     module {
@@ -80,7 +83,14 @@ val coreModule by lazy {
         single<SerializerService> { SerializerServiceImpl() }
 
         // TODO az alábbiakat külön modulba
-        single { HttpClient() } // TODO close()-zal le kell zárni
+        single {
+            HttpClient {
+                install(HttpTimeout) {
+                    connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
+                    requestTimeoutMillis = 10.seconds.inWholeMilliseconds // TODO config
+                }
+            }
+        } // TODO close()-zal le kell zárni
         single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
             bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
             bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
