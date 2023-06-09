@@ -20,11 +20,11 @@ allOpen {
 kotlin {
     target {
         attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 19)
         }
         compilations.all {
             kotlinOptions {
-                jvmTarget = "17"
+                jvmTarget = "19"
             }
         }
     }
