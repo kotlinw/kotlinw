@@ -7,7 +7,7 @@ kotlin = "1.8.21"
 springBoot = "3.0.7"
 
 # https://github.com/ktorio/ktor/releases
-ktor = "2.3.1"
+ktor = "2.3.2-eap-693"
 
 # https://junit.org/junit5/docs/current/release-notes/index.html
 junit = "5.9.2"
@@ -16,7 +16,7 @@ junit = "5.9.2"
 serialization = "1.5.1"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
-coroutines = "1.6.4"
+coroutines = "1.7.1"
 
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.0-RC"

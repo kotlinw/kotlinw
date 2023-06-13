@@ -55,7 +55,6 @@ subprojects {
             "-opt-in=kotlin.time.ExperimentalTime",
             "-opt-in=kotlin.contracts.ExperimentalContracts",
             "-opt-in=kotlin.ExperimentalStdlibApi",
-            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-Xenable-builder-inference",
             "-Xcontext-receivers",

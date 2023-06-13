@@ -55,6 +55,7 @@ kotlin {
         if (isNativeTargetEnabled()) {
             val nativeMain by getting {
                 dependencies {
+                    implementation(libs.kotlinx.atomicfu)
                 }
             }
             val nativeTest by getting {
