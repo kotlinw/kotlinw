@@ -12,7 +12,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 @KoinApplicationDslMarker
-inline fun <reified T> runApplication(vararg modules: Module) {
+inline fun <reified T> runApplication(args: Array<out String> = emptyArray(), vararg modules: Module) {
     createPidFile()
 
     val koinApplication = startKoin {
