@@ -3,20 +3,28 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         google()
+        maven("https://repo.spring.io/milestone")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        maven("https://androidx.dev/storage/compose-compiler/repository/")
+        maven("https://jitpack.io")
+        maven("https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots")
     }
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         mavenCentral()
         google()
         maven("https://repo.spring.io/milestone")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
         maven("https://androidx.dev/storage/compose-compiler/repository/")
         maven("https://jitpack.io")
         maven("https://repo.kotlin.link")
-        // maven("https://oss.sonatype.org/content/repositories/snapshots")
+        maven("https://oss.sonatype.org/content/repositories/snapshots")
+        maven("https://repo.gradle.org/gradle/libs-releases")
     }
 }
 

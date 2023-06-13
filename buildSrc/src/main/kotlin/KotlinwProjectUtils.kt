@@ -1,12 +1,12 @@
-package kotlinw.project.gradle
-
-import kotlinw.project.gradle.DevelopmentMode.Development
-import kotlinw.project.gradle.DevelopmentMode.Production
+import DevelopmentMode.Development
+import DevelopmentMode.Production
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import java.io.File
 import java.util.*
 
-fun Project.getLocalPropertyValue(key: String): String? =
-    rootProject.file("local.properties").let {
+fun File.getLocalPropertyValue(key: String): String? =
+    resolve("local.properties").let {
         if (it.exists()) {
             Properties().apply { load(it.reader()) }.getProperty(key)
         } else {
@@ -14,8 +14,11 @@ fun Project.getLocalPropertyValue(key: String): String? =
         }
     }
 
-private const val developmentModeOptionName = "kotlinw.build.mode"
+fun Project.getLocalPropertyValue(key: String): String? = rootProject.projectDir.getLocalPropertyValue(key)
 
+fun Settings.getLocalPropertyValue(key: String): String? = this.rootDir.getLocalPropertyValue(key)
+
+private const val developmentModeOptionName = "kotlinw.build.mode"
 enum class DevelopmentMode {
     Development,
     Production
@@ -66,4 +69,6 @@ fun Project.readOssrhAccountData(): OssrhAccountData {
     )
 }
 
-fun Project.isNativeTargetEnabled(): Boolean = getLocalPropertyValue("com.erinors.targets.native.enable") == "true"
+fun Project.isDevelopmentBuildMode(): Boolean = buildMode == Development
+
+fun Project.isNativeTargetEnabled(): Boolean = getLocalPropertyValue("com.erinors.targets.native.enable") != "false"

@@ -1,55 +1,37 @@
 package kotlinw.remoting.server.ktor
 
-import arrow.atomic.update
 import arrow.core.continuations.AtomicRef
+import arrow.core.continuations.getAndUpdate
+import arrow.core.continuations.update
 import arrow.core.nonFatalOrThrow
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.MissingApplicationPluginException
-import io.ktor.server.application.call
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.application.pluginOrNull
-import io.ktor.server.request.receive
-import io.ktor.server.request.receiveText
-import io.ktor.server.response.header
-import io.ktor.server.response.respondBytes
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.contentType
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-import io.ktor.server.websocket.DefaultWebSocketServerSession
-import io.ktor.server.websocket.WebSockets
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readBytes
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
-import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
-import kotlinw.util.stdlib.collection.ConcurrentHashMap
-import kotlinw.util.stdlib.collection.ConcurrentMutableMap
+import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
+import kotlinw.util.stdlib.collection.ConcurrentHashMap
+import kotlinw.util.stdlib.collection.ConcurrentMutableMap
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import kotlin.collections.Collection
+import kotlin.collections.Map
+import kotlin.collections.any
+import kotlin.collections.associateBy
+import kotlin.collections.set
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
@@ -143,7 +125,7 @@ private class WebSocketConnection(
 ) {
     private class ActiveColdFlowData(val flowManagerCoroutineJob: Job) {
 
-        val suspendedCoroutine = AtomicRef<Continuation<Unit>?>()
+        val suspendedCoroutine = AtomicRef<Continuation<Unit>?>(null)
     }
 
     private val activeColdFlows: ConcurrentMutableMap<String, ActiveColdFlowData> = ConcurrentHashMap()

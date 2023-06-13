@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.8.22"
+kotlin = "1.8.21"
 
 # https://github.com/spring-projects/spring-boot/releases
 springBoot = "3.0.7"
@@ -78,7 +78,7 @@ flowredux = "1.0.2"
 
 mina = "2.9.2"
 
-ksp = "1.8.22-1.0.11"
+ksp = "1.8.21-1.0.11"
 
 kotlinpoet = "1.13.0"
 
@@ -87,6 +87,8 @@ okio = "3.3.0"
 kotlinresult = "1.1.18"
 
 hibernate = "6.2.3.Final"
+
+korlibs = "4.0.3"
 
 [libraries]
 
@@ -134,6 +136,7 @@ arrow-optics-ksp-plugin = { module = "io.arrow-kt:arrow-optics-ksp-plugin", vers
 
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 kotlinjs-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlinjs-wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinWrappers" }
@@ -314,6 +317,8 @@ kotlinresult-core = { module = "com.michael-bull.kotlin-result:kotlin-result", v
 kotlinresult-coroutines = { module = "com.michael-bull.kotlin-result:kotlin-result-coroutines", version.ref = "kotlinresult" }
 
 h2 = { module = "com.h2database:h2", version = "2.1.212" }
+
+korlibs-korio = { module  = "com.soywiz.korlibs.korio:korio", version.ref = "korlibs" }
 
 [plugins]
 
