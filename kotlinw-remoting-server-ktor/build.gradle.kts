@@ -16,6 +16,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(projects.kotlinw.kotlinwRemotingApi)
                 implementation(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingCoreKtor)

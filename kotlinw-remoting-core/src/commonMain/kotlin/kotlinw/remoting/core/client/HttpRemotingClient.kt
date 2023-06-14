@@ -151,7 +151,15 @@ class HttpRemotingClient<M : RawMessage>(
         )
 
         val resultMessage =
-            messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
+            try {
+                messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
+            } catch (e: Exception) {
+                throw RuntimeException(
+                    "Failed to decode response message of RPC method $serviceName.$methodName: $rawResponseMessage",
+                    e
+                )
+            }
+
         // TODO metadata
 
         return resultMessage.payload

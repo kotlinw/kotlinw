@@ -11,6 +11,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
@@ -52,6 +54,8 @@ class RemotingConfiguration {
 
     var serverToClientCommunicationType: ServerToClientCommunicationType = ServerToClientCommunicationType.WebSockets
 }
+
+private val logger by lazy { PlatformLogging.getLogger() }
 
 val RemotingPlugin =
     createApplicationPlugin(
@@ -267,8 +271,11 @@ private fun Route.setupRemoteCallRouting(
 
     route("/call") { // TODO configurable
         contentType(contentType) {
+            logger.info { "Remote call handlers: " / remoteCallDelegators }
             post("/{serviceId}/{methodId}") {
                 // TODO handle errors
+                val validCallArguments: Boolean
+
                 val serviceId = call.parameters["serviceId"]
                 if (serviceId != null) {
                     val delegator = remoteCallDelegators[serviceId]
@@ -277,6 +284,8 @@ private fun Route.setupRemoteCallRouting(
                         if (methodId != null) {
                             val methodDescriptor = delegator.methodDescriptors[methodId]
                             if (methodDescriptor != null) {
+                                logger.trace { "Processing RPC call: " / serviceId / methodId }
+
                                 when (methodDescriptor) {
                                     is RemotingMethodDescriptor.DownstreamColdFlow<*, *> ->
                                         handleDownstreamColdFlowProviderCall(
@@ -296,9 +305,26 @@ private fun Route.setupRemoteCallRouting(
                                             delegator
                                         )
                                 }
+                            } else {
+                                logger.warning {
+                                    "Invalid incoming RPC call, handler does not support the requested method: " /
+                                            listOf(serviceId, methodId)
+                                }
+                            }
+                        } else {
+                            logger.warning {
+                                "Invalid incoming RPC call, no `methodId` present: " /
+                                        named("serviceId", serviceId) / call.request.uri
                             }
                         }
+                    } else {
+                        logger.warning {
+                            "Invalid incoming RPC call, no handler found for " /
+                                    named("serviceId", serviceId)
+                        }
                     }
+                } else {
+                    logger.warning { "Invalid incoming RPC call, no `serviceId` present: " / call.request.uri }
                 }
             }
         }
