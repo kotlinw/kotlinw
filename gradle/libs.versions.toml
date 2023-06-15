@@ -31,7 +31,7 @@ arrowGradleConfig = "0.12.0-rc.1"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-composeVersion = "1.5.0-dev1049"
+composeVersion = "1.5.0-dev1071"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -126,8 +126,8 @@ jetbrains-markdown = { module = "org.jetbrains:markdown", version = "0.3.1" }
 
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeVersion" }
 jetbrains-compose-web-core = { module = "org.jetbrains.compose.web:web-core", version.ref = "composeVersion" }
-jetbrains-compose-web-core-js = { module = "org.jetbrains.compose.web:web-core-js", version.ref = "composeVersion" }
 jetbrains-compose-material-materialiconsextended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeVersion" }
+jetbrains-compose-components-desktop-splitpane = { module = "org.jetbrains.compose.components:components-splitpane-desktop", version.ref = "composeVersion" }
 
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
