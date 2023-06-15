@@ -6,6 +6,8 @@ import kotlinw.eventbus.local.LocalEventBus
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
 import kotlin.time.Duration
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 
 class StandardJvmConfigurationPropertyResolver
 private constructor(
@@ -16,6 +18,13 @@ private constructor(
     eventBus: LocalEventBus?,
     watchDelay: Duration?
 ) : EnumerableConfigurationPropertyResolver {
+
+    companion object {
+
+        const val configurationFilePathSystemPropertyName = "kotlinw.configuration.file"
+    }
+
+    private val logger = PlatformLogging.getLogger()
 
     constructor(deploymentMode: DeploymentMode, classLoader: ClassLoader) :
             this(deploymentMode, classLoader, false, null, null, null)
@@ -30,8 +39,9 @@ private constructor(
 
     private val delegate = AggregatingEnumerableConfigurationPropertyResolver(
         buildList {
-            val pathStringFromSystemProperty = System.getProperty("kotlinw.configuration.file")
+            val pathStringFromSystemProperty = System.getProperty(configurationFilePathSystemPropertyName)
             if (!pathStringFromSystemProperty.isNullOrBlank()) {
+                logger.debug { "Loading configuration from file: " / pathStringFromSystemProperty }
                 val fileLocationFromSystemProperty = LocalVfs[pathStringFromSystemProperty]
                 add(
                     if (watchLocalFiles) {
@@ -45,6 +55,8 @@ private constructor(
                         JavaPropertiesFileConfigurationPropertyResolver(fileLocationFromSystemProperty)
                     }
                 )
+            } else {
+                logger.debug { "System property not found: $configurationFilePathSystemPropertyName" }
             }
 
             when (deploymentMode) {

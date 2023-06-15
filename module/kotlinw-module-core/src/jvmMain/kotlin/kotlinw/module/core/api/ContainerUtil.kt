@@ -7,9 +7,14 @@ import kotlinw.configuration.core.StandardJvmConfigurationPropertyResolver
 import kotlinw.koin.core.api.startKoin
 import kotlinw.koin.core.internal.createPidFile
 import kotlinw.koin.core.internal.deletePidFile
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.Module
 import org.koin.dsl.module
+
+@PublishedApi
+internal val coreModuleLogger by lazy { PlatformLogging.getLogger() }
 
 inline fun <reified T> T.coreJvmModule() =
     module {
@@ -19,6 +24,8 @@ inline fun <reified T> T.coreJvmModule() =
                 DeploymentMode.Development
             } else {
                 DeploymentMode.of(deploymentModeFromSystemProperty)
+            }.also {
+                coreModuleLogger.info { "Deployment mode: " / it }
             }
         }
 
