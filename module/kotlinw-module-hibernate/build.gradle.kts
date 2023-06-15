@@ -35,6 +35,8 @@ dependencies {
     api(projects.kotlinw.kotlinwHibernateCore)
     api(projects.kotlinw.module.kotlinwModuleCore)
 
+    implementation(libs.hibernate.graalvm)
+
     testImplementation(kotlin("test"))
     testImplementation(projects.kotlinw.kotlinwJdbcUtil)
     testImplementation(libs.h2)
