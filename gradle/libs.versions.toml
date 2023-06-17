@@ -206,6 +206,8 @@ gradle-plugin-spring-boot = { module = "org.springframework.boot:spring-boot-gra
 spring-context = { module = "org.springframework:spring-context" }
 spring-web = { module = "org.springframework:spring-web" }
 
+projectreactor-blockhound = { module = "io.projectreactor.tools:blockhound", version = "1.0.8.RELEASE" }
+
 jakarta-mail = { module = "jakarta.mail:jakarta.mail-api", version = "2.1.0" }
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version = "2.1.1" }
 
