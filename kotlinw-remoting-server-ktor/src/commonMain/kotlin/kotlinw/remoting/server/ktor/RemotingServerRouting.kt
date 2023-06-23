@@ -52,7 +52,7 @@ class RemotingConfiguration {
 
     var identifyClient: ((ApplicationCall) -> ClientSessionId)? = null
 
-    var serverToClientCommunicationType: ServerToClientCommunicationType = ServerToClientCommunicationType.WebSockets
+    var supportServerToClientCommunication: Boolean = true
 }
 
 private val logger by lazy { PlatformLogging.getLogger() }
@@ -68,19 +68,10 @@ val RemotingPlugin =
 
         val delegators = remoteCallDelegators.associateBy { it.servicePath }
 
-        val needsServerToClientMessaging =
-            remoteCallDelegators.any {
-                it.methodDescriptors.values.any {
-                    it is RemotingMethodDescriptor.DownstreamColdFlow<*, *>
-                }
-            }
-
-        if (needsServerToClientMessaging) {
-            when (pluginConfig.serverToClientCommunicationType) {
-                ServerToClientCommunicationType.WebSockets ->
-                    if (application.pluginOrNull(WebSockets) == null) {
-                        throw IllegalStateException(MissingApplicationPluginException(WebSockets.key)) // TODO szövegben help link
-                    }
+        val supportServerToClientCommunication = pluginConfig.supportServerToClientCommunication
+        if (supportServerToClientCommunication) {
+            if (application.pluginOrNull(WebSockets) == null) {
+                throw IllegalStateException(MissingApplicationPluginException(WebSockets.key)) // TODO szövegben help link
             }
 
             if (messageCodec !is MessageCodecWithMetadataPrefetchSupport) {
@@ -92,7 +83,7 @@ val RemotingPlugin =
 
         application.routing {
             route("/remoting") {
-                if (needsServerToClientMessaging) {
+                if (supportServerToClientCommunication) {
                     setupWebsocketRouting(
                         messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
                         delegators,
@@ -123,9 +114,8 @@ val RemotingPlugin =
     }
 
 private class WebSocketConnection(
-    val clientSessionId: ClientSessionId,
     private val messageCodec: MessageCodec<out RawMessage>,
-    private val webSocketSession: DefaultWebSocketServerSession
+    private val webSocketSession: DefaultWebSocketSession
 ) {
     private class ActiveColdFlowData(val flowManagerCoroutineJob: Job) {
 
@@ -234,10 +224,10 @@ private fun Route.setupWebsocketRouting(
 
     // TODO fix string
     webSocket("/websocket") {
-        val clientId = identifyClient(call)
+        val clientId = identifyClient(call) // TODO hibaell.
 
         try {
-            val webSocketConnection = WebSocketConnection(clientId, messageCodec, this)
+            val webSocketConnection = WebSocketConnection(messageCodec, this)
             addConnection(clientId, webSocketConnection)
 
             for (frame in incoming) {
@@ -269,12 +259,11 @@ private fun Route.setupRemoteCallRouting(
 ) {
     val contentType = ContentType.parse(messageCodec.contentType)
 
-    route("/call") { // TODO configurable
+    route("/call") { // TODO configurable path
         contentType(contentType) {
             logger.info { "Remote call handlers: " / remoteCallDelegators }
             post("/{serviceId}/{methodId}") {
                 // TODO handle errors
-                val validCallArguments: Boolean
 
                 val serviceId = call.parameters["serviceId"]
                 if (serviceId != null) {

@@ -3,6 +3,7 @@ package kotlinw.remoting.core.client
 import arrow.core.continuations.AtomicRef
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -74,24 +75,28 @@ class HttpRemotingClient<M : RawMessage>(
                 bidirectionalConnection.incomingMessages().collect { rawMessage ->
                     val metadataHolder = messageCodec.extractMetadata(rawMessage)
                     val metadata = checkNotNull(metadataHolder.metadata)
-                    val messageKind = metadata.messageKind
+                    val messageKind = checkNotNull(metadata.messageKind)
 
-                    if (messageKind is RemotingMessageKind.HasCallId) {
-                        suspendedCoroutines.remove(messageKind.callId)?.also {
-                            when (messageKind) {
-                                is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
-                                    val message =
-                                        metadataHolder.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
-                                    it.continuation.resume(message as RemotingMessage<Nothing>)
-                                }
-
-                                is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
-                                    val message = metadataHolder.decodeMessage(it.payloadDeserializer)
-                                    it.continuation.resume(message as RemotingMessage<Nothing>)
-                                }
-
-                                else -> TODO()
+                    suspendedCoroutines.remove(messageKind.callId)?.also {
+                        when (messageKind) {
+                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
+                                val message =
+                                    metadataHolder.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
+                                it.continuation.resume(message as RemotingMessage<Nothing>)
                             }
+
+                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
+                                val message = metadataHolder.decodeMessage(it.payloadDeserializer)
+                                it.continuation.resume(message as RemotingMessage<Nothing>)
+                            }
+
+                            is RemotingMessageKind.CallRequest -> TODO()
+
+                            is RemotingMessageKind.CallResponse -> TODO()
+
+                            is RemotingMessageKind.ColdFlowValueCollected -> TODO()
+
+                            is RemotingMessageKind.CollectColdFlow -> TODO()
                         }
                     }
                 }
@@ -225,5 +230,9 @@ class HttpRemotingClient<M : RawMessage>(
         )
 
         return resultFlow
+    }
+
+    suspend fun setupIncomingCalls(incomingCallDelegators: Collection<RemoteCallDelegator>) {
+        ensureConnected()
     }
 }
