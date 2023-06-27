@@ -6,6 +6,7 @@ import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.applicationEngineEnvironment
+import io.ktor.server.websocket.*
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -36,6 +37,7 @@ val serverBaseModule by lazy {
                 this.log = KtorSimpleLogger("kotlinw.serverbase.ktor")
 
                 this.module {
+                    install(WebSockets)
                     install(RemotingPlugin) {
                         this.messageCodec = get<MessageCodec<*>>()
                         this.remoteCallDelegators = getAll<RemoteCallDelegator>()

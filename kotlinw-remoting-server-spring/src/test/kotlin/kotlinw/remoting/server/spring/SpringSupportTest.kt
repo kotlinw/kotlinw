@@ -6,8 +6,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.codec.KotlinxSerializationTextMessageCodec
 import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
@@ -39,7 +39,7 @@ class SpringSupportTest {
     class TestSpringModule {
 
         @Bean
-        fun messageCodec() = KotlinxSerializationTextMessageCodec(Json, MediaType.APPLICATION_JSON_VALUE)
+        fun messageCodec() = JsonMessageCodec.Default
 
         @Bean
         fun exampleService(): ExampleService = mockk<ExampleService>(relaxed = true) {

@@ -39,11 +39,6 @@ import kotlin.coroutines.resume
 
 private typealias ClientSessionId = Any
 
-enum class ServerToClientCommunicationType {
-    WebSockets
-    // TODO ServerSentEvents
-}
-
 class RemotingConfiguration {
 
     var messageCodec: MessageCodec<out RawMessage>? = null
@@ -70,9 +65,7 @@ val RemotingPlugin =
 
         val supportServerToClientCommunication = pluginConfig.supportServerToClientCommunication
         if (supportServerToClientCommunication) {
-            if (application.pluginOrNull(WebSockets) == null) {
-                throw IllegalStateException(MissingApplicationPluginException(WebSockets.key)) // TODO szövegben help link
-            }
+            application.plugin(WebSockets)
 
             if (messageCodec !is MessageCodecWithMetadataPrefetchSupport) {
                 throw IllegalStateException("Configuration value '${RemotingConfiguration::messageCodec.name}' must be an instance of '${MessageCodecWithMetadataPrefetchSupport::class.simpleName}'  because server-to-client messaging is required.")
@@ -384,3 +377,5 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
         call.respondText((rawResponseMessage as RawMessage.Text).text)
     }
 }
+
+// TODO utánanézni, hogy ez használható-e itt: createRouteScopedPlugin

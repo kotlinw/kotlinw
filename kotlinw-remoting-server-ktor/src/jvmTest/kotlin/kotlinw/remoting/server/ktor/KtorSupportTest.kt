@@ -18,7 +18,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
-import io.ktor.server.websocket.WebSockets.Plugin as ServerWebSockets
 
 class KtorSupportTest {
 
@@ -30,7 +29,6 @@ class KtorSupportTest {
 
         val messageCodec = JsonMessageCodec.Default
 
-        install(ServerWebSockets)
         install(RemotingPlugin) {
             this.messageCodec = messageCodec
             this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
@@ -67,7 +65,6 @@ class KtorSupportTest {
 
         val messageCodec = JsonMessageCodec.Default
 
-        install(ServerWebSockets)
         install(RemotingPlugin)
         {
             this.messageCodec = messageCodec

@@ -124,7 +124,7 @@ class HttpRemotingClient<M : RawMessage>(
         bidirectionalMessagingSupportLock.withLock {
             bidirectionalMessagingSupportHolder.value ?: run {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)
-                httpSupportImplementor.connect<M>(Url("$remoteServerBaseUrl/remoting/websocket"), messageCodec)
+                httpSupportImplementor.connect<M>(Url("${remoteServerBaseUrl.value.replace("http", "ws")}/remoting/websocket"), messageCodec)
                     .let { // TODO fix string
                         BidirectionalMessagingSupport(it).also {
                             bidirectionalMessagingSupportHolder.value = it

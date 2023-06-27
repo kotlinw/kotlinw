@@ -8,7 +8,7 @@ import kotlinw.collection.MutableQueue
 import kotlinw.collection.Queue
 import kotlinw.remoting.core.client.StreamBasedSynchronousRemotingClient
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.codec.KotlinxSerializationTextMessageCodec
+import kotlinw.remoting.core.codec.KotlinxSerializationTextMessageCodec1
 import kotlinw.remoting.core.codec.asBinaryMessageCodec
 import kotlinw.remoting.core.server.StreamBasedSynchronousRemotingServer
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
@@ -73,7 +73,7 @@ class StreamBasedSynchronousRemotingTest {
     fun testEcho() {
         runBlocking {
             val messageCodec = BinaryMessageCodecWithMetadataPrefetchSupport(
-                KotlinxSerializationTextMessageCodec(Json, "application/json").asBinaryMessageCodec()
+                KotlinxSerializationTextMessageCodec1(Json, "application/json").asBinaryMessageCodec()
             )
 
             val serverToClientPipe = Pipe(1000)
