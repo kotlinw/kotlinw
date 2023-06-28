@@ -5,10 +5,9 @@ import korlibs.io.stream.AsyncInputStream
 import korlibs.io.stream.AsyncOutputStream
 import kotlinw.collection.LinkedQueue
 import kotlinw.collection.MutableQueue
-import kotlinw.collection.Queue
 import kotlinw.remoting.core.client.StreamBasedSynchronousRemotingClient
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.codec.KotlinxSerializationTextMessageCodec1
+import kotlinw.remoting.core.codec.KotlinxSerializationTextMessageCodec
 import kotlinw.remoting.core.codec.asBinaryMessageCodec
 import kotlinw.remoting.core.server.StreamBasedSynchronousRemotingServer
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
@@ -19,12 +18,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import java.io.InterruptedIOException
-import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.fail
 
 class StreamBasedSynchronousRemotingTest {
 
@@ -73,7 +69,7 @@ class StreamBasedSynchronousRemotingTest {
     fun testEcho() {
         runBlocking {
             val messageCodec = BinaryMessageCodecWithMetadataPrefetchSupport(
-                KotlinxSerializationTextMessageCodec1(Json, "application/json").asBinaryMessageCodec()
+                KotlinxSerializationTextMessageCodec(Json, "application/json").asBinaryMessageCodec()
             )
 
             val serverToClientPipe = Pipe(1000)

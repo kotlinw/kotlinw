@@ -10,7 +10,7 @@ import kotlinx.serialization.StringFormat
 
 sealed class KotlinxSerializationMessageCodec<M : RawMessage> : MessageCodec<M>
 
-class KotlinxSerializationTextMessageCodec1(
+class KotlinxSerializationTextMessageCodec(
     private val serialFormat: StringFormat,
     override val contentType: String,
 ) : KotlinxSerializationMessageCodec<RawMessage.Text>() {
@@ -57,5 +57,5 @@ private class KotlinxSerializationTextMessageCodecAsBinary(private val textCodec
         textCodec.decode(RawMessage.Text(rawMessage.byteArrayView.decodeToString()), deserializer)
 }
 
-fun KotlinxSerializationTextMessageCodec1.asBinaryMessageCodec(): KotlinxSerializationMessageCodec<RawMessage.Binary> =
+fun KotlinxSerializationTextMessageCodec.asBinaryMessageCodec(): KotlinxSerializationMessageCodec<RawMessage.Binary> =
     KotlinxSerializationTextMessageCodecAsBinary(this)
