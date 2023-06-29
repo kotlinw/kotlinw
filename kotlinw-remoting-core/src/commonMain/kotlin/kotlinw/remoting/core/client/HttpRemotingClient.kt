@@ -1,13 +1,10 @@
 package kotlinw.remoting.core.client
 
 import arrow.core.continuations.AtomicRef
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -16,17 +13,13 @@ import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
-import kotlinw.remoting.core.common.BidirectionalMessagingManager
-import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
+import kotlinw.remoting.core.common.BidirectionalMessagingImplementor
+import kotlinw.remoting.core.common.BidirectionalMessagingImplementorImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.collection.ConcurrentHashMap
-import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
@@ -40,21 +33,21 @@ class HttpRemotingClient<M : RawMessage>(
 
     interface BidirectionalCommunicationImplementor {
 
-        suspend fun <M : RawMessage> connect(
+        suspend fun connect(
             url: Url,
             messageCodecDescriptor: MessageCodecDescriptor
-        ): BidirectionalMessagingConnection<M>
+        ): BidirectionalMessagingConnection
     }
 
-    private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)
+    private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingImplementor?>(null)
 
     private val bidirectionalMessagingSupportLock = Mutex()
 
-    private suspend fun ensureConnected(): BidirectionalMessagingManager =
+    private suspend fun ensureConnected(): BidirectionalMessagingImplementor =
         bidirectionalMessagingSupportLock.withLock {
             bidirectionalMessagingSupportHolder.value ?: run {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)
-                httpSupportImplementor.connect<M>(
+                httpSupportImplementor.connect(
                     Url(
                         "${
                             remoteServerBaseUrl.value.replace(
@@ -65,7 +58,7 @@ class HttpRemotingClient<M : RawMessage>(
                     ), messageCodec
                 )
                     .let { // TODO fix string
-                        BidirectionalMessagingManagerImpl(
+                        BidirectionalMessagingImplementorImpl(
                             it,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>
                         ).also {

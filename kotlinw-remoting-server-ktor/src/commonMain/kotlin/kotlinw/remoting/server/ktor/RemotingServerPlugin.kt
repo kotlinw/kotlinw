@@ -42,6 +42,8 @@ import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.WebSocketBidirectionalMessagingConnection
 import kotlinw.remoting.core.ktor.WebSocketConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
@@ -186,6 +188,7 @@ private fun Route.setupWebsocketRouting(
         val clientId = identifyClient(call) // TODO hibaell.
 
         try {
+            val connection = WebSocketBidirectionalMessagingConnection(this, messageCodec)
             val webSocketConnection = WebSocketConnection(messageCodec, this)
             addConnection(clientId, webSocketConnection)
 

@@ -1,16 +1,13 @@
 package kotlinw.remoting.client.ktor
 
 import arrow.core.continuations.AtomicRef
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
-import io.ktor.client.plugins.websocket.webSocketSession
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpHeaders
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.*
+import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
@@ -42,9 +39,11 @@ class KtorHttpRemotingClientImplementor(
 
                 setBody(
                     if (messageCodecDescriptor.isBinary) {
-                        (rawParameter as RawMessage.Binary).byteArrayView.toReadOnlyByteArray()
+                        check(rawParameter is RawMessage.Binary)
+                        rawParameter.byteArrayView.toReadOnlyByteArray()
                     } else {
-                        (rawParameter as RawMessage.Text).text
+                        check(rawParameter is RawMessage.Text)
+                        rawParameter.text
                     }
                 )
             }
@@ -59,10 +58,10 @@ class KtorHttpRemotingClientImplementor(
 
     private val webSocketSessionDataLock = Mutex()
 
-    override suspend fun <M : RawMessage> connect(
+    override suspend fun connect(
         url: Url,
         messageCodecDescriptor: MessageCodecDescriptor
-    ): BidirectionalMessagingConnection<M> {
+    ): BidirectionalMessagingConnection {
         val clientWebSocketSession = webSocketSessionDataLock.withLock {
             webSocketSessionDataHolder.value
                 ?: httpClient.webSocketSession(url.toString()).also {

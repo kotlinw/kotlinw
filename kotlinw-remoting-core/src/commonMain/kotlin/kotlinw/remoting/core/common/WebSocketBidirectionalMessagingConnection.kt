@@ -1,10 +1,6 @@
 package kotlinw.remoting.core.common
 
-import io.ktor.websocket.DefaultWebSocketSession
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readBytes
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
+import io.ktor.websocket.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
@@ -13,30 +9,33 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class WebSocketBidirectionalMessagingConnection<M : RawMessage>(
+class WebSocketBidirectionalMessagingConnection(
     private val webSocketSession: DefaultWebSocketSession,
     private val messageCodecDescriptor: MessageCodecDescriptor
-) : BidirectionalMessagingConnection<M>, CoroutineScope by webSocketSession {
+) : BidirectionalMessagingConnection, CoroutineScope by webSocketSession {
 
-    override suspend fun incomingRawMessages(): Flow<M> =
+    override suspend fun incomingRawMessages(): Flow<RawMessage> =
         flow {
             for (frame in webSocketSession.incoming) {
                 emit(
                     if (messageCodecDescriptor.isBinary) {
-                        RawMessage.Binary((frame as Frame.Binary).readBytes().view())
+                        check(frame is Frame.Binary)
+                        RawMessage.Binary(frame.readBytes().view())
                     } else {
-                        RawMessage.Text((frame as Frame.Text).readText())
+                        check(frame is Frame.Text)
+                        RawMessage.Text(frame.readText())
                     }
-                            as M
                 )
             }
         }
 
-    override suspend fun sendMessage(rawMessage: M) {
+    override suspend fun sendMessage(rawMessage: RawMessage) {
         if (messageCodecDescriptor.isBinary) {
-            webSocketSession.send((rawMessage as RawMessage.Binary).byteArrayView.toReadOnlyByteArray())
+            check(rawMessage is RawMessage.Binary)
+            webSocketSession.send(rawMessage.byteArrayView.toReadOnlyByteArray())
         } else {
-            webSocketSession.send((rawMessage as RawMessage.Text).text)
+            check(rawMessage is RawMessage.Text)
+            webSocketSession.send(rawMessage.text)
         }
     }
 }
