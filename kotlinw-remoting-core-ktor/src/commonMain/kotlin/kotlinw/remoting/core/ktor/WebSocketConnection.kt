@@ -34,7 +34,7 @@ class WebSocketConnection(
 
     private val supervisorScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
 
-    fun onColdFlowValueCollected(flowId: String) {
+    private fun onColdFlowValueCollected(flowId: String) {
         val activeColdFlowData = activeColdFlows[flowId] ?: throw IllegalStateException()
         val continuation = checkNotNull(activeColdFlowData.suspendedCoroutine.getAndUpdate { null })
         continuation.resume(Unit)
@@ -82,13 +82,13 @@ class WebSocketConnection(
         )
     }
 
-    suspend fun <T> send(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
+    private suspend fun <T> send(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
         bidirectionalConnection.sendMessage(
             messageCodec.encodeMessage(message, payloadSerializer)
         )
     }
 
-    fun onCollectColdFlow(flowId: String) {
+    private fun onCollectColdFlow(flowId: String) {
         val coldFlowData = activeColdFlows[flowId] ?: throw IllegalStateException()
         coldFlowData.flowManagerCoroutineJob.start()
     }

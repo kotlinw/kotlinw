@@ -54,7 +54,7 @@ class HttpRemotingClient<M : RawMessage>(
                         }/remoting/websocket"
                     ), messageCodec
                 )
-                    .let { // TODO fix string
+                    .let {// TODO fix string
                         BidirectionalMessagingManagerImpl(
                             it,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>
@@ -121,7 +121,7 @@ class HttpRemotingClient<M : RawMessage>(
                     Unit,
                     RemotingMessageMetadata(
                         messageKind = RemotingMessageKind.CollectColdFlow(callId)
-                    )// TODO metadata
+                    ) // TODO metadata
                 ),
                 serializer()
             )
