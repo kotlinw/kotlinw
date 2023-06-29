@@ -2,7 +2,6 @@ package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.timeout
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -24,7 +23,6 @@ import kotlinw.module.api.ApplicationInitializerService
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.HttpRemotingClient
-import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.serialization.core.SerializerService
 import kotlinw.serialization.core.SerializerServiceImpl
 import kotlinw.util.stdlib.Priority
@@ -38,7 +36,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.SynchronousCallSupport
@@ -111,10 +108,10 @@ internal class RemotingClientManagerImpl(
     private val synchronousCallSupportImplementor: SynchronousCallSupport
 ) : RemotingClientManager {
 
-    private val remotingClientCache: ConcurrentMutableMap<Url, RemotingClient> = ConcurrentHashMap()
+    private val remotingClients: ConcurrentMutableMap<Url, RemotingClient> = ConcurrentHashMap()
 
     override fun get(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient =
-        remotingClientCache.computeIfAbsent(remoteServerBaseUrl) {
+        remotingClients.computeIfAbsent(remoteServerBaseUrl) {
             HttpRemotingClient(
                 messageCodec,
                 synchronousCallSupportImplementor,
