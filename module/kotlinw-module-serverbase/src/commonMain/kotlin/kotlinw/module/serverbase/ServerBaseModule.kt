@@ -11,16 +11,14 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
-import kotlinw.configuration.core.getConfigurationPropertyTypedValueOrNull
 import kotlinw.configuration.core.getConfigurationPropertyValue
-import kotlinw.configuration.core.getConfigurationPropertyValueOrNull
 import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerShutdownTask
 import kotlinw.koin.core.api.registerStartupTask
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.server.ktor.RemotingPlugin
+import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.dsl.module
@@ -38,7 +36,7 @@ val serverBaseModule by lazy {
 
                 this.module {
                     install(WebSockets)
-                    install(RemotingPlugin) {
+                    install(RemotingServerPlugin) {
                         this.messageCodec = get<MessageCodec<*>>()
                         this.remoteCallDelegators = getAll<RemoteCallDelegator>()
                         this.identifyClient = { 1 } // FIXME

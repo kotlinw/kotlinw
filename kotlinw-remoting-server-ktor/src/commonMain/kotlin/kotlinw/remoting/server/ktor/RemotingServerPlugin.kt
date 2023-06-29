@@ -1,20 +1,41 @@
 package kotlinw.remoting.server.ktor
 
 import arrow.core.continuations.AtomicRef
-import arrow.core.continuations.getAndUpdate
 import arrow.core.continuations.update
 import arrow.core.nonFatalOrThrow
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
-import io.ktor.websocket.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.plugin
+import io.ktor.server.request.receive
+import io.ktor.server.request.receiveText
+import io.ktor.server.request.uri
+import io.ktor.server.response.header
+import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.contentType
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.webSocket
+import io.ktor.websocket.DefaultWebSocketSession
+import io.ktor.websocket.Frame
+import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
+import io.ktor.websocket.send
+import kotlin.collections.set
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -25,19 +46,22 @@ import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import kotlin.collections.Collection
-import kotlin.collections.Map
-import kotlin.collections.any
-import kotlin.collections.associateBy
-import kotlin.collections.set
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
 
 private typealias ClientSessionId = Any
+
+enum class ServerToClientCommunicationType {
+    WebSockets, ServerSentEvents
+}
 
 class RemotingConfiguration {
 
@@ -47,12 +71,12 @@ class RemotingConfiguration {
 
     var identifyClient: ((ApplicationCall) -> ClientSessionId)? = null
 
-    var supportServerToClientCommunication: Boolean = true
+    var supportedServerToClientCommunicationTypes: Set<ServerToClientCommunicationType> = mutableSetOf()
 }
 
 private val logger by lazy { PlatformLogging.getLogger() }
 
-val RemotingPlugin =
+val RemotingServerPlugin =
     createApplicationPlugin(
         name = "RemotingPlugin",
         createConfiguration = ::RemotingConfiguration
@@ -61,14 +85,31 @@ val RemotingPlugin =
         val remoteCallDelegators = requireNotNull(pluginConfig.remoteCallDelegators)
         val messageCodec = requireNotNull(pluginConfig.messageCodec)
 
+        val supportedServerToClientCommunicationTypes = pluginConfig.supportedServerToClientCommunicationTypes
+        val isWebSocketSupportRequired =
+            supportedServerToClientCommunicationTypes.contains(ServerToClientCommunicationType.WebSockets)
+        val isServerSentEventSupportRequired =
+            supportedServerToClientCommunicationTypes.contains(ServerToClientCommunicationType.ServerSentEvents)
+
         val delegators = remoteCallDelegators.associateBy { it.servicePath }
+        if (
+            delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
+            && supportedServerToClientCommunicationTypes.isEmpty()
+        ) {
+            throw IllegalStateException("Plugin configuration '${RemotingConfiguration::supportedServerToClientCommunicationTypes.name}' should be specified because downstream communication is required.")
+        }
 
-        val supportServerToClientCommunication = pluginConfig.supportServerToClientCommunication
-        if (supportServerToClientCommunication) {
-            application.plugin(WebSockets)
-
+        if (supportedServerToClientCommunicationTypes.isNotEmpty()) {
             if (messageCodec !is MessageCodecWithMetadataPrefetchSupport) {
-                throw IllegalStateException("Configuration value '${RemotingConfiguration::messageCodec.name}' must be an instance of '${MessageCodecWithMetadataPrefetchSupport::class.simpleName}'  because server-to-client messaging is required.")
+                throw IllegalStateException("Configuration value '${RemotingConfiguration::messageCodec.name}' must be an instance of '${MessageCodecWithMetadataPrefetchSupport::class.simpleName}'  because server-to-client messaging is requested.")
+            }
+
+            if (isWebSocketSupportRequired) {
+                application.plugin(WebSockets)
+            }
+
+            if (isServerSentEventSupportRequired) {
+                TODO()
             }
         }
 
@@ -76,7 +117,7 @@ val RemotingPlugin =
 
         application.routing {
             route("/remoting") {
-                if (supportServerToClientCommunication) {
+                if (isWebSocketSupportRequired) {
                     setupWebsocketRouting(
                         messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
                         delegators,
@@ -91,6 +132,10 @@ val RemotingPlugin =
                             connections.remove(it)
                         }
                     )
+                }
+
+                if (isServerSentEventSupportRequired) {
+                    TODO()
                 }
 
                 setupRemoteCallRouting(

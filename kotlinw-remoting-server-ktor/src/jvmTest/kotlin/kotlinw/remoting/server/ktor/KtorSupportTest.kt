@@ -31,10 +31,11 @@ class KtorSupportTest {
         val messageCodec = JsonMessageCodec.Default
 
         install(WebSockets)
-        install(RemotingPlugin) {
+        install(RemotingServerPlugin) {
             this.messageCodec = messageCodec
             this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
             this.identifyClient = { 1 }
+            this.supportedServerToClientCommunicationTypes += ServerToClientCommunicationType.WebSockets
         }
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(client)
@@ -68,11 +69,11 @@ class KtorSupportTest {
         val messageCodec = JsonMessageCodec.Default
 
         install(WebSockets)
-        install(RemotingPlugin)
-        {
+        install(RemotingServerPlugin) {
             this.messageCodec = messageCodec
             this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
             this.identifyClient = { 1 }
+            this.supportedServerToClientCommunicationTypes += ServerToClientCommunicationType.WebSockets
         }
 
         val httpClient = createClient {
