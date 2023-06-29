@@ -16,7 +16,7 @@ junit = "5.9.2"
 serialization = "1.5.1"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
-coroutines = "1.7.1"
+coroutines = "1.7.2"
 
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.0-RC"
