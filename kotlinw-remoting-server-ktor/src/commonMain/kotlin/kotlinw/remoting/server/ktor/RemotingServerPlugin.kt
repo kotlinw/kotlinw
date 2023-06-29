@@ -54,6 +54,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -192,21 +193,12 @@ private fun Route.setupWebsocketRouting(
             val webSocketConnection = WebSocketConnection(messageCodec, connection)
             addConnection(clientId, webSocketConnection)
 
-            for (frame in incoming) {
-                when (frame) {
-                    is Frame.Binary -> processIncomingMessage(
-                        webSocketConnection,
-                        RawMessage.Binary(frame.readBytes().view())
-                    )
-
-                    is Frame.Text -> processIncomingMessage(webSocketConnection, RawMessage.Text(frame.readText()))
-                    else -> {
-                        // Ignore
-                    }
-                }
+            connection.incomingRawMessages().collect {
+                processIncomingMessage(webSocketConnection, it)
             }
         } catch (e: Exception) {
             // TODO log
+            logger.error(e) { "TODO"} // TODO
         } finally {
             removeConnection(clientId)
         }

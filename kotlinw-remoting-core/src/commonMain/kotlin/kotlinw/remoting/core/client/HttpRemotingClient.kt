@@ -13,8 +13,8 @@ import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
-import kotlinw.remoting.core.common.BidirectionalMessagingImplementor
-import kotlinw.remoting.core.common.BidirectionalMessagingImplementorImpl
+import kotlinw.remoting.core.common.BidirectionalMessagingManager
+import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
@@ -39,11 +39,11 @@ class HttpRemotingClient<M : RawMessage>(
         ): BidirectionalMessagingConnection
     }
 
-    private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingImplementor?>(null)
+    private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)
 
     private val bidirectionalMessagingSupportLock = Mutex()
 
-    private suspend fun ensureConnected(): BidirectionalMessagingImplementor =
+    private suspend fun ensureConnected(): BidirectionalMessagingManager =
         bidirectionalMessagingSupportLock.withLock {
             bidirectionalMessagingSupportHolder.value ?: run {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)
@@ -58,7 +58,7 @@ class HttpRemotingClient<M : RawMessage>(
                     ), messageCodec
                 )
                     .let { // TODO fix string
-                        BidirectionalMessagingImplementorImpl(
+                        BidirectionalMessagingManagerImpl(
                             it,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>
                         ).also {

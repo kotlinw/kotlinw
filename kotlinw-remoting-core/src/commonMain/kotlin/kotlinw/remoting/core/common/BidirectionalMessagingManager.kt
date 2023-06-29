@@ -13,17 +13,17 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
-interface BidirectionalMessagingImplementor {
+interface BidirectionalMessagingManager {
 
     suspend fun <T> awaitMessage(callId: String, payloadDeserializer: KSerializer<T>): RemotingMessage<T>
 
     suspend fun <T> sendMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>)
 }
 
-class BidirectionalMessagingImplementorImpl<M : RawMessage>(
+class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val bidirectionalConnection: BidirectionalMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>
-) : BidirectionalMessagingImplementor {
+) : BidirectionalMessagingManager {
 
     private data class SuspendedCoroutineData<T>(
         val continuation: Continuation<RemotingMessage<T>>,
