@@ -1,6 +1,7 @@
 package kotlinw.remoting.server.ktor
 
 import io.ktor.server.testing.testApplication
+import io.ktor.server.websocket.WebSockets
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -29,6 +30,7 @@ class KtorSupportTest {
 
         val messageCodec = JsonMessageCodec.Default
 
+        install(WebSockets)
         install(RemotingPlugin) {
             this.messageCodec = messageCodec
             this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
@@ -65,6 +67,7 @@ class KtorSupportTest {
 
         val messageCodec = JsonMessageCodec.Default
 
+        install(WebSockets)
         install(RemotingPlugin)
         {
             this.messageCodec = messageCodec
