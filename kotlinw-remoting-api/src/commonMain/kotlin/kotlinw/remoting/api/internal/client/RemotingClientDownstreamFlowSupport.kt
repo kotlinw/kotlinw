@@ -8,6 +8,7 @@ import kotlin.reflect.KFunction
 
 interface RemotingClientDownstreamFlowSupport : RemotingClient {
 
+    // TODO rename requestIncomingColdFlow
     suspend fun <T : Any, P : Any, F> requestDownstreamColdFlow(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<Flow<F>>,
