@@ -16,6 +16,8 @@ import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.BidirectionalMessagingManager
+import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
@@ -49,68 +51,29 @@ class HttpRemotingClient<M : RawMessage>(
         val payloadDeserializer: KSerializer<T>
     )
 
-    private inner class BidirectionalMessagingSupport(
-        private val bidirectionalConnection: BidirectionalMessagingConnection<M>
-    ) {
-        init {
-            check(messageCodec is MessageCodecWithMetadataPrefetchSupport<M>) // TODO korábban derüljön ki
-
-            bidirectionalConnection.launch {
-                bidirectionalConnection.incomingRawMessages().collect { rawMessage ->
-                    val metadataHolder = messageCodec.extractMetadata(rawMessage)
-                    val metadata = checkNotNull(metadataHolder.metadata)
-                    val messageKind = checkNotNull(metadata.messageKind)
-
-                    suspendedCoroutines.remove(messageKind.callId)?.also {
-                        when (messageKind) {
-                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
-                                val message =
-                                    metadataHolder.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
-                                it.continuation.resume(message as RemotingMessage<Nothing>)
-                            }
-
-                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
-                                val message = metadataHolder.decodeMessage(it.payloadDeserializer)
-                                it.continuation.resume(message as RemotingMessage<Nothing>)
-                            }
-
-                            is RemotingMessageKind.CallRequest -> TODO()
-
-                            is RemotingMessageKind.CallResponse -> TODO()
-
-                            is RemotingMessageKind.ColdFlowValueCollected -> TODO()
-
-                            is RemotingMessageKind.CollectColdFlow -> TODO()
-                        }
-                    }
-                }
-            }
-        }
-
-        // TODO disconnect esetén clear()
-        private val suspendedCoroutines: ConcurrentMutableMap<String, SuspendedCoroutineData<*>> = ConcurrentHashMap()
-
-        suspend fun <T> awaitMessage(callId: String, payloadDeserializer: KSerializer<T>): RemotingMessage<T> =
-            suspendCancellableCoroutine {
-                suspendedCoroutines[callId] = SuspendedCoroutineData(it, payloadDeserializer)
-            }
-
-        suspend fun <T> sendMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
-            bidirectionalConnection.sendMessage(messageCodec.encodeMessage(message, payloadSerializer))
-        }
-    }
-
-    private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingSupport?>(null)
+    private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)
 
     private val bidirectionalMessagingSupportLock = Mutex()
 
-    private suspend fun ensureConnected(): BidirectionalMessagingSupport =
+    private suspend fun ensureConnected(): BidirectionalMessagingManager =
         bidirectionalMessagingSupportLock.withLock {
             bidirectionalMessagingSupportHolder.value ?: run {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)
-                httpSupportImplementor.connect<M>(Url("${remoteServerBaseUrl.value.replace("http", "ws")}/remoting/websocket"), messageCodec)
+                httpSupportImplementor.connect<M>(
+                    Url(
+                        "${
+                            remoteServerBaseUrl.value.replace(
+                                "http",
+                                "ws"
+                            )
+                        }/remoting/websocket"
+                    ), messageCodec
+                )
                     .let { // TODO fix string
-                        BidirectionalMessagingSupport(it).also {
+                        BidirectionalMessagingManagerImpl(
+                            it,
+                            messageCodec as MessageCodecWithMetadataPrefetchSupport<M>
+                        ).also {
                             bidirectionalMessagingSupportHolder.value = it
                         }
                     }
