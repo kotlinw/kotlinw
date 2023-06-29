@@ -163,27 +163,6 @@ private fun Route.setupWebsocketRouting(
     removeConnection: (ClientSessionId) -> Unit
 ) {
 
-    suspend fun processIncomingMessage(webSocketConnection: WebSocketConnection, rawMessage: RawMessage) {
-        val metadata = messageCodec.extractMetadata(rawMessage)
-        val messageKind = metadata.metadata?.messageKind ?: throw IllegalStateException() // TODO hibaüz.
-
-        when (messageKind) {
-            is RemotingMessageKind.CallRequest -> TODO(messageKind.toString())
-
-            is RemotingMessageKind.CallResponse -> TODO(messageKind.toString())
-
-            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> TODO(messageKind.toString())
-
-            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> TODO(messageKind.toString())
-
-            is RemotingMessageKind.CollectColdFlow ->
-                webSocketConnection.onCollectColdFlow(messageKind.callId)
-
-            is RemotingMessageKind.ColdFlowValueCollected ->
-                webSocketConnection.onColdFlowValueCollected(messageKind.callId)
-        }
-    }
-
     // TODO fix string
     webSocket("/websocket") {
         val clientId = identifyClient(call) // TODO hibaell.
@@ -194,7 +173,7 @@ private fun Route.setupWebsocketRouting(
             addConnection(clientId, webSocketConnection)
 
             connection.incomingRawMessages().collect {
-                processIncomingMessage(webSocketConnection, it)
+                webSocketConnection.processIncomingMessage(it)
             }
         } catch (e: Exception) {
             // TODO log

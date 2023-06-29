@@ -9,6 +9,7 @@ import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
@@ -21,7 +22,7 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
 class WebSocketConnection(
-    private val messageCodec: MessageCodec<out RawMessage>,
+    private val messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
     private val bidirectionalConnection: BidirectionalMessagingConnection
 ) {
     private class ActiveColdFlowData(val flowManagerCoroutineJob: Job) {
@@ -90,5 +91,26 @@ class WebSocketConnection(
     fun onCollectColdFlow(flowId: String) {
         val coldFlowData = activeColdFlows[flowId] ?: throw IllegalStateException()
         coldFlowData.flowManagerCoroutineJob.start()
+    }
+
+    suspend fun processIncomingMessage(rawMessage: RawMessage) {
+        val metadata = messageCodec.extractMetadata(rawMessage)
+        val messageKind = metadata.metadata?.messageKind ?: throw IllegalStateException() // TODO hibaüz.
+
+        when (messageKind) {
+            is RemotingMessageKind.CallRequest -> TODO(messageKind.toString())
+
+            is RemotingMessageKind.CallResponse -> TODO(messageKind.toString())
+
+            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> TODO(messageKind.toString())
+
+            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> TODO(messageKind.toString())
+
+            is RemotingMessageKind.CollectColdFlow ->
+                onCollectColdFlow(messageKind.callId)
+
+            is RemotingMessageKind.ColdFlowValueCollected ->
+                onColdFlowValueCollected(messageKind.callId)
+        }
     }
 }

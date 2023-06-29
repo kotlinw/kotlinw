@@ -33,10 +33,7 @@ class HttpRemotingClient<M : RawMessage>(
 
     interface BidirectionalCommunicationImplementor {
 
-        suspend fun connect(
-            url: Url,
-            messageCodecDescriptor: MessageCodecDescriptor
-        ): BidirectionalMessagingConnection
+        suspend fun connect(url: Url, messageCodecDescriptor: MessageCodecDescriptor): BidirectionalMessagingConnection
     }
 
     private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)
