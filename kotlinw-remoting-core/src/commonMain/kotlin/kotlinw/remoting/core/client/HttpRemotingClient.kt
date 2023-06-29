@@ -46,11 +46,6 @@ class HttpRemotingClient<M : RawMessage>(
         ): BidirectionalMessagingConnection<M>
     }
 
-    private data class SuspendedCoroutineData<T>(
-        val continuation: Continuation<RemotingMessage<T>>,
-        val payloadDeserializer: KSerializer<T>
-    )
-
     private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)
 
     private val bidirectionalMessagingSupportLock = Mutex()
