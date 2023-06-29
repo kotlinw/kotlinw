@@ -189,7 +189,7 @@ private fun Route.setupWebsocketRouting(
 
         try {
             val connection = WebSocketBidirectionalMessagingConnection(this, messageCodec)
-            val webSocketConnection = WebSocketConnection(messageCodec, this)
+            val webSocketConnection = WebSocketConnection(messageCodec, connection)
             addConnection(clientId, webSocketConnection)
 
             for (frame in incoming) {

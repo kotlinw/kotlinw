@@ -4,13 +4,12 @@ import arrow.core.continuations.AtomicRef
 import arrow.core.continuations.getAndUpdate
 import arrow.core.continuations.update
 import arrow.core.nonFatalOrThrow
-import io.ktor.websocket.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinx.coroutines.*
@@ -23,7 +22,7 @@ import kotlin.coroutines.resume
 
 class WebSocketConnection(
     private val messageCodec: MessageCodec<out RawMessage>,
-    private val webSocketSession: DefaultWebSocketSession
+    private val bidirectionalConnection: BidirectionalMessagingConnection
 ) {
     private class ActiveColdFlowData(val flowManagerCoroutineJob: Job) {
 
@@ -32,7 +31,7 @@ class WebSocketConnection(
 
     private val activeColdFlows: ConcurrentMutableMap<String, ActiveColdFlowData> = ConcurrentHashMap()
 
-    private val websocketSessionSupervisorScope = CoroutineScope(SupervisorJob(webSocketSession.coroutineContext.job))
+    private val supervisorScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
 
     fun onColdFlowValueCollected(flowId: String) {
         val activeColdFlowData = activeColdFlows[flowId] ?: throw IllegalStateException()
@@ -42,7 +41,7 @@ class WebSocketConnection(
 
     fun addActiveColdFlow(flowId: String, flow: Flow<Any?>, flowValueSerializer: KSerializer<Any?>) {
         activeColdFlows[flowId] = ActiveColdFlowData(
-            websocketSessionSupervisorScope.launch(start = CoroutineStart.LAZY) {
+            supervisorScope.launch(start = CoroutineStart.LAZY) {
                 try {
                     flow.collect {
                         send(
@@ -83,16 +82,9 @@ class WebSocketConnection(
     }
 
     suspend fun <T> send(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
-        if (messageCodec.isBinary) {
-            webSocketSession.send(
-                (messageCodec.encodeMessage(message, payloadSerializer) as RawMessage.Binary)
-                    .byteArrayView.toReadOnlyByteArray()
-            )
-        } else {
-            webSocketSession.send(
-                (messageCodec.encodeMessage(message, payloadSerializer) as RawMessage.Text).text
-            )
-        }
+        bidirectionalConnection.sendMessage(
+            messageCodec.encodeMessage(message, payloadSerializer)
+        )
     }
 
     fun onCollectColdFlow(flowId: String) {
