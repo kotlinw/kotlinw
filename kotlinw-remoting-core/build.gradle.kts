@@ -26,6 +26,7 @@ kotlin {
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.serialization.json)
                 api(libs.korlibs.korio)
+                implementation(libs.ktor.websockets)
             }
         }
         val commonTest by getting {

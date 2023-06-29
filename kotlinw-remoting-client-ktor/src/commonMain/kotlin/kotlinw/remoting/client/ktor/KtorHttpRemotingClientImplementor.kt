@@ -11,22 +11,16 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readBytes
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
+import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
-import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
 import kotlinw.remoting.core.common.SynchronousCallSupport
-import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.concurrent.value
+import kotlinw.remoting.core.common.WebSocketBidirectionalMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinw.util.stdlib.Url
+import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -76,29 +70,6 @@ class KtorHttpRemotingClientImplementor(
                 }
         }
 
-        return object : BidirectionalMessagingConnection<M>, CoroutineScope by clientWebSocketSession {
-
-            override suspend fun incomingRawMessages(): Flow<M> =
-                flow {
-                    for (frame in clientWebSocketSession.incoming) {
-                        emit(
-                            if (messageCodecDescriptor.isBinary) {
-                                RawMessage.Binary((frame as Frame.Binary).readBytes().view())
-                            } else {
-                                RawMessage.Text((frame as Frame.Text).readText())
-                            }
-                                    as M
-                        )
-                    }
-                }
-
-            override suspend fun sendMessage(rawMessage: M) {
-                if (messageCodecDescriptor.isBinary) {
-                    clientWebSocketSession.send((rawMessage as RawMessage.Binary).byteArrayView.toReadOnlyByteArray())
-                } else {
-                    clientWebSocketSession.send((rawMessage as RawMessage.Text).text)
-                }
-            }
-        }
+        return WebSocketBidirectionalMessagingConnection(clientWebSocketSession, messageCodecDescriptor)
     }
 }
