@@ -16,9 +16,10 @@ import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinw.remoting.core.client.HttpRemotingClient
-import kotlinw.remoting.core.client.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
@@ -31,13 +32,13 @@ import kotlinx.coroutines.sync.withLock
 
 class KtorHttpRemotingClientImplementor(
     private val httpClient: HttpClient
-) : HttpRemotingClient.SynchronousCallSupportImplementor, HttpRemotingClient.BidirectionalCommunicationImplementor {
+) : SynchronousCallSupport, HttpRemotingClient.BidirectionalCommunicationImplementor {
 
     constructor(engine: HttpClientEngine) : this(HttpClient(engine))
 
-    override suspend fun <M : RawMessage> post(
+    override suspend fun <M : RawMessage> call(
         url: String,
-        requestBody: M,
+        rawParameter: M,
         messageCodecDescriptor: MessageCodecDescriptor
     ): M {
         val response =
@@ -47,9 +48,9 @@ class KtorHttpRemotingClientImplementor(
 
                 setBody(
                     if (messageCodecDescriptor.isBinary) {
-                        (requestBody as RawMessage.Binary).byteArrayView.toReadOnlyByteArray()
+                        (rawParameter as RawMessage.Binary).byteArrayView.toReadOnlyByteArray()
                     } else {
-                        (requestBody as RawMessage.Text).text
+                        (rawParameter as RawMessage.Text).text
                     }
                 )
             }
@@ -67,7 +68,7 @@ class KtorHttpRemotingClientImplementor(
     override suspend fun <M : RawMessage> connect(
         url: Url,
         messageCodecDescriptor: MessageCodecDescriptor
-    ): BidirectionalConnection<M> {
+    ): BidirectionalMessagingConnection<M> {
         val clientWebSocketSession = webSocketSessionDataLock.withLock {
             webSocketSessionDataHolder.value
                 ?: httpClient.webSocketSession(url.toString()).also {
@@ -75,9 +76,9 @@ class KtorHttpRemotingClientImplementor(
                 }
         }
 
-        return object : BidirectionalConnection<M>, CoroutineScope by clientWebSocketSession {
+        return object : BidirectionalMessagingConnection<M>, CoroutineScope by clientWebSocketSession {
 
-            override suspend fun incomingMessages(): Flow<M> =
+            override suspend fun incomingRawMessages(): Flow<M> =
                 flow {
                     for (frame in clientWebSocketSession.incoming) {
                         emit(

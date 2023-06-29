@@ -1,6 +1,10 @@
 package kotlinw.remoting.core.client
 
 import arrow.core.continuations.AtomicRef
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
@@ -8,15 +12,15 @@ import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
-import kotlinw.remoting.core.client.HttpRemotingClient.BidirectionalCommunicationImplementor.BidirectionalConnection
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.util.stdlib.concurrent.value
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -25,39 +29,19 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
-    private val httpSupportImplementor: SynchronousCallSupportImplementor,
+    private val httpSupportImplementor: SynchronousCallSupport,
     private val remoteServerBaseUrl: Url
 ) : RemotingClientSynchronousCallSupport, RemotingClientDownstreamFlowSupport {
 
-    interface SynchronousCallSupportImplementor {
-
-        suspend fun <M : RawMessage> post(
-            url: String,
-            requestBody: M,
-            messageCodecDescriptor: MessageCodecDescriptor // TODO ezt eggyel magasabb szintre, a HttpRemotingClient konstruktora már tartalmazza
-        ): M
-    }
-
     interface BidirectionalCommunicationImplementor {
-
-        interface BidirectionalConnection<M : RawMessage> : CoroutineScope {
-
-            suspend fun incomingMessages(): Flow<M>
-
-            suspend fun sendMessage(rawMessage: M)
-        }
 
         suspend fun <M : RawMessage> connect(
             url: Url,
             messageCodecDescriptor: MessageCodecDescriptor
-        ): BidirectionalConnection<M>
+        ): BidirectionalMessagingConnection<M>
     }
 
     private data class SuspendedCoroutineData<T>(
@@ -66,13 +50,13 @@ class HttpRemotingClient<M : RawMessage>(
     )
 
     private inner class BidirectionalMessagingSupport(
-        private val bidirectionalConnection: BidirectionalConnection<M>
+        private val bidirectionalConnection: BidirectionalMessagingConnection<M>
     ) {
         init {
             check(messageCodec is MessageCodecWithMetadataPrefetchSupport<M>) // TODO korábban derüljön ki
 
             bidirectionalConnection.launch {
-                bidirectionalConnection.incomingMessages().collect { rawMessage ->
+                bidirectionalConnection.incomingRawMessages().collect { rawMessage ->
                     val metadataHolder = messageCodec.extractMetadata(rawMessage)
                     val metadata = checkNotNull(metadataHolder.metadata)
                     val messageKind = checkNotNull(metadata.messageKind)
@@ -149,7 +133,7 @@ class HttpRemotingClient<M : RawMessage>(
         val rawResultMessage =
             messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
-        val rawResponseMessage = httpSupportImplementor.post(
+        val rawResponseMessage = httpSupportImplementor.call(
             buildServiceUrl(serviceName, methodName),
             rawResultMessage,
             messageCodec
@@ -223,16 +207,12 @@ class HttpRemotingClient<M : RawMessage>(
         val rawResultMessage =
             messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
-        httpSupportImplementor.post(
+        httpSupportImplementor.call(
             buildServiceUrl(serviceId, methodId),
             rawResultMessage,
             messageCodec
         )
 
         return resultFlow
-    }
-
-    suspend fun setupIncomingCalls(incomingCallDelegators: Collection<RemoteCallDelegator>) {
-        ensureConnected()
     }
 }

@@ -40,6 +40,8 @@ import org.koin.dsl.module
 import org.koin.dsl.onClose
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.common.SynchronousCallSupport
 
 val coreModule by lazy {
     module {
@@ -92,7 +94,7 @@ val coreModule by lazy {
             }
         } // TODO close()-zal le kell zárni
         single { KtorHttpRemotingClientImplementor(get<HttpClient>()) } withOptions {
-            bind<HttpRemotingClient.SynchronousCallSupportImplementor>()
+            bind<SynchronousCallSupport>()
             bind<HttpRemotingClient.BidirectionalCommunicationImplementor>()
         }
         single { RemotingClientManagerImpl(get()) }.bind<RemotingClientManager>()
@@ -102,19 +104,19 @@ val coreModule by lazy {
 // TODO move to remoting-client module
 interface RemotingClientManager {
 
-    operator fun get(remoteServerBaseUrl: Url): RemotingClient
+    operator fun get(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient
 }
 
 internal class RemotingClientManagerImpl(
-    private val synchronousCallSupportImplementor: HttpRemotingClient.SynchronousCallSupportImplementor
+    private val synchronousCallSupportImplementor: SynchronousCallSupport
 ) : RemotingClientManager {
 
     private val remotingClientCache: ConcurrentMutableMap<Url, RemotingClient> = ConcurrentHashMap()
 
-    override fun get(remoteServerBaseUrl: Url): RemotingClient =
+    override fun get(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient =
         remotingClientCache.computeIfAbsent(remoteServerBaseUrl) {
             HttpRemotingClient(
-                JsonMessageCodec.Default, // TODO configurable
+                messageCodec,
                 synchronousCallSupportImplementor,
                 remoteServerBaseUrl
             )
