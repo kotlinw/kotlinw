@@ -1,18 +1,23 @@
-package kotlinw.remoting.core.common
+package kotlinw.remoting.core.ktor
 
 import io.ktor.websocket.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.MessagingPeerId
+import kotlinw.remoting.core.common.MessagingSessionId
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class WebSocketBidirectionalRawMessagingConnection(
+class WebSocketBidirectionalMessagingConnection(
+    override val peerId: MessagingPeerId,
+    override val sessionId: MessagingSessionId,
     private val webSocketSession: DefaultWebSocketSession,
     private val messageCodecDescriptor: MessageCodecDescriptor
-) : BidirectionalRawMessagingConnection, CoroutineScope by webSocketSession {
+) : BidirectionalMessagingConnection, CoroutineScope by webSocketSession {
 
     override suspend fun incomingRawMessages(): Flow<RawMessage> =
         flow {
@@ -37,5 +42,9 @@ class WebSocketBidirectionalRawMessagingConnection(
             check(rawMessage is RawMessage.Text)
             webSocketSession.send(rawMessage.text)
         }
+    }
+
+    override fun toString(): String {
+        return "WebSocketBidirectionalMessagingConnection(peerId=$peerId, sessionId=$sessionId, webSocketSession=$webSocketSession, messageCodecDescriptor=$messageCodecDescriptor)"
     }
 }

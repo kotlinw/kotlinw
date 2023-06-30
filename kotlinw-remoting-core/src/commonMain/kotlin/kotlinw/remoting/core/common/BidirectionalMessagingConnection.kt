@@ -4,7 +4,15 @@ import kotlinw.remoting.core.RawMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
-interface BidirectionalRawMessagingConnection : CoroutineScope {
+typealias MessagingPeerId = Any
+
+typealias MessagingSessionId = Any
+
+interface BidirectionalMessagingConnection : CoroutineScope {
+
+    val peerId: MessagingPeerId
+
+    val sessionId: MessagingSessionId
 
     suspend fun incomingRawMessages(): Flow<RawMessage>
 

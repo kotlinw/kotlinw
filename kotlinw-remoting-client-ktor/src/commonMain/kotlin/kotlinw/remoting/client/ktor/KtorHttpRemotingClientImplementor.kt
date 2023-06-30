@@ -11,13 +11,14 @@ import io.ktor.http.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
-import kotlinw.remoting.core.common.BidirectionalRawMessagingConnection
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
 import kotlinw.remoting.core.common.SynchronousCallSupport
-import kotlinw.remoting.core.common.WebSocketBidirectionalRawMessagingConnection
+import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
+import kotlinw.uuid.Uuid
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -61,7 +62,7 @@ class KtorHttpRemotingClientImplementor(
     override suspend fun connect(
         url: Url,
         messageCodecDescriptor: MessageCodecDescriptor
-    ): BidirectionalRawMessagingConnection {
+    ): BidirectionalMessagingConnection {
         val clientWebSocketSession = webSocketSessionDataLock.withLock {
             webSocketSessionDataHolder.value
                 ?: httpClient.webSocketSession(url.toString()).also {
@@ -69,6 +70,7 @@ class KtorHttpRemotingClientImplementor(
                 }
         }
 
-        return WebSocketBidirectionalRawMessagingConnection(clientWebSocketSession, messageCodecDescriptor)
+        val messagingPeerId = url.toString()
+        return WebSocketBidirectionalMessagingConnection(messagingPeerId, Uuid.randomUuid().toString(), clientWebSocketSession, messageCodecDescriptor)
     }
 }

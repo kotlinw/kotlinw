@@ -23,16 +23,17 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
+                api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.serialization.json)
                 api(libs.korlibs.korio)
-                implementation(libs.ktor.websockets)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 api(libs.kotlinx.coroutines.test)
+                api(libs.turbine)
             }
         }
         val jvmMain by getting {
@@ -43,6 +44,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(libs.mockk)
             }
         }
     }

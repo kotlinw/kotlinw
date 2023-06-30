@@ -1,7 +1,7 @@
 package kotlinw.remoting.server.ktor
 
-import io.ktor.server.testing.testApplication
-import io.ktor.server.websocket.WebSockets
+import io.ktor.server.testing.*
+import io.ktor.server.websocket.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -12,6 +12,7 @@ import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallDelegator
 import kotlinw.util.stdlib.Url
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -40,7 +41,7 @@ class KtorSupportTest {
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(client)
         val remotingClient =
-            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""))
+            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""), emptyMap())
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
 
@@ -82,7 +83,12 @@ class KtorSupportTest {
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(httpClient)
         val remotingClient =
-            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""))
+            HttpRemotingClient(
+                messageCodec,
+                remotingHttpClientImplementor,
+                Url(""),
+                emptyMap()
+            )
         val clientProxy = ExampleService.clientProxy(remotingClient)
 
         assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())

@@ -5,6 +5,7 @@ import korlibs.io.stream.AsyncOutputStream
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinx.coroutines.yield
@@ -25,8 +26,9 @@ class StreamBasedSynchronousRemotingServer(
             val metadata = extractedMetadata.metadata
             check(metadata != null) { "Protocol error: missing metadata." }
 
-            val serviceLocator = metadata.serviceLocator
-            check(serviceLocator != null) { "Protocol error: missing service locator. metadata=$metadata" }
+            val messageKind = metadata.messageKind ?: TODO()
+            check(messageKind is RemotingMessageKind.CallRequest)
+            val serviceLocator = messageKind.serviceLocator
 
             val serviceId = serviceLocator.serviceId
             val delegator = delegators[serviceId]

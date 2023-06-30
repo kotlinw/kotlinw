@@ -5,40 +5,47 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
-import kotlinw.remoting.core.RemotingMessageKind
-import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.common.BidirectionalRawMessagingConnection
+import kotlinw.remoting.core.common.BidirectionalMessagingConnection
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
     private val httpSupportImplementor: SynchronousCallSupport,
-    private val remoteServerBaseUrl: Url
+    private val remoteServerBaseUrl: Url,
+    private val remoteCallDelegators: Map<String, RemoteCallDelegator>
 ) : RemotingClientSynchronousCallSupport, RemotingClientDownstreamFlowSupport {
 
     interface BidirectionalCommunicationImplementor {
 
-        suspend fun connect(url: Url, messageCodecDescriptor: MessageCodecDescriptor): BidirectionalRawMessagingConnection
+        suspend fun connect(
+            url: Url,
+            messageCodecDescriptor: MessageCodecDescriptor
+        ): BidirectionalMessagingConnection
     }
 
     private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)
 
     private val bidirectionalMessagingSupportLock = Mutex()
+
+    private val isConnected get() = bidirectionalMessagingSupportHolder.value != null
 
     private suspend fun ensureConnected(): BidirectionalMessagingManager =
         bidirectionalMessagingSupportLock.withLock {
@@ -47,7 +54,7 @@ class HttpRemotingClient<M : RawMessage>(
                 httpSupportImplementor.connect(
                     Url(
                         "${
-                            remoteServerBaseUrl.value.replace(
+                            remoteServerBaseUrl.value.replace( // TODO
                                 "http",
                                 "ws"
                             )
@@ -57,9 +64,14 @@ class HttpRemotingClient<M : RawMessage>(
                     .let {// TODO fix string
                         BidirectionalMessagingManagerImpl(
                             it,
-                            messageCodec as MessageCodecWithMetadataPrefetchSupport<M>
-                        ).also {
-                            bidirectionalMessagingSupportHolder.value = it
+                            messageCodec as MessageCodecWithMetadataPrefetchSupport<M>,
+                            remoteCallDelegators
+                        ).also { messagingManager ->
+                            bidirectionalMessagingSupportHolder.value = messagingManager
+
+                            messagingManager.launch(start = CoroutineStart.UNDISPATCHED) {
+                                messagingManager.processMessages()
+                            }
                         }
                     }
             }
@@ -76,31 +88,39 @@ class HttpRemotingClient<M : RawMessage>(
         parameter: P,
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
-    ): R {
-        val parameterMessage = RemotingMessage(parameter, null) // TODO metadata
-        val rawResultMessage =
-            messageCodec.encodeMessage(parameterMessage, parameterSerializer)
-
-        val rawResponseMessage = httpSupportImplementor.call(
-            buildServiceUrl(serviceName, methodName),
-            rawResultMessage,
-            messageCodec
-        )
-
-        val resultMessage =
-            try {
-                messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
-            } catch (e: Exception) {
-                throw RuntimeException(
-                    "Failed to decode response message of RPC method $serviceName.$methodName: $rawResponseMessage",
-                    e
+    ): R =
+        if (isConnected) {
+            ensureConnected().call(
+                ServiceLocator(serviceName, methodName),
+                parameter,
+                parameterSerializer,
+                resultDeserializer
+            )
+        } else {
+            val requestMessage = RemotingMessage(parameter, null) // TODO metadata
+            val rawRequestMessage =
+                messageCodec.encodeMessage(requestMessage, parameterSerializer)
+            val rawResponseMessage =
+                httpSupportImplementor.call(
+                    buildServiceUrl(serviceName, methodName),
+                    rawRequestMessage,
+                    messageCodec
                 )
-            }
 
-        // TODO metadata
+            val resultMessage =
+                try {
+                    messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
+                } catch (e: Exception) {
+                    throw RuntimeException(
+                        "Failed to decode response message of RPC method $serviceName.$methodName: $rawResponseMessage",
+                        e
+                    )
+                }
 
-        return resultMessage.payload
-    }
+            // TODO metadata
+
+            resultMessage.payload
+        }
 
     override suspend fun <T : Any, P : Any, F> requestDownstreamColdFlow(
         serviceKClass: KClass<T>,
@@ -111,56 +131,12 @@ class HttpRemotingClient<M : RawMessage>(
         parameterSerializer: KSerializer<P>,
         flowValueDeserializer: KSerializer<F>,
         callId: String
-    ): Flow<F> {
-        val connection = ensureConnected()
-
-        val resultFlow = flow {
-
-            connection.sendMessage(
-                RemotingMessage(
-                    Unit,
-                    RemotingMessageMetadata(
-                        messageKind = RemotingMessageKind.CollectColdFlow(callId)
-                    ) // TODO metadata
-                ),
-                serializer()
-            )
-
-            while (true) {
-                val message = connection.awaitMessage(callId, flowValueDeserializer)
-                when (message.metadata!!.messageKind!!) {
-                    is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> emit(message.payload)
-                    is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> break
-                    else -> throw IllegalStateException()
-                }
-
-                connection.sendMessage(
-                    RemotingMessage(
-                        Unit,
-                        RemotingMessageMetadata(
-                            messageKind = RemotingMessageKind.ColdFlowValueCollected(callId)
-                        )
-                    ),
-                    serializer()
-                )
-            }
-        }
-
-        val parameterMessage = RemotingMessage(
+    ): Flow<F> =
+        ensureConnected().requestColdFlowResult(
+            ServiceLocator(serviceId, methodId),
             parameter,
-            RemotingMessageMetadata(
-                messageKind = RemotingMessageKind.CallRequest(callId)
-            )
-        ) // TODO metadata
-        val rawResultMessage =
-            messageCodec.encodeMessage(parameterMessage, parameterSerializer)
-
-        httpSupportImplementor.call(
-            buildServiceUrl(serviceId, methodId),
-            rawResultMessage,
-            messageCodec
+            parameterSerializer,
+            flowValueDeserializer,
+            callId
         )
-
-        return resultFlow
-    }
 }

@@ -19,6 +19,7 @@ import kotlinw.koin.core.api.registerStartupTask
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
+import kotlinw.remoting.server.ktor.ServerToClientCommunicationType
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.dsl.module
@@ -40,6 +41,7 @@ val serverBaseModule by lazy {
                         this.messageCodec = get<MessageCodec<*>>()
                         this.remoteCallDelegators = getAll<RemoteCallDelegator>()
                         this.identifyClient = { 1 } // FIXME
+                        this.supportedServerToClientCommunicationTypes = setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
                     }
 
                     getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {

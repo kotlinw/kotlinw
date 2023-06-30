@@ -39,6 +39,7 @@ import org.koin.dsl.onClose
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.SynchronousCallSupport
+import kotlinx.coroutines.GlobalScope
 
 val coreModule by lazy {
     module {
@@ -115,7 +116,8 @@ internal class RemotingClientManagerImpl(
             HttpRemotingClient(
                 messageCodec,
                 synchronousCallSupportImplementor,
-                remoteServerBaseUrl
+                remoteServerBaseUrl,
+                emptyMap()
             )
         }!!
 }

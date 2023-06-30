@@ -4,10 +4,12 @@ import korlibs.io.stream.AsyncInputStream
 import korlibs.io.stream.AsyncOutputStream
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
+import kotlinw.uuid.Uuid
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
@@ -31,9 +33,10 @@ class StreamBasedSynchronousRemotingClient(
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
     ): R {
+        val callId = Uuid.randomUuid().toString()
         val parameterMessage = RemotingMessage(
             parameter,
-            RemotingMessageMetadata(serviceLocator = ServiceLocator(serviceName, methodName))
+            RemotingMessageMetadata(messageKind = RemotingMessageKind.CallRequest(callId, ServiceLocator(serviceName, methodName)))
         )
         val rawParameterMessage = messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 

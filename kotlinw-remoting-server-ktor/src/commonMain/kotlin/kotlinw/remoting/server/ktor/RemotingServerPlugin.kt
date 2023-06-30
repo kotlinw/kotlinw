@@ -1,25 +1,12 @@
 package kotlinw.remoting.server.ktor
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.application.plugin
-import io.ktor.server.request.receive
-import io.ktor.server.request.receiveText
-import io.ktor.server.request.uri
-import io.ktor.server.response.header
-import io.ktor.server.response.respondBytes
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.contentType
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-import io.ktor.server.websocket.WebSockets
-import io.ktor.server.websocket.webSocket
+import arrow.core.nonFatalOrThrow
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
@@ -27,19 +14,20 @@ import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
-import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.common.WebSocketBidirectionalRawMessagingConnection
-import kotlinw.remoting.core.ktor.WebSocketConnection
+import kotlinw.remoting.core.common.BidirectionalMessagingManager
+import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
+import kotlinw.remoting.core.common.MessagingPeerId
+import kotlinw.remoting.core.common.MessagingSessionId
+import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
+import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
-
-private typealias ClientSessionId = Any
 
 enum class ServerToClientCommunicationType {
     WebSockets, ServerSentEvents
@@ -51,7 +39,7 @@ class RemotingConfiguration {
 
     var remoteCallDelegators: Collection<RemoteCallDelegator>? = null
 
-    var identifyClient: ((ApplicationCall) -> ClientSessionId)? = null
+    var identifyClient: ((ApplicationCall) -> MessagingPeerId)? = null
 
     var supportedServerToClientCommunicationTypes: Set<ServerToClientCommunicationType> = mutableSetOf()
 }
@@ -95,7 +83,7 @@ val RemotingServerPlugin =
             }
         }
 
-        val connections: ConcurrentMutableMap<ClientSessionId, WebSocketConnection> = ConcurrentHashMap()
+        val connections: ConcurrentMutableMap<MessagingSessionId, BidirectionalMessagingManager> = ConcurrentHashMap()
 
         application.routing {
             route("/remoting") {
@@ -122,12 +110,7 @@ val RemotingServerPlugin =
 
                 setupRemoteCallRouting(
                     messageCodec,
-                    delegators,
-                    identifyClient,
-                    addActiveColdFlow = { clientId, flow, flowId, flowValueSerializer ->
-                        connections[clientId]?.addActiveColdFlow(flowId, flow, flowValueSerializer as KSerializer<Any?>)
-                            ?: throw IllegalStateException("Websocket connection is not active for clientId=$clientId")
-                    }
+                    delegators
                 )
             }
         }
@@ -136,37 +119,33 @@ val RemotingServerPlugin =
 private fun Route.setupWebsocketRouting(
     messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
     delegators: Map<String, RemoteCallDelegator>,
-    identifyClient: (ApplicationCall) -> ClientSessionId,
-    addConnection: (ClientSessionId, WebSocketConnection) -> Unit,
-    removeConnection: (ClientSessionId) -> Unit
+    identifyClient: (ApplicationCall) -> MessagingPeerId,
+    addConnection: (MessagingSessionId, BidirectionalMessagingManager) -> Unit,
+    removeConnection: (MessagingSessionId) -> Unit
 ) {
 
     // TODO fix string
     webSocket("/websocket") {
-        val clientId = identifyClient(call) // TODO hibaell.
+        val messagingPeerId = identifyClient(call) // TODO hibaell.
+        val messagingSessionId = Uuid.randomUuid().toString()
 
         try {
-            val connection = WebSocketBidirectionalRawMessagingConnection(this, messageCodec)
-            val webSocketConnection = WebSocketConnection(messageCodec, connection)
-            addConnection(clientId, webSocketConnection)
-
-            connection.incomingRawMessages().collect {
-                webSocketConnection.processIncomingMessage(it)
-            }
+            val connection =
+                WebSocketBidirectionalMessagingConnection(messagingPeerId, messagingSessionId, this, messageCodec)
+            val sessionMessagingManager = BidirectionalMessagingManagerImpl(connection, messageCodec, delegators)
+            addConnection(messagingSessionId, sessionMessagingManager)
+            sessionMessagingManager.processMessages()
         } catch (e: Exception) {
-            // TODO log
-            logger.error(e) { "TODO"} // TODO
+            logger.error(e.nonFatalOrThrow()) { "TODO" } // TODO error message
         } finally {
-            removeConnection(clientId)
+            removeConnection(messagingSessionId)
         }
     }
 }
 
 private fun Route.setupRemoteCallRouting(
     messageCodec: MessageCodec<out RawMessage>,
-    remoteCallDelegators: Map<String, RemoteCallDelegator>,
-    identifyClient: (ApplicationCall) -> ClientSessionId,
-    addActiveColdFlow: (clientSessionId: ClientSessionId, flow: Flow<Any?>, flowId: String, flowValueSerializer: KSerializer<out Any?>) -> Unit
+    remoteCallDelegators: Map<String, RemoteCallDelegator>
 ) {
     val contentType = ContentType.parse(messageCodec.contentType)
 
@@ -187,15 +166,10 @@ private fun Route.setupRemoteCallRouting(
                                 logger.trace { "Processing RPC call: " / serviceId / methodId }
 
                                 when (methodDescriptor) {
-                                    is RemotingMethodDescriptor.DownstreamColdFlow<*, *> ->
-                                        handleDownstreamColdFlowProviderCall(
-                                            call,
-                                            messageCodec,
-                                            methodDescriptor,
-                                            delegator,
-                                            identifyClient,
-                                            addActiveColdFlow
-                                        )
+                                    is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {
+                                        logger.warning { "Remoting methods with ${Flow::class.simpleName} return types are not supported by this endpoint." }
+                                        call.response.status(HttpStatusCode.BadRequest)
+                                    }
 
                                     is RemotingMethodDescriptor.SynchronousCall<*, *> ->
                                         handleSynchronousCall(
@@ -231,30 +205,12 @@ private fun Route.setupRemoteCallRouting(
     }
 }
 
-private suspend fun <M : RawMessage> handleDownstreamColdFlowProviderCall(
+private suspend fun <M : RawMessage> handleSynchronousCall(
     call: ApplicationCall,
     messageCodec: MessageCodec<M>,
-    callDescriptor: RemotingMethodDescriptor.DownstreamColdFlow<*, *>,
-    delegator: RemoteCallDelegator,
-    identifyClient: (ApplicationCall) -> ClientSessionId,
-    addActiveColdFlow: (clientSessionId: ClientSessionId, flow: Flow<Any?>, flowId: String, flowValueSerializer: KSerializer<out Any?>) -> Unit
+    callDescriptor: RemotingMethodDescriptor.SynchronousCall<*, *>,
+    delegator: RemoteCallDelegator
 ) {
-    val (parameter, metadata) =
-        decodeRequest(call, messageCodec, callDescriptor.parameterSerializer)
-    val flowId = (metadata!!.messageKind as RemotingMessageKind.CallRequest).callId // TODO hibaell
-
-    val resultFlow = delegator.processCall(callDescriptor.memberId, parameter) as Flow<Any>
-
-    addActiveColdFlow(identifyClient(call), resultFlow, flowId, callDescriptor.flowValueSerializer)
-
-    call.response.status(HttpStatusCode.OK)
-}
-
-private suspend fun <M : RawMessage, T : Any> decodeRequest(
-    call: ApplicationCall,
-    messageCodec: MessageCodec<M>,
-    parameterSerializer: KSerializer<T>,
-): RemotingMessage<T> {
     val isBinaryCodec = messageCodec.isBinary
 
     val rawRequestMessage =
@@ -264,19 +220,10 @@ private suspend fun <M : RawMessage, T : Any> decodeRequest(
             RawMessage.Text(call.receiveText())
         }
 
-    return messageCodec.decodeMessage(
+    val parameter = messageCodec.decodeMessage(
         rawRequestMessage as M,
-        parameterSerializer
-    )
-}
-
-private suspend fun <M : RawMessage> handleSynchronousCall(
-    call: ApplicationCall,
-    messageCodec: MessageCodec<M>,
-    callDescriptor: RemotingMethodDescriptor.SynchronousCall<*, *>,
-    delegator: RemoteCallDelegator
-) {
-    val parameter = decodeRequest(call, messageCodec, callDescriptor.parameterSerializer).payload
+        callDescriptor.parameterSerializer
+    ).payload
 
     val result = delegator.processCall(callDescriptor.memberId, parameter)
 
@@ -289,10 +236,12 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     call.response.status(HttpStatusCode.OK)
     call.response.header(HttpHeaders.ContentType, messageCodec.contentType)
 
-    if (messageCodec.isBinary) {
-        call.respondBytes((rawResponseMessage as RawMessage.Binary).byteArrayView.toReadOnlyByteArray())
+    if (isBinaryCodec) {
+        check(rawResponseMessage is RawMessage.Binary)
+        call.respondBytes(rawResponseMessage.byteArrayView.toReadOnlyByteArray())
     } else {
-        call.respondText((rawResponseMessage as RawMessage.Text).text)
+        check(rawResponseMessage is RawMessage.Text)
+        call.respondText(rawResponseMessage.text)
     }
 }
 

@@ -1,5 +1,6 @@
 package kotlinw.remoting.core
 
+import kotlinw.remoting.core.common.ConversationId
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -7,21 +8,26 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RemotingMessageMetadata(
     val timestamp: Instant? = null,
-    val serviceLocator: ServiceLocator? = null,
     val messageKind: RemotingMessageKind? = null
 )
 
 @Serializable
-data class ServiceLocator(val serviceId: String, val methodId: String)
+data class ServiceLocator(val serviceId: String, val methodId: String) {
+
+    override fun toString() = "$serviceId.$methodId"
+}
 
 @Serializable
 sealed class RemotingMessageKind {
 
-    abstract val callId: String
+    abstract val callId: ConversationId
 
     @Serializable
     @SerialName("Request")
-    data class CallRequest(override val callId: String) : RemotingMessageKind() // TODO : SynchronousCallMessage()
+    data class CallRequest(
+        override val callId: String,
+        val serviceLocator: ServiceLocator
+    ) : RemotingMessageKind() // TODO : SynchronousCallMessage()
 
     @Serializable
     @SerialName("Response")
