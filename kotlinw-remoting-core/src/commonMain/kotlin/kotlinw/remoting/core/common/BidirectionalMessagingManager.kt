@@ -41,9 +41,6 @@ interface BidirectionalMessagingManager: CoroutineScope {
         resultDeserializer: KSerializer<R>
     ): R
 
-    // TODO ezt átalakítani, hogy flow-t csak BidirectionalMessagingManager-en keresztül lehessen request-elni
-    fun addActiveColdFlow(flowId: String, flow: Flow<Any?>, flowValueSerializer: KSerializer<Any?>)
-
     suspend fun processMessages()
 }
 
@@ -337,7 +334,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
         continuation.resume(Unit)
     }
 
-    override fun addActiveColdFlow(flowId: String, flow: Flow<Any?>, flowValueSerializer: KSerializer<Any?>) {
+    private fun addActiveColdFlow(flowId: String, flow: Flow<Any?>, flowValueSerializer: KSerializer<Any?>) {
         activeColdFlows[flowId] = ActiveColdFlowData(
             supervisorScope.launch(start = CoroutineStart.LAZY) {
                 try {
