@@ -18,7 +18,6 @@ import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.concurrent.value
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -70,7 +69,7 @@ class HttpRemotingClient<M : RawMessage>(
                             bidirectionalMessagingSupportHolder.value = messagingManager
 
                             messagingManager.launch(start = CoroutineStart.UNDISPATCHED) {
-                                messagingManager.processMessages()
+                                messagingManager.processIncomingMessages()
                             }
                         }
                     }

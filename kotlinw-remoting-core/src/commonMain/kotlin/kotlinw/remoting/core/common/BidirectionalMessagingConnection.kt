@@ -8,6 +8,8 @@ typealias MessagingPeerId = Any
 
 typealias MessagingSessionId = Any
 
+class MessagingChannelDisconnectedException(): RuntimeException()
+
 interface BidirectionalMessagingConnection : CoroutineScope {
 
     val peerId: MessagingPeerId

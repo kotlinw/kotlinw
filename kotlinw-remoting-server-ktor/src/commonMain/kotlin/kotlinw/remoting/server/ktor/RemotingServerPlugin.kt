@@ -26,6 +26,7 @@ import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.uuid.Uuid
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
 
@@ -94,7 +95,7 @@ val RemotingServerPlugin =
                         identifyClient,
                         addConnection = { clientId, webSocketConnection ->
                             connections.compute(clientId) { key, previousValue ->
-                                check(previousValue == null) { "Client is already connected: $key" }
+                                check(previousValue == null) { "Session is already connected: $key" }
                                 webSocketConnection
                             }
                         },
@@ -134,9 +135,12 @@ private fun Route.setupWebsocketRouting(
                 WebSocketBidirectionalMessagingConnection(messagingPeerId, messagingSessionId, this, messageCodec)
             val sessionMessagingManager = BidirectionalMessagingManagerImpl(connection, messageCodec, delegators)
             addConnection(messagingSessionId, sessionMessagingManager)
-            sessionMessagingManager.processMessages()
-        } catch (e: Exception) {
-            logger.error(e.nonFatalOrThrow()) { "TODO" } // TODO error message
+            sessionMessagingManager.processIncomingMessages()
+        } catch (e: ClosedReceiveChannelException) {
+            val closeReason = closeReason.await()
+            logger.info { "Connection closed, reason: " / closeReason }
+        } catch (e: Throwable) {
+            logger.error(e.nonFatalOrThrow()) { "Disconnected." }
         } finally {
             removeConnection(messagingSessionId)
         }

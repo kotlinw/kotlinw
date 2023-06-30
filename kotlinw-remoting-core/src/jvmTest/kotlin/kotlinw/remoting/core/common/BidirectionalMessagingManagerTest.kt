@@ -110,10 +110,10 @@ class BidirectionalMessagingManagerTest {
             setOf(peer2RemoteCallDelegator).associateBy { it.servicePath })
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            peer1Manager.processMessages()
+            peer1Manager.processIncomingMessages()
         }
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            peer2Manager.processMessages()
+            peer2Manager.processIncomingMessages()
         }
 
         peer1Manager.call(
@@ -148,10 +148,10 @@ class BidirectionalMessagingManagerTest {
         val peer2Manager = BidirectionalMessagingManagerImpl(pipe.peer2, messageCodec, emptyMap())
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            peer1Manager.processMessages()
+            peer1Manager.processIncomingMessages()
         }
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            peer2Manager.processMessages()
+            peer2Manager.processIncomingMessages()
         }
 
         peer2Manager.call(
@@ -197,10 +197,10 @@ class BidirectionalMessagingManagerTest {
             setOf(peer2RemoteCallDelegator).associateBy { it.servicePath })
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            peer1Manager.processMessages()
+            peer1Manager.processIncomingMessages()
         }
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            peer2Manager.processMessages()
+            peer2Manager.processIncomingMessages()
         }
 
         assertEquals(
