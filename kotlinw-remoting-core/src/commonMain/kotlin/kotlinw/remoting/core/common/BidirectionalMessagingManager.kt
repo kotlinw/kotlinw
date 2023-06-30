@@ -23,8 +23,9 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-interface BidirectionalMessagingManager: CoroutineScope {
+interface BidirectionalMessagingManager : CoroutineScope {
 
     suspend fun <P : Any, F> requestColdFlowResult(
         serviceLocator: ServiceLocator,
@@ -160,10 +161,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
                     }
                 }
             } catch (e: Throwable) {
-                if (NonFatal(e)) {
-                    logger.error(e.nonFatalOrThrow()) { "Incoming message processing failed: " / rawMessage }
-                }
-                throw e
+                logger.error(e.nonFatalOrThrow()) { "Incoming message processing failed: " / rawMessage }
             }
         }
     }
@@ -198,13 +196,9 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
         bidirectionalConnection.sendRawMessage(messageCodec.encodeMessage(requestMessage, parameterSerializer))
         logger.trace { "Message has been sent." }
 
-        return suspendCancellableCoroutine {
+        return suspendCoroutine {
             logger.trace { "Suspending coroutine until incoming conversation message: " / conversationData.callId }
             conversationData.suspendedCoroutineData.value = SuspendedCoroutineData(it, resultDeserializer)
-
-            it.invokeOnCancellation {
-                // TODO van tennivaló?
-            }
         }
     }
 
@@ -368,7 +362,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
                         serializer<Unit>()
                     )
                 } catch (e: Throwable) {
-                    logger.error(e.nonFatalOrThrow()) {  } // TODO
+                    logger.error(e.nonFatalOrThrow()) { } // TODO
                 } finally {
                     activeColdFlows.remove(flowId)
                 }
