@@ -12,7 +12,7 @@ import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.BidirectionalRawMessagingConnection
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
@@ -33,7 +33,7 @@ class HttpRemotingClient<M : RawMessage>(
 
     interface BidirectionalCommunicationImplementor {
 
-        suspend fun connect(url: Url, messageCodecDescriptor: MessageCodecDescriptor): BidirectionalMessagingConnection
+        suspend fun connect(url: Url, messageCodecDescriptor: MessageCodecDescriptor): BidirectionalRawMessagingConnection
     }
 
     private val bidirectionalMessagingSupportHolder = AtomicRef<BidirectionalMessagingManager?>(null)

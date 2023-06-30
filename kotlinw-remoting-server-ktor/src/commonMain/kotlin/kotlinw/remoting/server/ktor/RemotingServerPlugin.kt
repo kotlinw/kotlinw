@@ -1,8 +1,5 @@
 package kotlinw.remoting.server.ktor
 
-import arrow.core.continuations.AtomicRef
-import arrow.core.continuations.update
-import arrow.core.nonFatalOrThrow
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -23,14 +20,6 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.DefaultWebSocketSession
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readBytes
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
-import kotlin.collections.set
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
@@ -39,27 +28,16 @@ import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamC
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
-import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.common.BidirectionalMessagingConnection
-import kotlinw.remoting.core.common.WebSocketBidirectionalMessagingConnection
+import kotlinw.remoting.core.common.WebSocketBidirectionalRawMessagingConnection
 import kotlinw.remoting.core.ktor.WebSocketConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 
 private typealias ClientSessionId = Any
 
@@ -168,7 +146,7 @@ private fun Route.setupWebsocketRouting(
         val clientId = identifyClient(call) // TODO hibaell.
 
         try {
-            val connection = WebSocketBidirectionalMessagingConnection(this, messageCodec)
+            val connection = WebSocketBidirectionalRawMessagingConnection(this, messageCodec)
             val webSocketConnection = WebSocketConnection(messageCodec, connection)
             addConnection(clientId, webSocketConnection)
 

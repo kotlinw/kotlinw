@@ -11,9 +11,9 @@ import io.ktor.http.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
-import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.BidirectionalRawMessagingConnection
 import kotlinw.remoting.core.common.SynchronousCallSupport
-import kotlinw.remoting.core.common.WebSocketBidirectionalMessagingConnection
+import kotlinw.remoting.core.common.WebSocketBidirectionalRawMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
@@ -61,7 +61,7 @@ class KtorHttpRemotingClientImplementor(
     override suspend fun connect(
         url: Url,
         messageCodecDescriptor: MessageCodecDescriptor
-    ): BidirectionalMessagingConnection {
+    ): BidirectionalRawMessagingConnection {
         val clientWebSocketSession = webSocketSessionDataLock.withLock {
             webSocketSessionDataHolder.value
                 ?: httpClient.webSocketSession(url.toString()).also {
@@ -69,6 +69,6 @@ class KtorHttpRemotingClientImplementor(
                 }
         }
 
-        return WebSocketBidirectionalMessagingConnection(clientWebSocketSession, messageCodecDescriptor)
+        return WebSocketBidirectionalRawMessagingConnection(clientWebSocketSession, messageCodecDescriptor)
     }
 }

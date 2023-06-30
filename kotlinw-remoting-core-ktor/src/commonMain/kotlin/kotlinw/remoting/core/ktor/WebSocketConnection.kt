@@ -8,9 +8,8 @@ import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
-import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.BidirectionalRawMessagingConnection
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinx.coroutines.*
@@ -23,7 +22,7 @@ import kotlin.coroutines.resume
 
 class WebSocketConnection(
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-    private val bidirectionalConnection: BidirectionalMessagingConnection
+    private val bidirectionalConnection: BidirectionalRawMessagingConnection
 ) {
     private class ActiveColdFlowData(val flowManagerCoroutineJob: Job) {
 
@@ -83,7 +82,7 @@ class WebSocketConnection(
     }
 
     private suspend fun <T> send(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
-        bidirectionalConnection.sendMessage(
+        bidirectionalConnection.sendRawMessage(
             messageCodec.encodeMessage(message, payloadSerializer)
         )
     }

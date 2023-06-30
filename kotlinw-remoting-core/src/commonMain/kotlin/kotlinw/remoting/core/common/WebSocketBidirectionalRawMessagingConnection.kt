@@ -9,10 +9,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class WebSocketBidirectionalMessagingConnection(
+class WebSocketBidirectionalRawMessagingConnection(
     private val webSocketSession: DefaultWebSocketSession,
     private val messageCodecDescriptor: MessageCodecDescriptor
-) : BidirectionalMessagingConnection, CoroutineScope by webSocketSession {
+) : BidirectionalRawMessagingConnection, CoroutineScope by webSocketSession {
 
     override suspend fun incomingRawMessages(): Flow<RawMessage> =
         flow {
@@ -29,7 +29,7 @@ class WebSocketBidirectionalMessagingConnection(
             }
         }
 
-    override suspend fun sendMessage(rawMessage: RawMessage) {
+    override suspend fun sendRawMessage(rawMessage: RawMessage) {
         if (messageCodecDescriptor.isBinary) {
             check(rawMessage is RawMessage.Binary)
             webSocketSession.send(rawMessage.byteArrayView.toReadOnlyByteArray())

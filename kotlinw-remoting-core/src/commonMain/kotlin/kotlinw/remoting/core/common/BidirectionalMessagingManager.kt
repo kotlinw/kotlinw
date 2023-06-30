@@ -1,7 +1,5 @@
 package kotlinw.remoting.core.common
 
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -12,6 +10,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
 
 interface BidirectionalMessagingManager {
 
@@ -21,7 +21,7 @@ interface BidirectionalMessagingManager {
 }
 
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
-    private val bidirectionalConnection: BidirectionalMessagingConnection,
+    private val bidirectionalConnection: BidirectionalRawMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>
 ) : BidirectionalMessagingManager {
 
@@ -36,30 +36,38 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     init {
         bidirectionalConnection.launch {
             bidirectionalConnection.incomingRawMessages().collect { rawMessage ->
-                val metadataHolder = messageCodec.extractMetadata(rawMessage as M)
-                val metadata = checkNotNull(metadataHolder.metadata)
+                val extractedMetadata = messageCodec.extractMetadata(rawMessage as M)
+                val metadata = checkNotNull(extractedMetadata.metadata)
                 val messageKind = checkNotNull(metadata.messageKind)
 
-                suspendedCoroutines.remove(messageKind.callId)?.also {
-                    when (messageKind) {
-                        is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
-                            val message =
-                                metadataHolder.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
-                            it.continuation.resume(message as RemotingMessage<Nothing>)
+                when (messageKind) {
+                    is RemotingMessageKind.CallRequest -> TODO()
+
+                    else -> {
+                        val suspendedCoroutineData = suspendedCoroutines.remove(messageKind.callId)
+                            ?: throw IllegalStateException() // TODO hibaüz.
+
+                        when (messageKind) {
+                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
+                                val message =
+                                    extractedMetadata.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
+                                suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
+                            }
+
+                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
+                                val message =
+                                    extractedMetadata.decodeMessage(suspendedCoroutineData.payloadDeserializer)
+                                suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
+                            }
+
+                            is RemotingMessageKind.CallResponse -> TODO()
+
+                            is RemotingMessageKind.ColdFlowValueCollected -> TODO()
+
+                            is RemotingMessageKind.CollectColdFlow -> TODO()
+
+                            else -> throw IllegalStateException()
                         }
-
-                        is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
-                            val message = metadataHolder.decodeMessage(it.payloadDeserializer)
-                            it.continuation.resume(message as RemotingMessage<Nothing>)
-                        }
-
-                        is RemotingMessageKind.CallRequest -> TODO()
-
-                        is RemotingMessageKind.CallResponse -> TODO()
-
-                        is RemotingMessageKind.ColdFlowValueCollected -> TODO()
-
-                        is RemotingMessageKind.CollectColdFlow -> TODO()
                     }
                 }
             }
@@ -72,6 +80,6 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
         }
 
     override suspend fun <T> sendMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
-        bidirectionalConnection.sendMessage(messageCodec.encodeMessage(message, payloadSerializer))
+        bidirectionalConnection.sendRawMessage(messageCodec.encodeMessage(message, payloadSerializer))
     }
 }

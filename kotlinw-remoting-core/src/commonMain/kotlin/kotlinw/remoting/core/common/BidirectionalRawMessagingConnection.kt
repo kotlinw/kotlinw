@@ -4,9 +4,9 @@ import kotlinw.remoting.core.RawMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
-interface BidirectionalMessagingConnection : CoroutineScope {
+interface BidirectionalRawMessagingConnection : CoroutineScope {
 
     suspend fun incomingRawMessages(): Flow<RawMessage>
 
-    suspend fun sendMessage(rawMessage: RawMessage)
+    suspend fun sendRawMessage(rawMessage: RawMessage)
 }
