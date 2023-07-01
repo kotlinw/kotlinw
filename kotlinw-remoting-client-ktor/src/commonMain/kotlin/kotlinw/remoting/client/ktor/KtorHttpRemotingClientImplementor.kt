@@ -72,6 +72,11 @@ class KtorHttpRemotingClientImplementor(
         }
 
         val messagingPeerId = url.toString()
-        return WebSocketBidirectionalMessagingConnection(messagingPeerId, Uuid.randomUuid().toString(), clientWebSocketSession, messageCodecDescriptor)
+        return WebSocketBidirectionalMessagingConnection(
+            messagingPeerId,
+            Uuid.randomUuid().toString(),
+            clientWebSocketSession,
+            messageCodecDescriptor
+        )
     }
 }
