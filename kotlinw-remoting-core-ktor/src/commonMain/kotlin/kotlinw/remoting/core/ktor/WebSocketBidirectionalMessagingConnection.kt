@@ -44,6 +44,10 @@ class WebSocketBidirectionalMessagingConnection(
         }
     }
 
+    override suspend fun close() {
+        webSocketSession.close()
+    }
+
     override fun toString(): String {
         return "WebSocketBidirectionalMessagingConnection(peerId=$peerId, sessionId=$sessionId, webSocketSession=$webSocketSession, messageCodecDescriptor=$messageCodecDescriptor)"
     }

@@ -8,7 +8,7 @@ actual class ConcurrentHashSet<V>
 private constructor(map: ConcurrentMap<V, Boolean>) : ConcurrentMutableSet<V> {
     private val set = Collections.newSetFromMap(map)
 
-    constructor() : this(JavaConcurrentHashMap())
+    actual constructor() : this(JavaConcurrentHashMap())
 
     override fun add(element: V): Boolean = set.add(element)
 

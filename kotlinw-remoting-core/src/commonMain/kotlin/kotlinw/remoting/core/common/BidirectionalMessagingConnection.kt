@@ -19,4 +19,6 @@ interface BidirectionalMessagingConnection : CoroutineScope {
     suspend fun incomingRawMessages(): Flow<RawMessage>
 
     suspend fun sendRawMessage(rawMessage: RawMessage)
+
+    suspend fun close()
 }

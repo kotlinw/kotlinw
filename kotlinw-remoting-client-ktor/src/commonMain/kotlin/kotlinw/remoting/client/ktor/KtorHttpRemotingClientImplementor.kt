@@ -1,31 +1,29 @@
 package kotlinw.remoting.client.ktor
 
-import arrow.core.continuations.AtomicRef
+import arrow.atomic.AtomicBoolean
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.websocket.*
 import kotlinw.remoting.core.RawMessage
-import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
+import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.concurrent.value
-import kotlinw.uuid.Uuid
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class KtorHttpRemotingClientImplementor(
     private val httpClient: HttpClient
-) : SynchronousCallSupport, HttpRemotingClient.BidirectionalCommunicationImplementor {
+) : SynchronousCallSupport, BidirectionalCommunicationImplementor {
 
     constructor(engine: HttpClientEngine) : this(HttpClient(engine))
 
@@ -56,27 +54,42 @@ class KtorHttpRemotingClientImplementor(
             RawMessage.Text(response.bodyAsText()) as M
     }
 
-    private val webSocketSessionDataHolder = AtomicRef<DefaultClientWebSocketSession?>(null)
+    private val runInSessionIsRunning = AtomicBoolean(false)
 
-    private val webSocketSessionDataLock = Mutex()
-
-    override suspend fun connect(
+    override suspend fun runInSession(
         url: Url,
-        messageCodecDescriptor: MessageCodecDescriptor
-    ): BidirectionalMessagingConnection {
-        val clientWebSocketSession = webSocketSessionDataLock.withLock {
-            webSocketSessionDataHolder.value
-                ?: httpClient.webSocketSession(url.toString()).also {
-                    webSocketSessionDataHolder.value = it
+        messageCodecDescriptor: MessageCodecDescriptor,
+        block: suspend BidirectionalMessagingConnection.() -> Unit
+    ) {
+        if (runInSessionIsRunning.compareAndSet(false, true)) {
+            try {
+                val messagingPeerId = url.toString()
+                httpClient.webSocket(
+                    url.toString(),
+                    request = {
+                        // TODO
+//                        timeout {
+//                            connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
+//                        }
+                    }
+                ) {
+                    block(
+                        WebSocketBidirectionalMessagingConnection(
+                            messagingPeerId,
+                            messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds(),
+                            this,
+                            messageCodecDescriptor
+                        )
+                    )
                 }
+            } catch (e: Exception) {
+                // TODO elkapni a websocket specifikus exception-öket, és általánosat dobni helyettük
+                throw e
+            } finally {
+                runInSessionIsRunning.value = false
+            }
+        } else {
+            throw IllegalStateException("Concurrent invocation of ${KtorHttpRemotingClientImplementor::runInSession.name}() is not supported.")
         }
-
-        val messagingPeerId = url.toString()
-        return WebSocketBidirectionalMessagingConnection(
-            messagingPeerId,
-            Uuid.randomUuid().toString(),
-            clientWebSocketSession,
-            messageCodecDescriptor
-        )
     }
 }

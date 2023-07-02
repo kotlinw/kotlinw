@@ -45,6 +45,8 @@ class BidirectionalMessagingManagerTest {
                 peer2IncomingMessagesFlow.emit(rawMessage)
             }
 
+            override suspend fun close() {}
+
             override val coroutineContext: CoroutineContext get() = coroutineScope.coroutineContext
         }
 
@@ -58,6 +60,8 @@ class BidirectionalMessagingManagerTest {
             override suspend fun sendRawMessage(rawMessage: RawMessage) {
                 peer1IncomingMessagesFlow.emit(rawMessage)
             }
+
+            override suspend fun close() {}
 
             override val coroutineContext: CoroutineContext get() = coroutineScope.coroutineContext
         }
@@ -181,7 +185,6 @@ class BidirectionalMessagingManagerTest {
             flow {
                 (1..3).forEach {
                     println("preparing: $it")
-                    delay(1.seconds)
                     emit(it)
                     println("emitted: $it")
                 }

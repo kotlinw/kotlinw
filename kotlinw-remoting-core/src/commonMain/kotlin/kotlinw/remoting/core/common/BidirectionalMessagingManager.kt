@@ -20,6 +20,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 interface BidirectionalMessagingManager : CoroutineScope {
 
@@ -38,7 +39,9 @@ interface BidirectionalMessagingManager : CoroutineScope {
         resultDeserializer: KSerializer<R>
     ): R
 
-    suspend fun processIncomingMessages()
+    suspend fun processIncomingMessages() // TODO Nothing return type?
+
+    suspend fun close()
 }
 
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
@@ -385,5 +388,18 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private fun onCollectColdFlow(flowId: String) {
         val coldFlowData = activeColdFlows[flowId] ?: throw IllegalStateException()
         coldFlowData.flowManagerCoroutineJob.start()
+    }
+
+    override suspend fun close() {
+        // TODO kellene valami lock, hogy close() közben ne lehessen más metódusokat hívni
+
+        supervisorScope.cancel()
+        bidirectionalConnection.close()
+
+        // TODO ez így jó?
+        initiatedConversations.values.forEach {
+            it.suspendedCoroutineData.value?.continuation?.resumeWithException(CancellationException(null))
+        }
+        initiatedConversations.clear()
     }
 }
