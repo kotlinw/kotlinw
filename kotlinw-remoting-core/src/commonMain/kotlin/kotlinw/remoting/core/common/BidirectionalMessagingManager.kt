@@ -393,12 +393,24 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     override suspend fun close() {
         // TODO kellene valami lock, hogy close() közben ne lehessen más metódusokat hívni
 
-        supervisorScope.cancel()
-        bidirectionalConnection.close()
+        try {
+            supervisorScope.cancel()
+        } catch (e: Throwable) {
+            logger.warning(e.nonFatalOrThrow()) { "Failed to cancel supervisor scope of messaging manager." }
+        }
 
-        // TODO ez így jó?
+        try {
+            bidirectionalConnection.close()
+        } catch (e: Throwable) {
+            logger.warning(e.nonFatalOrThrow()) { "Failed to close bidirectional connection." }
+        }
+
         initiatedConversations.values.forEach {
-            it.suspendedCoroutineData.value?.continuation?.resumeWithException(CancellationException(null))
+            try {
+                it.suspendedCoroutineData.value?.continuation?.resumeWithException(MessagingChannelDisconnectedException())
+            } catch (e: Throwable) {
+                logger.warning(e.nonFatalOrThrow()) { "Failed to resume coroutine with exception." }
+            }
         }
         initiatedConversations.clear()
     }

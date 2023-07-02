@@ -112,11 +112,12 @@ class HttpRemotingClient<M : RawMessage>(
                         check(previousStatus is BidirectionalMessagingStatus.Connecting)
 
                         statusHolder.value = BidirectionalMessagingStatus.Connected(messagingManager)
-                        messagingManager.processIncomingMessages()
 
                         previousStatus.coroutinesAwaitingConnection.forEach {
                             it.resume(Unit)
                         }
+
+                        messagingManager.processIncomingMessages()
                     }
                 } catch (e: Exception) {
                     // TODO specifikus exception-ök külön elkapása
