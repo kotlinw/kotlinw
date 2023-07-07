@@ -1,4 +1,7 @@
-package xyz.kotlinw.remoting.api
+package kotlinw.module.serverbase
+
+import xyz.kotlinw.remoting.api.MessagingPeerId
+import xyz.kotlinw.remoting.api.MessagingSessionId
 
 data class MessagingPeerConnectedEvent(
     val peerId: MessagingPeerId,

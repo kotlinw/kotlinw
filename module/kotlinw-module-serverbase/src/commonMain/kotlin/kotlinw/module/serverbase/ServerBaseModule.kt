@@ -12,6 +12,8 @@ import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.configuration.core.getConfigurationPropertyValue
+import kotlinw.eventbus.local.LocalEventBus
+import kotlinw.eventbus.local.dispatch
 import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerShutdownTask
@@ -23,6 +25,8 @@ import kotlinw.remoting.server.ktor.ServerToClientCommunicationType
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.dsl.module
+import xyz.kotlinw.remoting.api.MessagingPeerId
+import xyz.kotlinw.remoting.api.MessagingSessionId
 
 val serverBaseModule by lazy {
     module {
@@ -37,11 +41,26 @@ val serverBaseModule by lazy {
 
                 this.module {
                     install(WebSockets)
+
+                    val eventBus = get<LocalEventBus>()
                     install(RemotingServerPlugin) {
                         this.messageCodec = get<MessageCodec<*>>()
                         this.remoteCallDelegators = getAll<RemoteCallDelegator>()
                         this.identifyClient = { 1 } // FIXME
-                        this.supportedServerToClientCommunicationTypes = setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
+                        this.supportedServerToClientCommunicationTypes =
+                            setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
+                        this.onConnectionAdded = { peerId, sessionId, messagingManager ->
+                            eventBus.dispatch(
+                                ktorServerCoroutineScope,
+                                MessagingPeerConnectedEvent(peerId, sessionId)
+                            )
+                        }
+                        this.onConnectionRemoved = { peerId, sessionId ->
+                            eventBus.dispatch(
+                                ktorServerCoroutineScope,
+                                MessagingPeerDisconnectedEvent(peerId, sessionId)
+                            )
+                        }
                     }
 
                     getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
@@ -49,10 +68,7 @@ val serverBaseModule by lazy {
                     }
                 }
 
-                val engineConnectorConfigs = buildList {
-                    addAll(getAll<EngineConnectorConfig>())
-                }
-
+                val engineConnectorConfigs = getAll<EngineConnectorConfig>()
                 val configurationPropertyLookup = get<ConfigurationPropertyLookup>()
 
                 this.connectors.addAll(
