@@ -19,7 +19,8 @@ class Test {
 
                         @RemotingCapable
                         interface Service {
-                        
+                            companion object;
+
                             suspend fun a()
                         
                             suspend fun convert(value: Int): String

@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
 class KtorSupportTest {
@@ -91,11 +94,16 @@ class KtorSupportTest {
             )
         val clientProxy = ExampleService.clientProxy(remotingClient)
 
-        assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
+        coroutineScope {
+            val loopJob = launch(start = UNDISPATCHED) {
+                remotingClient.runMessagingLoop()
+            }
 
-        assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
-
-        assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+            assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
+            assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
+            assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+            loopJob.cancel()
+        }
 
         coVerify {
             service.coldFlow()

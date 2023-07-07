@@ -21,8 +21,14 @@ import kotlinx.serialization.serializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import xyz.kotlinw.remoting.api.MessagingPeerId
+import xyz.kotlinw.remoting.api.MessagingSessionId
 
 interface BidirectionalMessagingManager : CoroutineScope {
+
+    val remotePeerId: MessagingPeerId
+
+    val sessionId: MessagingSessionId
 
     suspend fun <P : Any, F> requestColdFlowResult(
         serviceLocator: ServiceLocator,
@@ -75,6 +81,11 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val activeColdFlows: ConcurrentMutableMap<String, ActiveColdFlowData> = ConcurrentHashMap()
 
     private val supervisorScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
+
+
+    override val remotePeerId get() = bidirectionalConnection.peerId
+
+    override val sessionId get() = bidirectionalConnection.sessionId
 
     override suspend fun processIncomingMessages() {
         logger.debug { "Starting message processing: " / bidirectionalConnection }

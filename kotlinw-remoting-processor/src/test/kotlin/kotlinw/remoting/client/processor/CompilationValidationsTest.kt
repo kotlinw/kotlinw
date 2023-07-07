@@ -4,10 +4,9 @@ import kotlinw.ksp.testutil.assertCompilationFailed
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
-import kotlinw.remoting.api.SupportsRemoting
+import xyz.kotlinw.remoting.annotation.SupportsRemoting
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlinx.serialization.Serializable
-import java.util.concurrent.Flow
 import kotlin.test.Test
 
 class CompilationValidationsTest {
@@ -19,7 +18,9 @@ class CompilationValidationsTest {
                 import ${SupportsRemoting::class.qualifiedName}
                 
                 @SupportsRemoting
-                interface RemoteService
+                interface RemoteService {
+                    companion object;
+                }
             """.trimIndent(),
             listOf(RemotingSymbolProcessorProvider())
         ) {
@@ -51,7 +52,8 @@ class CompilationValidationsTest {
                 
                 @SupportsRemoting
                 interface RemoteService {
-                
+                    companion object;
+                    
                     suspend fun returnsFlow(): Flow<String?>
                 }
             """.trimIndent(),
@@ -70,7 +72,8 @@ class CompilationValidationsTest {
                 
                 @SupportsRemoting
                 interface RemoteService {
-                    
+                    companion object;
+
                     @Serializable
                     data class A(val a: String)
                     
@@ -91,7 +94,8 @@ class CompilationValidationsTest {
                 
                 @SupportsRemoting
                 interface RemoteService {
-                    
+                    companion object;
+
                     suspend fun a(): List<String>
                 }
             """.trimIndent(),
@@ -109,7 +113,8 @@ class CompilationValidationsTest {
                 
                 @SupportsRemoting
                 interface RemoteService {
-                    
+                    companion object;
+
                     suspend fun a(): List<*>
                 }
             """.trimIndent(),

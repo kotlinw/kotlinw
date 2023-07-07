@@ -32,7 +32,7 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.ksp.util.hasCompanionObject
-import kotlinw.remoting.api.SupportsRemoting
+import xyz.kotlinw.remoting.annotation.SupportsRemoting
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport

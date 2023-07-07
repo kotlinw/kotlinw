@@ -1,4 +1,4 @@
-package kotlinw.remoting.api
+package xyz.kotlinw.remoting.annotation
 
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)

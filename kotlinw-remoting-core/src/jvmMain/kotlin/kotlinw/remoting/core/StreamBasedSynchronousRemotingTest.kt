@@ -1,7 +1,7 @@
 // TODO move to test source set
 package kotlinw.remoting.core
 
-import kotlinw.remoting.api.SupportsRemoting
+import xyz.kotlinw.remoting.annotation.SupportsRemoting
 
 @SupportsRemoting
 interface EchoService {

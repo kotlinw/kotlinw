@@ -21,6 +21,8 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
+import xyz.kotlinw.remoting.api.MessagingPeerId
+import xyz.kotlinw.remoting.api.MessagingSessionId
 
 class BidirectionalMessagingManagerTest {
 
