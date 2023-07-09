@@ -23,13 +23,18 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.KSerializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
     private val httpSupportImplementor: SynchronousCallSupport,
+    private val peerRegistry: MutableRemotePeerRegistry,
     private val remoteServerBaseUrl: Url,
     private val incomingCallDelegators: Map<String, RemoteCallDelegator>
 ) : RemotingClientSynchronousCallSupport, RemotingClientDownstreamFlowSupport {
+
+    private val logger = PlatformLogging.getLogger()
 
     private sealed interface BidirectionalMessagingStatus {
 
@@ -61,7 +66,7 @@ class HttpRemotingClient<M : RawMessage>(
                 }
 
                 is BidirectionalMessagingStatus.Connecting -> {
-                    suspendCancellableCoroutine<Unit> {
+                    suspendCancellableCoroutine {
                         currentStatus.coroutinesAwaitingConnection.add(it)
                     }
                 }
@@ -100,8 +105,12 @@ class HttpRemotingClient<M : RawMessage>(
                     statusHolder.value = BidirectionalMessagingStatus.Connecting()
                 }
 
+                var connectionIdForClosing: RemoteConnectionId? = null
                 try {
                     httpSupportImplementor.runInSession(wsUrl, messageCodec) {
+                        val connectionId = RemoteConnectionId(peerId, sessionId)
+                        connectionIdForClosing = connectionId
+
                         val messagingManager = BidirectionalMessagingManagerImpl(
                             this,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>,
@@ -117,19 +126,25 @@ class HttpRemotingClient<M : RawMessage>(
                             it.resume(Unit)
                         }
 
+                        peerRegistry.addConnection(connectionId, RemoteConnectionData(messagingManager))
                         messagingManager.processIncomingMessages()
                     }
-                } catch (e: Exception) {
-                    // TODO specifikus exception-ök külön elkapása
-                    e.nonFatalOrThrow().printStackTrace() // TODO log
+                } catch (e: Throwable) {
+                    // TODO specifikus exception-ök külön elkapása runInSession()-ben
+                    logger.error(e.nonFatalOrThrow()) { "Connection failed." }
                 } finally {
+                    if (connectionIdForClosing != null) {
+                        peerRegistry.removeConnection(connectionIdForClosing!!)
+                        connectionIdForClosing = null
+                    }
+
                     withContext(NonCancellable) {
                         val previousStatus = statusHolder.value
                         if (previousStatus is BidirectionalMessagingStatus.Connected) {
                             try {
                                 previousStatus.messagingManager.close()
                             } catch (e: Throwable) {
-                                e.nonFatalOrThrow().printStackTrace() // TODO log
+                                logger.debug(e.nonFatalOrThrow()) { "close() failed." }
                             }
                         }
                     }

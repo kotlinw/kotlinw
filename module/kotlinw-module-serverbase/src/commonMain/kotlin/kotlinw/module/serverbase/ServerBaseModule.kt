@@ -15,9 +15,14 @@ import kotlinw.configuration.core.getConfigurationPropertyValue
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.dispatch
 import kotlinw.koin.core.api.ApplicationCoroutineService
+import kotlinw.remoting.core.common.RemoteConnectionData
+import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerShutdownTask
 import kotlinw.koin.core.api.registerStartupTask
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
+import kotlinw.logging.api.LoggerFactory
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
@@ -25,24 +30,25 @@ import kotlinw.remoting.server.ktor.ServerToClientCommunicationType
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinx.coroutines.launch
 import org.koin.dsl.module
-import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
 
 val serverBaseModule by lazy {
     module {
         single<ApplicationEngine>(createdAtStart = true) {
+            val logger = get<LoggerFactory>().getLogger()
+            val eventBus = get<LocalEventBus>()
+            val remotePeerRegistry = get<MutableRemotePeerRegistry>()
+
             val ktorServerCoroutineScope =
                 get<ApplicationCoroutineService>().coroutineScope.createNestedSupervisorScope()
 
             val environment = applicationEngineEnvironment {
                 this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext
 
-                this.log = KtorSimpleLogger("kotlinw.serverbase.ktor")
+                this.log = KtorSimpleLogger(logger.name)
 
                 this.module {
                     install(WebSockets)
 
-                    val eventBus = get<LocalEventBus>()
                     install(RemotingServerPlugin) {
                         this.messageCodec = get<MessageCodec<*>>()
                         this.remoteCallDelegators = getAll<RemoteCallDelegator>()
@@ -50,12 +56,17 @@ val serverBaseModule by lazy {
                         this.supportedServerToClientCommunicationTypes =
                             setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
                         this.onConnectionAdded = { peerId, sessionId, messagingManager ->
+                            remotePeerRegistry.addConnection(
+                                RemoteConnectionId(peerId, sessionId),
+                                RemoteConnectionData(messagingManager)
+                            )
                             eventBus.dispatch(
                                 ktorServerCoroutineScope,
                                 MessagingPeerConnectedEvent(peerId, sessionId)
                             )
                         }
                         this.onConnectionRemoved = { peerId, sessionId ->
+                            remotePeerRegistry.removeConnection(RemoteConnectionId(peerId, sessionId))
                             eventBus.dispatch(
                                 ktorServerCoroutineScope,
                                 MessagingPeerDisconnectedEvent(peerId, sessionId)

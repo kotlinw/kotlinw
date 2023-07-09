@@ -37,10 +37,12 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 import kotlin.time.Duration.Companion.seconds
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
+import kotlinw.koin.core.internal.RemotePeerRegistryImpl
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
+import kotlinw.remoting.core.common.RemotePeerRegistry
 import kotlinw.remoting.core.common.SynchronousCallSupport
-import kotlinx.coroutines.GlobalScope
 
 val coreModule by lazy {
     module {
@@ -97,10 +99,14 @@ val coreModule by lazy {
             bind<BidirectionalCommunicationImplementor>()
         }
         single { RemotingClientManagerImpl(get()) }.bind<RemotingClientManager>()
+        single { RemotePeerRegistryImpl() }.withOptions {
+            bind<RemotePeerRegistry>()
+            bind<MutableRemotePeerRegistry>()
+        }
     }
 }
 
-// TODO move to remoting-client module
+// TODO remove
 interface RemotingClientManager {
 
     operator fun get(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient
