@@ -18,6 +18,7 @@ import kotlinx.serialization.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinw.remoting.core.codec.JsonMessageCodec
+import kotlinw.remoting.core.common.RemotePeerRegistryImpl
 import kotlinx.coroutines.GlobalScope
 
 class KtorHttpRemotingClientTest {
@@ -58,6 +59,7 @@ class KtorHttpRemotingClientTest {
         val remotingClient = HttpRemotingClient(
             JsonMessageCodec.Default,
             KtorHttpRemotingClientImplementor(mockEngine),
+            RemotePeerRegistryImpl(),
             Url(""),
             emptyMap()
         )

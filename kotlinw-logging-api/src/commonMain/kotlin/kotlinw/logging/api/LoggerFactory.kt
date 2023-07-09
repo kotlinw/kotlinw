@@ -9,6 +9,7 @@ interface LoggerFactory {
 
     companion object {
 
+        @Suppress("NOTHING_TO_INLINE")
         inline fun LoggerFactory.getLogger() = getLogger(resolveLoggerName {} ?: UnknownLoggerName)
     }
 

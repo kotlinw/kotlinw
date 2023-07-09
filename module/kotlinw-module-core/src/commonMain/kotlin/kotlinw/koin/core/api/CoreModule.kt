@@ -38,7 +38,7 @@ import org.koin.dsl.module
 import org.koin.dsl.onClose
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
-import kotlinw.koin.core.internal.RemotePeerRegistryImpl
+import kotlinw.remoting.core.common.RemotePeerRegistryImpl
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
 import kotlinw.remoting.core.common.RemotePeerRegistry
@@ -123,6 +123,7 @@ internal class RemotingClientManagerImpl(
             HttpRemotingClient(
                 messageCodec,
                 synchronousCallSupportImplementor,
+                RemotePeerRegistryImpl(),
                 remoteServerBaseUrl,
                 emptyMap()
             )

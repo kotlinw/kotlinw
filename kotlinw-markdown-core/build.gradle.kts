@@ -4,20 +4,25 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.P
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.binary-compatibility-validator")
 }
 
 kotlin {
+    targetHierarchy.default()
     jvm { }
     js(IR) {
         browser {
-            commonWebpackConfig {
-                // TODO kotlin 1.8.21-RC2: cssSupport.enabled = true
-            }
-            webpackTask {
-                mode = if (isDevelopmentBuildMode()) DEVELOPMENT else PRODUCTION
+            testTask {
+                useKarma {
+                    useFirefox()
+                    useChrome()
+                }
             }
         }
-        binaries.library()
+    }
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
     }
 
     sourceSets {

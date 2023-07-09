@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinw.remoting.core.common.RemotePeerRegistryImpl
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ class KtorSupportTest {
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(client)
         val remotingClient =
-            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, Url(""), emptyMap())
+            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, RemotePeerRegistryImpl(), Url(""), emptyMap())
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
 
@@ -89,6 +90,7 @@ class KtorSupportTest {
             HttpRemotingClient(
                 messageCodec,
                 remotingHttpClientImplementor,
+                RemotePeerRegistryImpl(),
                 Url(""),
                 emptyMap()
             )

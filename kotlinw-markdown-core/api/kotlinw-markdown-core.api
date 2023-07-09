@@ -1,0 +1,946 @@
+public abstract class xyz/kotlinw/markdown/core/MarkdownDocumentElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public abstract fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public abstract fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public abstract class xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement : xyz/kotlinw/markdown/core/MarkdownDocumentElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote$Companion;
+	public synthetic fun <init> (ILjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChildElements ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLanguage ()Ljava/lang/String;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getSourceCode ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak$Companion;
+	public fun <init> ()V
+	public synthetic fun <init> (ILxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading$Companion;
+	public synthetic fun <init> (IILjava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (ILjava/lang/String;[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public fun <init> (ILjava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (ILjava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (ILjava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;ILjava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContents ()Ljava/util/List;
+	public final fun getHeading ()Ljava/util/List;
+	public final fun getLevel ()I
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Companion;
+	public synthetic fun <init> (ILxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getType ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type : java/lang/Enum {
+	public static final field Asterisk Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+	public static final field Hyphen Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+	public static final field Underscore Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+	public static fun values ()[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule$Type;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHtmlFragment ()Ljava/lang/String;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHtmlFragment ()Ljava/lang/String;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Image : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescriptionElements ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Image$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Image$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Ljava/lang/String;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement : xyz/kotlinw/markdown/core/MarkdownDocumentElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;Ljava/lang/String;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getTarget ()Ljava/lang/String;
+	public final fun getTextElements ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDestination ()Ljava/lang/String;
+	public final fun getEffectiveTitle ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem$Companion;
+	public synthetic fun <init> (ILjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContents ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems$Companion;
+	public synthetic fun <init> (IZLjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (ZLjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (ZLjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Z[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (ZLjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;ZLjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getItems ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public final fun isOrdered ()Z
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph$Companion;
+	public synthetic fun <init> (ILjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChildElements ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Table : xyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Companion;
+	public synthetic fun <init> (ILjava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;Ljava/util/List;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeaders ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getRows ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell$Companion;
+	public synthetic fun <init> (ILjava/util/List;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;Ljava/util/List;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContents ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Text : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;Ljava/lang/String;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Text$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$Text$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan : xyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Companion;
+	public synthetic fun <init> (ILxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/lang/String;)V
+	public synthetic fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public synthetic fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public final fun component1 ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChildElements ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun getStyle ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$Companion;
+	public fun <init> ()V
+	public synthetic fun <init> (ILxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;)V
+	public synthetic fun <init> (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+	public final fun copy (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBold ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+	public final fun getItalic ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle : java/lang/Enum {
+	public static final field Bold Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+	public static final field Inherited Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+	public static final field NonBold Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+	public static fun values ()[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$BoldStyle;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$Companion {
+	public final fun getInherited ()Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle : java/lang/Enum {
+	public static final field Inherited Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+	public static final field Italic Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+	public static final field NonItalic Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+	public static fun values ()[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan$Style$ItalicStyle;
+}
+
+public abstract interface class xyz/kotlinw/markdown/core/MarkdownDocumentInlineUrlResolver {
+	public abstract fun resolveImageUrl (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun resolveLinkUrl (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentLinkResolverKt {
+	public static final fun resolveInlineUrls (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;Lxyz/kotlinw/markdown/core/MarkdownDocumentInlineUrlResolver;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentModel : xyz/kotlinw/markdown/core/MarkdownDocumentElement {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownDocumentModel$Companion;
+	public synthetic fun <init> (ILjava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public synthetic fun <init> (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lxyz/kotlinw/markdown/core/MarkdownMetadata;[Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public fun <init> ([Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun copy (Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;Ljava/util/List;Lxyz/kotlinw/markdown/core/MarkdownMetadata;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public synthetic fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement;
+	public fun copyWithMetadata (Lxyz/kotlinw/markdown/core/MarkdownMetadata;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChildElements ()Ljava/util/List;
+	public fun getMetadata ()Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentModel$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownDocumentModel$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentModel$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class xyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer {
+	public abstract fun transformBlockElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformBlockQuote (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformCodeBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformDocument (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public abstract fun transformHardLineBreak (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformHeading (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformHorizontalRule (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformHtmlBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformHtmlTag (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformImage (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformInlineCode (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformInlineElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformInlineLink (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformLinkDefinition (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformListItem (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;
+	public abstract fun transformListItems (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformParagraph (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformTable (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public abstract fun transformTableBodyCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;II)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public abstract fun transformTableBodyRow (Ljava/util/List;I)Ljava/util/List;
+	public abstract fun transformTableHeaderCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;I)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public abstract fun transformTableHeaderRow (Ljava/util/List;)Ljava/util/List;
+	public abstract fun transformText (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public abstract fun transformTextSpan (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer$DefaultImpls {
+	public static fun transformBlockElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformBlockQuote (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformCodeBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformDocument (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public static fun transformHardLineBreak (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformHeading (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformHorizontalRule (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformHtmlBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformHtmlTag (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformImage (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformInlineCode (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformInlineElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformInlineLink (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformLinkDefinition (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformListItem (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;
+	public static fun transformListItems (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformParagraph (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformTable (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;
+	public static fun transformTableBodyCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;II)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public static fun transformTableBodyRow (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Ljava/util/List;I)Ljava/util/List;
+	public static fun transformTableHeaderCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;I)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;
+	public static fun transformTableHeaderRow (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Ljava/util/List;)Ljava/util/List;
+	public static fun transformText (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+	public static fun transformTextSpan (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+}
+
+public abstract interface class xyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor {
+	public abstract fun visitBlockElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public abstract fun visitBlockQuote (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;)V
+	public abstract fun visitCodeBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;)V
+	public abstract fun visitDocument (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;)V
+	public abstract fun visitHardLineBreak (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;)V
+	public abstract fun visitHeading (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;)V
+	public abstract fun visitHorizontalRule (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;)V
+	public abstract fun visitHtmlBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;)V
+	public abstract fun visitHtmlTag (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;)V
+	public abstract fun visitImage (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;)V
+	public abstract fun visitInlineCode (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;)V
+	public abstract fun visitInlineElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public abstract fun visitInlineLink (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;)V
+	public abstract fun visitLinkDefinition (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;)V
+	public abstract fun visitListItem (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;)V
+	public abstract fun visitListItems (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;)V
+	public abstract fun visitParagraph (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;)V
+	public abstract fun visitTable (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;)V
+	public abstract fun visitTableBodyCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;II)V
+	public abstract fun visitTableBodyRow (Ljava/util/List;I)V
+	public abstract fun visitTableHeaderCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;I)V
+	public abstract fun visitTableHeaderRow (Ljava/util/List;)V
+	public abstract fun visitText (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;)V
+	public abstract fun visitTextSpan (Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor$DefaultImpls {
+	public static fun visitBlockElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockElement;)V
+	public static fun visitBlockQuote (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$BlockQuote;)V
+	public static fun visitCodeBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$CodeBlock;)V
+	public static fun visitDocument (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;)V
+	public static fun visitHardLineBreak (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HardLineBreak;)V
+	public static fun visitHeading (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Heading;)V
+	public static fun visitHorizontalRule (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HorizontalRule;)V
+	public static fun visitHtmlBlock (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlBlock;)V
+	public static fun visitHtmlTag (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$HtmlTag;)V
+	public static fun visitImage (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Image;)V
+	public static fun visitInlineCode (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineCode;)V
+	public static fun visitInlineElement (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;)V
+	public static fun visitInlineLink (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineLink;)V
+	public static fun visitLinkDefinition (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$LinkDefinition;)V
+	public static fun visitListItem (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItem;)V
+	public static fun visitListItems (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$ListItems;)V
+	public static fun visitParagraph (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Paragraph;)V
+	public static fun visitTable (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table;)V
+	public static fun visitTableBodyCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;II)V
+	public static fun visitTableBodyRow (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Ljava/util/List;I)V
+	public static fun visitTableHeaderCell (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Table$Cell;I)V
+	public static fun visitTableHeaderRow (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Ljava/util/List;)V
+	public static fun visitText (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$Text;)V
+	public static fun visitTextSpan (Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$TextSpan;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownMetadata {
+	public static final field Companion Lxyz/kotlinw/markdown/core/MarkdownMetadata$Companion;
+	public synthetic fun <init> (ILjava/util/Map;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/Map;)V
+	public fun <init> ([Lkotlin/Pair;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public static synthetic fun copy$default (Lxyz/kotlinw/markdown/core/MarkdownMetadata;Ljava/util/Map;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttributes ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final synthetic fun write$Self (Lxyz/kotlinw/markdown/core/MarkdownMetadata;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lxyz/kotlinw/markdown/core/MarkdownMetadata$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxyz/kotlinw/markdown/core/MarkdownMetadata;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownMetadata$Companion {
+	public final fun of ([Lkotlin/Pair;)Lxyz/kotlinw/markdown/core/MarkdownMetadata;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownModelKt {
+	public static final fun wrapInTextSpanIfNeeded (Ljava/util/List;)Lxyz/kotlinw/markdown/core/MarkdownDocumentElement$InlineElement;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownOutputKt {
+	public static final fun toMarkdownText (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;)Ljava/lang/String;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownParserKt {
+	public static final field invalidMacroPlaceholder Ljava/lang/String;
+	public static final fun parseMarkdownDocument (Ljava/lang/String;Ljava/util/Map;Lorg/intellij/markdown/flavours/MarkdownFlavourDescriptor;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+	public static synthetic fun parseMarkdownDocument$default (Ljava/lang/String;Ljava/util/Map;Lorg/intellij/markdown/flavours/MarkdownFlavourDescriptor;ILjava/lang/Object;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownTransformerKt {
+	public static final fun transform (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;Lxyz/kotlinw/markdown/core/MarkdownDocumentModelTransformer;)Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;
+}
+
+public final class xyz/kotlinw/markdown/core/MarkdownVisitorKt {
+	public static final fun accept (Lxyz/kotlinw/markdown/core/MarkdownDocumentModel;Lxyz/kotlinw/markdown/core/MarkdownDocumentModelVisitor;)V
+}
+
+public final class xyz/kotlinw/markdown/core/SingleLineTextOutputKt {
+	public static final fun toSingleLineText (Ljava/util/List;)Ljava/lang/CharSequence;
+}
+

@@ -21,6 +21,7 @@ import kotlinx.serialization.serializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlinw.util.stdlib.debugName
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
 
@@ -57,7 +58,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 ) : BidirectionalMessagingManager, CoroutineScope by bidirectionalConnection {
 
     private val logger =
-        PlatformLogging.getLogger(this::class.qualifiedName!! + "/" + bidirectionalConnection.peerId + "/" + bidirectionalConnection.sessionId)
+        PlatformLogging.getLogger(this::class.debugName + "/" + bidirectionalConnection.peerId + "/" + bidirectionalConnection.sessionId)
 
     private class InitiatedConversationData(val callId: ConversationId) {
 
