@@ -8,6 +8,9 @@ class ConstantConfigurationPropertyResolver(
 
         fun of(properties: Map<String, EncodedConfigurationPropertyValue>) =
             ConstantConfigurationPropertyResolver(properties.mapKeys { ConfigurationPropertyKey(it.key) })
+
+        fun of(vararg properties: Pair<String, EncodedConfigurationPropertyValue>) =
+            of(properties.toList().toMap())
     }
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =

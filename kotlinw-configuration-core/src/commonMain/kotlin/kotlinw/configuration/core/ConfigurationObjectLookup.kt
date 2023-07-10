@@ -2,6 +2,7 @@ package kotlinw.configuration.core
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.serializer
 
 sealed interface ConfigurationObjectLookup {
 
@@ -29,6 +30,9 @@ fun <T : Any> ConfigurationObjectLookup.getConfigurationObject(
     prefix: String? = null
 ): T =
     getConfigurationObject(configurationType, prefix?.let { ConfigurationPropertyKey(it) })
+
+inline fun <reified T : Any> ConfigurationObjectLookup.getConfigurationObject(prefix: String? = null): T =
+    getConfigurationObject(serializer<T>(), prefix?.let { ConfigurationPropertyKey(it) })
 
 class ConfigurationObjectLookupImpl(
     private val configurationPropertyLookup: ConfigurationPropertyLookup,

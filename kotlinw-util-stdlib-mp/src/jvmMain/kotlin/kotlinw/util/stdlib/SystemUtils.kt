@@ -27,3 +27,15 @@ val operatingSystemType by lazy {
         }
     }
 }
+
+enum class OperatingSystemArchitecture {
+    X64, AARCH64
+}
+
+val operatingSystemArchitecture by lazy {
+    when (val osArchitecture = System.getProperty("os.arch")) {
+        "x64", "x86_64", "amd64" -> OperatingSystemArchitecture.X64
+        "aarch64", "arm64" -> OperatingSystemArchitecture.AARCH64
+        else -> throw IllegalStateException("Unsupported OS architecture: $osArchitecture")
+    }
+}
