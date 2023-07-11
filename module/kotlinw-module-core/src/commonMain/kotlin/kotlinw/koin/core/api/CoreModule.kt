@@ -86,7 +86,7 @@ val coreModule by lazy {
         single<SerializerService> { SerializerServiceImpl() }
 
         // TODO az alábbiakat külön modulba
-        single {
+        single<HttpClient> {
             HttpClient {
                 install(HttpTimeout) {
                     connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
