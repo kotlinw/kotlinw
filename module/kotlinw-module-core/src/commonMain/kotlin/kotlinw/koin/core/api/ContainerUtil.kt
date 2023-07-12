@@ -39,6 +39,7 @@ fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
         allowOverride(false)
         modules(coreModule)
         appDeclaration()
+        createEagerInstances()
     }.apply {
         koin.getAllSortedByPriority<ApplicationInitializerService>().forEach {
             try {
@@ -49,3 +50,4 @@ fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
             }
         }
     }
+

@@ -9,8 +9,11 @@ import kotlinw.koin.core.internal.createPidFile
 import kotlinw.koin.core.internal.deletePidFile
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.Module
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 @PublishedApi
@@ -36,11 +39,18 @@ inline fun <reified T> T.coreJvmModule() =
         }
     }
 
+private const val KOIN_ROOT_SCOPE_ID = "_root_"
+
 @KoinApplicationDslMarker
-inline fun <reified T> runApplication(args: Array<out String> = emptyArray(), vararg modules: Module) {
+fun <@Suppress("unused") A> runJvmApplication(
+    args: Array<out String>,
+    vararg modules: Module,
+    block: suspend Scope.() -> Unit = { delay(Long.MAX_VALUE) }
+) {
     createPidFile()
 
     val koinApplication = startKoin {
+        // TODO az args legyen elérhető az alkalmazás számára
         this.modules(coreJvmModule(), *modules)
     }
 
@@ -54,8 +64,11 @@ inline fun <reified T> runApplication(args: Array<out String> = emptyArray(), va
         }
     )
 
-    // TODO
-    runCatching {
-        Thread.sleep(Long.MAX_VALUE)
+    try {
+        runBlocking {
+            koinApplication.koin.getScope(KOIN_ROOT_SCOPE_ID).block()
+        }
+    } finally {
+        koinApplication.close()
     }
 }

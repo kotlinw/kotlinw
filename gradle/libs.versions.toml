@@ -307,7 +307,7 @@ flowredux-multiplatform = { module = "com.freeletics.flowredux:flowredux", versi
 
 kotter = { module = "com.varabyte.kotter:kotter", version = "1.0.2" }
 
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.1" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.0.0" }
 
 mina-sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "mina" }
 mina-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "mina" }
