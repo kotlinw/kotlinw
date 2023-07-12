@@ -18,6 +18,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
+                api(projects.kotlinw.kotlinwLoggingApi)
                 api(libs.ktor.client.core)
             }
         }
