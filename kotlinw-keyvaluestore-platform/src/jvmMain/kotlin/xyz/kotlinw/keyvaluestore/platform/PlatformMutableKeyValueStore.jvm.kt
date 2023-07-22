@@ -1,0 +1,5 @@
+package xyz.kotlinw.keyvaluestore.platform
+
+import xyz.kotlinw.keyvaluestore.core.FilePerEntryMutableValueStore
+
+actual typealias PlatformMutableKeyValueStore = FilePerEntryMutableValueStore
