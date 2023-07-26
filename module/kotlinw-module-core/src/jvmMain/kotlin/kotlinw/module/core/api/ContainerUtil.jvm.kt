@@ -1,5 +1,6 @@
 package kotlinw.module.core.api
 
+import kotlin.reflect.KClass
 import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
@@ -19,7 +20,11 @@ import org.koin.dsl.module
 @PublishedApi
 internal val coreModuleLogger by lazy { PlatformLogging.getLogger() }
 
-inline fun <reified T> T.coreJvmModule() =
+inline fun <reified T : Any> coreJvmModule() = coreJvmModule(T::class)
+
+fun <T : Any> coreJvmModule(applicationClass: KClass<T>) = coreJvmModule(applicationClass.java.classLoader)
+
+fun coreJvmModule(classLoader: ClassLoader) =
     module {
         single {
             val deploymentModeFromSystemProperty = System.getProperty("kotlinw.core.deploymentMode")
@@ -34,24 +39,36 @@ inline fun <reified T> T.coreJvmModule() =
 
         single<ConfigurationPropertyLookupSource> {
             EnumerableConfigurationPropertyLookupSourceImpl(
-                StandardJvmConfigurationPropertyResolver(get(), T::class.java.classLoader)
+                StandardJvmConfigurationPropertyResolver(get(), classLoader)
             )
         }
     }
 
-private const val KOIN_ROOT_SCOPE_ID = "_root_"
+@PublishedApi
+internal const val KOIN_ROOT_SCOPE_ID = "_root_"
 
 @KoinApplicationDslMarker
-fun <@Suppress("unused") A> runJvmApplication(
+inline fun <reified A : Any> runJvmApplication(
     args: Array<out String>,
     vararg modules: Module,
+    noinline block: suspend Scope.() -> Unit = { delay(Long.MAX_VALUE) }
+) {
+    runJvmApplication(A::class, args, modules, block)
+}
+
+@KoinApplicationDslMarker
+@PublishedApi
+internal fun <A : Any> runJvmApplication(
+    applicationClass: KClass<A>,
+    args: Array<out String>,
+    modules: Array<out Module>,
     block: suspend Scope.() -> Unit = { delay(Long.MAX_VALUE) }
 ) {
     createPidFile()
 
     val koinApplication = startKoin {
         // TODO az args legyen elérhető az alkalmazás számára
-        this.modules(coreJvmModule(), *modules)
+        this.modules(coreJvmModule(applicationClass.java.classLoader), *modules)
     }
 
     Runtime.getRuntime().addShutdownHook(
