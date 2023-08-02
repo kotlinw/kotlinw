@@ -6,6 +6,9 @@ interface BaseEntityRepository<E : BaseEntity> {
 
     context(JpaSessionContext)
     fun findAll(): List<E>
+
+    context(TransactionalJpaSessionContext)
+    fun persist(entity: E): E
 }
 
 abstract class BaseEntityRepositoryImpl<E : BaseEntity>(
@@ -16,6 +19,9 @@ abstract class BaseEntityRepositoryImpl<E : BaseEntity>(
 
     context(JpaSessionContext)
     override fun findAll(): List<E> = query("FROM ${entityClass.simpleName}", entityClass)
+
+    context(TransactionalJpaSessionContext)
+    override fun persist(entity: E): E = entityManager.persistEntity(entity)
 
     context(JpaSessionContext)
     protected fun <T : Any> query(qlQuery: String, resultType: KClass<T>, vararg arguments: Any?): List<T> {
