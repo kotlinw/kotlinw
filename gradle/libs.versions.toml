@@ -7,7 +7,7 @@ kotlin = "1.8.21"
 springBoot = "3.0.7"
 
 # https://github.com/ktorio/ktor/releases
-ktor = "2.3.2"
+ktor = "2.3.3"
 
 # https://junit.org/junit5/docs/current/release-notes/index.html
 junit = "5.9.2"
