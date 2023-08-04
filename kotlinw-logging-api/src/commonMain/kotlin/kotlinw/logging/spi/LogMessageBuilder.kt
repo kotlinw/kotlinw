@@ -1,16 +1,12 @@
 package kotlinw.logging.spi
 
+import arrow.core.NonFatal
 import kotlinw.logging.api.LogMessage
-import kotlinw.logging.spi.LogMessageBuilder.FailedEvaluationPlaceholder
+import kotlinw.logging.api.LogMessage.FailedEvaluationPlaceholder
 
 typealias LogMessageProvider = LogMessageBuilder.() -> Any?
 
 sealed interface LogMessageBuilder {
-
-    data class FailedEvaluationPlaceholder(val exception: Throwable) {
-
-        override fun toString(): String = "<failed: ${exception::class}: ${exception.message}>"
-    }
 
     operator fun div(text: String): LogMessageBuilder
 
@@ -37,7 +33,11 @@ private fun safeToString(value: Any?) =
     try {
         value.toString()
     } catch (e: Throwable) {
-        FailedEvaluationPlaceholder(e).toString()
+        if (NonFatal(e)) {
+            FailedEvaluationPlaceholder(e).toString()
+        } else {
+            throw e
+        }
     }
 
 internal class LogMessageBuilderImpl : LogMessageBuilder {
@@ -69,7 +69,7 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
         )
     }
 
-    private fun addPositionalArgument(argumentValue: Any?) {
+    private fun addInlineArgument(argumentValue: Any?) {
         if (argumentValue is String) {
             text(argumentValue)
         } else {
@@ -77,8 +77,8 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
         }
     }
 
-    private fun addPositionalArgument(argumentProvider: () -> Any?) {
-        addPositionalArgument(
+    private fun addInlineArgument(argumentProvider: () -> Any?) {
+        addInlineArgument(
             try {
                 argumentProvider()
             } catch (e: Throwable) {
@@ -92,7 +92,7 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
     }
 
     override operator fun div(argument: Any?): LogMessageBuilder {
-        addPositionalArgument(argument)
+        addInlineArgument(argument)
         return this
     }
 
@@ -102,19 +102,19 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
         if (argument is Pair<*, *>) {
             addNamedArgument(safeToString(argument.first), argument.second)
         } else {
-            addPositionalArgument(argument)
+            addInlineArgument(argument)
         }
         return this@LogMessageBuilderImpl
     }
 
     override operator fun div(argumentProvider: () -> Any?): LogMessageBuilder {
-        addPositionalArgument(argumentProvider)
+        addInlineArgument(argumentProvider)
         return this
     }
 
     override operator fun String.div(argumentProvider: () -> Any?): LogMessageBuilder {
         text(this)
-        addPositionalArgument(argumentProvider)
+        addInlineArgument(argumentProvider)
         return this@LogMessageBuilderImpl
     }
 

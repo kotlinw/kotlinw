@@ -4,12 +4,17 @@ import kotlin.jvm.JvmInline
 
 sealed interface LogMessage {
 
+    data class FailedEvaluationPlaceholder(val exception: Throwable) {
+
+        override fun toString(): String = "<failed: ${exception::class}: ${exception.message}>"
+    }
+
     @JvmInline
     value class SimpleText(val messageText: String) : LogMessage
 
     data class Structured(val segments: List<Segment>) : LogMessage {
 
-        internal constructor(vararg segments: Segment): this(segments.toList())
+        internal constructor(vararg segments: Segment) : this(segments.toList())
 
         sealed interface Segment {
 
