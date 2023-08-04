@@ -1,5 +1,6 @@
 package kotlinw.logging.api
 
+import kotlin.DeprecationLevel.ERROR
 import kotlin.jvm.JvmInline
 
 sealed interface LogMessage {
@@ -9,10 +10,16 @@ sealed interface LogMessage {
         override fun toString(): String = "<failed: ${exception::class}: ${exception.message}>"
     }
 
+    object Empty: LogMessage
+
     @JvmInline
     value class SimpleText(val messageText: String) : LogMessage
 
-    data class Structured(val segments: List<Segment>) : LogMessage {
+    @JvmInline
+    value class SimpleValue(val value: Any?) : LogMessage
+
+    @JvmInline
+    value class Structured(val segments: List<Segment>) : LogMessage {
 
         internal constructor(vararg segments: Segment) : this(segments.toList())
 
