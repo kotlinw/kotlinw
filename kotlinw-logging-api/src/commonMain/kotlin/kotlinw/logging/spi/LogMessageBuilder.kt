@@ -1,6 +1,7 @@
 package kotlinw.logging.spi
 
 import arrow.core.NonFatal
+import kotlin.DeprecationLevel.ERROR
 import kotlinw.logging.api.LogMessage
 import kotlinw.logging.api.LogMessage.FailedEvaluationPlaceholder
 import kotlinw.logging.api.LogMessage.Structured.Segment.NamedValue
@@ -18,11 +19,17 @@ sealed interface LogMessageBuilder {
 
     fun named(name: String, valueProvider: () -> Any?): NamedValue
 
+    // TODO operator fun Any?.div(text: String): LogMessageBuilder
+
     operator fun String.div(value: Value): LogMessageBuilder
 
     operator fun String.div(value: NamedValue): LogMessageBuilder
 
     operator fun String.div(value: Any?): LogMessageBuilder
+
+    @Suppress("DeprecatedCallableAddReplaceWith")
+    @Deprecated(level = ERROR, message = "Invalid API usage, `this` should be explicitly qualified by `this@...`")
+    operator fun String.div(value: LogMessageBuilder): LogMessageBuilder = throw IllegalStateException()
 
     operator fun String.div(values: List<Any?>): LogMessageBuilder
 
@@ -37,6 +44,10 @@ sealed interface LogMessageBuilder {
     operator fun div(namedValue: NamedValue): LogMessageBuilder
 
     operator fun div(argument: Any?): LogMessageBuilder
+
+    @Suppress("DeprecatedCallableAddReplaceWith")
+    @Deprecated(level = ERROR, message = "Invalid API usage, `this` should be explicitly qualified by `this@...`")
+    operator fun div(argument: LogMessageBuilder): LogMessageBuilder = throw IllegalStateException()
 
     operator fun div(values: List<Any?>): LogMessageBuilder
 
@@ -78,6 +89,13 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
                 FailedEvaluationPlaceholder(e)
             }
         )
+
+    // TODO
+//    override fun Any?.div(text: String): LogMessageBuilder {
+//        addInlineArgument(Value(this))
+//        addText(text)
+//        return this@LogMessageBuilderImpl
+//    }
 
     override fun String.div(value: Value): LogMessageBuilder {
         addText(this)
