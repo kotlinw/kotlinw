@@ -61,6 +61,17 @@ class LogMessageBuilderImplTest {
             ),
             buildLogMessage { "Number: " / 5 / " String: " / "text" }
         )
+        assertEquals(
+            Structured(
+                Text("Int: "),
+                Value(5),
+                Text(", String: "),
+                Value("text"),
+                Text(", Double: "),
+                Value(1.1)
+            ),
+            buildLogMessage { "Int: " / 5 / ", String: " / "text" / ", Double: " / 1.1 }
+        )
     }
 
     @Test
