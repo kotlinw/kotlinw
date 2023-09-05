@@ -8,10 +8,15 @@ plugins {
 }
 
 kotlin {
+    targetHierarchy.default()
     jvm { }
-//    js(IR) {
-//        browser {}
-//    }
+    js(IR) {
+        browser()
+    }
+    if (isNativeTargetEnabled()) {
+        mingwX64()
+        linuxX64()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -30,10 +35,17 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
+        val jsMain by getting {
+            dependencies {
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
+        }
         val jvmMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-                implementation(kotlin("reflect"))
             }
         }
         val jvmTest by getting {
@@ -47,7 +59,7 @@ kotlin {
 
 compose {
     kotlinCompilerPlugin = dependencies.compiler.forKotlin("1.8.20")
-    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.8.22")
+    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.9.0")
 }
 
 dependencies {

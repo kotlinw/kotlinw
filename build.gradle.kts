@@ -13,10 +13,10 @@ buildscript {
 }
 
 plugins {
-    // kotlin("multiplatform") version "1.8.22" apply false
-    // id("com.google.devtools.ksp") version "1.8.22-1.0.11" apply false
-    // kotlin("plugin.serialization") version "1.8.22" apply false
-    // kotlin("plugin.spring") version "1.8.22" apply false
+    // kotlin("multiplatform") version "1.9.0" apply false
+    // id("com.google.devtools.ksp") version "1.9.0-1.0.13" apply false
+    // kotlin("plugin.serialization") version "1.9.0" apply false
+    // kotlin("plugin.spring") version "1.9.0" apply false
     id("org.jetbrains.compose") version "1.5.0" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
@@ -49,7 +49,7 @@ subprojects {
 
     fun KotlinCommonOptions.configureCommonOptions() {
         languageVersion = "1.9"
-        apiVersion = "1.8"
+        apiVersion = "1.9"
         freeCompilerArgs += listOf(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=kotlin.time.ExperimentalTime",
@@ -163,8 +163,4 @@ subprojects {
 //            }
 //        }
 //    }
-}
-
-rootProject.plugins.withType<YarnPlugin> {
-    rootProject.the<YarnRootExtension>().disableGranularWorkspaces()
 }

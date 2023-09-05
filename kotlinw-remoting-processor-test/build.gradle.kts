@@ -7,7 +7,11 @@ plugins {
 }
 
 kotlin {
+    targetHierarchy.default()
     jvm { }
+    js(IR) {
+        browser()
+    }
     if (isNativeTargetEnabled()) {
         linuxX64()
     }

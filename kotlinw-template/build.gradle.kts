@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform") version "1.8.22"
+    kotlin("multiplatform") version "1.9.0"
 }
 
 group = "org.example"
@@ -13,7 +13,7 @@ kotlin {
     sourceSets.all {
         languageSettings {
             languageVersion = "1.9"
-            apiVersion = "1.8"
+            apiVersion = "1.9"
         }
     }
     jvm {

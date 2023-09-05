@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.8.22"
+kotlin = "1.9.0"
 
 # https://central.sonatype.com/namespace/xyz.kotlinw
 kotlinw = "0.0.4"

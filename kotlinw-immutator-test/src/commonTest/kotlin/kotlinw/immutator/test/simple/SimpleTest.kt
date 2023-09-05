@@ -6,7 +6,7 @@ import kotlinw.immutator.test.simple.PetKind.Rabbit
 import kotlinw.immutator.util.mutate
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
-import java.time.Month.FEBRUARY
+import kotlinx.datetime.Month.FEBRUARY
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame

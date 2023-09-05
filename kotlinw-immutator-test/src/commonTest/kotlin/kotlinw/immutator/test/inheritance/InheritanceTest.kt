@@ -1,13 +1,13 @@
 package kotlinw.immutator.test.inheritance
 
-import kotlinw.immutator.annotation.Immutate
 import kotlinw.immutator.test.inheritance.PetKind.Cat
 import kotlinw.immutator.test.inheritance.PetKind.Dog
 import kotlinw.immutator.test.inheritance.PetKind.Rabbit
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
-import java.time.Month.JANUARY
+import kotlinx.datetime.Month
+import kotlinx.datetime.Month.JANUARY
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame

@@ -1,6 +1,6 @@
 package kotlinw.util.stdlib.collection
 
-actual class ConcurrentHashMap<K, V> private constructor(
+actual class ConcurrentHashMap<K: Any, V: Any> private constructor(
     private val wrapped: java.util.concurrent.ConcurrentMap<K, V>
 ) : ConcurrentMutableMap<K, V>, MutableMap<K, V> by wrapped {
     actual constructor() : this(java.util.concurrent.ConcurrentHashMap())

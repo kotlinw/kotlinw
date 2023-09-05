@@ -3,7 +3,7 @@ package kotlinw.collection
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 
 // TODO szebb implementációkat
-internal class ConcurrentHashMapInternalImpl<K, V>
+internal class ConcurrentHashMapInternalImpl<K: Any, V: Any>
 private constructor(
     private val wrapped: MutableMap<K, V>,
     constructorDiscriminator: Unit

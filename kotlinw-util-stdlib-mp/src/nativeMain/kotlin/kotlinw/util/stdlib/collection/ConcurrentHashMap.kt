@@ -4,7 +4,7 @@ import kotlinw.collection.ConcurrentHashMapInternalImpl
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 
-actual class ConcurrentHashMap<K, V>
+actual class ConcurrentHashMap<K: Any, V: Any>
 private constructor(private val wrapped: ConcurrentHashMapInternalImpl<K, V>) : ConcurrentMutableMap<K, V> {
 
     private val lock = SynchronizedObject()

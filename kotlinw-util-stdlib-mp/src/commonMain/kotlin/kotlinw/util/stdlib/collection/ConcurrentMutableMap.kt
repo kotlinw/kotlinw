@@ -1,6 +1,6 @@
 package kotlinw.util.stdlib.collection
 
-interface ConcurrentMutableMap<K, V> : MutableMap<K, V> {
+interface ConcurrentMutableMap<K: Any, V: Any> : MutableMap<K, V> {
     fun getOrDefault(key: K, defaultValue: V): V
 
     fun putIfAbsent(key: K, value: V): V?
