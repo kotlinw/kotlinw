@@ -10,7 +10,7 @@ springBoot = "3.0.7"
 ktor = "2.3.4"
 
 # https://junit.org/junit5/docs/current/release-notes/index.html
-junit = "5.9.2"
+junit = "5.10.0"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
 serialization = "1.5.1"
@@ -63,7 +63,7 @@ kotlinWrappers = "1.0.0-pre.455"
 # https://github.com/kosi-libs/Kodein/releases
 kodein = "7.20.1"
 
-koin = "3.4.0"
+koin = "3.4.3"
 
 # https://github.com/testcontainers/testcontainers-java/releases
 testcontainers = "1.19.0"
