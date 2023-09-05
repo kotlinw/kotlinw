@@ -58,7 +58,7 @@ dependencies {
     add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
 }
 
-tasks.withType<KotlinCompile<*>>().all {
+tasks.withType<KotlinCompile<*>>().configureEach {
     if (name != "kspCommonMainKotlinMetadata") {
         dependsOn("kspCommonMainKotlinMetadata")
     }
