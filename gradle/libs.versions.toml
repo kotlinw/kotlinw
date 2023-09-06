@@ -18,6 +18,8 @@ serialization = "1.6.0"
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.7.3"
 
+kotlinx-io = "0.2.1"
+
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.0-RC"
 
@@ -64,6 +66,7 @@ kotlinWrappers = "1.0.0-pre.455"
 kodein = "7.20.1"
 
 koin = "3.4.3"
+koinAnnotations = "1.2.2"
 
 # https://github.com/testcontainers/testcontainers-java/releases
 testcontainers = "1.19.0"
@@ -83,6 +86,8 @@ ksp = "1.9.0-1.0.13"
 kotlinpoet = "1.13.0"
 
 okio = "3.3.0"
+
+ktoml = "0.5.0"
 
 kotlinresult = "1.1.18"
 
@@ -196,7 +201,10 @@ kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-#kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version="0.19.0" }
+kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.20.2" }
+
+kotlinx-io-bytestring = { module = "org.jetbrains.kotlinx:kotlinx-io-bytestring", version.ref = "kotlinx-io" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
@@ -243,9 +251,13 @@ kodein-di-core = { module = "org.kodein.di:kodein-di", version.ref = "kodein" }
 kodein-di-framework-compose = { module = "org.kodein.di:kodein-di-framework-compose", version.ref = "kodein" }
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
+koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotations" }
+koin-ksp-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
 
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 hibernate-envers = { module = "org.hibernate.orm:hibernate-envers", version.ref = "hibernate" }
+hibernate-graalvm = { module = "org.hibernate.orm:hibernate-graalvm", version.ref = "hibernate" }
 hibernate-hikaricp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate" }
 
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version = "3.18.0" }
@@ -315,6 +327,10 @@ mina-sshd-scp = { module = "org.apache.sshd:sshd-scp", version.ref = "mina" }
 okio-core = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 turbine = { module = "app.cash.turbine:turbine", version = "1.0.0" }
+
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
+ktoml-source = { module = "com.akuleshov7:ktoml-source", version.ref = "ktoml" }
 
 kotlinresult-core = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinresult" }
 kotlinresult-coroutines = { module = "com.michael-bull.kotlin-result:kotlin-result-coroutines", version.ref = "kotlinresult" }

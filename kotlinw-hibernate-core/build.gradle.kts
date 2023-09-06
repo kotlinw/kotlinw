@@ -34,6 +34,6 @@ dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
     api(projects.kotlinw.kotlinwLoggingPlatform)
     api(projects.kotlinw.module.kotlinwModuleApi)
-    api(projects.shared.kotlinwUlid)
+    api(projects.kotlinw.kotlinwUlid)
     api(libs.arrow.core)
 }

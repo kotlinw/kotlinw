@@ -4,22 +4,13 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.P
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("org.jetbrains.kotlinx.binary-compatibility-validator")
 }
 
 kotlin {
     targetHierarchy.default()
-
     jvm { }
     js(IR) {
-        browser {
-            testTask {
-                useKarma {
-                    useFirefox()
-                    useChrome()
-                }
-            }
-        }
+        browser()
     }
     if (isNativeTargetEnabled()) {
         mingwX64()
@@ -30,8 +21,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwUtilCoreMp)
-                implementation(libs.jetbrains.markdown)
-                api(libs.jetbrains.compose.runtime)
+                api(libs.kodein.di.core)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val commonTest by getting {

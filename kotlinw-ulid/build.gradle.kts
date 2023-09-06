@@ -4,22 +4,13 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.P
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("org.jetbrains.kotlinx.binary-compatibility-validator")
 }
 
 kotlin {
     targetHierarchy.default()
-
     jvm { }
     js(IR) {
-        browser {
-            testTask {
-                useKarma {
-                    useFirefox()
-                    useChrome()
-                }
-            }
-        }
+        browser()
     }
     if (isNativeTargetEnabled()) {
         mingwX64()
@@ -29,9 +20,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(projects.kotlinw.kotlinwUtilCoreMp)
-                implementation(libs.jetbrains.markdown)
-                api(libs.jetbrains.compose.runtime)
+                api(projects.kotlinw.kotlinwUuid)
+                implementation("com.benasher44:uuid:0.7.0")
             }
         }
         val commonTest by getting {
@@ -52,6 +44,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                implementation(libs.huxi.sulky.ulid)
             }
         }
         val jvmTest by getting {

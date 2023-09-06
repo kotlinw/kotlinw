@@ -25,7 +25,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwEventbusLocal)
                 api(projects.kotlinw.kotlinwLoggingApi)
                 api(projects.kotlinw.kotlinwLoggingPlatform) // TODO implementation
-                api(projects.shared.kotlinwSerializationCore)
+                api(projects.kotlinw.kotlinwSerializationCore)
                 api(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingClientKtor)
 

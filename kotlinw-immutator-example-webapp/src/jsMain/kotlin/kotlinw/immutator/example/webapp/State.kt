@@ -3,7 +3,10 @@ package kotlinw.immutator.example.webapp
 import kotlinw.immutator.annotation.Immutate
 
 @Immutate
-interface TodoAppState {
+sealed interface TodoAppState {
+
+    companion object
+
     val screenStack: List<Screen>
     val todoLists: List<TodoList>
 }
@@ -15,20 +18,32 @@ val TodoAppStateMutable.mainScreen get() = screenStack.first() as MainScreenMuta
 val TodoAppState.currentScreen get() = screenStack.last()
 
 @Immutate
-interface Screen
+sealed interface Screen {
+
+    companion object
+}
 
 @Immutate
-interface MainScreen : Screen {
+sealed interface MainScreen : Screen {
+
+    companion object
+
     val isCompletedShown: Boolean
 }
 
 @Immutate
-interface EditScreen : Screen {
+sealed interface EditScreen : Screen {
+
+    companion object
+
     val editedTodoListId: Long
 }
 
 @Immutate
-interface TodoList {
+sealed interface TodoList {
+
+    companion object
+
     val id: Long
     val name: String
     val items: List<TodoItem>
@@ -37,7 +52,10 @@ interface TodoList {
 fun <E : TodoList> List<E>.findById(id: Long): E = first { it.id == id }
 
 @Immutate
-interface TodoItem {
+sealed interface TodoItem {
+
+    companion object
+
     val text: String
     val isCompleted: Boolean
 }
