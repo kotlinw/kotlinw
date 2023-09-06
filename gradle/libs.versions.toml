@@ -284,7 +284,7 @@ devsrsouza-compose-icons-erikflowersweathericons = { module = "br.com.devsrsouza
 devsrsouza-compose-icons-cssgg = { module = "br.com.devsrsouza.compose.icons.jetbrains:css-gg", version.ref = "devsrsouzaComposeIcons" }
 
 # https://jdbc.postgresql.org/
-postgresql-driver = { module = "org.postgresql:postgresql", version = "42.5.0" }
+postgresql-driver = { module = "org.postgresql:postgresql", version = "42.6.0" }
 
 # https://github.com/vladmihalcea/hibernate-types/tags
 # vladmihalcea-hibernatetypes = { module = "com.vladmihalcea:hibernate-types-60", version = "2.19.0" }
