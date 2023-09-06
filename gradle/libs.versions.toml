@@ -42,7 +42,7 @@ huxiSulky = "8.3.0"
 keycloak = "20.0.0"
 
 # https://github.com/JetBrains/skiko/releases
-skiko = "0.7.37"
+skiko = "0.7.79"
 
 # https://github.com/mipt-npm/kmath/releases
 kmath = "0.3.0"
