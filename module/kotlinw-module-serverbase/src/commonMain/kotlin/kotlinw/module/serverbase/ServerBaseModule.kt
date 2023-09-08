@@ -35,8 +35,6 @@ val serverBaseModule by lazy {
     module {
         single<ApplicationEngine>(createdAtStart = true) {
             val logger = get<LoggerFactory>().getLogger()
-            val eventBus = get<LocalEventBus>()
-            val remotePeerRegistry = get<MutableRemotePeerRegistry>()
 
             val ktorServerCoroutineScope =
                 get<ApplicationCoroutineService>().coroutineScope.createNestedSupervisorScope()
@@ -47,30 +45,34 @@ val serverBaseModule by lazy {
                 this.log = KtorSimpleLogger(logger.name)
 
                 this.module {
-                    install(WebSockets)
+                    val remoteCallDelegators = getAll<RemoteCallDelegator>()
+                    if (remoteCallDelegators.isNotEmpty()) {
+                        install(RemotingServerPlugin) {
+                            val eventBus = get<LocalEventBus>()
+                            val remotePeerRegistry = get<MutableRemotePeerRegistry>()
 
-                    install(RemotingServerPlugin) {
-                        this.messageCodec = get<MessageCodec<*>>()
-                        this.remoteCallDelegators = getAll<RemoteCallDelegator>()
-                        this.identifyClient = { 1 } // FIXME
-                        this.supportedServerToClientCommunicationTypes =
-                            setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
-                        this.onConnectionAdded = { peerId, sessionId, messagingManager ->
-                            remotePeerRegistry.addConnection(
-                                RemoteConnectionId(peerId, sessionId),
-                                RemoteConnectionData(messagingManager)
-                            )
-                            eventBus.dispatch(
-                                ktorServerCoroutineScope,
-                                MessagingPeerConnectedEvent(peerId, sessionId)
-                            )
-                        }
-                        this.onConnectionRemoved = { peerId, sessionId ->
-                            remotePeerRegistry.removeConnection(RemoteConnectionId(peerId, sessionId))
-                            eventBus.dispatch(
-                                ktorServerCoroutineScope,
-                                MessagingPeerDisconnectedEvent(peerId, sessionId)
-                            )
+                            this.messageCodec = get<MessageCodec<*>>()
+                            this.remoteCallDelegators = remoteCallDelegators
+                            this.identifyClient = { 1 } // FIXME
+                            this.supportedServerToClientCommunicationTypes =
+                                setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
+                            this.onConnectionAdded = { peerId, sessionId, messagingManager ->
+                                remotePeerRegistry.addConnection(
+                                    RemoteConnectionId(peerId, sessionId),
+                                    RemoteConnectionData(messagingManager)
+                                )
+                                eventBus.dispatch(
+                                    ktorServerCoroutineScope,
+                                    MessagingPeerConnectedEvent(peerId, sessionId)
+                                )
+                            }
+                            this.onConnectionRemoved = { peerId, sessionId ->
+                                remotePeerRegistry.removeConnection(RemoteConnectionId(peerId, sessionId))
+                                eventBus.dispatch(
+                                    ktorServerCoroutineScope,
+                                    MessagingPeerDisconnectedEvent(peerId, sessionId)
+                                )
+                            }
                         }
                     }
 

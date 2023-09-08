@@ -51,9 +51,11 @@ class RemotingConfiguration {
 
 private val logger by lazy { PlatformLogging.getLogger() }
 
+private const val RemotingServerPluginName = "RemotingServer"
+
 val RemotingServerPlugin =
     createApplicationPlugin(
-        name = "RemotingPlugin",
+        name = RemotingServerPluginName,
         createConfiguration = ::RemotingConfiguration
     ) {
         val identifyClient = requireNotNull(pluginConfig.identifyClient)
@@ -80,7 +82,9 @@ val RemotingServerPlugin =
             }
 
             if (isWebSocketSupportRequired) {
-                application.plugin(WebSockets)
+                if (application.pluginOrNull(WebSockets) == null) {
+                    throw IllegalStateException("Install required Ktor plugin: '${WebSockets.key.name}' (required by '$RemotingServerPluginName')")
+                }
             }
 
             if (isServerSentEventSupportRequired) {

@@ -6,7 +6,6 @@ plugins {
 
 kotlin {
     targetHierarchy.default()
-    // TODO jvm { }
     js(IR) {
         browser()
     }
@@ -36,26 +35,5 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
-// TODO        val jvmMain by getting {
-//            dependencies {
-//            }
-//        }
-//        val jvmTest by getting {
-//            dependencies {
-//                implementation(kotlin("test-junit5"))
-//                implementation(libs.logback.classic)
-//            }
-//        }
-//        val desktopMain by creating {
-//            dependsOn(jvmMain)
-//            dependencies {
-//                api(compose.desktop.currentOs)
-//                api(compose.foundation)
-//                api(compose.material)
-//            }
-//        }
-//        val desktopTest by creating {
-//            dependsOn(jvmTest)
-//        }
     }
 }
