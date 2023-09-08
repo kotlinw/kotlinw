@@ -45,6 +45,10 @@ val serverBaseModule by lazy {
                 this.log = KtorSimpleLogger(logger.name)
 
                 this.module {
+                    getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
+                        it.setupModule(this)
+                    }
+
                     val remoteCallDelegators = getAll<RemoteCallDelegator>()
                     if (remoteCallDelegators.isNotEmpty()) {
                         install(RemotingServerPlugin) {
@@ -74,10 +78,6 @@ val serverBaseModule by lazy {
                                 )
                             }
                         }
-                    }
-
-                    getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
-                        it.setupModule(this)
                     }
                 }
 
