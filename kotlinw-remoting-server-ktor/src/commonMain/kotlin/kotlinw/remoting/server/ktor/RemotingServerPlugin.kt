@@ -3,6 +3,8 @@ package kotlinw.remoting.server.ktor
 import arrow.core.nonFatalOrThrow
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -47,6 +49,8 @@ class RemotingConfiguration {
     var onConnectionAdded: ((MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null
 
     var onConnectionRemoved: ((MessagingPeerId, MessagingSessionId) -> Unit)? = null
+
+    var authenticationProviderName: String? = null
 }
 
 private val logger by lazy { PlatformLogging.getLogger() }
@@ -58,6 +62,11 @@ val RemotingServerPlugin =
         name = RemotingServerPluginName,
         createConfiguration = ::RemotingConfiguration
     ) {
+        val authenticationProviderName: String? = pluginConfig.authenticationProviderName
+        if (authenticationProviderName != null && application.pluginOrNull(Authentication) == null) {
+            throw IllegalStateException("Ktor server plugin '${Authentication.key.name} must be installed if ${RemotingConfiguration::class.simpleName}.${RemotingConfiguration::authenticationProviderName.name} is specified.")
+        }
+
         val identifyClient = requireNotNull(pluginConfig.identifyClient)
         val remoteCallDelegators = requireNotNull(pluginConfig.remoteCallDelegators)
         val messageCodec = requireNotNull(pluginConfig.messageCodec)
@@ -126,25 +135,36 @@ val RemotingServerPlugin =
         }
 
         application.routing {
-            route("/remoting") {
-                if (isWebSocketSupportRequired) {
-                    setupWebsocketRouting(
-                        messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-                        delegators,
-                        identifyClient,
-                        ::addConnection,
-                        ::removeConnection
+
+            fun configureRouting() {
+                route("/remoting") {
+                    if (isWebSocketSupportRequired) {
+                        setupWebsocketRouting(
+                            messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
+                            delegators,
+                            identifyClient,
+                            ::addConnection,
+                            ::removeConnection
+                        )
+                    }
+
+                    if (isServerSentEventSupportRequired) {
+                        TODO()
+                    }
+
+                    setupRemoteCallRouting(
+                        messageCodec,
+                        delegators
                     )
                 }
+            }
 
-                if (isServerSentEventSupportRequired) {
-                    TODO()
+            if (authenticationProviderName != null) {
+                authenticate(authenticationProviderName) {
+                    configureRouting()
                 }
-
-                setupRemoteCallRouting(
-                    messageCodec,
-                    delegators
-                )
+            } else {
+                configureRouting()
             }
         }
     }
