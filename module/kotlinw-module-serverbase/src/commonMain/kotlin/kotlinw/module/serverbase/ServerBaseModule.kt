@@ -1,12 +1,11 @@
 package kotlinw.module.serverbase
 
-import io.ktor.server.application.*
+import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.applicationEngineEnvironment
-import io.ktor.server.websocket.*
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -15,21 +14,67 @@ import kotlinw.configuration.core.getConfigurationPropertyValue
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.dispatch
 import kotlinw.koin.core.api.ApplicationCoroutineService
-import kotlinw.remoting.core.common.RemoteConnectionData
-import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.koin.core.api.getAllSortedByPriority
 import kotlinw.koin.core.api.registerShutdownTask
 import kotlinw.koin.core.api.registerStartupTask
-import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator
 import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
+import kotlinw.remoting.core.common.RemoteConnectionData
+import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.remoting.server.ktor.ServerToClientCommunicationType
 import kotlinw.util.coroutine.createNestedSupervisorScope
+import kotlinw.util.stdlib.Priority
+import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import kotlinx.coroutines.launch
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
+
+val serverRemotingModule by lazy {
+    module {
+        includes(serverBaseModule)
+
+        single<KtorServerApplicationConfigurer>(named("serverRemotingModule.setupRemoting")) {
+            KtorServerApplicationConfigurer(Priority.Normal.lowerBy(10)) {
+                val ktorApplication = application
+
+                val remoteCallDelegators = getAll<RemoteCallDelegator>()
+                if (remoteCallDelegators.isNotEmpty()) {
+                    ktorApplication.install(RemotingServerPlugin) {
+                        val eventBus = get<LocalEventBus>()
+                        val remotePeerRegistry = get<MutableRemotePeerRegistry>()
+
+                        this.messageCodec = get<MessageCodec<*>>()
+                        this.remoteCallDelegators = remoteCallDelegators
+                        this.identifyClient = { 1 } // FIXME
+                        this.supportedServerToClientCommunicationTypes =
+                            setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
+                        this.onConnectionAdded = { peerId, sessionId, messagingManager ->
+                            remotePeerRegistry.addConnection(
+                                RemoteConnectionId(peerId, sessionId),
+                                RemoteConnectionData(messagingManager)
+                            )
+                            eventBus.dispatch(
+                                ktorServerCoroutineScope,
+                                MessagingPeerConnectedEvent(peerId, sessionId)
+                            )
+                        }
+                        this.onConnectionRemoved = { peerId, sessionId ->
+                            remotePeerRegistry.removeConnection(RemoteConnectionId(peerId, sessionId))
+                            eventBus.dispatch(
+                                ktorServerCoroutineScope,
+                                MessagingPeerDisconnectedEvent(peerId, sessionId)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 val serverBaseModule by lazy {
     module {
@@ -45,39 +90,9 @@ val serverBaseModule by lazy {
                 this.log = KtorSimpleLogger(logger.name)
 
                 this.module {
+                    val context = KtorServerApplicationConfigurer.Context(this, ktorServerCoroutineScope)
                     getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
-                        it.setupModule(this)
-                    }
-
-                    val remoteCallDelegators = getAll<RemoteCallDelegator>()
-                    if (remoteCallDelegators.isNotEmpty()) {
-                        install(RemotingServerPlugin) {
-                            val eventBus = get<LocalEventBus>()
-                            val remotePeerRegistry = get<MutableRemotePeerRegistry>()
-
-                            this.messageCodec = get<MessageCodec<*>>()
-                            this.remoteCallDelegators = remoteCallDelegators
-                            this.identifyClient = { 1 } // FIXME
-                            this.supportedServerToClientCommunicationTypes =
-                                setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
-                            this.onConnectionAdded = { peerId, sessionId, messagingManager ->
-                                remotePeerRegistry.addConnection(
-                                    RemoteConnectionId(peerId, sessionId),
-                                    RemoteConnectionData(messagingManager)
-                                )
-                                eventBus.dispatch(
-                                    ktorServerCoroutineScope,
-                                    MessagingPeerConnectedEvent(peerId, sessionId)
-                                )
-                            }
-                            this.onConnectionRemoved = { peerId, sessionId ->
-                                remotePeerRegistry.removeConnection(RemoteConnectionId(peerId, sessionId))
-                                eventBus.dispatch(
-                                    ktorServerCoroutineScope,
-                                    MessagingPeerDisconnectedEvent(peerId, sessionId)
-                                )
-                            }
-                        }
+                        it.setupModule(context)
                     }
                 }
 

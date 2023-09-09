@@ -46,9 +46,7 @@ class HibernateModuleIntegrationTest {
                     }
                     single {
                         EnumerableConfigurationPropertyLookupSourceImpl(
-                            ConstantConfigurationPropertyResolver.of(
-                                mapOf("hibernate.connection.url" to "jdbc:h2:mem:")
-                            )
+                            ConstantConfigurationPropertyResolver.of("hibernate.connection.url" to "jdbc:h2:mem:")
                         )
                     }.withOptions {
                         bind<ConfigurationPropertyLookupSource>()
