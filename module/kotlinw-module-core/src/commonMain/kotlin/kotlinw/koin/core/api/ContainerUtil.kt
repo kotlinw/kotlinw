@@ -14,6 +14,16 @@ import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.scope.Scope
 import org.koin.dsl.KoinAppDeclaration
 import kotlin.jvm.JvmName
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+
+@PublishedApi
+internal const val KOIN_ROOT_SCOPE_ID = "_root_"
+
+@PublishedApi
+internal val coreModuleLogger by lazy { PlatformLogging.getLogger() }
 
 inline fun <reified T : Any> Scope.getAllSortedByPriority(): List<T> =
     getAll<T>(T::class).sortedByPriority()
@@ -34,20 +44,31 @@ fun <T : Any> T.registerShutdownTask(scope: Scope, onShutdownTask: OnShutdownTas
 }
 
 @KoinApplicationDslMarker
-fun startKoin(appDeclaration: KoinAppDeclaration): KoinApplication =
-    org.koin.core.context.startKoin {
-        allowOverride(false)
-        modules(coreModule)
-        appDeclaration()
-        createEagerInstances()
-    }.apply {
-        koin.getAllSortedByPriority<ApplicationInitializerService>().forEach {
-            try {
-                it.performInitialization()
-            } catch (e: Exception) {
-                // TODO log
-                throw e
+suspend fun startContainer(
+    appDeclaration: KoinAppDeclaration,
+    onUninitializedKoinApplicationInstanceCreated: (KoinApplication) -> Unit = {}
+): KoinApplication {
+    val koinApplication = coroutineScope {
+        org.koin.core.context.startKoin {
+            allowOverride(false)
+            onUninitializedKoinApplicationInstanceCreated(this)
+
+            modules(coreModule)
+            appDeclaration()
+
+            launch {
+                koin.getAllSortedByPriority<ApplicationInitializerService>().forEach {
+                    try {
+                        it.performInitialization()
+                    } catch (e: Exception) {
+                        // TODO log
+                        e.printStackTrace()
+                        throw e
+                    }
+                }
             }
         }
     }
 
+    return koinApplication
+}

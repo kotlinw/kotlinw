@@ -5,13 +5,13 @@ import kotlinw.util.stdlib.Priority
 
 abstract class ApplicationInitializerService(override val priority: Priority) : HasPriority {
 
-    abstract fun performInitialization()
+    abstract suspend fun performInitialization()
 }
 
-fun ApplicationInitializerService(priority: Priority, performInitialization: () -> Unit) =
+fun ApplicationInitializerService(priority: Priority, performInitialization: suspend () -> Unit) =
     object : ApplicationInitializerService(priority) {
 
-        override fun performInitialization() {
+        override suspend fun performInitialization() {
             performInitialization()
         }
     }

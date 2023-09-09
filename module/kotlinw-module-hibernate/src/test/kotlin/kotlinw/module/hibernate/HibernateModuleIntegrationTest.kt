@@ -12,7 +12,7 @@ import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.jdbc.util.executeStatements
-import kotlinw.koin.core.api.startKoin
+import kotlinw.koin.core.api.startContainer
 import kotlinw.module.hibernate.core.hibernateModule
 import org.hibernate.SessionFactory
 import org.koin.core.module.dsl.bind
@@ -20,6 +20,7 @@ import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.test.runTest
 
 @Entity
 @Table(name = "Person")
@@ -34,8 +35,8 @@ class PersonEntity(
 class HibernateModuleIntegrationTest {
 
     @Test
-    fun testBootstrap() {
-        val koinApplication = startKoin {
+    fun testBootstrap() = runTest {
+        val koinApplication = startContainer({
             modules(
                 hibernateModule,
                 module {
@@ -54,7 +55,7 @@ class HibernateModuleIntegrationTest {
                     }
                 }
             )
-        }
+        })
 
         try {
             with(koinApplication.koin) {

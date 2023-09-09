@@ -15,7 +15,7 @@ import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.configuration.core.ConstantConfigurationPropertyResolver
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSource
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
-import kotlinw.koin.core.api.startKoin
+import kotlinw.koin.core.api.startContainer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.koin.core.module.dsl.bind
@@ -30,44 +30,44 @@ class ServerBaseModuleIntegrationTest {
         val host = "localhost"
         val port = 8080
 
-        val koinApplication = startKoin {
-            modules(
-                serverBaseModule,
-                module {
-                    single(named("testConfigurationPropertyLookup")) {
-                        EnumerableConfigurationPropertyLookupSourceImpl(
-                            ConstantConfigurationPropertyResolver.of(
-                                "kotlinw.serverbase.host" to host,
-                                "kotlinw.serverbase.port" to port.toString()
+        runBlocking {
+            val koinApplication = startContainer({
+                modules(
+                    serverBaseModule,
+                    module {
+                        single(named("testConfigurationPropertyLookup")) {
+                            EnumerableConfigurationPropertyLookupSourceImpl(
+                                ConstantConfigurationPropertyResolver.of(
+                                    "kotlinw.serverbase.host" to host,
+                                    "kotlinw.serverbase.port" to port.toString()
+                                )
                             )
-                        )
-                    }.withOptions {
-                        bind<ConfigurationPropertyLookupSource>()
-                        bind<EnumerableConfigurationPropertyLookupSource>()
-                    }
-                    single<ApplicationEngineFactory<*, *>> { CIO }
-                    single {
-                        KtorServerApplicationConfigurer {
-                            application.routing {
-                                get("/test") {
-                                    call.respondText("test-response")
+                        }.withOptions {
+                            bind<ConfigurationPropertyLookupSource>()
+                            bind<EnumerableConfigurationPropertyLookupSource>()
+                        }
+                        single<ApplicationEngineFactory<*, *>> { CIO }
+                        single {
+                            KtorServerApplicationConfigurer {
+                                application.routing {
+                                    get("/test") {
+                                        call.respondText("test-response")
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            )
-        }
+                )
+            })
 
-        runBlocking {
             delay(500)
             assertEquals("test-response", HttpClient().get("http://$host:$port/test").bodyAsText())
             delay(500)
-        }
 
-        try {
-        } finally {
-            koinApplication.close()
+            try {
+            } finally {
+                koinApplication.close()
+            }
         }
     }
 }

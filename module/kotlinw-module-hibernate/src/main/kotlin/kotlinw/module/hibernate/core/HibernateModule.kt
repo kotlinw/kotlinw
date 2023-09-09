@@ -1,5 +1,12 @@
 package kotlinw.module.hibernate.core
 
+import jakarta.persistence.EntityGraph
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceUnitUtil
+import jakarta.persistence.Query
+import jakarta.persistence.SynchronizationType
+import jakarta.persistence.metamodel.Metamodel
+import javax.naming.Reference
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
@@ -19,6 +26,19 @@ import org.hibernate.cfg.AvailableSettings
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.reflect.KClass
+import kotlinx.atomicfu.atomic
+import org.hibernate.Cache
+import org.hibernate.Session
+import org.hibernate.SessionBuilder
+import org.hibernate.StatelessSession
+import org.hibernate.StatelessSessionBuilder
+import org.hibernate.boot.spi.SessionFactoryOptions
+import org.hibernate.engine.spi.FilterDefinition
+import org.hibernate.graph.RootGraph
+import org.hibernate.query.criteria.HibernateCriteriaBuilder
+import org.hibernate.relational.SchemaManager
+import org.hibernate.stat.Statistics
+import java.sql.Connection
 
 fun interface BootstrapServiceRegistryCustomizer {
 

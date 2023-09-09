@@ -2,6 +2,7 @@ package kotlinw.module.serverbase
 
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.ApplicationEngineEnvironment
 import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.EngineConnectorConfig
@@ -29,6 +30,7 @@ import kotlinw.remoting.server.ktor.ServerToClientCommunicationType
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -76,54 +78,79 @@ val serverRemotingModule by lazy {
     }
 }
 
+private class ApplicationEngineWrapper : ApplicationEngine {
+
+    private val wrappedHolder = atomic<ApplicationEngine?>(null)
+
+    fun setWrapped(applicationEngine: ApplicationEngine) {
+        check(wrappedHolder.value == null)
+        wrappedHolder.value = applicationEngine
+    }
+
+    private fun wrapped() = wrappedHolder.value ?: throw IllegalStateException()
+
+    override val environment: ApplicationEngineEnvironment get() = wrapped().environment
+
+    override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = wrapped().resolvedConnectors()
+
+    override fun start(wait: Boolean): ApplicationEngine = wrapped().start(wait)
+
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) =
+        wrapped().stop(gracePeriodMillis, timeoutMillis)
+}
+
 val serverBaseModule by lazy {
     module {
         single<ApplicationEngine>(createdAtStart = true) {
-            val logger = get<LoggerFactory>().getLogger()
+            ApplicationEngineWrapper()
+                .registerStartupTask(this) { applicationEngineWrapper ->
+                    val logger = get<LoggerFactory>().getLogger()
 
-            val ktorServerCoroutineScope =
-                get<ApplicationCoroutineService>().coroutineScope.createNestedSupervisorScope()
+                    val ktorServerCoroutineScope =
+                        get<ApplicationCoroutineService>().coroutineScope.createNestedSupervisorScope()
 
-            val environment = applicationEngineEnvironment {
-                this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext
+                    val environment = applicationEngineEnvironment {
+                        this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext
 
-                this.log = KtorSimpleLogger(logger.name)
+                        this.log = KtorSimpleLogger(logger.name)
 
-                this.module {
-                    val context = KtorServerApplicationConfigurer.Context(this, ktorServerCoroutineScope)
-                    getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
-                        it.setupModule(context)
-                    }
-                }
-
-                val engineConnectorConfigs = getAll<EngineConnectorConfig>()
-                val configurationPropertyLookup = get<ConfigurationPropertyLookup>()
-
-                this.connectors.addAll(
-                    engineConnectorConfigs.ifEmpty {
-                        if (true) { // TODO deploymentMode == Development
-                            listOf(
-                                EngineConnectorBuilder().apply {
-                                    host =
-                                        configurationPropertyLookup.getConfigurationPropertyValue("kotlinw.serverbase.host")
-                                    port =
-                                        configurationPropertyLookup.getConfigurationPropertyTypedValue<Int>("kotlinw.serverbase.port")
-                                }
-                            )
-                        } else {
-                            throw ConfigurationException("No ktor server connector is defined.") // TODO link to help
+                        this.module {
+                            val context = KtorServerApplicationConfigurer.Context(this, ktorServerCoroutineScope)
+                            getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
+                                it.setupModule(context)
+                            }
                         }
-                    }
-                )
-            }
 
-            get<ApplicationEngineFactory<*, *>>()
-                .create(environment) {
-                    // TODO
-                }
-                .registerStartupTask(this) {
+                        val engineConnectorConfigs = getAll<EngineConnectorConfig>()
+                        val configurationPropertyLookup = get<ConfigurationPropertyLookup>()
+
+                        this.connectors.addAll(
+                            engineConnectorConfigs.ifEmpty {
+                                if (true) { // TODO deploymentMode == Development
+                                    listOf(
+                                        EngineConnectorBuilder().apply {
+                                            host =
+                                                configurationPropertyLookup.getConfigurationPropertyValue("kotlinw.serverbase.host")
+                                            port =
+                                                configurationPropertyLookup.getConfigurationPropertyTypedValue<Int>("kotlinw.serverbase.port")
+                                        }
+                                    )
+                                } else {
+                                    throw ConfigurationException("No ktor server connector is defined.") // TODO link to help
+                                }
+                            }
+                        )
+                    }
+
+                    applicationEngineWrapper.setWrapped(
+                        get<ApplicationEngineFactory<*, *>>()
+                            .create(environment) {
+                                // TODO
+                            }
+                    )
+
                     ktorServerCoroutineScope.launch {
-                        it.start(wait = true)
+                        applicationEngineWrapper.start(wait = true)
                     }
                 }
                 .registerShutdownTask(this) {

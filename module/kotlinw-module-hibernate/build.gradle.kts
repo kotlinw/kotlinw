@@ -40,4 +40,5 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(projects.kotlinw.kotlinwJdbcUtil)
     testImplementation(libs.h2)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

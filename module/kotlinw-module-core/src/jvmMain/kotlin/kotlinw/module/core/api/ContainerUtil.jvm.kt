@@ -5,21 +5,18 @@ import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.configuration.core.StandardJvmConfigurationPropertyResolver
-import kotlinw.koin.core.api.startKoin
+import kotlinw.koin.core.api.KOIN_ROOT_SCOPE_ID
+import kotlinw.koin.core.api.coreModuleLogger
+import kotlinw.koin.core.api.startContainer
 import kotlinw.koin.core.internal.createPidFile
 import kotlinw.koin.core.internal.deletePidFile
-import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
-@PublishedApi
-internal val coreModuleLogger by lazy { PlatformLogging.getLogger() }
-
+// TODO ez miért nem lehet internal?
 inline fun <reified T : Any> coreJvmModule() = coreJvmModule(T::class)
 
 fun <T : Any> coreJvmModule(applicationClass: KClass<T>) = coreJvmModule(applicationClass.java.classLoader)
@@ -44,11 +41,8 @@ fun coreJvmModule(classLoader: ClassLoader) =
         }
     }
 
-@PublishedApi
-internal const val KOIN_ROOT_SCOPE_ID = "_root_"
-
 @KoinApplicationDslMarker
-inline fun <reified A : Any> runJvmApplication(
+suspend inline fun <reified A : Any> runJvmApplication(
     args: Array<out String>,
     vararg modules: Module,
     noinline block: suspend Scope.() -> Unit = { delay(Long.MAX_VALUE) }
@@ -58,7 +52,7 @@ inline fun <reified A : Any> runJvmApplication(
 
 @KoinApplicationDslMarker
 @PublishedApi
-internal fun <A : Any> runJvmApplication(
+internal suspend fun <A : Any> runJvmApplication(
     applicationClass: KClass<A>,
     args: Array<out String>,
     modules: Array<out Module>,
@@ -66,25 +60,26 @@ internal fun <A : Any> runJvmApplication(
 ) {
     createPidFile()
 
-    val koinApplication = startKoin {
-        // TODO az args legyen elérhető az alkalmazás számára
-        this.modules(coreJvmModule(applicationClass.java.classLoader), *modules)
-    }
-
-    Runtime.getRuntime().addShutdownHook(
-        Thread {
-            try {
-                koinApplication.close()
-            } finally {
-                deletePidFile()
-            }
+    val koinApplication = startContainer(
+        appDeclaration = {
+            // TODO az args legyen elérhető az alkalmazás számára
+            this.modules(coreJvmModule(applicationClass.java.classLoader), *modules)
+        },
+        onUninitializedKoinApplicationInstanceCreated = {
+            Runtime.getRuntime().addShutdownHook(
+                Thread {
+                    try {
+                        it.close()
+                    } finally {
+                        deletePidFile()
+                    }
+                }
+            )
         }
     )
 
     try {
-        runBlocking {
-            koinApplication.koin.getScope(KOIN_ROOT_SCOPE_ID).block()
-        }
+        koinApplication.koin.getScope(KOIN_ROOT_SCOPE_ID).block()
     } finally {
         koinApplication.close()
     }

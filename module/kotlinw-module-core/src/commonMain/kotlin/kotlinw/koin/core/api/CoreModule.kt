@@ -2,6 +2,7 @@ package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import korlibs.io.async.runBlockingNoJs
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -43,12 +44,13 @@ import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
 import kotlinw.remoting.core.common.RemotePeerRegistry
 import kotlinw.remoting.core.common.SynchronousCallSupport
+import kotlinw.util.stdlib.Priority.Companion.higherBy
 
 val coreModule by lazy {
     module {
         single<ContainerStartupCoordinator> { ContainerStartupCoordinatorImpl() }
-        single<ApplicationInitializerService>(named("ContainerStartupCoordinatorApplicationInitializerService")) {
-            ApplicationInitializerService(Priority.Normal.lowerBy(100)) {
+        single<ApplicationInitializerService>(named("coreModule.ContainerStartupCoordinatorApplicationInitializerService")) {
+            ApplicationInitializerService(Priority.Normal.higherBy(90)) {
                 get<ContainerStartupCoordinator>().runStartupTasks()
             }
         }
@@ -70,11 +72,11 @@ val coreModule by lazy {
 
         single<ConfigurationPropertyLookup>(createdAtStart = true) {
             ConfigurationPropertyLookupImpl(getAll())
-                .also {
-                    get<ApplicationCoroutineService>().runBlocking {
-                        it.initialize()
-                    }
-                }
+        }
+        single<ApplicationInitializerService>(named("coreModule.ConfigurationPropertyLookupInitializer")) {
+            ApplicationInitializerService(Priority.Highest.lowerBy(100)) {
+                get<ConfigurationPropertyLookup>().initialize()
+            }
         }
 
         single<ConfigurationObjectLookup> { ConfigurationObjectLookupImpl(get()) }

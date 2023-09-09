@@ -6,7 +6,7 @@ typealias EncodedConfigurationPropertyValue = String
 
 interface ConfigurationPropertyLookup {
 
-    suspend fun initialize()
+    suspend fun initialize() // TODO internal API
 
     fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 
