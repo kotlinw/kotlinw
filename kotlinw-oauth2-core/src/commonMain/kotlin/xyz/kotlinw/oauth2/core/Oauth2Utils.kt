@@ -84,16 +84,15 @@ object AuthorizationCodeGrant {
         )
 }
 
-suspend fun HttpClient.requestTokenByClientCredentials(
-    tokenEndpointUrl: Url,
-    clientId: String,
-    clientSecret: String
-) =
-    submitForm(
-        tokenEndpointUrl.value,
-        Parameters.build {
-            append("client_id", clientId)
-            append("client_secret", clientSecret)
-            append("grant_type", "client_credentials")
-        }
-    ).body<Oauth2AuthorizationResponse>()
+object ClientCredentialsGrant {
+
+    suspend fun HttpClient.requestToken(tokenEndpointUrl: Url, clientId: String, clientSecret: String) =
+        submitForm(
+            tokenEndpointUrl.value,
+            Parameters.build {
+                append("client_id", clientId)
+                append("client_secret", clientSecret)
+                append("grant_type", "client_credentials")
+            }
+        ).body<Oauth2AuthorizationResponse>()
+}
