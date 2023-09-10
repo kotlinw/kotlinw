@@ -2,7 +2,6 @@ package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import korlibs.io.async.runBlockingNoJs
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -111,7 +110,7 @@ val coreModule by lazy {
 // TODO remove
 interface RemotingClientManager {
 
-    operator fun get(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient
+    fun getRemotingClient(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient
 }
 
 internal class RemotingClientManagerImpl(
@@ -120,7 +119,7 @@ internal class RemotingClientManagerImpl(
 
     private val remotingClients: ConcurrentMutableMap<Url, RemotingClient> = ConcurrentHashMap()
 
-    override fun get(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient =
+    override fun getRemotingClient(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient =
         remotingClients.computeIfAbsent(remoteServerBaseUrl) {
             HttpRemotingClient(
                 messageCodec,
