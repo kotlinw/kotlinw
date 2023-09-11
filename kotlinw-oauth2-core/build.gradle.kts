@@ -8,6 +8,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.kotlinwOauth2Model)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                api(projects.kotlinw.kotlinwLoggingPlatform)
 
                 implementation(libs.ktor.client.serialization)
                 implementation(libs.kotlinx.serialization.json)

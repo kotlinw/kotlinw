@@ -1,16 +1,20 @@
 package xyz.kotlinw.oauth2.model
 
+import kotlinw.util.stdlib.Url
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Oauth2AuthorizationResponse(
+data class Oauth2TokenResponse(
 
     @SerialName("access_token")
     val accessToken: String,
 
+    @SerialName("token_type")
+    val tokenType: String,
+
     @SerialName("expires_in")
-    val accessTokenExpirySeconds: Int,
+    val accessTokenExpirySeconds: Int? = null,
 
     @SerialName("refresh_token")
     val refreshToken: String? = null,
@@ -18,10 +22,7 @@ data class Oauth2AuthorizationResponse(
     @SerialName("refresh_expires_in")
     val refreshTokenExpirySeconds: Int? = null,
 
-    val scope: String,
-
-    @SerialName("token_type")
-    val tokenType: String,
+    val scope: String? = null,
 
     @SerialName("id_token")
     val idToken: String? = null,
@@ -34,4 +35,16 @@ data class Oauth2AuthorizationResponse(
 
     @SerialName("session_state")
     val sessionState: String? = null
+)
+
+@Serializable
+data class Oauth2TokenErrorResponse(
+
+    val error: String,
+
+    @SerialName("error_description")
+    val errorDescription: String? = null,
+
+    @SerialName("error_uri")
+    val errorUri: Url? = null
 )
