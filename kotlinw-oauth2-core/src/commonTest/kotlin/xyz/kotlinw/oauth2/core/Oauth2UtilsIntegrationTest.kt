@@ -1,11 +1,14 @@
 package xyz.kotlinw.oauth2.core
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel.ALL
 import io.ktor.client.plugins.logging.LogLevel.INFO
 import io.ktor.client.plugins.logging.LogLevel.NONE
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.forms.submitForm
+import io.ktor.http.Parameters
 import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.test.Test
@@ -20,6 +23,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import xyz.kotlinw.oauth2.keycloak.createKeycloakAuthorizationServerUrl
 import xyz.kotlinw.oauth2.keycloak.fetchKeycloakExternalIdentityProviderToken
+import xyz.kotlinw.oauth2.model.Oauth2TokenResponse
 
 class Oauth2UtilsIntegrationTest {
 
@@ -70,9 +74,23 @@ class Oauth2UtilsIntegrationTest {
 
             val tokenResponse =
                 httpClient.authorizeDevice(deviceAuthorizationEndpoint, tokenEndpoint, "kotlinw-test-device") {
-                    println("To successfully perform the test, authenticate at: ${it.verificationUriComplete} (userCode=${it.userCode})")
+                    println("To successfully perform the test, authenticate using Google at: ${it.verificationUriComplete} (userCode=${it.userCode})")
                 }
+
             println(tokenResponse)
+
+            val tokenExchangeResponse = httpClient.submitForm(
+                tokenEndpoint.value,
+                Parameters.build {
+                    append("client_id", "kotlinw-test-device")
+                    append("subject_token", tokenResponse.accessToken)
+                    append("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
+                    append("requested_token_type", "urn:ietf:params:oauth:token-type:access_token")
+                    append("requested_issuer", "google")
+                }
+            )
+
+            println(tokenExchangeResponse.body<Oauth2TokenResponse>())
         }
     }
 }
