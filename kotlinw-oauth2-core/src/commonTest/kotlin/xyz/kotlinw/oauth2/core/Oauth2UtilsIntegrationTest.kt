@@ -18,11 +18,11 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import xyz.kotlinw.oauth2.keycloak.createKeycloakAuthorizationServerUrl
 
 class Oauth2UtilsIntegrationTest {
 
-    private val testAuthorizationServerUrl =
-        Url("https://sso.erinors.com/realms/erinors") // TODO create realm 'kotlinw'
+    private val testAuthorizationServerUrl = createKeycloakAuthorizationServerUrl(Url("https://sso.erinors.com"), "erinors")
 
     private fun createHttpClient(): HttpClient {
         val client = HttpClient {
