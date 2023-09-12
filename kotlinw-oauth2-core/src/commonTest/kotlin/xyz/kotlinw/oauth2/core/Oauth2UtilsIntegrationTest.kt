@@ -19,10 +19,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import xyz.kotlinw.oauth2.keycloak.createKeycloakAuthorizationServerUrl
+import xyz.kotlinw.oauth2.keycloak.fetchKeycloakExternalIdentityProviderToken
 
 class Oauth2UtilsIntegrationTest {
 
-    private val testAuthorizationServerUrl = createKeycloakAuthorizationServerUrl(Url("https://sso.erinors.com"), "erinors")
+    private val testAuthorizationServerUrl =
+        createKeycloakAuthorizationServerUrl(Url("https://sso.erinors.com"), "erinors")
 
     private fun createHttpClient(): HttpClient {
         val client = HttpClient {
@@ -66,9 +68,11 @@ class Oauth2UtilsIntegrationTest {
             val deviceAuthorizationEndpoint = providerMetadata.deviceAuthorizationEndpoint
                 ?: fail("OpenID provider does not support Device Authorization Grant")
 
-            httpClient.authorizeDevice(deviceAuthorizationEndpoint, tokenEndpoint, "kotlinw-test-device") {
-                println("To successfully perform the test, authorize at: ${it.verificationUriComplete} (userCode=${it.userCode})")
-            }
+            val tokenResponse =
+                httpClient.authorizeDevice(deviceAuthorizationEndpoint, tokenEndpoint, "kotlinw-test-device") {
+                    println("To successfully perform the test, authenticate at: ${it.verificationUriComplete} (userCode=${it.userCode})")
+                }
+            println(tokenResponse)
         }
     }
 }
