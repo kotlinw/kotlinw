@@ -23,7 +23,7 @@ kotlin {
         val jsMain by getting {
             kotlin.srcDir("build/generated/ksp/js/jsMain/kotlin")
             dependencies {
-                implementation(compose.web.core)
+                implementation(compose.html.core)
             }
         }
         val jvmMain by getting {

@@ -26,7 +26,7 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                api(libs.jetbrains.compose.web.core)
+                api(libs.jetbrains.compose.html.core)
                 api(compose.html.core)
             }
         }

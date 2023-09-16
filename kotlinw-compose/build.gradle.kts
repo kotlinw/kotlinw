@@ -55,8 +55,8 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation(libs.jetbrains.compose.web.core.js)
-                implementation(compose.web.core)
+                implementation(libs.jetbrains.compose.html.core.js)
+                implementation(compose.html.core)
             }
         }
         val jsTest by getting {

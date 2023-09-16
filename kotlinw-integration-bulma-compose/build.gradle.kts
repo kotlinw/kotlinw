@@ -9,7 +9,7 @@ kotlin {
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.html.core)
-                implementation(libs.jetbrains.compose.web.core)
+                implementation(libs.jetbrains.compose.html.core)
 
                 implementation(npm("bulma", "0.9.4"))
             }
