@@ -60,7 +60,7 @@ class HibernateSqlSchemaExporterImpl(
         val schemaManagementTool = standardServiceRegistry.getService(SchemaManagementTool::class.java)
 
         val output = StringWriter()
-        schemaManagementTool.getSchemaMigrator(emptyMap())
+        schemaManagementTool!!.getSchemaMigrator(emptyMap())
             .doMigration(
                 metadata,
                 ExecutionOptionsImpl(

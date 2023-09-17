@@ -91,7 +91,7 @@ ktoml = "0.5.0"
 
 kotlinresult = "1.1.18"
 
-hibernate = "6.2.3.Final"
+hibernate = "6.3.0.Final"
 
 korlibs = "4.0.3"
 
