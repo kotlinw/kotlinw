@@ -1,14 +1,13 @@
 package kotlinw.hibernate.processor;
 
-import com.google.devtools.ksp.processing.CodeGenerator;
-import com.google.devtools.ksp.processing.KSPLogger;
+import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -17,12 +16,11 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import com.squareup.kotlinpoet.metadata.toKmClass
 import com.squareup.kotlinpoet.typeNameOf
 import jakarta.persistence.Entity
-import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlin.reflect.KClass
-import org.koin.core.annotation.Single
+import kotlinw.hibernate.api.configuration.PersistentClassProvider
+import org.koin.core.annotation.Singleton
 
 class HibernateSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -72,7 +70,7 @@ class HibernateSymbolProcessor(
                 FileSpec.builder(packageName, generatedClassSimpleName)
                     .addType(
                         TypeSpec.classBuilder(generatedClassSimpleName)
-                            .addAnnotation(Single::class.asClassName())
+                            .addAnnotation(Singleton::class.asClassName())
                             .addSuperinterface(PersistentClassProvider::class)
                             .addFunction(
                                 FunSpec.builder("getPersistentClasses")

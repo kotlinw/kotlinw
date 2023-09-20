@@ -1,5 +1,6 @@
 package kotlinw.hibernate.core.schemaexport
 
+import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType.Update
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.tool.schema.TargetType
