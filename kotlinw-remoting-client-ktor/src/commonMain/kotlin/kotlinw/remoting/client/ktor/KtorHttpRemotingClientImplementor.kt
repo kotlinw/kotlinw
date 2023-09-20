@@ -19,13 +19,12 @@ import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
 import kotlinx.datetime.Clock
-import kotlin.time.Duration.Companion.seconds
 
 class KtorHttpRemotingClientImplementor(
     private val httpClient: HttpClient
 ) : SynchronousCallSupport, BidirectionalCommunicationImplementor {
 
-    constructor(engine: HttpClientEngine) : this(HttpClient(engine))
+    internal constructor(engine: HttpClientEngine) : this(HttpClient(engine))
 
     override suspend fun <M : RawMessage> call(
         url: String,
