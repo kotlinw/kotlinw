@@ -2,12 +2,15 @@ package xyz.kotlinw.oauth2.core
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Parameters
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.json
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -18,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import xyz.kotlinw.oauth2.model.Oauth2TokenErrorResponse
 import xyz.kotlinw.oauth2.model.Oauth2TokenResponse
 import xyz.kotlinw.oauth2.model.OpenidConnectProviderMetadata
@@ -25,11 +29,20 @@ import xyz.kotlinw.oauth2.model.OpenidConnectProviderMetadata
 private val logger = PlatformLogging.getLogger()
 
 suspend fun HttpClient.fetchOpenidConnectProviderMetadata(authorizationServerUrl: Url) =
-    get(
-        URLBuilder(authorizationServerUrl.value)
-            .appendPathSegments(".well-known", "openid-configuration")
-            .build()
-    )
+    config {
+        install(ContentNegotiation) {
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                }
+            )
+        }
+    }
+        .get(
+            URLBuilder(authorizationServerUrl.value)
+                .appendPathSegments(".well-known", "openid-configuration")
+                .build()
+        )
         .body<OpenidConnectProviderMetadata>()
 
 internal fun buildGenericAuthorizationUrl(
@@ -109,15 +122,21 @@ object AuthorizationCodeGrant {
 
 object ClientCredentialsGrant {
 
-    suspend fun HttpClient.requestToken(tokenEndpointUrl: Url, clientId: String, clientSecret: String) =
-        submitForm(
+    // TODO context(HttpClient)
+    suspend fun requestToken(
+        httpClient: HttpClient,
+        tokenEndpointUrl: Url,
+        clientId: String,
+        clientSecret: String
+    ): Oauth2TokenResponse =
+        httpClient.submitForm(
             tokenEndpointUrl.value,
             Parameters.build {
                 append("client_id", clientId)
                 append("client_secret", clientSecret)
                 append("grant_type", "client_credentials")
             }
-        ).body<Oauth2TokenResponse>()
+        ).body<Oauth2TokenResponse>() // TODO 401 és további hibák kezelése
 }
 
 /**
