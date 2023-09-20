@@ -1,5 +1,5 @@
 plugins {
-    `kotlinw-multiplatform`
+    `kotlinw-multiplatform-library`
 }
 
 kotlin {
