@@ -21,6 +21,11 @@ inline fun <reified T : Any> coreJvmModule() = coreJvmModule(T::class)
 
 fun <T : Any> coreJvmModule(applicationClass: KClass<T>) = coreJvmModule(applicationClass.java.classLoader)
 
+// TODO induláskor:
+// SLF4J: A number (2) of logging calls during the initialization phase have been intercepted and are
+// SLF4J: now being replayed. These are subject to the filtering rules of the underlying logging system.
+// SLF4J: See also https://www.slf4j.org/codes.html#replay
+
 fun coreJvmModule(classLoader: ClassLoader) =
     module {
         single {
