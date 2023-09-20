@@ -136,35 +136,35 @@ val RemotingServerPlugin =
 
         application.routing {
 
-            fun configureRouting() {
-                route("/remoting") {
-                    if (isWebSocketSupportRequired) {
-                        setupWebsocketRouting(
-                            messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-                            delegators,
-                            identifyClient,
-                            ::addConnection,
-                            ::removeConnection
-                        )
-                    }
-
-                    if (isServerSentEventSupportRequired) {
-                        TODO()
-                    }
-
-                    setupRemoteCallRouting(
-                        messageCodec,
-                        delegators
+            fun Route.configureRouting() {
+                if (isWebSocketSupportRequired) {
+                    setupWebsocketRouting(
+                        messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>, // TODO check?
+                        delegators,
+                        identifyClient,
+                        ::addConnection,
+                        ::removeConnection
                     )
                 }
+
+                if (isServerSentEventSupportRequired) {
+                    TODO()
+                }
+
+                setupRemoteCallRouting(
+                    messageCodec,
+                    delegators
+                )
             }
 
-            if (authenticationProviderName != null) {
-                authenticate(authenticationProviderName) {
+            route("/remoting") {
+                if (authenticationProviderName != null) {
+                    authenticate(authenticationProviderName) {
+                        configureRouting()
+                    }
+                } else {
                     configureRouting()
                 }
-            } else {
-                configureRouting()
             }
         }
     }
