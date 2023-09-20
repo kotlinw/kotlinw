@@ -38,7 +38,7 @@ class HttpRemotingClient<M : RawMessage>(
 
     private sealed interface BidirectionalMessagingStatus {
 
-        object NotInitialized : BidirectionalMessagingStatus
+        data object NotInitialized : BidirectionalMessagingStatus
 
         data class NotConnected(val messagingLoopContinuation: Continuation<Unit>) :
             BidirectionalMessagingStatus
