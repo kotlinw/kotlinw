@@ -114,7 +114,7 @@ val serverBaseModule by lazy {
                     val environment = applicationEngineEnvironment {
                         this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext
                         this.log = KtorSimpleLogger(logger.name)
-                        this.developmentMode = get<DeploymentMode>() == Development
+                        // TODO valamiért nem tölti újra: this.developmentMode = get<DeploymentMode>() == Development
 
                         this.module {
                             val context = KtorServerApplicationConfigurer.Context(this, ktorServerCoroutineScope)

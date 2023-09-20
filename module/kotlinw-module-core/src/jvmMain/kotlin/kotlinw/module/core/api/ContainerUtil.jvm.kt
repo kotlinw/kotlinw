@@ -26,6 +26,7 @@ fun <T : Any> coreJvmModule(applicationClass: KClass<T>) = coreJvmModule(applica
 // SLF4J: now being replayed. These are subject to the filtering rules of the underlying logging system.
 // SLF4J: See also https://www.slf4j.org/codes.html#replay
 
+// TODO deploymentMode jöhetne paraméterben?
 fun coreJvmModule(classLoader: ClassLoader) =
     module {
         single {
