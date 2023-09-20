@@ -10,6 +10,8 @@ import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
+import kotlinw.configuration.core.DeploymentMode
+import kotlinw.configuration.core.DeploymentMode.Development
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.configuration.core.getConfigurationPropertyValue
 import kotlinw.eventbus.local.LocalEventBus
@@ -111,8 +113,8 @@ val serverBaseModule by lazy {
 
                     val environment = applicationEngineEnvironment {
                         this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext
-
                         this.log = KtorSimpleLogger(logger.name)
+                        this.developmentMode = get<DeploymentMode>() == Development
 
                         this.module {
                             val context = KtorServerApplicationConfigurer.Context(this, ktorServerCoroutineScope)

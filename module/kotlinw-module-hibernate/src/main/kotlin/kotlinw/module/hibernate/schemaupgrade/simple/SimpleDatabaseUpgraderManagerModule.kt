@@ -27,6 +27,6 @@ val simpleDatabaseUpgraderManagerServicesModule by lazy {
 
 val simpleDatabaseUpgraderManagerEntitiesModule by lazy {
     module {
-        single { PersistentClassProvider { listOf(DatabaseSchemaVersionInfoEntity::class) } }.bind<PersistentClassProvider>()
+        single(named("kotlinw.module.hibernate.schemaupgrade.simple.PersistentClassProvider")) { PersistentClassProvider { listOf(DatabaseSchemaVersionInfoEntity::class) } }.bind<PersistentClassProvider>()
     }
 }
