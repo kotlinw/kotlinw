@@ -2,6 +2,7 @@ package kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import kotlin.time.Duration.Companion.seconds
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -20,30 +21,23 @@ import kotlinw.logging.spi.LoggingContextManager
 import kotlinw.logging.spi.LoggingDelegator
 import kotlinw.logging.spi.LoggingIntegrator
 import kotlinw.module.api.ApplicationInitializerService
-import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
+import kotlinw.remoting.core.common.RemotePeerRegistry
+import kotlinw.remoting.core.common.RemotePeerRegistryImpl
+import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.serialization.core.SerializerService
 import kotlinw.serialization.core.SerializerServiceImpl
 import kotlinw.util.stdlib.Priority
+import kotlinw.util.stdlib.Priority.Companion.higherBy
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
-import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.collection.ConcurrentHashMap
-import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
-import kotlin.time.Duration.Companion.seconds
-import kotlinw.remoting.core.common.MutableRemotePeerRegistry
-import kotlinw.remoting.core.common.RemotePeerRegistryImpl
-import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
-import kotlinw.remoting.core.common.RemotePeerRegistry
-import kotlinw.remoting.core.common.SynchronousCallSupport
-import kotlinw.util.stdlib.Priority.Companion.higherBy
 
 val coreModule by lazy {
     module {
@@ -99,34 +93,10 @@ val coreModule by lazy {
             bind<SynchronousCallSupport>()
             bind<BidirectionalCommunicationImplementor>()
         }
-        single { RemotingClientManagerImpl(get()) }.bind<RemotingClientManager>()
+        single { RemotingClientFactoryImpl(getOrNull()) }.bind<RemotingClientFactory>()
         single { RemotePeerRegistryImpl() }.withOptions {
             bind<RemotePeerRegistry>()
             bind<MutableRemotePeerRegistry>()
         }
     }
-}
-
-// TODO remove
-interface RemotingClientManager {
-
-    fun getRemotingClient(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient
-}
-
-internal class RemotingClientManagerImpl(
-    private val synchronousCallSupportImplementor: SynchronousCallSupport
-) : RemotingClientManager {
-
-    private val remotingClients: ConcurrentMutableMap<Url, RemotingClient> = ConcurrentHashMap()
-
-    override fun getRemotingClient(remoteServerBaseUrl: Url, messageCodec: MessageCodec<*>): RemotingClient =
-        remotingClients.computeIfAbsent(remoteServerBaseUrl) {
-            HttpRemotingClient(
-                messageCodec,
-                synchronousCallSupportImplementor,
-                RemotePeerRegistryImpl(),
-                remoteServerBaseUrl,
-                emptyMap()
-            )
-        }!!
 }
