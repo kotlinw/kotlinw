@@ -1,14 +1,14 @@
-package xyz.kotlinw.pwa.core
+package xyz.kotlinw.pwa.model
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import xyz.kotlinw.pwa.core.WebManifest.Display.Standalone
-import xyz.kotlinw.pwa.core.WebManifest.ImageResource
-import xyz.kotlinw.pwa.core.WebManifest.ImageResourceSize
-import xyz.kotlinw.pwa.core.WebManifest.ImageResourceSizes
-import xyz.kotlinw.pwa.core.WebManifest.ShortcutItem
+import xyz.kotlinw.pwa.model.WebManifest.Display.Standalone
+import xyz.kotlinw.pwa.model.WebManifest.ImageResource
+import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSize
+import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSizes
+import xyz.kotlinw.pwa.model.WebManifest.ShortcutItem
 
 class WebManifestTest {
 

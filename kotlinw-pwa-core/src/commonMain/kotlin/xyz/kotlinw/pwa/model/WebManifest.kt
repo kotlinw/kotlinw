@@ -1,8 +1,6 @@
-package xyz.kotlinw.pwa.core
+package xyz.kotlinw.pwa.model
 
 import kotlin.jvm.JvmOverloads
-import kotlinw.i18n.LocaleId
-import kotlinw.i18n.language
 import kotlinw.util.stdlib.Url
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -13,18 +11,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
-import xyz.kotlinw.pwa.core.WebManifest.Direction
-import xyz.kotlinw.pwa.core.WebManifest.Display
-import xyz.kotlinw.pwa.core.WebManifest.Display.Browser
-import xyz.kotlinw.pwa.core.WebManifest.Display.Standalone
-import xyz.kotlinw.pwa.core.WebManifest.ExternalApplicationResource
-import xyz.kotlinw.pwa.core.WebManifest.ImageResource
-import xyz.kotlinw.pwa.core.WebManifest.ImageResourceSize.Companion.decodeFromString
-import xyz.kotlinw.pwa.core.WebManifest.ImageResourceSize.Companion.encodeToString
-import xyz.kotlinw.pwa.core.WebManifest.Method.GET
-import xyz.kotlinw.pwa.core.WebManifest.Orientation
-import xyz.kotlinw.pwa.core.WebManifest.ShareTarget
-import xyz.kotlinw.pwa.core.WebManifest.ShortcutItem
+import xyz.kotlinw.pwa.model.WebManifest.Display.Browser
+import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSize.Companion.decodeFromString
+import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSize.Companion.encodeToString
+import xyz.kotlinw.pwa.model.WebManifest.Method.GET
+import xyz.kotlinw.pwa.model.WebManifest.ShortcutItem
 
 /**
  * See:
@@ -152,10 +143,12 @@ data class WebManifest(
     @SerialName("related_applications")
     val relatedApplications: List<ExternalApplicationResource>? = null
 ) {
+
     fun serializeToString() = json.encodeToString(this)
 
     @Serializable
     enum class Orientation {
+
         @SerialName("any")
         Any,
 
@@ -183,6 +176,7 @@ data class WebManifest(
 
     @Serializable
     enum class Display {
+
         @SerialName("fullscreen")
         FullScreen,
 
@@ -201,6 +195,7 @@ data class WebManifest(
      */
     @Serializable
     enum class Direction {
+
         @SerialName("ltr")
         LTR,
 
@@ -213,7 +208,9 @@ data class WebManifest(
 
     @Serializable(with = WebManifest.ImageResourceSizes.Companion::class)
     data class ImageResourceSizes(val sizes: List<ImageResourceSize>) {
+
         companion object : KSerializer<ImageResourceSizes> {
+
             override val descriptor = PrimitiveSerialDescriptor("ImageResourceSizes", PrimitiveKind.STRING)
 
             private const val delimiter = " "
@@ -233,7 +230,9 @@ data class WebManifest(
 
     @Serializable(with = ImageResourceSize.Companion::class)
     data class ImageResourceSize(val width: Int, val height: Int) {
+
         companion object : KSerializer<ImageResourceSize> {
+
             override val descriptor = PrimitiveSerialDescriptor("ImageResourceSize", PrimitiveKind.STRING)
 
             private val regex = Regex("(%d)x(%d)")
@@ -288,18 +287,15 @@ data class WebManifest(
         val purpose: String = "any"
     ) {
         init {
-            if (type != null)
+            if (type != null) {
                 require(cg_regex1.containsMatchIn(type)) { "type does not match pattern $cg_regex1 - $type" }
+            }
             require(purpose in cg_array2) { "purpose not in enumerated values - $purpose" }
         }
 
         @JvmOverloads
-        constructor(src: String, type: String, size: ImageResourceSize, purpose: String = "any") : this(
-            src,
-            type,
-            ImageResourceSizes(size),
-            purpose
-        )
+        constructor(src: String, type: String, size: ImageResourceSize, purpose: String = "any") :
+                this(src, type, ImageResourceSizes(size), purpose)
     }
 
     @Serializable
@@ -446,6 +442,7 @@ data class WebManifest(
     )
 
     companion object {
+
         private val cg_regex1 = Regex("^[\\sa-z0-9\\-+;.=/]+\$")
 
         private val cg_array2 = setOf(
@@ -475,76 +472,4 @@ data class WebManifest(
 
         private val json by lazy { Json { prettyPrint = true } }
     }
-}
-
-interface WebManifestAttributeProvider {
-    fun name(localeId: LocaleId): String
-
-    fun shortName(localeId: LocaleId): String
-
-    fun icons(): List<ImageResource>
-
-    fun startUrl(): String
-
-    fun display(): Display = Standalone
-
-    fun id(): String? = null
-
-    fun themeColor(): String? = null
-
-    fun backgroundColor(): String? = null
-
-    fun scope(): String? = null
-
-    fun direction(): Direction? = null
-
-    fun orientation(): Orientation? = null
-
-    fun description(localeId: LocaleId): String? = null
-
-    fun screenshots(): List<ImageResource>? = null
-
-    fun categories(): List<String>? = null
-
-    fun iarcRatingId(): String? = null
-
-    fun shortcuts(localeId: LocaleId): List<ShortcutItem>? = null
-
-    fun shareTarget(): ShareTarget? = null
-
-    fun preferRelatedApplications(): Boolean? = null
-
-    fun relatedApplications(): List<ExternalApplicationResource>? = null
-}
-
-interface WebManifestProvider {
-    val defaultLocaleId: LocaleId
-
-    val webManifestAttributeProvider: WebManifestAttributeProvider
-
-    fun createWebManifest(localeId: LocaleId = defaultLocaleId): WebManifest =
-        with(webManifestAttributeProvider) {
-            WebManifest(
-                name(localeId),
-                shortName(localeId),
-                icons(),
-                startUrl(),
-                display(),
-                id(),
-                themeColor(),
-                backgroundColor(),
-                scope(),
-                localeId.language,
-                direction(),
-                orientation(),
-                description(localeId),
-                screenshots(),
-                categories(),
-                iarcRatingId(),
-                shortcuts(localeId),
-                shareTarget(),
-                preferRelatedApplications(),
-                relatedApplications()
-            )
-        }
 }
