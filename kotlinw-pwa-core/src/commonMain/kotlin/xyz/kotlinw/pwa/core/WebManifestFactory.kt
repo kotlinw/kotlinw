@@ -2,6 +2,7 @@ package xyz.kotlinw.pwa.core
 
 import kotlinw.i18n.LocaleId
 import kotlinw.i18n.language
+import kotlinw.util.stdlib.Url
 import xyz.kotlinw.pwa.model.WebManifest
 import xyz.kotlinw.pwa.model.WebManifest.Direction
 import xyz.kotlinw.pwa.model.WebManifest.Display
@@ -12,19 +13,22 @@ import xyz.kotlinw.pwa.model.WebManifest.Orientation
 import xyz.kotlinw.pwa.model.WebManifest.ShareTarget
 import xyz.kotlinw.pwa.model.WebManifest.ShortcutItem
 
-interface WebManifestProvider {
+interface WebManifestFactory {
 
-    val defaultLocaleId: LocaleId
+    fun createWebManifest(localeId: LocaleId): WebManifest
+}
 
-    val webManifestAttributeProvider: WebManifestAttributeProvider
+class WebManifestFactoryImpl(
+    private val webManifestAttributeProvider: WebManifestAttributeProvider
+): WebManifestFactory {
 
-    fun createWebManifest(localeId: LocaleId = defaultLocaleId): WebManifest =
+    override fun createWebManifest(localeId: LocaleId): WebManifest =
         with(webManifestAttributeProvider) {
             WebManifest(
                 name(localeId),
                 shortName(localeId),
                 icons(),
-                startUrl(),
+                startUrl().value,
                 display(),
                 id(),
                 themeColor(),
@@ -47,13 +51,15 @@ interface WebManifestProvider {
 
 interface WebManifestAttributeProvider {
 
+    val fallbackLocaleId: LocaleId
+
     fun name(localeId: LocaleId): String
 
     fun shortName(localeId: LocaleId): String
 
     fun icons(): List<ImageResource>
 
-    fun startUrl(): String
+    fun startUrl(): Url
 
     fun display(): Display = Standalone
 

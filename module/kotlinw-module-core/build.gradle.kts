@@ -32,6 +32,7 @@ kotlin {
                 api(libs.ktor.client.core)
 
                 api(libs.koin.core)
+                api(libs.koin.annotations)
             }
         }
         val commonTest by getting {
@@ -45,7 +46,6 @@ kotlin {
             dependencies {
                 implementation(projects.kotlinw.kotlinwLoggingJvmLogback)
                 implementation(libs.ktor.client.java)
-                api(libs.koin.annotations) // TODO move to under commonMain when https://github.com/InsertKoinIO/koin-annotations/issues/89 is fixed
             }
         }
         val jvmTest by getting {

@@ -8,7 +8,10 @@ import kotlinx.coroutines.CoroutineScope
 
 abstract class KtorServerApplicationConfigurer(override val priority: Priority = Priority.Normal) : HasPriority {
 
-    data class Context(val application: Application, val ktorServerCoroutineScope: CoroutineScope)
+    data class Context(
+        val application: Application,
+        val ktorServerCoroutineScope: CoroutineScope
+    )
 
     @PublishedApi
     internal fun setupModule(context: Context) = context.setup()

@@ -22,6 +22,7 @@ import kotlinw.logging.spi.LoggingDelegator
 import kotlinw.logging.spi.LoggingIntegrator
 import kotlinw.module.api.ApplicationInitializerService
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
+import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemotePeerRegistry
@@ -93,7 +94,7 @@ val coreModule by lazy {
             bind<SynchronousCallSupport>()
             bind<BidirectionalCommunicationImplementor>()
         }
-        single { RemotingClientFactoryImpl(getOrNull()) }.bind<RemotingClientFactory>()
+        single { RemotingClientFactoryImpl(JsonMessageCodec.Default, get()) }.bind<RemotingClientFactory>()
         single { RemotePeerRegistryImpl() }.withOptions {
             bind<RemotePeerRegistry>()
             bind<MutableRemotePeerRegistry>()
