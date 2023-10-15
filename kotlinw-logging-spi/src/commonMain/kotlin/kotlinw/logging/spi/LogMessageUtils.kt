@@ -9,7 +9,6 @@ import kotlinw.logging.api.LogMessage.Structured.Segment.NamedValue
 import kotlinw.logging.api.LogMessage.Structured.Segment.Text
 import kotlinw.logging.api.LogMessage.Structured.Segment.Value
 
-// TODO bug:    buildLogMessage { "Number:" / named("number", 5) }
 fun LogMessage.processPlaceholders(
     placeholderProvider: (value: Any?) -> String,
     onArgument: (value: Any?) -> Unit,

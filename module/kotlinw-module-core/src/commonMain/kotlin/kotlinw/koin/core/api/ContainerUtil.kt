@@ -2,23 +2,30 @@
 
 package kotlinw.koin.core.api
 
+import arrow.atomic.AtomicInt
+import kotlin.jvm.JvmName
 import kotlinw.koin.core.internal.ContainerShutdownCoordinator
 import kotlinw.koin.core.internal.ContainerStartupCoordinator
 import kotlinw.koin.core.internal.OnShutdownTask
 import kotlinw.koin.core.internal.OnStartupTask
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.module.api.ApplicationInitializerService
 import kotlinw.util.stdlib.sortedByPriority
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.core.module.KoinApplicationDslMarker
+import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.KoinAppDeclaration
-import kotlin.jvm.JvmName
-import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
+/**
+ * Copy of constant because it is `private` originally.
+ * Source: koin-core/commonMain/org/koin/core/registry/ScopeRegistry.kt:108
+ */
 @PublishedApi
 internal const val KOIN_ROOT_SCOPE_ID = "_root_"
 
@@ -72,3 +79,22 @@ suspend fun startContainer(
 
     return koinApplication
 }
+
+private object AnonymousStartupTaskRegistrant
+
+private val nextId = AtomicInt(0)
+
+// TODO context
+fun Module.uniqueNamed(debugName: String) = named("$debugName-${nextId.incrementAndGet()}")
+
+fun Module.registerStartupTask(debugName: String, startupTaskProvider: Scope.() -> OnStartupTask<Unit>) {
+    single(uniqueNamed(debugName), createdAtStart = true) {
+        val startupTask = startupTaskProvider()
+        AnonymousStartupTaskRegistrant.registerStartupTask(this) {
+            startupTask(Unit)
+        }
+    }
+}
+
+fun Module.onModuleReady(startupTaskProvider: Scope.() -> OnStartupTask<Unit>) =
+    registerStartupTask("onModuleReady-$id", startupTaskProvider)

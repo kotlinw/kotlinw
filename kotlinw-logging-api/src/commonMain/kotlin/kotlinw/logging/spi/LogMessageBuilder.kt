@@ -178,7 +178,6 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
     private fun addNamedArguments(namedValues: Map<String, Any?>) {
         val lastIndex = namedValues.size - 1
         namedValues.entries.forEachIndexed { index, (name, value) ->
-            addText("$name=")
             addNamedArgument(name, value)
 
             if (index < lastIndex) {
@@ -239,7 +238,8 @@ internal class LogMessageBuilderImpl : LogMessageBuilder {
         if (messageSegments.isEmpty()) LogMessage.Empty else LogMessage.Structured(messageSegments)
 }
 
-internal fun buildLogMessage(logMessageProvider: LogMessageProvider): LogMessage =
+// TODO internal API
+fun buildLogMessage(logMessageProvider: LogMessageProvider): LogMessage =
     try {
         val logMessageBuilder = LogMessageBuilderImpl()
         when (val logMessage = logMessageBuilder.logMessageProvider()) {

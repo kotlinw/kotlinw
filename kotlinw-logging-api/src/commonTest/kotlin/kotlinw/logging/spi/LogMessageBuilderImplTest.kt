@@ -9,8 +9,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinw.logging.api.LogMessage
 import kotlinw.logging.api.LogMessage.SimpleValue
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.Month.MARCH
 
 class LogMessageBuilderImplTest {
 
@@ -79,6 +77,14 @@ class LogMessageBuilderImplTest {
         assertEquals(
             Structured(Text("Number:"), NamedValue("number", 5)),
             buildLogMessage { "Number:" / named("number", 5) }
+        )
+    }
+
+    @Test
+    fun testMessageWithNamedArgumentsAsMap() {
+        assertEquals(
+            Structured(Text("From map:"), NamedValue("number", 5), Text(", "), NamedValue("string", "text")),
+            buildLogMessage { "From map:" / mapOf("number" to 5, "string" to "text") }
         )
     }
 }

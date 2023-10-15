@@ -19,17 +19,15 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleApi)
-
                 api(projects.kotlinw.kotlinwConfigurationCore)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwEventbusLocal)
                 api(projects.kotlinw.kotlinwLoggingApi)
                 api(projects.kotlinw.kotlinwLoggingPlatform) // TODO implementation
                 api(projects.kotlinw.kotlinwSerializationCore)
                 api(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingClientKtor)
-
-                api(libs.ktor.client.core)
 
                 api(libs.koin.core)
                 api(libs.koin.annotations)
