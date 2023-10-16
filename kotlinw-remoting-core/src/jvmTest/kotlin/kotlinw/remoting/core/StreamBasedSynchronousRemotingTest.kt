@@ -1,6 +1,9 @@
 // TODO move to commonTest
 package kotlinw.remoting.core
 
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlinw.collection.LinkedQueue
 import kotlinw.collection.MutableQueue
 import kotlinw.remoting.core.client.StreamBasedSynchronousRemotingClient
@@ -8,26 +11,20 @@ import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.codec.KotlinxSerializationTextMessageCodec
 import kotlinw.remoting.core.codec.asBinaryMessageCodec
 import kotlinw.remoting.core.server.StreamBasedSynchronousRemotingServer
-import kotlinw.util.stdlib.ByteArrayView.Companion.view
+import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.json.Json
-import java.io.InterruptedIOException
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlinx.atomicfu.locks.withLock
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
-import kotlinx.io.Sink
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
+import kotlinx.serialization.json.Json
+import java.io.InterruptedIOException
 import java.util.concurrent.locks.ReentrantLock
 
+// TODO freezes
 class StreamBasedSynchronousRemotingTest {
 
     private class EchoServiceImpl : EchoService {
@@ -55,7 +52,7 @@ class StreamBasedSynchronousRemotingTest {
 
                     byteCount
                 }
-            }.buffered()
+        }.buffered()
 
         val sink = object : RawSink {
 
@@ -67,7 +64,7 @@ class StreamBasedSynchronousRemotingTest {
 
             override fun write(source: Buffer, byteCount: Long) {
                 lock.withLock {
-                    val bytes =  source.readByteArray(byteCount.toInt())
+                    val bytes = source.readByteArray(byteCount.toInt())
                     bytes.forEach {
                         queue.enqueue(it)
                     }
