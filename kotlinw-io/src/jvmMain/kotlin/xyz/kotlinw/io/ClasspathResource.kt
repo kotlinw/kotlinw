@@ -2,11 +2,11 @@ package xyz.kotlinw.io
 
 import kotlinx.io.RawSource
 import kotlinx.io.asSource
-import java.io.InputStream
+import kotlinx.io.buffered
 
-data class ClassPathResource(
+data class ClasspathResource(
     val path: AbsolutePath,
-    val classLoader: ClassLoader = Thread.currentThread().contextClassLoader
+    val classLoader: ClassLoader = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
 ) : Resource {
 
     override val name: String get() = path.lastSegment
@@ -16,6 +16,17 @@ data class ClassPathResource(
             ?: throw ResourceNotFoundException(this)
 
     override fun exists(): Boolean = classLoader.getResource(path.value) != null
+
+    override fun length(): Long {
+        var size = 0L
+        getContents().buffered().use {
+            while (!it.exhausted()) {
+                it.readByte()
+                size++
+            }
+        }
+        return size
+    }
 
     override fun toString(): String = "ClassPathResource(path='$path', classLoader=$classLoader)"
 }

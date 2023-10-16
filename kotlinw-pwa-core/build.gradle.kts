@@ -17,5 +17,23 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
+        jvmMain {
+            dependencies {
+                implementation(files("$buildDir/resources/"))
+            }
+        }
     }
+}
+
+val jvmProcessResources by tasks.named("jvmProcessResources")
+
+val fixMissingResources by tasks.registering(Copy::class) {
+    dependsOn(jvmProcessResources)
+
+    from("$buildDir/processedResources/jvm/main")
+    into("$buildDir/resources/")
+}
+
+val jvmJar by tasks.named("jvmJar") {
+    dependsOn(fixMissingResources)
 }

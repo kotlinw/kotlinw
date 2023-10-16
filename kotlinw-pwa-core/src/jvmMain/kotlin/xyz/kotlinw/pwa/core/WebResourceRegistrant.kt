@@ -1,7 +1,8 @@
-package xyz.kotlinw.pwa
+package xyz.kotlinw.pwa.core
 
 import xyz.kotlinw.io.AbsolutePath
 import xyz.kotlinw.io.RelativePath
+import xyz.kotlinw.io.Resource
 
 fun interface WebResourceRegistrant {
 
@@ -19,6 +20,11 @@ fun interface WebResourceRegistrant {
         //        fileSystem: FileSystem,
         //        folderAbsolutePath: AbsolutePath
         //    )
+
+        fun registerResource(
+            fileWebPath: RelativePath,
+            resource: Resource
+        )
     }
 
     fun registerWebResources(context: Context)

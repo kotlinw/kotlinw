@@ -14,6 +14,11 @@ data class FileSystemResource(val path: AbsolutePath, val fileSystem: FileSystem
 
     override fun exists(): Boolean = fileSystem.exists(fileSystemPath)
 
+    override fun length(): Long? {
+        val size = fileSystem.metadataOrNull(fileSystemPath)?.size
+        return if (size == -1L) null else size
+    }
+
     override fun toString(): String {
         return "FileResource(path=$path, fileSystem=$fileSystem)"
     }

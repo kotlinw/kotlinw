@@ -39,6 +39,8 @@ value class AbsolutePath(override val value: String) : NormalizedPath {
     init {
         validatePath(value)
     }
+
+    override fun toString() = AbsolutePath::class.simpleName!! + "(" + value + ")"
 }
 
 @JvmInline
@@ -48,6 +50,8 @@ value class RelativePath(override val value: String) : NormalizedPath {
     init {
         validatePath(value)
     }
+
+    override fun toString() = RelativePath::class.simpleName!! + "(" + value + ")"
 }
 
 fun AbsolutePath.append(relativePath: RelativePath) =
