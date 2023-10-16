@@ -3,14 +3,16 @@ package kotlinw.configuration.core
 import arrow.core.continuations.AtomicRef
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.util.stdlib.concurrent.value
-import kotlinw.util.stdlib.io.FileLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import kotlinx.io.buffered
+import kotlinx.io.readString
+import xyz.kotlinw.io.Resource
 
 class DelegatingFileConfigurationPropertyResolver private constructor(
-    private val fileLocation: FileLocation,
+    private val resource: Resource,
     private val delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
     private val watcherCoroutineScope: CoroutineScope?,
     private val eventBus: LocalEventBus?,
@@ -19,19 +21,19 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
 ) : EnumerableConfigurationPropertyResolver {
 
     constructor(
-        fileLocation: FileLocation,
+        resource: Resource,
         delegateFactory: (String) -> EnumerableConfigurationPropertyResolver
     ) :
-            this(fileLocation, delegateFactory, null, null, null, Unit)
+            this(resource, delegateFactory, null, null, null, Unit)
 
     constructor(
-        fileLocation: FileLocation,
+        resource: Resource,
         delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
         watcherCoroutineScope: CoroutineScope,
         eventBus: LocalEventBus,
         watchDelay: Duration = Duration.INFINITE
     ) :
-            this(fileLocation, delegateFactory, watcherCoroutineScope, eventBus, watchDelay, Unit)
+            this(resource, delegateFactory, watcherCoroutineScope, eventBus, watchDelay, Unit)
 
     private val delegateHolder = AtomicRef<EnumerableConfigurationPropertyResolver?>(null)
 
@@ -66,7 +68,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
 
     private suspend fun tryReadConfiguration(): String? =
         try {
-            fileLocation.readString()
+            resource.getContents().buffered().readString()
         } catch (e: Exception) {
             // TODO log
             null

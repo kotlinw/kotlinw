@@ -18,11 +18,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(projects.kotlinw.kotlinwIo)
                 api(libs.arrow.core)
                 api(libs.kotlinresult.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.serialization.core)
-                api(libs.korlibs.korio)
+                api(libs.kotlinx.atomicfu)
             }
         }
         val commonTest by getting {

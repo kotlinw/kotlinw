@@ -10,6 +10,12 @@ data class FileSystemResource(val path: AbsolutePath, val fileSystem: FileSystem
 
     override val name: String get() = path.lastSegment
 
+    constructor(fileLocation: FileLocation) : this(
+        (fileLocation.path.toNormalizedPath() as? AbsolutePath)
+            ?: throw IllegalArgumentException("Absolute path expected: ${fileLocation.path}"),
+        fileLocation.fileSystem
+    )
+
     override fun getContents(): RawSource = fileSystem.source(fileSystemPath)
 
     override fun exists(): Boolean = fileSystem.exists(fileSystemPath)

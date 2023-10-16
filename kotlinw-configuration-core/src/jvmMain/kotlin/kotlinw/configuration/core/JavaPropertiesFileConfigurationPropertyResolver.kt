@@ -1,12 +1,11 @@
 package kotlinw.configuration.core
 
 import kotlinw.eventbus.local.LocalEventBus
-import kotlinw.util.stdlib.Priority
-import kotlinw.util.stdlib.io.FileLocation
 import kotlinx.coroutines.CoroutineScope
 import java.io.StringReader
 import java.util.Properties
 import kotlin.time.Duration
+import xyz.kotlinw.io.Resource
 
 class JavaPropertiesFileConfigurationPropertyResolver private constructor(
     private val delegate: DelegatingFileConfigurationPropertyResolver
@@ -23,23 +22,18 @@ class JavaPropertiesFileConfigurationPropertyResolver private constructor(
         }
     }
 
-    constructor(fileLocation: FileLocation) :
-            this(
-                DelegatingFileConfigurationPropertyResolver(
-                    fileLocation = fileLocation,
-                    delegateFactory = delegateFactory
-                )
-            )
+    constructor(resource: Resource) :
+            this(DelegatingFileConfigurationPropertyResolver(resource, delegateFactory))
 
     constructor(
-        fileLocation: FileLocation,
+        resource: Resource,
         watcherCoroutineScope: CoroutineScope,
         eventBus: LocalEventBus,
         watchDelay: Duration
     ) :
             this(
                 DelegatingFileConfigurationPropertyResolver(
-                    fileLocation = fileLocation,
+                    resource = resource,
                     delegateFactory = delegateFactory,
                     watcherCoroutineScope = watcherCoroutineScope,
                     eventBus = eventBus,

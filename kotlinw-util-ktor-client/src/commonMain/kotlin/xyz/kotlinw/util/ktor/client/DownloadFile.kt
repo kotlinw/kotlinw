@@ -11,10 +11,10 @@ import io.ktor.util.date.getTimeMillis
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
-import korlibs.io.file.VfsOpenMode
 import kotlinw.logging.api.Logger
 import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.io.FileLocation
+import xyz.kotlinw.io.FileLocation
+import xyz.kotlinw.io.bufferedSink
 
 data class FileDownloadProgressSnapshot(val sourceUrl: Url, val fileSizeBytes: Long?, val downloadedBytes: Long)
 
@@ -34,6 +34,7 @@ class LoggingProgressListener(private val logger: Logger) {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 suspend fun HttpClient.downloadFile(
     sourceUrl: Url,
     targetFile: FileLocation,
@@ -48,14 +49,15 @@ suspend fun HttpClient.downloadFile(
         val httpStatusCode = httpResponse.status
         if (httpStatusCode.isSuccess()) {
             val fileLength = httpResponse.contentLength()
-            targetFile.openUse(VfsOpenMode.CREATE_OR_TRUNCATE) {
+            targetFile.bufferedSink().use { sink ->
                 val channel = httpResponse.body<ByteReadChannel>()
                 var downloadedBytes = 0L
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(downloadChunkSize.toLong())
                     while (!packet.isEmpty) {
                         val bytes = packet.readBytes()
-                        write(bytes)
+
+                        sink.write(bytes)
 
                         downloadedBytes += bytes.size
                         progressListener(FileDownloadProgressSnapshot(sourceUrl, fileLength, downloadedBytes))

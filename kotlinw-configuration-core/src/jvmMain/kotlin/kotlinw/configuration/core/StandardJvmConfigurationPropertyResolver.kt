@@ -1,13 +1,16 @@
 package kotlinw.configuration.core
 
-import korlibs.io.file.std.JvmClassLoaderResourcesVfs
-import korlibs.io.file.std.LocalVfs
-import kotlinw.eventbus.local.LocalEventBus
-import kotlinx.coroutines.CoroutineScope
-import java.io.File
 import kotlin.time.Duration
+import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import xyz.kotlinw.io.AbsolutePath
+import xyz.kotlinw.io.ClasspathResource
+import xyz.kotlinw.io.FileLocation
+import xyz.kotlinw.io.FileSystemResource
 
 class StandardJvmConfigurationPropertyResolver
 private constructor(
@@ -42,17 +45,18 @@ private constructor(
             val pathStringFromSystemProperty = System.getProperty(configurationFilePathSystemPropertyName)
             if (!pathStringFromSystemProperty.isNullOrBlank()) {
                 logger.debug { "Loading configuration from file: " / pathStringFromSystemProperty }
-                val fileLocationFromSystemProperty = LocalVfs[pathStringFromSystemProperty]
+                val fileResourceFromSystemProperty =
+                    FileSystemResource(FileLocation(SystemFileSystem, Path(pathStringFromSystemProperty)))
                 add(
                     if (watchLocalFiles) {
                         JavaPropertiesFileConfigurationPropertyResolver(
-                            fileLocationFromSystemProperty,
+                            fileResourceFromSystemProperty,
                             watcherCoroutineScope!!,
                             eventBus!!,
                             watchDelay!!
                         )
                     } else {
-                        JavaPropertiesFileConfigurationPropertyResolver(fileLocationFromSystemProperty)
+                        JavaPropertiesFileConfigurationPropertyResolver(fileResourceFromSystemProperty)
                     }
                 )
             } else {
@@ -63,21 +67,21 @@ private constructor(
                 DeploymentMode.Development ->
                     add(
                         JavaPropertiesFileConfigurationPropertyResolver(
-                            JvmClassLoaderResourcesVfs(classLoader)["/kotlinw-dev.properties"]
+                            ClasspathResource(AbsolutePath("kotlinw-dev.properties"), classLoader)
                         )
                     )
 
                 DeploymentMode.Production ->
                     add(
                         JavaPropertiesFileConfigurationPropertyResolver(
-                            JvmClassLoaderResourcesVfs(classLoader)["/kotlinw-prod.properties"]
+                            ClasspathResource(AbsolutePath("kotlinw-prod.properties"), classLoader)
                         )
                     )
             }
 
             add(
                 JavaPropertiesFileConfigurationPropertyResolver(
-                    JvmClassLoaderResourcesVfs(classLoader)["/kotlinw.properties"]
+                    ClasspathResource(AbsolutePath("kotlinw.properties"), classLoader)
                 )
             )
         }

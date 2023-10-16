@@ -26,7 +26,8 @@ kotlin {
                 api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.serialization.json)
-                api(libs.korlibs.korio)
+                api(libs.kotlinx.io.core)
+                api(libs.kotlinx.io.bytestring)
             }
         }
         val commonTest by getting {

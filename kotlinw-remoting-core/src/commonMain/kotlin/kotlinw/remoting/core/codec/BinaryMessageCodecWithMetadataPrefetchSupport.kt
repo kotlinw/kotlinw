@@ -1,20 +1,20 @@
 package kotlinw.remoting.core.codec
 
-import korlibs.io.stream.AsyncInputStream
-import korlibs.io.stream.readBytesUpTo
+import kotlin.jvm.JvmInline
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageDecoderMetadataPrefetchSupport.ExtractedMetadata
 import kotlinw.util.stdlib.ByteArrayView.Companion.copyInto
+import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.readFromByteArray
 import kotlinw.util.stdlib.readFromByteArrayView
-import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.writeToByteArray
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
-import kotlin.jvm.JvmInline
 
 @Serializable
 private data class BinaryMessageHeader(
@@ -96,20 +96,20 @@ value class BinaryMessageCodecWithMetadataPrefetchSupport(
     }
 
     suspend fun <T> decodeMessage(
-        messageSource: AsyncInputStream,
+        messageSource: Source,
         payloadDeserializer: KSerializer<T>
     ): RemotingMessage<T> =
         extractMetadata(messageSource).let {
             RemotingMessage(it.decodePayload(payloadDeserializer), it.metadata)
         }
 
-    suspend fun extractMetadata(messageSource: AsyncInputStream): ExtractedMetadata {
-        val headerSize = Int.readFromByteArray(messageSource.readBytesUpTo(Int.SIZE_BYTES), 0)
+    suspend fun extractMetadata(messageSource: Source): ExtractedMetadata {
+        val headerSize = Int.readFromByteArray(messageSource.readByteArray(Int.SIZE_BYTES), 0)
 
-        val headerBytes = messageSource.readBytesUpTo(headerSize)
+        val headerBytes = messageSource.readByteArray(headerSize)
         val header = decode(RawMessage.Binary(headerBytes.view()), serializer<BinaryMessageHeader>())
 
-        val payloadBytes = messageSource.readBytesUpTo(header.payloadSize)
+        val payloadBytes = messageSource.readByteArray(header.payloadSize)
 
         return object : ExtractedMetadata {
 

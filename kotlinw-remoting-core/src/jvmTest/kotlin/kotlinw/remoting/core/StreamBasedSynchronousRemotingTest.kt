@@ -1,8 +1,6 @@
 // TODO move to commonTest
 package kotlinw.remoting.core
 
-import korlibs.io.stream.AsyncInputStream
-import korlibs.io.stream.AsyncOutputStream
 import kotlinw.collection.LinkedQueue
 import kotlinw.collection.MutableQueue
 import kotlinw.remoting.core.client.StreamBasedSynchronousRemotingClient
@@ -21,6 +19,14 @@ import java.io.InterruptedIOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlinx.atomicfu.locks.withLock
+import kotlinx.io.Buffer
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
+import kotlinx.io.Sink
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
+import java.util.concurrent.locks.ReentrantLock
 
 class StreamBasedSynchronousRemotingTest {
 
@@ -29,40 +35,45 @@ class StreamBasedSynchronousRemotingTest {
         override suspend fun echo(message: String): String = message
     }
 
-    private class Pipe(private val bufferSize: Int) {
+    private class Pipe {
 
-        private val lock = Mutex()
+        private val lock = ReentrantLock()
 
-        private val queue: MutableQueue<Byte> = LinkedQueue<Byte>()
+        private val queue: MutableQueue<Byte> = LinkedQueue()
 
-        val source = object : AsyncInputStream {
+        val source = object : RawSource {
 
-            override suspend fun close() {
+            override fun close() {
             }
 
-            override suspend fun read(buffer: ByteArray, offset: Int, len: Int): Int =
+            override fun readAtMostTo(sink: Buffer, byteCount: Long): Long =
                 lock.withLock {
-                    for (i in 0..<len) {
-                        buffer[offset + i] = queue.dequeueOrNull() ?: return i
+                    for (i in 0..<byteCount) {
+                        val b = queue.dequeueOrNull() ?: return i
+                        sink.writeByte(b)
                     }
 
-                    len
+                    byteCount
                 }
-        }
+            }.buffered()
 
-        val sink = object : AsyncOutputStream {
+        val sink = object : RawSink {
 
-            override suspend fun close() {
+            override fun close() {
             }
 
-            override suspend fun write(buffer: ByteArray, offset: Int, len: Int) {
+            override fun flush() {
+            }
+
+            override fun write(source: Buffer, byteCount: Long) {
                 lock.withLock {
-                    buffer.view(offset, len).forEach {
+                    val bytes =  source.readByteArray(byteCount.toInt())
+                    bytes.forEach {
                         queue.enqueue(it)
                     }
                 }
             }
-        }
+        }.buffered()
     }
 
     @Test
@@ -72,10 +83,10 @@ class StreamBasedSynchronousRemotingTest {
                 KotlinxSerializationTextMessageCodec(Json, "application/json").asBinaryMessageCodec()
             )
 
-            val serverToClientPipe = Pipe(1000)
-            val clientToServerPipe = Pipe(1000)
+            val serverToClientPipe = Pipe()
+            val clientToServerPipe = Pipe()
 
-            val clientToServerPipeSource = clientToServerPipe.source
+            val clientToServerPipeSource = clientToServerPipe.source.buffered()
 
             launch(newSingleThreadContext("server")) {
                 assertFailsWith(InterruptedIOException::class) {

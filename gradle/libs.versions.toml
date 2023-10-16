@@ -93,8 +93,6 @@ kotlinresult = "1.1.18"
 
 hibernate = "6.3.0.Final"
 
-korlibs = "4.0.3"
-
 [libraries]
 
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
@@ -337,8 +335,6 @@ kotlinresult-core = { module = "com.michael-bull.kotlin-result:kotlin-result", v
 kotlinresult-coroutines = { module = "com.michael-bull.kotlin-result:kotlin-result-coroutines", version.ref = "kotlinresult" }
 
 h2 = { module = "com.h2database:h2", version = "2.1.212" }
-
-korlibs-korio = { module  = "com.soywiz.korlibs.korio:korio", version.ref = "korlibs" }
 
 [plugins]
 

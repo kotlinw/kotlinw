@@ -1,7 +1,5 @@
 package kotlinw.remoting.core.client
 
-import korlibs.io.stream.AsyncInputStream
-import korlibs.io.stream.AsyncOutputStream
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -15,11 +13,13 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlinx.io.Sink
+import kotlinx.io.Source
 
 class StreamBasedSynchronousRemotingClient(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
-    private val source: AsyncInputStream,
-    private val sink: AsyncOutputStream
+    private val source: Source,
+    private val sink: Sink
 ) : RemotingClientSynchronousCallSupport {
 
     private val mutex = Mutex()
