@@ -18,6 +18,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwRemotingServerKtor)
+                api(libs.ktor.server.caching.headers)
                 api(libs.ktor.server.core)
                 api(libs.ktor.server.host.common)
             }

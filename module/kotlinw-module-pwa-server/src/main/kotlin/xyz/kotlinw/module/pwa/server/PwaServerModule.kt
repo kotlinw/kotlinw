@@ -23,4 +23,3 @@ class PwaServerModule {
     fun webResourceRegistry(webResourceRegistrants: List<WebResourceRegistrant>): WebResourceRegistry =
         WebResourceRegistryImpl(webResourceRegistrants)
 }
-

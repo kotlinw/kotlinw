@@ -1,5 +1,8 @@
 package kotlinw.module.serverbase
 
+import io.ktor.http.CacheControl
+import io.ktor.http.CacheControl.Visibility.Private
+import io.ktor.http.content.CachingOptions
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.ApplicationEngineEnvironment
@@ -7,6 +10,7 @@ import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.applicationEngineEnvironment
+import io.ktor.server.plugins.cachingheaders.CachingHeaders
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -114,9 +118,15 @@ val serverBaseModule by lazy {
                     val environment = applicationEngineEnvironment {
                         this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext
                         this.log = KtorSimpleLogger(logger.name)
-                        // TODO valamiért nem tölti újra: this.developmentMode = get<DeploymentMode>() == Development
+                        // TODO valamiért nem tölti újra a ktor: this.developmentMode = get<DeploymentMode>() == Development
 
                         this.module {
+                            install(CachingHeaders) {
+                                // TODO https://youtrack.jetbrains.com/issue/KTOR-750/Setting-multiple-cache-control-directives-is-impossible-with-current-API
+                                options { _, _ -> CachingOptions(CacheControl.NoCache(null)) }
+                                options { _, _ -> CachingOptions(CacheControl.NoStore(null)) }
+                            }
+
                             val context = KtorServerApplicationConfigurer.Context(this, ktorServerCoroutineScope)
                             getAllSortedByPriority<KtorServerApplicationConfigurer>().forEach {
                                 it.setupModule(context)
