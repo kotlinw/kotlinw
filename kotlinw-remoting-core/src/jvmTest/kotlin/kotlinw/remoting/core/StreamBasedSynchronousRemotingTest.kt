@@ -89,7 +89,7 @@ class StreamBasedSynchronousRemotingTest {
                 assertFailsWith(InterruptedIOException::class) {
                     StreamBasedSynchronousRemotingServer(
                         messageCodec,
-                        listOf(EchoService.remoteCallDelegator(EchoServiceImpl())),
+                        listOf(EchoService.remoteCallHandler(EchoServiceImpl())),
                         clientToServerPipeSource,
                         serverToClientPipe.sink
                     ).listen()

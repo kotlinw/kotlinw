@@ -11,7 +11,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
 import kotlinw.remoting.core.RawMessage
@@ -40,7 +40,7 @@ class RemotingConfiguration {
 
     var messageCodec: MessageCodec<out RawMessage>? = null
 
-    var remoteCallDelegators: Collection<RemoteCallDelegator>? = null
+    var remoteCallHandlers: Collection<RemoteCallHandler>? = null
 
     var identifyClient: ((ApplicationCall) -> MessagingPeerId)? = null
 
@@ -68,7 +68,7 @@ val RemotingServerPlugin =
         }
 
         val identifyClient = requireNotNull(pluginConfig.identifyClient)
-        val remoteCallDelegators = requireNotNull(pluginConfig.remoteCallDelegators)
+        val remoteCallHandlers = requireNotNull(pluginConfig.remoteCallHandlers)
         val messageCodec = requireNotNull(pluginConfig.messageCodec)
 
         val supportedServerToClientCommunicationTypes = pluginConfig.supportedServerToClientCommunicationTypes
@@ -77,7 +77,7 @@ val RemotingServerPlugin =
         val isServerSentEventSupportRequired =
             supportedServerToClientCommunicationTypes.contains(ServerToClientCommunicationType.ServerSentEvents)
 
-        val delegators = remoteCallDelegators.associateBy { it.servicePath }
+        val delegators = remoteCallHandlers.associateBy { it.servicePath }
         if (
             delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
             && supportedServerToClientCommunicationTypes.isEmpty()
@@ -171,7 +171,7 @@ val RemotingServerPlugin =
 
 private fun Route.setupWebsocketRouting(
     messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-    delegators: Map<String, RemoteCallDelegator>,
+    delegators: Map<String, RemoteCallHandler>,
     identifyClient: (ApplicationCall) -> MessagingPeerId,
     addConnection: (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit,
     removeConnection: (MessagingSessionId) -> Unit
@@ -201,19 +201,19 @@ private fun Route.setupWebsocketRouting(
 
 private fun Route.setupRemoteCallRouting(
     messageCodec: MessageCodec<out RawMessage>,
-    remoteCallDelegators: Map<String, RemoteCallDelegator>
+    remoteCallHandlers: Map<String, RemoteCallHandler>
 ) {
     val contentType = ContentType.parse(messageCodec.contentType)
 
     route("/call") { // TODO configurable path
         contentType(contentType) {
-            logger.info { "Remote call handlers: " / remoteCallDelegators }
+            logger.info { "Remote call handlers: " / remoteCallHandlers }
             post("/{serviceId}/{methodId}") {
                 // TODO handle errors
 
                 val serviceId = call.parameters["serviceId"]
                 if (serviceId != null) {
-                    val delegator = remoteCallDelegators[serviceId]
+                    val delegator = remoteCallHandlers[serviceId]
                     if (delegator != null) {
                         val methodId = call.parameters["methodId"]
                         if (methodId != null) {
@@ -265,7 +265,7 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     call: ApplicationCall,
     messageCodec: MessageCodec<M>,
     callDescriptor: RemotingMethodDescriptor.SynchronousCall<*, *>,
-    delegator: RemoteCallDelegator
+    delegator: RemoteCallHandler
 ) {
     val isBinaryCodec = messageCodec.isBinary
 

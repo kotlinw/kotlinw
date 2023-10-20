@@ -10,9 +10,8 @@ import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
-import kotlinw.remoting.processor.test.remoteCallDelegator
+import kotlinw.remoting.processor.test.remoteCallHandler
 import kotlinw.util.stdlib.Url
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -38,7 +37,7 @@ class KtorSupportTest {
         install(WebSockets)
         install(RemotingServerPlugin) {
             this.messageCodec = messageCodec
-            this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
+            this.remoteCallHandlers = listOf(ExampleService.remoteCallHandler(service))
             this.identifyClient = { 1 }
             this.supportedServerToClientCommunicationTypes += ServerToClientCommunicationType.WebSockets
         }
@@ -76,7 +75,7 @@ class KtorSupportTest {
         install(WebSockets)
         install(RemotingServerPlugin) {
             this.messageCodec = messageCodec
-            this.remoteCallDelegators = listOf(ExampleService.remoteCallDelegator(service))
+            this.remoteCallHandlers = listOf(ExampleService.remoteCallHandler(service))
             this.identifyClient = { 1 }
             this.supportedServerToClientCommunicationTypes += ServerToClientCommunicationType.WebSockets
         }

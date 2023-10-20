@@ -1,7 +1,6 @@
 package kotlinw.remoting.api.internal.server
 
-// TODO rename: RemoteCallHandler
-interface RemoteCallDelegator {
+interface RemoteCallHandler {
 
     val servicePath: String // TODO helyette serviceId
 

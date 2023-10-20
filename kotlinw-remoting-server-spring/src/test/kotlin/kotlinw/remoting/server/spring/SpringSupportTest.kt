@@ -11,7 +11,7 @@ import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
-import kotlinw.remoting.processor.test.remoteCallDelegator
+import kotlinw.remoting.processor.test.remoteCallHandler
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -47,7 +47,7 @@ class SpringSupportTest {
         }
 
         @Bean
-        fun exampleServiceReceivedCallProcessor() = ExampleService.remoteCallDelegator(exampleService())
+        fun exampleServiceReceivedCallProcessor() = ExampleService.remoteCallHandler(exampleService())
     }
 
     @Value("\${local.server.port}")

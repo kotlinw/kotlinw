@@ -4,7 +4,7 @@ import app.cash.turbine.turbineScope
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.ServiceLocator
@@ -12,7 +12,6 @@ import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -20,7 +19,6 @@ import kotlinx.serialization.serializer
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.time.Duration.Companion.seconds
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
 
@@ -94,9 +92,9 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer1ToPeer2Call() = runTest {
-        val peer2RemoteCallDelegator = mockk<RemoteCallDelegator>()
-        every { peer2RemoteCallDelegator.servicePath } answers { "peer2Service" }
-        every { peer2RemoteCallDelegator.methodDescriptors } answers {
+        val peer2RemoteCallHandler = mockk<RemoteCallHandler>()
+        every { peer2RemoteCallHandler.servicePath } answers { "peer2Service" }
+        every { peer2RemoteCallHandler.methodDescriptors } answers {
             setOf(
                 RemotingMethodDescriptor.SynchronousCall(
                     "peer2Method",
@@ -105,7 +103,7 @@ class BidirectionalMessagingManagerTest {
                 )
             ).associateBy { it.memberId }
         }
-        coEvery { peer2RemoteCallDelegator.processCall("peer2Method", Unit) } coAnswers { Unit }
+        coEvery { peer2RemoteCallHandler.processCall("peer2Method", Unit) } coAnswers { Unit }
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
         val messageCodec = JsonMessageCodec.Default
@@ -113,7 +111,7 @@ class BidirectionalMessagingManagerTest {
         val peer2Manager = BidirectionalMessagingManagerImpl(
             pipe.peer2,
             messageCodec,
-            setOf(peer2RemoteCallDelegator).associateBy { it.servicePath })
+            setOf(peer2RemoteCallHandler).associateBy { it.servicePath })
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
             peer1Manager.processIncomingMessages()
@@ -132,9 +130,9 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer2ToPeer1Call() = runTest {
-        val peer1RemoteCallDelegator = mockk<RemoteCallDelegator>()
-        every { peer1RemoteCallDelegator.servicePath } answers { "peer1Service" }
-        every { peer1RemoteCallDelegator.methodDescriptors } answers {
+        val peer1RemoteCallHandler = mockk<RemoteCallHandler>()
+        every { peer1RemoteCallHandler.servicePath } answers { "peer1Service" }
+        every { peer1RemoteCallHandler.methodDescriptors } answers {
             setOf(
                 RemotingMethodDescriptor.SynchronousCall(
                     "peer1Method",
@@ -143,14 +141,14 @@ class BidirectionalMessagingManagerTest {
                 )
             ).associateBy { it.memberId }
         }
-        coEvery { peer1RemoteCallDelegator.processCall("peer1Method", Unit) } coAnswers { Unit }
+        coEvery { peer1RemoteCallHandler.processCall("peer1Method", Unit) } coAnswers { Unit }
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
         val messageCodec = JsonMessageCodec.Default
         val peer1Manager = BidirectionalMessagingManagerImpl(
             pipe.peer1,
             messageCodec,
-            setOf(peer1RemoteCallDelegator).associateBy { it.servicePath })
+            setOf(peer1RemoteCallHandler).associateBy { it.servicePath })
         val peer2Manager = BidirectionalMessagingManagerImpl(pipe.peer2, messageCodec, emptyMap())
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -170,9 +168,9 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer1CollectingFlowProducedByPeer2() = runTest {
-        val peer2RemoteCallDelegator = mockk<RemoteCallDelegator>()
-        every { peer2RemoteCallDelegator.servicePath } answers { "peer2Service" }
-        every { peer2RemoteCallDelegator.methodDescriptors } answers {
+        val peer2RemoteCallHandler = mockk<RemoteCallHandler>()
+        every { peer2RemoteCallHandler.servicePath } answers { "peer2Service" }
+        every { peer2RemoteCallHandler.methodDescriptors } answers {
             setOf(
                 RemotingMethodDescriptor.DownstreamColdFlow(
                     "peer2Method",
@@ -182,7 +180,7 @@ class BidirectionalMessagingManagerTest {
             ).associateBy { it.memberId }
         }
         coEvery {
-            peer2RemoteCallDelegator.processCall("peer2Method", Unit)
+            peer2RemoteCallHandler.processCall("peer2Method", Unit)
         } coAnswers {
             flow {
                 (1..3).forEach {
@@ -199,7 +197,7 @@ class BidirectionalMessagingManagerTest {
         val peer2Manager = BidirectionalMessagingManagerImpl(
             pipe.peer2,
             messageCodec,
-            setOf(peer2RemoteCallDelegator).associateBy { it.servicePath })
+            setOf(peer2RemoteCallHandler).associateBy { it.servicePath })
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
             peer1Manager.processIncomingMessages()

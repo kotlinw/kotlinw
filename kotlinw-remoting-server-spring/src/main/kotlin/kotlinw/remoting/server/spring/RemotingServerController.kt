@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinx.serialization.KSerializer
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,9 +26,9 @@ class RemotingServerController {
     private lateinit var messageCodec: MessageCodec<RawMessage.Text>
 
     @Autowired
-    private lateinit var handlerList: List<RemoteCallDelegator>
+    private lateinit var handlerList: List<RemoteCallHandler>
 
-    private lateinit var handlers: Map<String, RemoteCallDelegator>
+    private lateinit var handlers: Map<String, RemoteCallHandler>
 
     @PostConstruct
     fun initialize() {

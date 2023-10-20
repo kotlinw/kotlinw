@@ -36,7 +36,7 @@ import xyz.kotlinw.remoting.annotation.SupportsRemoting
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
@@ -87,8 +87,8 @@ class RemotingSymbolProcessor(
     private val ClassName.clientProxyClassName: ClassName
         get() = ClassName(packageName, simpleName + "ClientProxy")
 
-    private val ClassName.remoteCallDelegatorClassName: ClassName
-        get() = ClassName(packageName, simpleName + "RemoteCallDelegator")
+    private val ClassName.remoteCallHandlerClassName: ClassName
+        get() = ClassName(packageName, simpleName + "remoteCallHandler")
 
     private val KSTypeReference?.isUnit get() = this?.toTypeName() == Unit::class.asTypeName()
 
@@ -254,10 +254,10 @@ class RemotingSymbolProcessor(
         }
 
         fun generateServerDelegateClass(): TypeSpec {
-            val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallDelegatorClassName)
+            val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallHandlerClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
                 .addModifiers(KModifier.PRIVATE)
-                .addSuperinterface(RemoteCallDelegator::class)
+                .addSuperinterface(RemoteCallHandler::class)
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
@@ -369,11 +369,11 @@ class RemotingSymbolProcessor(
         generatedFile.addType(generateServerDelegateClass())
 
         generatedFile.addFunction(
-            FunSpec.builder("remoteCallDelegator")
+            FunSpec.builder("remoteCallHandler")
                 .receiver(definitionInterfaceName.nestedClass("Companion"))
                 .addParameter("target", definitionInterfaceName)
-                .returns(RemoteCallDelegator::class)
-                .addStatement("return %T(target)", definitionInterfaceName.remoteCallDelegatorClassName)
+                .returns(RemoteCallHandler::class)
+                .addStatement("return %T(target)", definitionInterfaceName.remoteCallHandlerClassName)
                 .build()
         )
     }

@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.ServiceLocator
@@ -19,7 +19,6 @@ import kotlinw.util.stdlib.collection.ConcurrentHashSet
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.KSerializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -31,7 +30,7 @@ class HttpRemotingClient<M : RawMessage>(
     private val httpSupportImplementor: SynchronousCallSupport,
     private val peerRegistry: MutableRemotePeerRegistry,
     private val remoteServerBaseUrl: Url,
-    private val incomingCallDelegators: Map<String, RemoteCallDelegator>
+    private val incomingCallDelegators: Map<String, RemoteCallHandler>
 ) : RemotingClientSynchronousCallSupport, RemotingClientDownstreamFlowSupport {
 
     private val logger = PlatformLogging.getLogger()

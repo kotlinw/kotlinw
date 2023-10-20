@@ -1,9 +1,8 @@
 package kotlinw.koin.core.api
 
 import kotlinw.remoting.api.client.RemotingClient
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.client.HttpRemotingClient
-import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemotePeerRegistryImpl
@@ -14,7 +13,7 @@ interface RemotingClientFactory {
 
     fun createRemotingClient(
         remoteServerBaseUrl: Url,
-        incomingCallDelegators: Map<String, RemoteCallDelegator> = emptyMap(),
+        incomingCallDelegators: Map<String, RemoteCallHandler> = emptyMap(),
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         remotePeerRegistry: MutableRemotePeerRegistry = RemotePeerRegistryImpl(),
         messageCodec: MessageCodec<*>? = null
@@ -28,7 +27,7 @@ class RemotingClientFactoryImpl(
 
     override fun createRemotingClient(
         remoteServerBaseUrl: Url,
-        incomingCallDelegators: Map<String, RemoteCallDelegator>,
+        incomingCallDelegators: Map<String, RemoteCallHandler>,
         synchronousCallSupportImplementor: SynchronousCallSupport?,
         remotePeerRegistry: MutableRemotePeerRegistry,
         messageCodec: MessageCodec<*>?

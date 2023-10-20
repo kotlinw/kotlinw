@@ -23,7 +23,7 @@ import xyz.kotlinw.koin.container.registerShutdownTask
 import xyz.kotlinw.koin.container.registerStartupTask
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemoteConnectionData
@@ -46,14 +46,14 @@ val serverRemotingModule by lazy {
             KtorServerApplicationConfigurer(Priority.Normal.lowerBy(10)) {
                 val ktorApplication = application
 
-                val remoteCallDelegators = getAll<RemoteCallDelegator>()
-                if (remoteCallDelegators.isNotEmpty()) {
+                val remoteCallHandlers = getAll<RemoteCallHandler>()
+                if (remoteCallHandlers.isNotEmpty()) {
                     ktorApplication.install(RemotingServerPlugin) {
                         val eventBus = get<LocalEventBus>()
                         val remotePeerRegistry = get<MutableRemotePeerRegistry>()
 
                         this.messageCodec = get<MessageCodec<*>>()
-                        this.remoteCallDelegators = remoteCallDelegators
+                        this.remoteCallHandlers = remoteCallHandlers
                         this.identifyClient = { 1 } // FIXME
                         this.supportedServerToClientCommunicationTypes =
                             setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable

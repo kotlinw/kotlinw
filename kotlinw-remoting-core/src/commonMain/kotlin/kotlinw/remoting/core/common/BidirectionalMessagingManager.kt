@@ -5,7 +5,7 @@ import arrow.core.continuations.getAndUpdate
 import arrow.core.continuations.update
 import arrow.core.nonFatalOrThrow
 import kotlinw.logging.platform.PlatformLogging
-import kotlinw.remoting.api.internal.server.RemoteCallDelegator
+import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.*
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
@@ -54,7 +54,7 @@ interface BidirectionalMessagingManager : CoroutineScope {
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val bidirectionalConnection: BidirectionalMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>,
-    private val remoteCallDelegators: Map<String, RemoteCallDelegator>,
+    private val remoteCallHandlers: Map<String, RemoteCallHandler>,
 ) : BidirectionalMessagingManager, CoroutineScope by bidirectionalConnection {
 
     private val logger =
@@ -101,7 +101,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
             when (messageKind) {
                 is RemotingMessageKind.CallRequest -> {
                     val targetServiceDescriptor =
-                        remoteCallDelegators[messageKind.serviceLocator.serviceId] ?: TODO()
+                        remoteCallHandlers[messageKind.serviceLocator.serviceId] ?: TODO()
                     val methodId = messageKind.serviceLocator.methodId
                     val targetMethodDescriptor = targetServiceDescriptor.methodDescriptors[methodId] ?: TODO()
 
