@@ -1,10 +1,7 @@
-package kotlinw.koin.core.internal
+package xyz.kotlinw.koin.container
 
 import kotlinw.collection.ArrayQueue
-import kotlinw.collection.ArrayStack
 import kotlinw.collection.MutableQueue
-import kotlinw.collection.MutableStack
-import org.koin.core.scope.Scope
 
 typealias OnStartupTask<T> = (T) -> Unit
 
@@ -15,7 +12,7 @@ interface ContainerStartupCoordinator {
     fun runStartupTasks()
 }
 
-internal class ContainerStartupCoordinatorImpl : ContainerStartupCoordinator {
+class ContainerStartupCoordinatorImpl : ContainerStartupCoordinator {
 
     private data class RegisteredOnStartupTask<T : Any>(val instance: T, val onStartupTask: OnStartupTask<T>)
 

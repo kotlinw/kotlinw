@@ -10,12 +10,10 @@ import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.LocalEventBusImpl
 import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
-import kotlinw.koin.core.internal.ContainerShutdownCoordinator
-import kotlinw.koin.core.internal.ContainerShutdownCoordinatorImpl
-import kotlinw.koin.core.internal.ContainerStartupCoordinator
-import kotlinw.koin.core.internal.ContainerStartupCoordinatorImpl
 import kotlinw.koin.core.internal.defaultLoggingIntegrator
 import kotlinw.logging.api.LoggerFactory
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.logging.spi.LoggingConfigurationProvider
 import kotlinw.logging.spi.LoggingContextManager
 import kotlinw.logging.spi.LoggingDelegator
@@ -33,12 +31,26 @@ import kotlinw.serialization.core.SerializerServiceImpl
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.higherBy
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import org.koin.core.KoinApplication
+import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
+import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.dsl.onClose
+import xyz.kotlinw.koin.container.ContainerShutdownCoordinator
+import xyz.kotlinw.koin.container.ContainerShutdownCoordinatorImpl
+import xyz.kotlinw.koin.container.ContainerStartupCoordinator
+import xyz.kotlinw.koin.container.ContainerStartupCoordinatorImpl
+import xyz.kotlinw.koin.container.getAllSortedByPriority
+import xyz.kotlinw.koin.container.registerShutdownTask
+
+@PublishedApi
+internal val coreModuleLogger by lazy { PlatformLogging.getLogger() }
 
 val coreModule by lazy {
     module {
@@ -100,4 +112,34 @@ val coreModule by lazy {
             bind<MutableRemotePeerRegistry>()
         }
     }
+}
+
+@KoinApplicationDslMarker
+suspend fun startContainer(
+    appDeclaration: KoinAppDeclaration,
+    onUninitializedKoinApplicationInstanceCreated: (KoinApplication) -> Unit = {}
+): KoinApplication {
+    val koinApplication = coroutineScope {
+        org.koin.core.context.startKoin {
+            allowOverride(false)
+            onUninitializedKoinApplicationInstanceCreated(this)
+
+            modules(coreModule)
+            appDeclaration()
+
+            launch {
+                koin.getAllSortedByPriority<ApplicationInitializerService>().forEach {
+                    try {
+                        it.performInitialization()
+                    } catch (e: Exception) {
+                        // TODO log
+                        e.printStackTrace()
+                        throw e
+                    }
+                }
+            }
+        }
+    }
+
+    return koinApplication
 }

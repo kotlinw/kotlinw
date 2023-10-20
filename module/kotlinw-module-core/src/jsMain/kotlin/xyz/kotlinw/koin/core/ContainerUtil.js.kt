@@ -1,7 +1,6 @@
 package xyz.kotlinw.koin.core
 
 import kotlinw.configuration.core.DeploymentMode.Development
-import kotlinw.koin.core.api.KOIN_ROOT_SCOPE_ID
 import kotlinw.koin.core.api.coreModuleLogger
 import kotlinw.koin.core.api.startContainer
 import kotlinx.coroutines.delay
@@ -9,6 +8,7 @@ import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import xyz.kotlinw.koin.container.KOIN_ROOT_SCOPE_ID
 
 private val coreJsModule by lazy {
     module {

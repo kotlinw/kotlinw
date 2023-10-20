@@ -1,7 +1,6 @@
 package kotlinw.module.serverbase
 
 import io.ktor.http.CacheControl
-import io.ktor.http.CacheControl.Visibility.Private
 import io.ktor.http.content.CachingOptions
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
@@ -14,16 +13,14 @@ import io.ktor.server.plugins.cachingheaders.CachingHeaders
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
-import kotlinw.configuration.core.DeploymentMode
-import kotlinw.configuration.core.DeploymentMode.Development
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.configuration.core.getConfigurationPropertyValue
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.dispatch
 import kotlinw.koin.core.api.ApplicationCoroutineService
-import kotlinw.koin.core.api.getAllSortedByPriority
-import kotlinw.koin.core.api.registerShutdownTask
-import kotlinw.koin.core.api.registerStartupTask
+import xyz.kotlinw.koin.container.getAllSortedByPriority
+import xyz.kotlinw.koin.container.registerShutdownTask
+import xyz.kotlinw.koin.container.registerStartupTask
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.api.internal.server.RemoteCallDelegator

@@ -1,8 +1,7 @@
-package kotlinw.koin.core.internal
+package xyz.kotlinw.koin.container
 
 import kotlinw.collection.ArrayStack
 import kotlinw.collection.MutableStack
-import org.koin.core.scope.Scope
 
 typealias OnShutdownTask<T> = (T) -> Unit
 
@@ -12,7 +11,7 @@ interface ContainerShutdownCoordinator : AutoCloseable {
     fun <T : Any> registerOnShutdownTask(instance: T, onShutdownTask: OnShutdownTask<T>)
 }
 
-internal class ContainerShutdownCoordinatorImpl : ContainerShutdownCoordinator {
+class ContainerShutdownCoordinatorImpl : ContainerShutdownCoordinator {
 
     private data class RegisteredOnShutdownTask<T : Any>(val instance: T, val onShutdownTask: OnShutdownTask<T>)
 

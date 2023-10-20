@@ -5,7 +5,6 @@ import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.configuration.core.StandardJvmConfigurationPropertyResolver
-import kotlinw.koin.core.api.KOIN_ROOT_SCOPE_ID
 import kotlinw.koin.core.api.coreModuleLogger
 import kotlinw.koin.core.api.startContainer
 import kotlinw.koin.core.internal.createPidFile
@@ -15,6 +14,7 @@ import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import xyz.kotlinw.koin.container.KOIN_ROOT_SCOPE_ID
 
 // TODO ez miért nem lehet internal?
 inline fun <reified T : Any> coreJvmModule() = coreJvmModule(T::class)
