@@ -46,7 +46,7 @@ private constructor(
             if (!pathStringFromSystemProperty.isNullOrBlank()) {
                 logger.debug { "Loading configuration from file: " / pathStringFromSystemProperty }
                 val fileResourceFromSystemProperty =
-                    FileSystemResource(FileLocation(SystemFileSystem, Path(pathStringFromSystemProperty)))
+                    FileSystemResource(FileLocation(Path(pathStringFromSystemProperty)))
                 add(
                     if (watchLocalFiles) {
                         JavaPropertiesFileConfigurationPropertyResolver(

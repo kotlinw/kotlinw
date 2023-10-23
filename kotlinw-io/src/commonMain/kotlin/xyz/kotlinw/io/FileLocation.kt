@@ -3,20 +3,21 @@ package xyz.kotlinw.io
 import kotlinx.io.buffered
 import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readString
 import kotlinx.io.writeString
 
-data class FileLocation(val fileSystem: FileSystem, val path: Path)
+data class FileLocation(val path: Path, val fileSystem: FileSystem = SystemFileSystem)
 
 @Deprecated(
     message = "Not type-safe.",
     replaceWith = ReplaceWith("get(RelativePath(relativePath))", imports = ["xyz.kotlinw.io.RelativePath"])
 )
-operator fun FileLocation.get(relativePath: String) = FileLocation(fileSystem, Path(path, relativePath))
+operator fun FileLocation.get(relativePath: String) = FileLocation(Path(path, relativePath), fileSystem)
 
-operator fun FileLocation.get(relativePath: RelativePath) = FileLocation(fileSystem, Path(path, relativePath.value))
+operator fun FileLocation.get(relativePath: RelativePath) = FileLocation(Path(path, relativePath.value), fileSystem)
 
-val FileLocation.parent get() = path.parent?.let { FileLocation(fileSystem, it) }
+val FileLocation.parent get() = path.parent?.let { FileLocation(it, fileSystem) }
 
 fun FileLocation.exists() = fileSystem.exists(path)
 

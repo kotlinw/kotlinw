@@ -10,6 +10,7 @@ kotlin {
                 api(libs.kotlinx.io.core)
                 api(libs.kotlinx.serialization.core)
                 implementation(libs.ktor.http)
+                implementation(libs.classgraph)
             }
         }
     }

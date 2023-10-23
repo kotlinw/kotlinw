@@ -66,9 +66,12 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun tryReadConfiguration(): String? =
         try {
-            resource.getContents().buffered().readString()
+            resource.open().buffered().use {
+                it.readString()
+            }
         } catch (e: Exception) {
             // TODO log
             null
