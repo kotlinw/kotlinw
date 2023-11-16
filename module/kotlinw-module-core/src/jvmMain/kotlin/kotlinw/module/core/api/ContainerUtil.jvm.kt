@@ -14,6 +14,8 @@ import org.koin.core.module.KoinApplicationDslMarker
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import xyz.kotlinw.io.ClasspathScanner
+import xyz.kotlinw.io.ClasspathScannerImpl
 import xyz.kotlinw.koin.container.KOIN_ROOT_SCOPE_ID
 
 // TODO ez miért nem lehet internal?
@@ -45,6 +47,8 @@ fun coreJvmModule(classLoader: ClassLoader) =
                 StandardJvmConfigurationPropertyResolver(get(), get(), classLoader)
             )
         }
+
+        single<ClasspathScanner> { ClasspathScannerImpl() }
     }
 
 @KoinApplicationDslMarker
