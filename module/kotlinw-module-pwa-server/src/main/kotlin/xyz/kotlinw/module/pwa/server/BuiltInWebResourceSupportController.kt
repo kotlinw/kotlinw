@@ -23,48 +23,51 @@ class BuiltInWebResourceSupportController(private val webResourceRegistry: WebRe
 
     override fun Context.setup() {
         application.routing {
-            webResourceRegistry.webResourceMappings.filterIsInstance<BuiltInWebResourceMapping>().forEach {
-                when (it) {
-                    is ClasspathFolderWebResourceMapping -> {
-                        // TODO http caching
-                        staticResources(it.folderWebBasePath.value, it.classpathFolderPath.value, null)
-                    }
+            webResourceRegistry.webResourceMappings.filterIsInstance<BuiltInWebResourceMapping>()
+                .forEach { webResourceMapping ->
+                    when (webResourceMapping) {
+                        is ClasspathFolderWebResourceMapping -> {
+                            // TODO http caching
+                            staticResources(
+                                webResourceMapping.folderWebBasePath.value,
+                                webResourceMapping.classpathFolderPath.path.value,
+                                null
+                            )
+                        }
 
-                    is ResourceWebResourceMapping -> {
-                        // TODO http caching
+                        is ResourceWebResourceMapping -> {
+                            // TODO http caching
 
-                        val resource = it.resource
-                        if (resource.exists()) {
-                            val length = resource.length()
-                            get(it.fileWebPath.value) {
-                                try {
-                                    resource.open().use { source ->
-                                        call.respond(
-                                            OutputStreamContentWithLength(
-                                                ContentType.defaultForFilePath(resource.name),
-                                                length
-                                            ) {
-                                                asSink().buffered().apply {
-                                                    transferFrom(source)
-                                                    flush()
+                            get(webResourceMapping.fileWebPath.value) {
+                                val resource = webResourceMapping.resource
+                                if (resource.exists()) {
+                                    val length = resource.length()
+                                    try {
+                                        resource.useAsSource { source ->
+                                            call.respond(
+                                                OutputStreamContentWithLength(
+                                                    ContentType.defaultForFilePath(resource.name),
+                                                    length
+                                                ) {
+                                                    asSink().buffered().apply {
+                                                        transferFrom(source)
+                                                        flush()
+                                                    }
                                                 }
-                                            }
-                                        )
+                                            )
+                                        }
+                                    } catch (e: Exception) {
+                                        // TODO log
+                                        call.respond(HttpStatusCode.NotFound)
                                     }
-                                } catch (e: Exception) {
+                                } else {
                                     // TODO log
                                     call.respond(HttpStatusCode.NotFound)
                                 }
                             }
-                        } else {
-                            get(it.fileWebPath.value) {
-                                // TODO log
-                                call.respond(HttpStatusCode.NotFound)
-                            }
                         }
                     }
                 }
-            }
         }
     }
 }

@@ -10,6 +10,7 @@ import kotlin.time.Duration
 import kotlinx.io.buffered
 import kotlinx.io.readString
 import xyz.kotlinw.io.Resource
+import xyz.kotlinw.io.readUtf8String
 
 class DelegatingFileConfigurationPropertyResolver private constructor(
     private val resource: Resource,
@@ -69,9 +70,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
     @OptIn(ExperimentalStdlibApi::class)
     private suspend fun tryReadConfiguration(): String? =
         try {
-            resource.open().buffered().use {
-                it.readString()
-            }
+            resource.readUtf8String()
         } catch (e: Exception) {
             // TODO log
             null

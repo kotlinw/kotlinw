@@ -42,7 +42,7 @@ fun coreJvmModule(classLoader: ClassLoader) =
 
         single<ConfigurationPropertyLookupSource> {
             EnumerableConfigurationPropertyLookupSourceImpl(
-                StandardJvmConfigurationPropertyResolver(get(), classLoader)
+                StandardJvmConfigurationPropertyResolver(get(), get(), classLoader)
             )
         }
     }

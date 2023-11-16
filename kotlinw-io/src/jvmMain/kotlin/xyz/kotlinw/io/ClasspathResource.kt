@@ -1,111 +1,67 @@
 package xyz.kotlinw.io
 
-import io.github.classgraph.ClassGraph
-import io.github.classgraph.ResourceList
-import io.github.classgraph.ScanResult
-import kotlinx.io.Buffer
-import kotlinx.io.RawSource
-import kotlinx.io.asSource
-import io.github.classgraph.Resource as ClassGraphResource
+import kotlinx.io.Source
+import kotlinx.io.buffered
+import java.util.concurrent.atomic.AtomicBoolean
 
-class ClasspathScanResult(
-    private val path: AbsolutePath,
-    private val classLoader: ClassLoader,
-    private val nativeScanResult: ScanResult,
-    private val nativeResources: ResourceList
-) : AutoCloseable {
+class ClasspathResource(
+    private val classpathScanner: ClasspathScanner,
+    val classpathLocation: ClasspathLocation,
+    val classLoader: ClassLoader = Thread.currentThread().contextClassLoader
+) : Resource {
 
-    val resources = nativeResources.map { ResolvedClasspathResource(path, it) }
+    override val name: String get() = classpathLocation.name
 
-    override fun close() {
-        try {
-            nativeScanResult.close()
-        } catch (e: Exception) {
-            // TODO log
-        }
-    }
-}
+    override fun toString(): String = classpathLocation.toString()
 
-data class ResolvedClasspathResource(val path: AbsolutePath, private val classGraphResource: ClassGraphResource) : Resource {
+    private suspend fun <T> performOperation(resourceProcessor: suspend ClasspathScanningContext.(ScannedClasspathResource) -> T) =
+        classpathScanner.scanResource(classpathLocation, classLoader, resourceProcessor)
 
-    companion object {
-
-        fun findClasspathResource(
-            path: AbsolutePath,
-            classLoader: ClassLoader = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
-        ): ClasspathScanResult {
-            val nativeScanResult =
-                ClassGraph().overrideClassLoaders(classLoader).acceptPaths(path.parent!!.value).scan()
-            val nativeResources = nativeScanResult.allResources.filter { it.path == path.value }
-            return ClasspathScanResult(path, classLoader, nativeScanResult, nativeResources)
-        }
-
-        fun scanClasspathResources(
-            path: AbsolutePath,
-            classLoader: ClassLoader = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
-        ): ClasspathScanResult {
-            val nativeScanResult =
-                ClassGraph().overrideClassLoaders(classLoader).acceptPaths(path.value).scan()
-            val nativeResources =
-                nativeScanResult.allResources.filter { !it.path.endsWith(".class") }
-            return ClasspathScanResult(path, classLoader, nativeScanResult, nativeResources)
-        }
-    }
-
-    private class ClasspathScanResultBasedRawSource(
-        private val classGraphScanResult: ClassGraphScanResult
-    ) : RawSource {
-
-        private val resourceRawSource = classGraphScanResult.classGraphResource.open().asSource()
-
-        override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = resourceRawSource.readAtMostTo(sink, byteCount)
-
-        override fun close() {
-            try {
-                resourceRawSource.close()
-            } finally {
-                classGraphScanResult.close()
+    override suspend fun <T> useAsSource(block: suspend (Source) -> T): T =
+        performOperation {
+            it.openAsSource().buffered().use {
+                block(it)
+            }
+        }.let {
+            if (it.size == 1) {
+                it.first()
+            } else {
+                throw IllegalStateException() // TODO
             }
         }
+
+    override suspend fun exists(): Boolean {
+        val exists = AtomicBoolean(false)
+        performOperation {
+            exists.compareAndSet(false, true)
+        }
+        return exists.get()
     }
 
-    private class ClassGraphScanResult(val scanResult: ScanResult, val classGraphResource: ClassGraphResource) :
-        AutoCloseable {
-
-        override fun close() {
-            try {
-                classGraphResource.close()
-            } catch (e: Exception) {
-                // TODO log
-            }
-
-            try {
-                scanResult.close()
-            } catch (e: Exception) {
-                // TODO log
+    override suspend fun length(): Long? =
+        performOperation {
+            it.length()
+        }.let {
+            if (it.size == 1) {
+                it.first()
+            } else {
+                null
             }
         }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ClasspathResource) return false
+
+        if (classpathLocation != other.classpathLocation) return false
+        if (classLoader != other.classLoader) return false
+
+        return true
     }
 
-    override val name: String get() = path.lastSegment
-
-    override fun open(): RawSource =
-        try {
-            getClassGraphResource()?.let { ClasspathScanResultBasedRawSource(it) }
-                ?: throw ResourceResolutionException(this, "Resource not found or not accessible.")
-        } catch (e: Exception) {
-            throw ResourceResolutionException(this, "Failed to read resource contents.", e)
-        }
-
-    override fun exists(): Boolean =
-        try {
-            getClassGraphResource()?.use { true } ?: false
-        } catch (e: Exception) {
-            // TODO log trace
-            false
-        }
-
-    override fun length(): Long? = getClassGraphResource()?.use { it.classGraphResource.length }
-
-    override fun toString(): String = "ClassPathResource(path='$path', classLoader=$classLoader)"
+    override fun hashCode(): Int {
+        var result = classpathLocation.hashCode()
+        result = 31 * result + classLoader.hashCode()
+        return result
+    }
 }

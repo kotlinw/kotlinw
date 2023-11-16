@@ -24,7 +24,7 @@ sealed interface NormalizedPath {
 val NormalizedPath.lastSegment
     get() =
         if (value.contains(NormalizedPath.PATH_SEPARATOR_CHAR))
-            value.substring(value.lastIndexOf(NormalizedPath.PATH_SEPARATOR_CHAR))
+            value.substring(value.lastIndexOf(NormalizedPath.PATH_SEPARATOR_CHAR) + 1)
         else
             value
 
@@ -36,6 +36,11 @@ private fun validatePath(path: String) {
 @JvmInline
 @Serializable
 value class AbsolutePath(override val value: String) : NormalizedPath {
+
+    companion object {
+
+        val rootPath = AbsolutePath(ROOT_PATH_STRING)
+    }
 
     init {
         validatePath(value)

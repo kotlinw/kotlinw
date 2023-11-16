@@ -11,6 +11,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentListOf
 import xyz.kotlinw.io.AbsolutePath
+import xyz.kotlinw.io.ClasspathLocation
 import xyz.kotlinw.io.RelativePath
 import xyz.kotlinw.io.Resource
 import xyz.kotlinw.pwa.core.WebResourceRegistrant.Context
@@ -50,7 +51,7 @@ class WebResourceRegistryImpl(
                 )
             }
             webResourceMappingsHolder.update {
-                it.add(ClasspathFolderWebResourceMapping(folderWebBasePath, classpathFolderPath))
+                it.add(ClasspathFolderWebResourceMapping(folderWebBasePath, ClasspathLocation(classpathFolderPath)))
             }
         }
 

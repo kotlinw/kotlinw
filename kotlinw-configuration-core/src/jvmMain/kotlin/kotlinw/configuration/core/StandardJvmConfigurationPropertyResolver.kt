@@ -8,12 +8,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import xyz.kotlinw.io.AbsolutePath
+import xyz.kotlinw.io.ClasspathLocation
 import xyz.kotlinw.io.ClasspathResource
+import xyz.kotlinw.io.ClasspathScanner
 import xyz.kotlinw.io.FileLocation
 import xyz.kotlinw.io.FileSystemResource
 
 class StandardJvmConfigurationPropertyResolver
 private constructor(
+    private val classpathScanner: ClasspathScanner,
     private val deploymentMode: DeploymentMode,
     private val classLoader: ClassLoader,
     watchLocalFiles: Boolean,
@@ -29,16 +32,17 @@ private constructor(
 
     private val logger = PlatformLogging.getLogger()
 
-    constructor(deploymentMode: DeploymentMode, classLoader: ClassLoader) :
-            this(deploymentMode, classLoader, false, null, null, null)
+    constructor(classpathScanner: ClasspathScanner, deploymentMode: DeploymentMode, classLoader: ClassLoader) :
+            this(classpathScanner, deploymentMode, classLoader, false, null, null, null)
 
     constructor(
+        classpathScanner: ClasspathScanner,
         deploymentMode: DeploymentMode,
         classLoader: ClassLoader,
         watcherCoroutineScope: CoroutineScope,
         eventBus: LocalEventBus,
         watchDelay: Duration
-    ) : this(deploymentMode, classLoader, true, watcherCoroutineScope, eventBus, watchDelay)
+    ) : this(classpathScanner, deploymentMode, classLoader, true, watcherCoroutineScope, eventBus, watchDelay)
 
     private val delegate = AggregatingEnumerableConfigurationPropertyResolver(
         buildList {
@@ -67,21 +71,33 @@ private constructor(
                 DeploymentMode.Development ->
                     add(
                         JavaPropertiesFileConfigurationPropertyResolver(
-                            ClasspathResource(AbsolutePath("kotlinw-dev.properties"), classLoader)
+                            ClasspathResource(
+                                classpathScanner,
+                                ClasspathLocation(AbsolutePath("kotlinw-dev.properties")),
+                                classLoader
+                            )
                         )
                     )
 
                 DeploymentMode.Production ->
                     add(
                         JavaPropertiesFileConfigurationPropertyResolver(
-                            ClasspathResource(AbsolutePath("kotlinw-prod.properties"), classLoader)
+                            ClasspathResource(
+                                classpathScanner,
+                                ClasspathLocation(AbsolutePath("kotlinw-prod.properties")),
+                                classLoader
+                            )
                         )
                     )
             }
 
             add(
                 JavaPropertiesFileConfigurationPropertyResolver(
-                    ClasspathResource(AbsolutePath("kotlinw.properties"), classLoader)
+                    ClasspathResource(
+                        classpathScanner,
+                        ClasspathLocation(AbsolutePath("kotlinw.properties")),
+                        classLoader
+                    )
                 )
             )
         }
