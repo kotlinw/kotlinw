@@ -48,4 +48,8 @@ class JavaPropertiesFileConfigurationPropertyResolver private constructor(
     override fun getPropertyKeys() = delegate.getPropertyKeys()
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey) = delegate.getPropertyValueOrNull(key)
+
+    override fun toString(): String {
+        return "JavaPropertiesFileConfigurationPropertyResolver(delegate=$delegate)"
+    }
 }

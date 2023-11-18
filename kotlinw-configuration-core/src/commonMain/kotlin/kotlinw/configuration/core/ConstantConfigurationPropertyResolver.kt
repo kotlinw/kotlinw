@@ -13,6 +13,8 @@ class ConstantConfigurationPropertyResolver(
             of(properties.toList().toMap())
     }
 
+    override suspend fun initialize() {}
+
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
         properties[key]
 

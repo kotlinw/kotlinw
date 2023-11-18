@@ -26,6 +26,8 @@ class TomlConfigurationPropertyResolver(
 
     private val properties = readToml(tomlContents)
 
+    override suspend fun initialize() {}
+
     override fun getPropertyKeys() = properties.keys
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? = properties[key]

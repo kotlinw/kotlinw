@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class ClasspathResource(
     private val classpathScanner: ClasspathScanner,
     val classpathLocation: ClasspathLocation,
-    val classLoader: ClassLoader = Thread.currentThread().contextClassLoader
+    val classLoader: ClassLoader = ClasspathResource::class.java.classLoader
 ) : Resource {
 
     override val name: String get() = classpathLocation.name

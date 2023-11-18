@@ -7,6 +7,8 @@ class JavaPropertiesConfigurationPropertyResolver(
     sourceInfo: String? = null
 ) : EnumerableConfigurationPropertyResolver {
 
+    override suspend fun initialize() {}
+
     override fun getPropertyKeys(): Set<ConfigurationPropertyKey> =
         properties.keys.map { ConfigurationPropertyKey(it.toString()) }.toSet()
 

@@ -67,7 +67,6 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun tryReadConfiguration(): String? =
         try {
             resource.readUtf8String()
@@ -79,4 +78,8 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
     override fun getPropertyKeys() = delegate?.getPropertyKeys() ?: emptySet()
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey) = delegate?.getPropertyValueOrNull(key)
+
+    override fun toString(): String {
+        return "DelegatingFileConfigurationPropertyResolver(resource=$resource, watchDelay=$watchDelay)"
+    }
 }

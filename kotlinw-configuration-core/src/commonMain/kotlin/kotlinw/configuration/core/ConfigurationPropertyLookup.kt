@@ -1,5 +1,7 @@
 package kotlinw.configuration.core
 
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.stdlib.HasPriority
 
 typealias EncodedConfigurationPropertyValue = String
@@ -66,6 +68,8 @@ class ConfigurationPropertyLookupImpl(
     configurationPropertyLookupSources: Iterable<ConfigurationPropertyLookupSource>
 ) : ConfigurationPropertyLookup {
 
+    private val logger = PlatformLogging.getLogger()
+
     constructor(vararg configurationPropertyLookupSources: ConfigurationPropertyLookupSource) : this(
         configurationPropertyLookupSources.toList()
     )
@@ -74,7 +78,11 @@ class ConfigurationPropertyLookupImpl(
         configurationPropertyLookupSources.sortedWith(HasPriority.comparator)
 
     override suspend fun initialize() {
-        sources.forEach { it.initialize() }
+        logger.info { "Configuration property sources: " / sources.joinToString() }
+        sources.forEach {
+            it.initialize()
+        }
+        logger.info { "Enumerable configuration properties: " / filterEnumerableConfigurationProperties { true } }
     }
 
     override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? {

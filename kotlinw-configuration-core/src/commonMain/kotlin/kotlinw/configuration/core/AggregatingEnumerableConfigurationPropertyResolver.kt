@@ -17,4 +17,8 @@ class AggregatingEnumerableConfigurationPropertyResolver(
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
         delegatesByIncreasingPriority.firstNotNullOfOrNull { it.getPropertyValueOrNull(key) }
+
+    override fun toString(): String {
+        return "AggregatingEnumerableConfigurationPropertyResolver(delegatesByIncreasingPriority=$delegatesByIncreasingPriority)"
+    }
 }

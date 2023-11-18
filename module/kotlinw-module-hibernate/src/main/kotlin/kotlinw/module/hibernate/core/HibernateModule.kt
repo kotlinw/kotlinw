@@ -5,6 +5,13 @@ import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
+import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManager
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.platform.PlatformLogging
+import kotlinw.module.api.ApplicationInitializerService
+import kotlinw.module.core.api.coreJvmModule
+import kotlinw.util.stdlib.Priority
+import kotlinw.util.stdlib.Priority.Companion.higherBy
 import xyz.kotlinw.koin.container.registerShutdownTask
 import org.hibernate.SessionFactory
 import org.hibernate.boot.Metadata
@@ -15,7 +22,10 @@ import org.hibernate.boot.registry.BootstrapServiceRegistry
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder
 import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
+import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import xyz.kotlinw.koin.container.registerStartupTask
 
 fun interface BootstrapServiceRegistryCustomizer {
 
@@ -49,76 +59,97 @@ fun interface SessionFactoryCustomizer {
 
 val hibernateModule by lazy {
     module {
-        single<BootstrapServiceRegistry> {
-            BootstrapServiceRegistryBuilder()
-                .apply {
-                    getAll<BootstrapServiceRegistryCustomizer>().forEach {
-                        it.customize()
-                    }
-                }
-                .build()
-                .registerShutdownTask(this) {
-                    it?.close()
-                }
-        }
-
-        single<StandardServiceRegistry> {
-            StandardServiceRegistryBuilder(get())
-                .apply {
-                    get<ConfigurationPropertyLookup>()
-                        .filterEnumerableConfigurationProperties { it.startsWith("hibernate") }
-                        .forEach {
-                            applySetting(it.key.name, it.value)
+        single<ApplicationInitializerService>(named("HibernateInitializerService")) {
+            ApplicationInitializerService(Priority.Normal.higherBy(200)) {
+                get<BootstrapServiceRegistryProxy>().initialize(
+                    BootstrapServiceRegistryBuilder()
+                        .apply {
+                            getAll<BootstrapServiceRegistryCustomizer>().forEach {
+                                it.customize()
+                            }
                         }
+                        .build()
+                )
+                get<StandardServiceRegistryProxy>().initialize(
+                    StandardServiceRegistryBuilder(get())
+                        .apply {
+                            get<ConfigurationPropertyLookup>()
+                                .filterEnumerableConfigurationProperties { it.startsWith("hibernate") }
+                                .also {
+                                    PlatformLogging.getLogger().info { "Hibernate configuration properties: " / it }
+                                }
+                                .forEach {
+                                    applySetting(it.key.name, it.value)
+                                }
 
-                    getAll<StandardServiceRegistryCustomizer>().forEach {
+                            getAll<StandardServiceRegistryCustomizer>().forEach {
+                                it.customize()
+                            }
+                        }
+                        .build()
+                )
+                get<MetadataSources>().apply {
+                    getAll<PersistentClassProvider>().forEach {
+                        it.getPersistentClasses().forEach {
+                            addAnnotatedClass(it.java)
+                        }
+                    }
+
+                    getAll<MetadataSourcesCustomizer>().forEach {
                         it.customize()
                     }
                 }
-                .build()
-                .registerShutdownTask(this) {
-                    it?.close()
-                }
-        }
-
-        single<MetadataSources> {
-            MetadataSources(get<StandardServiceRegistry>()).apply {
-                getAll<PersistentClassProvider>().forEach {
-                    it.getPersistentClasses().forEach {
-                        addAnnotatedClass(it.java)
-                    }
-                }
-
-                getAll<MetadataSourcesCustomizer>().forEach {
-                    it.customize()
-                }
+                get<MetadataProxy>().initialize(
+                    get<MetadataSources>()
+                        .metadataBuilder
+                        .apply {
+                            getAll<MetadataCustomizer>().forEach {
+                                it.customize()
+                            }
+                        }
+                        .build()
+                )
+                get<SessionFactoryProxy>().initialize(
+                    get<Metadata>()
+                        .sessionFactoryBuilder
+                        .apply {
+                            getAll<SessionFactoryCustomizer>().forEach {
+                                it.customize()
+                            }
+                        }
+                        .build()
+                )
             }
         }
 
-        single<Metadata> {
-            get<MetadataSources>()
-                .metadataBuilder
-                .apply {
-                    getAll<MetadataCustomizer>().forEach {
-                        it.customize()
-                    }
+        single<BootstrapServiceRegistryProxy> {
+            BootstrapServiceRegistryProxy()
+                .registerShutdownTask(this) {
+                    it.close()
                 }
-                .build()
+        }.bind(BootstrapServiceRegistry::class)
+
+        single<StandardServiceRegistryProxy> {
+            StandardServiceRegistryProxy()
+                .registerShutdownTask(this) {
+                    it.close()
+                }
+        }.bind(StandardServiceRegistry::class)
+
+        single<MetadataSources> {
+            MetadataSources(get<StandardServiceRegistry>())
         }
 
-        single<SessionFactory> {
-            get<Metadata>()
-                .sessionFactoryBuilder
-                .apply {
-                    getAll<SessionFactoryCustomizer>().forEach {
-                        it.customize()
-                    }
-                }
-                .build()
+        single<MetadataProxy> {
+            MetadataProxy()
+        }.bind(Metadata::class)
+
+        single<SessionFactoryProxy> {
+            SessionFactoryProxy()
                 .registerShutdownTask(this) {
-                    it?.close()
+                    it.close()
                 }
-        }
+        }.bind(SessionFactory::class)
 
         single<HibernateSqlSchemaExporter> { HibernateSqlSchemaExporterImpl(get(), get()) }
     }

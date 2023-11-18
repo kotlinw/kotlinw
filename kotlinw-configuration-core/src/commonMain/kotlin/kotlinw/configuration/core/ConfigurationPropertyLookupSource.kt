@@ -41,6 +41,10 @@ class EnumerableConfigurationPropertyLookupSourceImpl(
 
     override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
         resolver.getPropertyValueOrNull(key)
+
+    override fun toString(): String {
+        return "EnumerableConfigurationPropertyLookupSourceImpl(resolver=$resolver, priority=$priority)"
+    }
 }
 
 class ConfigurationPropertyKeySegment(internal val value: String) {
