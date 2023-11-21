@@ -1,6 +1,8 @@
 package xyz.kotlinw.di.processor
 
+import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getDeclaredFunctions
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -14,14 +16,14 @@ import com.google.devtools.ksp.symbol.ClassKind.INTERFACE
 import com.google.devtools.ksp.symbol.ClassKind.OBJECT
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.validate
 import xyz.kotlinw.di.api.Module
+import xyz.kotlinw.di.api.Service
 
 class DiSymbolProcessor(
     private val codeGenerator: CodeGenerator,
-    private val logger: KSPLogger,
-    private val options: Map<String, String>
+    private val kspLogger: KSPLogger,
+    private val kspOptions: Map<String, String>
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -33,27 +35,37 @@ class DiSymbolProcessor(
         val validSymbols = symbols.filter { it.validate() }.toSet()
         validSymbols
             .filter {
-                validateModuleClass(it, logger)
+                validateModuleClass(it, resolver)
             }.forEach {
-                processModuleClass(it, codeGenerator)
+                processModuleClass(it, resolver)
             }
 
         return (symbols - validSymbols).toList()
     }
 
-    private fun processModuleClass(moduleClassDeclaration: KSClassDeclaration, codeGenerator: CodeGenerator) {
+    @OptIn(KspExperimental::class)
+    private fun processModuleClass(
+        moduleClassDeclaration: KSClassDeclaration,
+        resolver: Resolver
+    ) {
         moduleClassDeclaration.getDeclaredFunctions()
+            .filter { it.isAnnotationPresent(Service::class) }
+            .forEach {
+                kspLogger.warn("xxx: " + it.simpleName.asString())
+            }
     }
 
-    private fun validateModuleClass(moduleClassDeclaration: KSClassDeclaration, kspLogger: KSPLogger): Boolean =
+    private fun validateModuleClass(moduleClassDeclaration: KSClassDeclaration, resolver: Resolver): Boolean =
         if (moduleClassDeclaration.classKind == CLASS) {
-            if (moduleClassDeclaration.superTypes.filterIsInstance<KSClassDeclaration>()
-                    .filter { it.qualifiedName?.asString() != Any::class.qualifiedName }.toList().isEmpty()
+            if (moduleClassDeclaration.superTypes
+                    .filter { it.resolve() != resolver.builtIns.anyType }
+                    .toList()
+                    .isEmpty()
             ) {
                 true
             } else {
                 kspLogger.error(
-                    "Explicit supertypes are currently not supported for module declarations.",
+                    "Explicit supertypes are not supported for module declarations.",
                     moduleClassDeclaration
                 )
                 false

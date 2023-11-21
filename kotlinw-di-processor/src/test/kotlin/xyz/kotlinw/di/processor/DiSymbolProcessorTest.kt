@@ -6,6 +6,7 @@ import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
 import xyz.kotlinw.di.api.Module
+import xyz.kotlinw.di.api.Service
 
 class DiSymbolProcessorTest {
 
@@ -32,6 +33,30 @@ class DiSymbolProcessorTest {
                 
                 @Module
                 class Module1
+            """.trimIndent(),
+            listOf(DiSymbolProcessorProvider())
+        ) {
+            assertCompilationSucceeded()
+        }
+    }
+
+    @Test
+    fun testModuleWithInlineService() {
+        checkCompilationResult(
+            """
+                import ${Module::class.qualifiedName}
+                import ${Service::class.qualifiedName}
+                
+                interface Service1
+                
+                class Service1Impl: Service1
+                
+                @Module
+                class Module1 {
+                
+                    @Service
+                    fun service1(): Service1 = Service1Impl()
+                }
             """.trimIndent(),
             listOf(DiSymbolProcessorProvider())
         ) {
