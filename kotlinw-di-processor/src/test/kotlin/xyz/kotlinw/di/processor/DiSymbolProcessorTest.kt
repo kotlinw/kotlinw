@@ -20,7 +20,7 @@ class DiSymbolProcessorTest {
             """.trimIndent(),
             listOf(DiSymbolProcessorProvider())
         ) {
-            assertHasKspError("Module class should be a normal class, interface is not supported as module declaration.", "Test.kt:4")
+            assertHasKspError("Module class should be a normal 'class', 'interface' is not supported as module declaration.", "Test.kt:4")
         }
     }
 
