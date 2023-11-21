@@ -23,4 +23,19 @@ class DiSymbolProcessorTest {
             assertHasKspError("Module class should be a normal class, interface is not supported as module declaration.", "Test.kt:4")
         }
     }
+
+    @Test
+    fun testEmptyModule() {
+        checkCompilationResult(
+            """
+                import ${Module::class.qualifiedName}
+                
+                @Module
+                class Module1
+            """.trimIndent(),
+            listOf(DiSymbolProcessorProvider())
+        ) {
+            assertCompilationSucceeded()
+        }
+    }
 }

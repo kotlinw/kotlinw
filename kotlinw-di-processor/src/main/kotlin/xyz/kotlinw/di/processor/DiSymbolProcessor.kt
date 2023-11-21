@@ -39,20 +39,19 @@ class DiSymbolProcessor(
     }
 
     private fun processModuleClass(moduleClassDeclaration: KSClassDeclaration, codeGenerator: CodeGenerator) {
-        TODO("Not yet implemented")
+
     }
 
-    private fun validateModuleClass(moduleClass: KSClassDeclaration, kspLogger: KSPLogger): Boolean {
-        if (moduleClass.classKind != CLASS) {
+    private fun validateModuleClass(moduleClassDeclaration: KSClassDeclaration, kspLogger: KSPLogger): Boolean =
+        if (moduleClassDeclaration.classKind == CLASS) {
+            true
+        } else {
             kspLogger.error(
-                "Module class should be a normal class, ${moduleClass.classKind.toDisplayName()} is not supported as module declaration.",
-                moduleClass
+                "Module class should be a normal class, ${moduleClassDeclaration.classKind.toDisplayName()} is not supported as module declaration.",
+                moduleClassDeclaration
             )
-            return false
+            false
         }
-
-        return true
-    }
 }
 
 private fun ClassKind.toDisplayName(): String =
