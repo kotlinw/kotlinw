@@ -1,6 +1,8 @@
 package xyz.kotlinw.di.processor
 
 import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getAnnotationsByType
+import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -16,9 +18,31 @@ import com.google.devtools.ksp.symbol.ClassKind.INTERFACE
 import com.google.devtools.ksp.symbol.ClassKind.OBJECT
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.Variance.COVARIANT
 import com.google.devtools.ksp.validate
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.CodeBlock.Companion
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier.VARARG
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.writeTo
+import com.squareup.kotlinpoet.typeNameOf
+import kotlin.reflect.KClass
+import kotlinw.ksp.util.anyReference
+import kotlinw.ksp.util.companionClassName
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.api.ComponentScan
+import xyz.kotlinw.di.api.Container
+import xyz.kotlinw.di.api.ContainerImplementor
 import xyz.kotlinw.di.api.Module
-import xyz.kotlinw.di.api.Service
+import xyz.kotlinw.di.api.ModuleImplementor
+import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.di.api.internal.ContainerImplementorInternal
 
 class DiSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -26,57 +50,145 @@ class DiSymbolProcessor(
     private val kspOptions: Map<String, String>
 ) : SymbolProcessor {
 
+    @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val symbols =
-            resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
+        val moduleDeclarations =
+            resolver
+                .getSymbolsWithAnnotation(Module::class.qualifiedName!!)
                 .filterIsInstance<KSClassDeclaration>()
                 .toSet()
 
-        val validSymbols = symbols.filter { it.validate() }.toSet()
-        validSymbols
-            .filter {
-                validateModuleClass(it, resolver)
-            }.forEach {
-                processModuleClass(it, resolver)
+        val componentDeclarationsFromComponentScan =
+            buildMap {
+                moduleDeclarations
+                    .forEach { moduleDeclaration ->
+                        if (moduleDeclaration.isAnnotationPresent(ComponentScan::class)) {
+                            put(
+                                moduleDeclaration,
+                                resolver
+                                    .getSymbolsWithAnnotation(Component::class.qualifiedName!!)
+                                    .filterIsInstance<KSClassDeclaration>()
+                                    .filter {
+                                        it.packageName.asString().startsWith(moduleDeclaration.packageName.asString())
+                                    }
+                                    .toList()
+                            )
+                        }
+                    }
             }
 
-        return (symbols - validSymbols).toList()
+        val containerDeclarations =
+            resolver
+                .getSymbolsWithAnnotation(Container::class.qualifiedName!!)
+                .filterIsInstance<KSClassDeclaration>()
+                .toSet()
+
+        val validModuleDeclarations = moduleDeclarations.filter { it.validate() }.toSet()
+        val validContainerDeclarations = containerDeclarations.filter { it.validate() }.toSet()
+        val validComponentDeclarationsFromComponentScan =
+            componentDeclarationsFromComponentScan.mapValues { it.value.filter { it.validate() } }
+
+        validModuleDeclarations.forEach {
+            processModuleClass(it, validComponentDeclarationsFromComponentScan[it] ?: emptyList(), resolver)
+        }
+
+        validContainerDeclarations.forEach {
+            processContainerClass(it, resolver)
+        }
+
+        return ((moduleDeclarations + componentDeclarationsFromComponentScan.values.flatten() + containerDeclarations) -
+                (validModuleDeclarations + validComponentDeclarationsFromComponentScan.values.flatten() + validContainerDeclarations))
+            .toList()
+    }
+
+    private fun processContainerClass(containerDeclaration: KSClassDeclaration, resolver: Resolver) {
+        val explicitModules =
+            containerDeclaration.annotations.filter { it.annotationType.toTypeName() == typeNameOf<Container>() }
+                .first().arguments.filter { it.name!!.getShortName() == "modules" }
+                .flatMap { it.value as List<KSType> }
+
+        val availableModules = mutableSetOf<KSType>()
+        explicitModules.forEach {
+            collectAvailableModules(it, availableModules)
+        }
+
+        val containerClassName = containerDeclaration.toClassName()
+        FileSpec
+            .builder(
+                containerClassName.packageName,
+                containerClassName.simpleName + "Implementor"
+            )
+            .addFunction(
+                FunSpec
+                    .builder("createInstance")
+                    .receiver(containerClassName.companionClassName())
+                    .returns(typeNameOf<ContainerImplementor>())
+                    .addCode(
+                        """
+                            return %T(mapOf(${availableModules.joinToString { "%T::class to TODO()" }}))
+                        """.trimIndent(),
+                        typeNameOf<ContainerImplementorInternal>(),
+                        *availableModules.map { it.toTypeName() }.toTypedArray()
+                    )
+                    .build()
+            )
+            .build()
+            .writeTo(codeGenerator, true)
+    }
+
+    private fun collectAvailableModules(moduleType: KSType, availableModules: MutableSet<KSType>) {
+        if (!availableModules.contains(moduleType)) {
+            availableModules.add(moduleType)
+
+            moduleType.declaration.annotations.filter { it.annotationType.toTypeName() == typeNameOf<Module>() }
+                .first().arguments.filter { it.name!!.getShortName() == "includeModules" }
+                .flatMap { it.value as List<KSType> }
+                .forEach {
+                    collectAvailableModules(it, availableModules)
+                }
+        }
     }
 
     @OptIn(KspExperimental::class)
     private fun processModuleClass(
-        moduleClassDeclaration: KSClassDeclaration,
+        moduleDeclaration: KSClassDeclaration,
+        componentDeclarationsFromComponentScan: List<KSClassDeclaration>,
         resolver: Resolver
     ) {
-        moduleClassDeclaration.getDeclaredFunctions()
-            .filter { it.isAnnotationPresent(Service::class) }
-            .forEach {
-                kspLogger.warn("xxx: " + it.simpleName.asString())
-            }
-    }
-
-    private fun validateModuleClass(moduleClassDeclaration: KSClassDeclaration, resolver: Resolver): Boolean =
-        if (moduleClassDeclaration.classKind == CLASS) {
-            if (moduleClassDeclaration.superTypes
+        if (moduleDeclaration.classKind == CLASS) {
+            if (moduleDeclaration.superTypes
                     .filter { it.resolve() != resolver.builtIns.anyType }
                     .toList()
                     .isEmpty()
             ) {
-                true
+                moduleDeclaration.getDeclaredFunctions()
+                    .filter { it.isAnnotationPresent(Component::class) }
+                    .forEach {
+                        kspLogger.warn("xxx: " + it.simpleName.asString())
+                    }
+
+                val moduleClassName = moduleDeclaration.toClassName()
+
+                FileSpec
+                    .builder(
+                        moduleClassName.packageName,
+                        moduleClassName.simpleName + "Implementor"
+                    )
+                    .build()
+                    .writeTo(codeGenerator, true)
             } else {
                 kspLogger.error(
                     "Explicit supertypes are not supported for module declarations.",
-                    moduleClassDeclaration
+                    moduleDeclaration
                 )
-                false
             }
         } else {
             kspLogger.error(
-                "Module class should be a normal 'class', '${moduleClassDeclaration.classKind.toDisplayName()}' is not supported as module declaration.",
-                moduleClassDeclaration
+                "Module class should be a normal 'class', '${moduleDeclaration.classKind.toDisplayName()}' is not supported as module declaration.",
+                moduleDeclaration
             )
-            false
         }
+    }
 }
 
 private fun ClassKind.toDisplayName(): String =

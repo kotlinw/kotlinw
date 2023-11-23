@@ -1,14 +1,14 @@
 package xyz.kotlinw.di.processor
 
 import kotlin.test.Test
-import kotlinw.ksp.testutil.assertCompilationFailed
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
 import xyz.kotlinw.di.api.Module
-import xyz.kotlinw.di.api.Service
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.api.Container
 
-class DiSymbolProcessorTest {
+class BasicTest {
 
     @Test
     fun testModuleClassShouldBeNormalClass() {
@@ -45,7 +45,7 @@ class DiSymbolProcessorTest {
         checkCompilationResult(
             """
                 import ${Module::class.qualifiedName}
-                import ${Service::class.qualifiedName}
+                import ${Component::class.qualifiedName}
                 
                 interface Service1
                 
@@ -54,9 +54,28 @@ class DiSymbolProcessorTest {
                 @Module
                 class Module1 {
                 
-                    @Service
+                    @Component
                     fun service1(): Service1 = Service1Impl()
                 }
+            """.trimIndent(),
+            listOf(DiSymbolProcessorProvider())
+        ) {
+            assertCompilationSucceeded()
+        }
+    }
+
+    @Test
+    fun testTrivialContainer() {
+        checkCompilationResult(
+            """
+                import ${Container::class.qualifiedName}
+                import ${Module::class.qualifiedName}
+                
+                @Module
+                class Module1
+                
+                @Container(Module1::class)
+                class SampleContainer
             """.trimIndent(),
             listOf(DiSymbolProcessorProvider())
         ) {
