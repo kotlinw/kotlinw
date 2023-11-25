@@ -3,11 +3,11 @@ package kotlinw.graph.algorithm
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 
-private class CyclicGraphException : RuntimeException()
+class CyclicGraphException(val vertex: Vertex<*>) : RuntimeException("Cyclic graph detected while processing vertex: $vertex")
 
 fun <D : Any, V : Vertex<D>> DirectedGraph<D, V>.isAcyclic(from: V): Boolean =
     try {
-        dfs(from, onRevisitAttempt = { throw CyclicGraphException() }).forEach {
+        dfs(from, onRevisitAttempt = { throw CyclicGraphException(it) }).forEach {
             // Do nothing
         }
         true

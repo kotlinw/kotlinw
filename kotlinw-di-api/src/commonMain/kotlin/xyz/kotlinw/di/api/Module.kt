@@ -8,4 +8,6 @@ import kotlin.reflect.KClass
 @Retention(BINARY)
 @Target(CLASS, FUNCTION)
 @MustBeDocumented
-annotation class Module(vararg val includeModules: KClass<out Any>)
+annotation class Module(
+    val includeModules: Array<KClass<out Any>> = []
+)

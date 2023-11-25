@@ -21,7 +21,8 @@ internal fun <D : Any, V : Vertex<D>> Graph<D, V>.recursiveDfsTraversal(
     }
 }
 
-private data class RecursiveDfsTraversalData<D : Any, V : Vertex<D>> private constructor(
+private data class RecursiveDfsTraversalData<D : Any, V : Vertex<D>>
+private constructor(
     val graph: GraphRepresentation<D, V>,
     val visitedVerticesSet: MutableSet<V>,
     val visitedVerticesBloomFilter: MutableBloomFilter<V>,
@@ -38,7 +39,7 @@ private data class RecursiveDfsTraversalData<D : Any, V : Vertex<D>> private con
 }
 
 private suspend fun <D : Any, V : Vertex<D>> SequenceScope<V>.visit(
-    traversalData: RecursiveDfsTraversalData<D, V>, // TODO context(RecursiveDfsTraversalData<D, V>)
+    traversalData: RecursiveDfsTraversalData<D, V>,
     vertex: V
 ) {
     if (traversalData.visitedVerticesBloomFilter.mightContain(vertex)

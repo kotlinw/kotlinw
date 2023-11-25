@@ -5,6 +5,6 @@ import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
 
 @Retention(BINARY)
-@Target(CLASS, FUNCTION)
+@Target(CLASS)
 @MustBeDocumented
 annotation class ComponentScan

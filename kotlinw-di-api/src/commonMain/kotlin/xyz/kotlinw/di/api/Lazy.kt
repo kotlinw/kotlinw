@@ -6,6 +6,6 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.reflect.KClass
 
 @Retention(BINARY)
-@Target(CLASS, FUNCTION)
+@Target(FUNCTION, CLASS)
 @MustBeDocumented
-annotation class Component(val type: KClass<Any> = Any::class)
+annotation class Lazy

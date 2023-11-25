@@ -1,5 +1,6 @@
 package kotlinw.util.stdlib
 
+import kotlin.math.abs
 import kotlin.math.ln
 
 interface BloomFilter<T : Any> {
@@ -58,5 +59,5 @@ private class MutableBloomFilterImpl<T : Any>(
 
     override fun mightContain(value: T) = bits[computeBitNumber(value)]
 
-    private fun computeBitNumber(value: T) = value.hashCode() % size
+    private fun computeBitNumber(value: T) = abs(value.hashCode()) % size
 }

@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(projects.kotlinw.kotlinwDiApi)
     implementation(projects.kotlinw.kotlinwKspUtil)
+    implementation(projects.kotlinw.kotlinwGraph)
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.kotlinx.datetime)
 

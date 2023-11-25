@@ -3,11 +3,9 @@ package xyz.kotlinw.di.test.module2
 import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.test.module3.Formatter
+import xyz.kotlinw.di.test.module3.FormatterModule
 
-@Module
+@Module(includeModules = [FormatterModule::class])
 @ComponentScan
-abstract class Module2 {
-
-    @Component
-    fun service2(): Service3 = Service3Impl()
-}
+class Module2

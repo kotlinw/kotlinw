@@ -10,6 +10,26 @@ internal sealed class GraphAdjacencySetRepresentationImpl<D : Any, V : Vertex<D>
         vertexAdjacencySets[vertex]?.asSequence() ?: throw ForeignGraphVertexException()
 
     override val vertices get() = vertexAdjacencySets.keys.asSequence()
+
+    override fun toString() = buildString {
+        vertices.forEach { from ->
+            append(from.data)
+            append(" -> ")
+
+            var first = true
+            neighborsOf(from).forEach {
+                if (first) {
+                    first = false
+                } else {
+                    append(", ")
+                }
+
+                append(it.data)
+            }
+
+            append('\n')
+        }
+    }
 }
 
 internal class DirectedGraphAdjacencySetRepresentationImpl<D : Any, V : Vertex<D>>(vertexAdjacencySets: LinkedHashMap<V, LinkedHashSet<V>>) :
