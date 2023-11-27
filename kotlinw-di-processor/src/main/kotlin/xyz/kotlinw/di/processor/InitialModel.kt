@@ -5,7 +5,12 @@ import com.google.devtools.ksp.symbol.KSType
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 
-data class ContainerModel(val id: String, val scopes: List<ScopeModel>, val modules: List<ModuleModel>)
+data class ContainerModel(
+    val id: String,
+    val scopes: List<ScopeModel>,
+    val modules: List<ModuleModel>,
+    val declaration: KSClassDeclaration
+)
 
 data class ModuleModel(
     val id: String,

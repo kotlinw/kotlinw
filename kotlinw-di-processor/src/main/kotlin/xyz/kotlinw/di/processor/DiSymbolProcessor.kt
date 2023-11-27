@@ -201,7 +201,8 @@ class DiSymbolProcessor(
                     ContainerModel(
                         containerDeclaration.qualifiedName!!.asString(),
                         scopeDeclarations,
-                        moduleDeclarations
+                        moduleDeclarations,
+                        containerDeclaration
                     )
                 } else {
                     overlappingModules.forEach {
@@ -219,25 +220,19 @@ class DiSymbolProcessor(
 
             // TODO DAG ellenőrzése
 
-            val containerInterfaceName =
-                (containerDeclaration as KSClassDeclaration).toClassName() // TODO ez modellből jöjjön
-            val containerImplementorClassName =
-                containerInterfaceName.peerClass(containerInterfaceName.simpleName + "Impl")
+            val codeGenerationModel = createCodeGenerationModel(resolvedContainerModel)
 
             FileSpec
-                .builder(
-                    containerInterfaceName.packageName,
-                    containerImplementorClassName.simpleName
-                )
+                .builder(codeGenerationModel.implementationName)
                 .addTypes(
-                    resolvedContainerModel.scopes.values.map { resolvedScopeModel ->
+                    codeGenerationModel.scopes.values.map { resolvedScopeModel ->
                         generateScopeClass(resolvedScopeModel)
                     }
                 )
                 .addType(
                     TypeSpec
-                        .classBuilder(containerImplementorClassName)
-                        .addSuperinterface(containerInterfaceName)
+                        .classBuilder(codeGenerationModel.implementationName)
+                        .addSuperinterface(codeGenerationModel.interfaceName)
                         .addFunctions(
                             resolvedContainerModel.scopes.values.map { scopeModel ->
                                 generateScopeBuilderFunction(
@@ -254,14 +249,43 @@ class DiSymbolProcessor(
                 .addFunction(
                     FunSpec
                         .builder("create")
-                        .receiver(containerInterfaceName.companionClassName())
-                        .returns(containerInterfaceName)
-                        .addStatement("return %T()", containerImplementorClassName)
+                        .receiver(codeGenerationModel.interfaceName.companionClassName())
+                        .returns(codeGenerationModel.interfaceName)
+                        .addStatement("return %T()", codeGenerationModel.implementationName)
                         .build()
                 )
                 .build()
                 .writeTo(codeGenerator, true)
         }
+    }
+
+    private fun createCodeGenerationModel(resolvedContainerModel: ResolvedContainerModel): ContainerCodeGenerationModel {
+        val scopes = mutableMapOf<ScopeId, ScopeCodeGenerationModel>()
+        resolvedContainerModel.scopes.forEach { (scopeId, resolvedScopeModel) ->
+            val componentGraph = buildComponentGraph(resolvedScopeModel)
+            scopes[scopeId] = ScopeCodeGenerationModel(
+                resolvedScopeModel,
+                resolvedScopeModel.parentScopeModel?.let { scopes.getValue(it.scopeModel.name) },
+                resolvedScopeModel.modules
+                    .filterValues { it.moduleModel.components.any { it is InlineComponentModel } }
+                    .keys
+                    .mapIndexed { index, moduleId -> moduleId to "m$index" }
+                    .toMap(),
+                componentGraph,
+                componentGraph
+                    .reverseTopologicalSort()
+                    .filter { it.data in resolvedScopeModel.components.map { it.componentModel.id } }
+                    .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }
+                    .toMap()
+            )
+        }
+
+        val containerInterfaceName = resolvedContainerModel.containerModel.declaration.toClassName()
+        return ContainerCodeGenerationModel(
+            containerInterfaceName,
+            containerInterfaceName.peerClass(containerInterfaceName.simpleName + "Impl"),
+            scopes
+        )
     }
 
     private fun generateScopeBuilderFunction(
@@ -279,21 +303,8 @@ class DiSymbolProcessor(
             .addStatement("return %T()", resolvedScopeModel.implementationClassName)
             .build()
 
-    private fun generateScopeClass(resolvedScopeModel: ResolvedScopeModel): TypeSpec {
-        val moduleVariableMap =
-            resolvedScopeModel.modules
-                .filterValues { it.moduleModel.components.any { it is InlineComponentModel } }
-                .keys
-                .mapIndexed { index, moduleId -> moduleId to "m$index" }
-                .toMap()
-
-        val componentGraph = buildComponentGraph(resolvedScopeModel)
-        val componentVariableMap =
-            componentGraph
-                .reverseTopologicalSort()
-                .filter { it.data in resolvedScopeModel.components.map { it.componentModel.id } }
-                .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }
-                .toMap()
+    private fun generateScopeClass(scopeCodeGenerationModel: ScopeCodeGenerationModel): TypeSpec {
+        val resolvedScopeModel = scopeCodeGenerationModel.resolvedScopeModel
 
         fun getComponentModel(componentId: ComponentId) =
             resolvedScopeModel.components.first { it.componentModel.id == componentId }
@@ -303,7 +314,7 @@ class DiSymbolProcessor(
 
         fun generateComponentAccessor(componentId: ComponentId): String =
             if (resolvedScopeModel.components.map { it.componentModel.id }.contains(componentId)) {
-                componentVariableMap.getValue(componentId)
+                scopeCodeGenerationModel.componentVariableMap.getValue(componentId)
             } else {
                 generateComponentAccessorFromParentScope(resolvedScopeModel, componentId)
             }
@@ -337,7 +348,7 @@ class DiSymbolProcessor(
                 }
             }
             .addProperties(
-                moduleVariableMap.map { (moduleId, propertyName) ->
+                scopeCodeGenerationModel.moduleVariableMap.map { (moduleId, propertyName) ->
                     val moduleModel = resolvedScopeModel.modules.getValue(moduleId)
                     PropertySpec
                         .builder(propertyName, moduleModel.moduleModel.declaringClass.toClassName())
@@ -346,7 +357,7 @@ class DiSymbolProcessor(
                 }
             )
             .addProperties(
-                componentVariableMap
+                scopeCodeGenerationModel.componentVariableMap
                     .map { (componentId, propertyName) ->
                         PropertySpec.builder(
                             propertyName,
@@ -358,7 +369,7 @@ class DiSymbolProcessor(
             .addInitializerBlock(
                 CodeBlock.builder()
                     .apply {
-                        componentVariableMap.forEach {
+                        scopeCodeGenerationModel.componentVariableMap.forEach {
                             val componentId = it.key
                             val componentVariableName = it.value
 
@@ -371,7 +382,11 @@ class DiSymbolProcessor(
                                     $componentVariableName = ${
                                     when (componentModel.componentModel) {
                                         is ComponentClassModel -> "%T"
-                                        is InlineComponentModel -> "${moduleVariableMap.getValue(componentId.moduleId)}.${componentModel.componentModel.factoryMethodName}"
+                                        is InlineComponentModel -> "${
+                                            scopeCodeGenerationModel.moduleVariableMap.getValue(
+                                                componentId.moduleId
+                                            )
+                                        }.${componentModel.componentModel.factoryMethodName}"
                                     }
                                 }(${
                                     generateComponentConstructorArguments(
