@@ -15,6 +15,7 @@ data class ContainerCodeGenerationModel(
 data class ScopeCodeGenerationModel(
     val resolvedScopeModel: ResolvedScopeModel,
     val parentScopeCodeGenerationModel: ScopeCodeGenerationModel?,
+    val implementationClassName: ClassName,
     val moduleVariableMap: Map<ModuleId, String>,
     val componentGraph: DirectedGraph<ComponentId, Vertex<ComponentId>>,
     val componentVariableMap: Map<ComponentId, String>

@@ -40,5 +40,5 @@ interface RootScope: ContainerScope {
 interface NestedScope: RootScope {
 
     @ComponentQuery
-    override fun getLongFormatter(): Formatter<Long>
+    fun getLongFormatter(): Formatter<Long>
 }

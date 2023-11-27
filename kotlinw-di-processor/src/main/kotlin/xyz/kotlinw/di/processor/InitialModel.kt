@@ -1,6 +1,7 @@
 package xyz.kotlinw.di.processor
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
@@ -46,6 +47,7 @@ data class ModuleReference(val moduleDeclaration: KSClassDeclaration, val module
 data class ScopeModel(
     val parentScopeName: String?,
     val name: ScopeId,
+    val scopeDeclarationFunction: KSFunctionDeclaration,
     val scopeInterfaceDeclaration: KSClassDeclaration,
     val declaredModules: List<ModuleReference>,
     val allModules: Set<ModuleReference>

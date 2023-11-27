@@ -51,10 +51,6 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
-private val ResolvedScopeModel.implementationClassName: ClassName
-    get() = scopeModel.scopeInterfaceDeclaration.toClassName()
-        .peerClass(scopeModel.scopeInterfaceDeclaration.simpleName.asString() + "Impl")
-
 @OptIn(KspExperimental::class)
 class DiSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -139,6 +135,7 @@ class DiSymbolProcessor(
                                         ScopeModel(
                                             parentScopeName,
                                             scopeDeclarationFunction.simpleName.asString(),
+                                            scopeDeclarationFunction,
                                             scopeInterfaceDeclaration,
                                             declaredModules.map {
                                                 ModuleReference(
@@ -234,14 +231,8 @@ class DiSymbolProcessor(
                         .classBuilder(codeGenerationModel.implementationName)
                         .addSuperinterface(codeGenerationModel.interfaceName)
                         .addFunctions(
-                            resolvedContainerModel.scopes.values.map { scopeModel ->
-                                generateScopeBuilderFunction(
-                                    scopeModel,
-                                    if (scopeModel.scopeModel.parentScopeName != null)
-                                        containerModel.scopes.first { it.name == scopeModel.scopeModel.parentScopeName }.scopeInterfaceDeclaration.toClassName()
-                                    else
-                                        null
-                                )
+                            codeGenerationModel.scopes.values.map { scopeCodeGenerationModel ->
+                                generateScopeBuilderFunction(scopeCodeGenerationModel)
                             }
                         )
                         .build()
@@ -266,6 +257,8 @@ class DiSymbolProcessor(
             scopes[scopeId] = ScopeCodeGenerationModel(
                 resolvedScopeModel,
                 resolvedScopeModel.parentScopeModel?.let { scopes.getValue(it.scopeModel.name) },
+                resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName()
+                    .peerClass(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.simpleName.asString() + "Impl"),
                 resolvedScopeModel.modules
                     .filterValues { it.moduleModel.components.any { it is InlineComponentModel } }
                     .keys
@@ -288,19 +281,31 @@ class DiSymbolProcessor(
         )
     }
 
-    private fun generateScopeBuilderFunction(
-        resolvedScopeModel: ResolvedScopeModel,
-        parentScopeImplementationClassName: ClassName?
-    ) =
-        FunSpec.builder(resolvedScopeModel.scopeModel.name)
+    private fun generateScopeBuilderFunction(scopeCodeGenerationModel: ScopeCodeGenerationModel) =
+        FunSpec
+            .builder(scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeDeclarationFunction.simpleName.asString())
             .addModifiers(OVERRIDE)
             .apply {
-                if (parentScopeImplementationClassName != null) {
-                    addParameter("parent", parentScopeImplementationClassName)
+                scopeCodeGenerationModel.parentScopeCodeGenerationModel?.also {
+                    addParameter(
+                        "parentScope", // TODO it.resolvedScopeModel.scopeModel.scopeDeclarationFunction.parameters.first().name!!.asString(),
+                        it.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName()
+                    )
                 }
             }
-            .returns(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
-            .addStatement("return %T()", resolvedScopeModel.implementationClassName)
+            .returns(scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
+            .apply {
+                if (scopeCodeGenerationModel.parentScopeCodeGenerationModel == null) {
+                    addStatement("return %T()", scopeCodeGenerationModel.implementationClassName)
+                } else {
+                    addStatement(
+                        "return %T(%N as %T)",
+                        scopeCodeGenerationModel.implementationClassName,
+                        "parentScope",
+                        scopeCodeGenerationModel.parentScopeCodeGenerationModel.implementationClassName
+                    ) // TODO fix parentScope
+                }
+            }
             .build()
 
     private fun generateScopeClass(scopeCodeGenerationModel: ScopeCodeGenerationModel): TypeSpec {
@@ -325,14 +330,17 @@ class DiSymbolProcessor(
             }
         }
 
-        return TypeSpec.classBuilder(resolvedScopeModel.implementationClassName)
+        return TypeSpec.classBuilder(scopeCodeGenerationModel.implementationClassName)
             .addSuperinterface(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
             .addModifiers(PRIVATE)
             .apply {
-                if (resolvedScopeModel.parentScopeModel != null) {
+                if (scopeCodeGenerationModel.parentScopeCodeGenerationModel != null) {
                     primaryConstructor(
                         FunSpec.constructorBuilder()
-                            .addParameter("parentScope", resolvedScopeModel.parentScopeModel.implementationClassName)
+                            .addParameter(
+                                "parentScope",
+                                scopeCodeGenerationModel.parentScopeCodeGenerationModel.implementationClassName
+                            )
                             .build()
                     )
                 }
