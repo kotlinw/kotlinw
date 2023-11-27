@@ -1,16 +1,10 @@
 package xyz.kotlinw.di.api
 
+import kotlin.annotation.AnnotationRetention.BINARY
+import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.reflect.KClass
 
-interface Scope {
-
-    suspend fun close()
-}
-
-// TODO
-//interface QueryableScope {
-//
-//    fun <T : Any> getSingleOrNull(componentClass: KClass<T>): T?
-//
-//    fun <T : Any> getAll(componentClass: KClass<in T>): List<T>
-//}
+@Retention(BINARY)
+@Target(FUNCTION)
+@MustBeDocumented
+annotation class Scope(val modules: Array<KClass<out Any>>, val parent: String = "")

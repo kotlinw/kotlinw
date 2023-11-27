@@ -7,4 +7,12 @@ import xyz.kotlinw.di.test.module2.Module2
 
 @Module
 @ComponentScan
-class Module5
+class Module5 {
+
+    @Component
+    fun someComponent() = object : SomeComponent {}
+}
+
+interface SomeComponent {
+
+}

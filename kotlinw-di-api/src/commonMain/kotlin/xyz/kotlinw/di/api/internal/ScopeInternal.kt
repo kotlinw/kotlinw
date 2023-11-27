@@ -1,12 +1,8 @@
 package xyz.kotlinw.di.api.internal
 
-import kotlin.reflect.KClass
-import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.di.api.ContainerScope
 
-class ScopeInternal(
-    private val parentScope: ScopeInternal?,
-    private val components: Map<ComponentId, Any>
-) : Scope {
+abstract class ScopeInternal(private val parentScope: ScopeInternal?) : ContainerScope {
 
     override suspend fun close() {
         TODO("Not yet implemented")
@@ -20,7 +16,7 @@ sealed interface ScopeBuilder {
     fun getComponent(componentId: ComponentId): Any
 }
 
-private class ScopeBuilderImpl: ScopeBuilder {
+private class ScopeBuilderImpl : ScopeBuilder {
 
     val components = mutableMapOf<ComponentId, Any>()
 
@@ -32,6 +28,3 @@ private class ScopeBuilderImpl: ScopeBuilder {
     override fun getComponent(componentId: ComponentId) =
         components[componentId] ?: throw IllegalStateException("Unknown component: $componentId")
 }
-
-fun buildScope(parentScope: ScopeInternal?, block: ScopeBuilder.() -> Unit): ScopeInternal =
-    ScopeInternal(parentScope, ScopeBuilderImpl().also(block).components)

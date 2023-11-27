@@ -2,9 +2,8 @@ package xyz.kotlinw.di.api
 
 import kotlin.annotation.AnnotationRetention.BINARY
 import kotlin.annotation.AnnotationTarget.FUNCTION
-import kotlin.reflect.KClass
 
 @Retention(BINARY)
 @Target(FUNCTION)
 @MustBeDocumented
-annotation class PrecompiledScope(val modules: Array<KClass<out Any>>, val parentScope: String = "")
+annotation class OnStartup

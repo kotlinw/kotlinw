@@ -1,7 +1,10 @@
 package xyz.kotlinw.di.api.internal
 
-data class ComponentId(val moduleId: String, val moduleLocalId: String) {
+typealias ModuleId = String
 
-    override fun toString() = "$moduleId/$moduleLocalId"
+typealias LocalComponentId = String
+
+data class ComponentId(val moduleId: ModuleId, val localComponentId: LocalComponentId) {
+
+    override fun toString() = "$moduleId/$localComponentId"
 }
-

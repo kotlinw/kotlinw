@@ -12,3 +12,5 @@ fun Resolver.anyReference() = createKSTypeReferenceFromKSType(builtIns.anyType)
 inline fun <reified T : Annotation> KSType.getAnnotationsOfType() = declaration.getAnnotationsOfType<T>()
 
 fun KSAnnotation.getArgumentOrNull(name: String) = arguments.firstOrNull { it.name!!.asString() == name }
+
+fun KSAnnotation.getArgumentValueOrNull(name: String) = arguments.firstOrNull { it.name!!.asString() == name }?.value

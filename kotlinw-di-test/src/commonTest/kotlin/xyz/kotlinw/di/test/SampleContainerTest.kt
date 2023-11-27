@@ -2,7 +2,7 @@ package xyz.kotlinw.di.test
 
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
-import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.di.api.ContainerScope
 
 class SampleContainerTest {
 
@@ -10,7 +10,7 @@ class SampleContainerTest {
     fun test() = runTest {
         val container = SampleContainer.create()
 
-        var rootScope: Scope? = null
+        var rootScope: ContainerScope? = null
         try {
             rootScope = container.rootScope()
         } finally {

@@ -17,41 +17,43 @@ import com.google.devtools.ksp.symbol.ClassKind.INTERFACE
 import com.google.devtools.ksp.symbol.ClassKind.OBJECT
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.validate
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier.OVERRIDE
-import com.squareup.kotlinpoet.ParameterSpec
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.KModifier.PRIVATE
+import com.squareup.kotlinpoet.KModifier.SUSPEND
+import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
-import kotlinw.graph.algorithm.isAcyclic
 import kotlinw.graph.algorithm.reverseTopologicalSort
-import kotlinw.graph.algorithm.topologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 import kotlinw.graph.model.build
 import kotlinw.ksp.util.companionClassName
 import kotlinw.ksp.util.getAnnotationsOfType
 import kotlinw.ksp.util.getArgumentOrNull
+import kotlinw.ksp.util.getArgumentValueOrNull
 import xyz.kotlinw.di.api.Component
-import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Container
-import xyz.kotlinw.di.api.DynamicContainer
+import xyz.kotlinw.di.api.ContainerScope
 import xyz.kotlinw.di.api.Module
-import xyz.kotlinw.di.api.PrecompiledScope
-import xyz.kotlinw.di.api.internal.ComponentDependencyCandidateMetadata
+import xyz.kotlinw.di.api.Scope
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
-import xyz.kotlinw.di.api.internal.ComponentMetadata
-import xyz.kotlinw.di.api.internal.ContainerImplementorInternal
-import xyz.kotlinw.di.api.internal.ContainerMetadata
-import xyz.kotlinw.di.api.internal.ModuleMetadata
+import xyz.kotlinw.di.api.internal.ScopeInternal
+
+private val ResolvedScopeModel.implementationClassName: ClassName
+    get() = scopeModel.scopeInterfaceDeclaration.toClassName()
+        .peerClass(scopeModel.scopeInterfaceDeclaration.simpleName.asString() + "Impl")
 
 @OptIn(KspExperimental::class)
 class DiSymbolProcessor(
@@ -60,66 +62,30 @@ class DiSymbolProcessor(
     private val kspOptions: Map<String, String>
 ) : SymbolProcessor {
 
-    @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val moduleDeclarations =
-            resolver
-                .getSymbolsWithAnnotation(Module::class.qualifiedName!!)
-                .filterIsInstance<KSClassDeclaration>()
-                .toSet()
+        val componentDeclarations = resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!).toList()
+        val moduleDeclarations = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
+        val containerDeclarations = resolver.getSymbolsWithAnnotation(Container::class.qualifiedName!!).toList()
 
-        val componentDeclarationsFromComponentScan =
-            moduleDeclarations.associateWith { it.findInlineComponents().toList() }
+        val invalidSymbols =
+            componentDeclarations.filter { !it.validate() } +
+                    moduleDeclarations.filter { !it.validate() } +
+                    containerDeclarations.filter { !it.validate() }
 
-        val containerDeclarations =
-            resolver
-                .getSymbolsWithAnnotation(Container::class.qualifiedName!!)
-                .filterIsInstance<KSClassDeclaration>()
-                .toSet()
-
-        val validModuleDeclarations = moduleDeclarations.filter { it.validate() }.toSet()
-        val validContainerDeclarations = containerDeclarations.filter { it.validate() }.toSet()
-        val validComponentDeclarationsFromComponentScan =
-            componentDeclarationsFromComponentScan.mapValues { it.value.filter { it.validate() } }
-
-        if (validModuleDeclarations.all { isModuleClassValid(it, resolver) }) {
-            validContainerDeclarations.forEach {
-                processContainerClass(it, resolver)
+        return if (invalidSymbols.isEmpty()) {
+            containerDeclarations.forEach {
+                processContainerDeclaration(it, resolver)
             }
+            emptyList()
+        } else {
+            componentDeclarations + moduleDeclarations + containerDeclarations
         }
-
-        return ((moduleDeclarations + componentDeclarationsFromComponentScan.values.flatten() + containerDeclarations) -
-                (validModuleDeclarations + validComponentDeclarationsFromComponentScan.values.flatten() + validContainerDeclarations))
-            .toList()
     }
 
-    private fun processContainerClass(containerDeclaration: KSClassDeclaration, resolver: Resolver) {
-        val explicitModules = containerDeclaration.getAnnotationsOfType<Container>().first()
-            .getArgumentOrNull("modules")!!.value as List<KSType>
-
-        val availableModules = collectTransitiveModules(explicitModules)
-
-        val modulesWithComponentScan = availableModules.filter { it.isAnnotationPresent(ComponentScan::class) }
-        val overlappingModules = mutableSetOf<Pair<KSClassDeclaration, KSClassDeclaration>>()
-        modulesWithComponentScan.forEach { validatedModuleType ->
-            (modulesWithComponentScan - validatedModuleType).forEach { currentModuleType ->
-                if (validatedModuleType.packageName.asString()
-                        .startsWith(currentModuleType.packageName.asString())
-                    && !overlappingModules.contains(validatedModuleType to currentModuleType)
-                    && !overlappingModules.contains(currentModuleType to validatedModuleType)
-                ) {
-                    overlappingModules.add(validatedModuleType to currentModuleType)
-                }
-            }
-        }
-
-        if (overlappingModules.isNotEmpty()) {
-            overlappingModules.forEach {
-                kspLogger.error("Overlapping modules with ${ComponentScan::class.simpleName}: ${it.first.qualifiedName?.asString()} and ${it.second.qualifiedName?.asString()}")
-            }
-            return
-        }
-
+    private fun processContainerDeclaration(containerDeclaration: KSAnnotated, resolver: Resolver) {
+        // TODO check not referenced modules
+        // TODO check not referenced components
+        // TODO check overlapping scanning modules
         // TODO validate component dependencies: everything is KSClassDeclaration
         // TODO validate scanned components: has primary constructor
         // TODO validate scanned components: has no type parameters
@@ -127,299 +93,493 @@ class DiSymbolProcessor(
         // TODO validate: container declaration should be an interface with no supertypes
         // TODO validate: container declaration should have only member functions annotated with @Scope or @ComponentLookup
         // TODO validate: @PrecompiledScope.modules nem lehet üres
+        // TODO validate: nincs körkörös hivatkozás a scope-oknál
 
-        val containerModel = ContainerModel(
-            containerDeclaration.qualifiedName!!.asString(),
-            availableModules.map { module ->
-                val moduleId = module.qualifiedName!!.asString()
-                ModuleModel(
-                    moduleId,
-                    module,
-                    module.findInlineComponents().map {
-                        ComponentModel(
-                            ComponentId(moduleId, it.simpleName.asString()),
-                            true,
-                            it.returnType!!.resolve(),
-                            (it.getAnnotationsOfType<Component>().first()
-                                .getArgumentOrNull("type")?.value as? KSType)
-                                ?: it.returnType!!.resolve(), // TODO type nem lehet akármi, kompatibilisnek kell lennie
-                            it.parameters.map { it.type.resolve().toComponentLookup() }
-                        )
-                    }.toList() +
-                            module.findComponentsByComponentScan(resolver).map {
-                                ComponentModel(
-                                    ComponentId(moduleId, it.qualifiedName!!.asString()),
-                                    false,
-                                    it.asType(emptyList()),
-                                    (it.getAnnotationsOfType<Component>().first()
-                                        .getArgumentOrNull("type")?.value as? KSType)
-                                        ?: it.asType(emptyList()), // TODO type nem lehet akármi, kompatibilisnek kell lennie
-                                    it.primaryConstructor!!.parameters.map { it.type.resolve().toComponentLookup() }
-                                )
-                            }.toList()
-                )
-            }
-        )
+        // TODO        resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!)
+//            .filter {
+//                if (it is KSClassDeclaration) {
+//                    true
+//                } else {
+//                    kspLogger.error(
+//                        "Invalid component declaration, annotation @${Component::class.simpleName} is allowed only on class declarations.",
+//                        it
+//                    )
+//                    false
+//                }
+//            } as Sequence<KSClassDeclaration>
 
-        val resolvedContainerModel = containerModel.resolve(resolver)
-        kspLogger.warn(resolvedContainerModel.toString()) // TODO törölni
         // TODO validate container model (e.g. all dependencies are resolvable with correct arity)
 
-        val containerInterfaceName = containerDeclaration.toClassName()
-        val containerImplementorClassName = containerInterfaceName.peerClass(containerInterfaceName.simpleName + "Impl")
 
-        FileSpec
-            .builder(
-                containerInterfaceName.packageName,
-                containerImplementorClassName.simpleName
-            )
-            .addType(
-                TypeSpec
-                    .classBuilder(containerImplementorClassName)
-                    .superclass(ContainerImplementorInternal::class)
-                    .addSuperinterface(containerInterfaceName)
-                    .addSuperclassConstructorParameter("containerMetadata")
-                    .primaryConstructor(
+        val containerModel =
+            if (containerDeclaration is KSClassDeclaration && containerDeclaration.classKind == INTERFACE) {
+                val scopeDeclarations =
+                    containerDeclaration
+                        .getAllFunctions()
+                        .filter { it.isAnnotationPresent(Scope::class) }
+                        .mapNotNull { scopeDeclarationFunction ->
+                            val scopeDeclarationTypeReference = scopeDeclarationFunction.returnType
+                            if (scopeDeclarationTypeReference != null) {
+                                val scopeInterfaceDeclaration = validateScopeInterfaceDeclaration(
+                                    scopeDeclarationTypeReference.resolve().declaration,
+                                    resolver
+                                )
+                                if (scopeInterfaceDeclaration != null) {
+                                    val scopeAnnotation = scopeDeclarationFunction.getAnnotationsOfType<Scope>().first()
+                                    val declaredModulesValue = scopeAnnotation.getArgumentOrNull("modules")
+                                    val declaredModules =
+                                        declaredModulesValue?.value as? List<KSType> ?: emptyList()
+                                    val parentScopeName = scopeAnnotation.getArgumentValueOrNull("parent") as? String
+
+                                    if (declaredModules.all {
+                                            it.declaration is KSClassDeclaration
+                                                    && it.declaration.isAnnotationPresent(Module::class)
+                                        }
+                                    ) {
+                                        ScopeModel(
+                                            parentScopeName,
+                                            scopeDeclarationFunction.simpleName.asString(),
+                                            scopeInterfaceDeclaration,
+                                            declaredModules.map {
+                                                ModuleReference(
+                                                    it.declaration as KSClassDeclaration,
+                                                    (it.declaration as KSClassDeclaration).getModuleId()
+                                                )
+                                            },
+                                            collectAllModules(declaredModules)
+                                                .map {
+                                                    ModuleReference(
+                                                        it,
+                                                        it.getModuleId()
+                                                    )
+                                                }
+                                                .toSet()
+                                        )
+                                    } else {
+                                        val invalidReferences =
+                                            declaredModules.filter { it.declaration is KSClassDeclaration }
+                                        kspLogger.error(
+                                            "Invalid reference(s) to non-module declaration(s): ${
+                                                invalidReferences.joinToString { it.toTypeName().toString() }
+                                            }",
+                                            scopeDeclarationTypeReference
+                                        )
+                                        null
+                                    }
+                                } else {
+                                    null
+                                }
+                            } else {
+                                kspLogger.error("Failed to resolve scope type.", scopeDeclarationFunction)
+                                null
+                            }
+                        }
+                        .toList()
+
+                val moduleDeclarations =
+                    scopeDeclarations
+                        .flatMap { it.allModules }
+                        .toSet()
+                        .mapNotNull { processModuleReference(it, resolver) }
+
+                val overlappingModules = mutableListOf<Pair<ModuleModel, ModuleModel>>()
+                moduleDeclarations.forEach { currentModule ->
+                    moduleDeclarations.forEach { referenceModule ->
+                        if (currentModule != referenceModule
+                            && currentModule.componentScanPackageName != null
+                            && referenceModule.componentScanPackageName != null
+                            && !overlappingModules.contains(referenceModule to currentModule)
+                            && !overlappingModules.contains(currentModule to referenceModule)
+                            && (currentModule.componentScanPackageName.startsWith(referenceModule.componentScanPackageName))
+                        ) {
+                            overlappingModules.add(currentModule to referenceModule)
+                        }
+                    }
+                }
+
+                if (overlappingModules.isEmpty()) {
+                    ContainerModel(
+                        containerDeclaration.qualifiedName!!.asString(),
+                        scopeDeclarations,
+                        moduleDeclarations
+                    )
+                } else {
+                    overlappingModules.forEach {
+                        kspLogger.error("Overlapping modules with @${ComponentScan::class.simpleName}: ${it.first.id} and ${it.second.id}")
+                    }
+                    null
+                }
+            } else {
+                kspLogger.error("Container declaration should be an `interface`.", containerDeclaration)
+                null
+            }
+
+        if (containerModel != null) {
+            val resolvedContainerModel = resolveContainerModel(containerModel)
+
+            // TODO DAG ellenőrzése
+
+            val containerInterfaceName =
+                (containerDeclaration as KSClassDeclaration).toClassName() // TODO ez modellből jöjjön
+            val containerImplementorClassName =
+                containerInterfaceName.peerClass(containerInterfaceName.simpleName + "Impl")
+
+            FileSpec
+                .builder(
+                    containerInterfaceName.packageName,
+                    containerImplementorClassName.simpleName
+                )
+                .addTypes(
+                    resolvedContainerModel.scopes.values.map { resolvedScopeModel ->
+                        generateScopeClass(resolvedScopeModel)
+                    }
+                )
+                .addType(
+                    TypeSpec
+                        .classBuilder(containerImplementorClassName)
+                        .addSuperinterface(containerInterfaceName)
+                        .addFunctions(
+                            resolvedContainerModel.scopes.values.map { scopeModel ->
+                                generateScopeBuilderFunction(
+                                    scopeModel,
+                                    if (scopeModel.scopeModel.parentScopeName != null)
+                                        containerModel.scopes.first { it.name == scopeModel.scopeModel.parentScopeName }.scopeInterfaceDeclaration.toClassName()
+                                    else
+                                        null
+                                )
+                            }
+                        )
+                        .build()
+                )
+                .addFunction(
+                    FunSpec
+                        .builder("create")
+                        .receiver(containerInterfaceName.companionClassName())
+                        .returns(containerInterfaceName)
+                        .addStatement("return %T()", containerImplementorClassName)
+                        .build()
+                )
+                .build()
+                .writeTo(codeGenerator, true)
+        }
+    }
+
+    private fun generateScopeBuilderFunction(
+        resolvedScopeModel: ResolvedScopeModel,
+        parentScopeImplementationClassName: ClassName?
+    ) =
+        FunSpec.builder(resolvedScopeModel.scopeModel.name)
+            .addModifiers(OVERRIDE)
+            .apply {
+                if (parentScopeImplementationClassName != null) {
+                    addParameter("parent", parentScopeImplementationClassName)
+                }
+            }
+            .returns(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
+            .addStatement("return %T()", resolvedScopeModel.implementationClassName)
+            .build()
+
+    private fun generateScopeClass(resolvedScopeModel: ResolvedScopeModel): TypeSpec {
+        val moduleVariableMap =
+            resolvedScopeModel.modules
+                .filterValues { it.moduleModel.components.any { it is InlineComponentModel } }
+                .keys
+                .mapIndexed { index, moduleId -> moduleId to "m$index" }
+                .toMap()
+
+        val componentGraph = buildComponentGraph(resolvedScopeModel)
+        val componentVariableMap =
+            componentGraph
+                .reverseTopologicalSort()
+                .filter { it.data in resolvedScopeModel.components.map { it.componentModel.id } }
+                .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }
+                .toMap()
+
+        fun getComponentModel(componentId: ComponentId) =
+            resolvedScopeModel.components.first { it.componentModel.id == componentId }
+
+        fun generateComponentAccessorFromParentScope(scope: ResolvedScopeModel, componentId: ComponentId): String =
+            "TODO()"
+
+        fun generateComponentAccessor(componentId: ComponentId): String =
+            if (resolvedScopeModel.components.map { it.componentModel.id }.contains(componentId)) {
+                componentVariableMap.getValue(componentId)
+            } else {
+                generateComponentAccessorFromParentScope(resolvedScopeModel, componentId)
+            }
+
+        fun generateComponentConstructorArguments(
+            dependencyCandidates: Map<String, ResolvedComponentDependencyModel>,
+            availableDependencies: Map<String, List<ComponentId>>
+        ) = dependencyCandidates.values.joinToString {
+            val dependencies = availableDependencies.getValue(it.dependencyName)
+            if (it.dependencyKind.isMultiple) {
+                """listOf(${dependencies.joinToString { generateComponentAccessor(it) }})"""
+            } else {
+                if (dependencies.isNotEmpty()) {
+                    generateComponentAccessor(dependencies.first())
+                } else {
+                    "null"
+                }
+            }
+        }
+
+        return TypeSpec.classBuilder(resolvedScopeModel.implementationClassName)
+            .addSuperinterface(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
+            .addModifiers(PRIVATE)
+            .apply {
+                if (resolvedScopeModel.parentScopeModel != null) {
+                    primaryConstructor(
                         FunSpec.constructorBuilder()
-                            .addParameter(
-                                "containerMetadata",
-                                resolver.getClassDeclarationByName<ContainerMetadata>()!!.asType(emptyList())
-                                    .makeNullable().toTypeName()
-                            )
+                            .addParameter("parentScope", resolvedScopeModel.parentScopeModel.implementationClassName)
                             .build()
                     )
-                    .addFunctions(
-                        containerDeclaration.getDeclaredFunctions().map { overriddenFunction ->
-                            FunSpec
-                                .builder(overriddenFunction.simpleName.asString())
-                                .addModifiers(OVERRIDE)
-                                .addParameters(overriddenFunction.parameters.map {
-                                    ParameterSpec(
-                                        it.name!!.asString(),
-                                        it.type.toTypeName()
+                }
+            }
+            .addProperties(
+                moduleVariableMap.map { (moduleId, propertyName) ->
+                    val moduleModel = resolvedScopeModel.modules.getValue(moduleId)
+                    PropertySpec
+                        .builder(propertyName, moduleModel.moduleModel.declaringClass.toClassName())
+                        .initializer("%T()", moduleModel.moduleModel.declaringClass.toClassName())
+                        .build()
+                }
+            )
+            .addProperties(
+                componentVariableMap
+                    .map { (componentId, propertyName) ->
+                        PropertySpec.builder(
+                            propertyName,
+                            getComponentModel(componentId).componentModel.componentType.toTypeName()
+                        )
+                            .build()
+                    }
+            )
+            .addInitializerBlock(
+                CodeBlock.builder()
+                    .apply {
+                        componentVariableMap.forEach {
+                            val componentId = it.key
+                            val componentVariableName = it.value
+
+                            val componentModel = getComponentModel(componentId)
+                            val dependencies =
+                                componentModel.resolveDependenciesInScope(resolvedScopeModel)
+
+                            addStatement(
+                                """
+                                    $componentVariableName = ${
+                                    when (componentModel.componentModel) {
+                                        is ComponentClassModel -> "%T"
+                                        is InlineComponentModel -> "${moduleVariableMap.getValue(componentId.moduleId)}.${componentModel.componentModel.factoryMethodName}"
+                                    }
+                                }(${
+                                    generateComponentConstructorArguments(
+                                        componentModel.dependencyCandidates,
+                                        dependencies
                                     )
                                 })
-                                .returns(overriddenFunction.returnType!!.toTypeName())
-                                .apply {
-                                    if (overriddenFunction.isAnnotationPresent(PrecompiledScope::class)) {
-                                        val precompiledScopeAnnotation =
-                                            overriddenFunction.getAnnotationsOfType<PrecompiledScope>().first()
-
-                                        val parentScopeName =
-                                            precompiledScopeAnnotation.getArgumentOrNull("parentScope")!!.value as? String
-
-                                        val explicitScopeModules =
-                                            precompiledScopeAnnotation.getArgumentOrNull("modules")!!.value as List<KSType>
-                                        val scopeModuleTypes = collectTransitiveModules(explicitScopeModules)
-
-                                        val componentGraph =
-                                            buildComponentGraph(
-                                                resolvedContainerModel,
-                                                scopeModuleTypes.toSet()
-                                            )
-
-                                        if (componentGraph.isAcyclic()) {
-                                            componentGraph.reverseTopologicalSort().forEach {
-                                                kspLogger.warn(it.data.toString())
-                                            }
-                                        } else {
-                                            kspLogger.error("Cycle component dependency found.", containerDeclaration)
-                                        }
-                                    } else if (overriddenFunction.isAnnotationPresent(ComponentQuery::class)) {
-                                        addComment(
-                                            "" + containerModel.resolve(
-                                                overriddenFunction.returnType!!.resolve().toComponentLookup()
-                                            )
-                                        )
-                                        addCode("TODO()")
-                                    } else {
-                                        throw AssertionError()
-                                    }
-                                }
-                                .build()
-                        }.toList()
-                    )
-                    .build()
-            )
-            .addFunction(
-                FunSpec
-                    .builder("create")
-                    .receiver(containerInterfaceName.companionClassName())
-                    .returns(containerInterfaceName)
-                    .apply {
-                        if (resolver.getClassDeclarationByName<DynamicContainer>()!!.asType(emptyList())
-                                .isAssignableFrom(containerDeclaration.asType(emptyList()))
-                        ) {
-                            addStatement(
-                                """
-                                    val modules: Map<String, Any> = mapOf(${
-                                    resolvedContainerModel.availableModules.filter { it.components.any { it.isInline } }
-                                        .joinToString { "%S to %T()" }
-                                })
                                 """.trimIndent(),
-                                *resolvedContainerModel.availableModules.filter { it.components.any { it.isInline } }
-                                    .flatMap { listOf(it.id, it.declaringClass.toClassName()) }.toTypedArray(),
+                                *(
+                                        if (componentModel.componentModel is ComponentClassModel)
+                                            listOf(componentModel.componentModel.componentClassDeclaration.toClassName())
+                                        else
+                                            emptyList()
+                                        ).toTypedArray()
                             )
-                            addStatement(
-                                """
-                                    return %T(%T(listOf(${resolvedContainerModel.availableModules.joinToString { moduleModel -> "%T(%S, %T::class, listOf(${moduleModel.components.joinToString { componentModel -> "%T<%T>(%S, {${if (componentModel.isInline) "(modules.getValue(%S) as %T).%N(${componentModel.dependencyCandidates.joinToString { "%N[%L] as %T" }})" else "%T(${componentModel.dependencyCandidates.joinToString { "%N[%L] as %T" }})"}}, listOf(${componentModel.dependencyCandidates.joinToString { "%T(%T.%N, listOf(${it.candidates.joinToString { "%T(%S, %S)" }}))" }}), {}, {})" }}))" }})))
-                                """.trimIndent(),
-                                containerImplementorClassName,
-                                ContainerMetadata::class,
-                                *resolvedContainerModel.availableModules.flatMap { moduleModel ->
-                                    listOf(
-                                        ModuleMetadata::class,
-                                        moduleModel.id,
-                                        moduleModel.declaringClass.toClassName()
-                                    ) + moduleModel.components.flatMap { componentModel ->
-                                        listOf(
-                                            ComponentMetadata::class,
-                                            componentModel.implementationType.toTypeName(),
-                                            componentModel.id.moduleLocalId
-                                        ) + (
-                                                if (componentModel.isInline) {
-                                                    listOf(
-                                                        moduleModel.id,
-                                                        moduleModel.declaringClass.toClassName(),
-                                                        componentModel.id.moduleLocalId // TODO ehelyett egy rendes mezőben legyen eltárolva, hogy mi a function neve, amit meg kell hívni
-                                                    ) +
-                                                            componentModel.dependencyCandidates.flatMapIndexed { index, dependencyModel ->
-                                                                listOf(
-                                                                    "it",
-                                                                    index,
-                                                                    if (dependencyModel.dependencyKind.isMultiple)
-                                                                        List::class.asClassName()
-                                                                            .parameterizedBy(dependencyModel.dependencyType.toTypeName())
-                                                                    else
-                                                                        dependencyModel.dependencyType.toTypeName()
-                                                                )
-                                                            }
-                                                } else {
-                                                    listOf(componentModel.implementationType.toClassName()) +
-                                                            componentModel.dependencyCandidates.flatMapIndexed { index, dependencyModel ->
-                                                                listOf(
-                                                                    "it",
-                                                                    index,
-                                                                    if (dependencyModel.dependencyKind.isMultiple)
-                                                                        List::class.asClassName()
-                                                                            .parameterizedBy(dependencyModel.dependencyType.toTypeName())
-                                                                    else
-                                                                        dependencyModel.dependencyType.toTypeName()
-                                                                )
-                                                            } // TODO ez van kicsit feljebb is
-                                                }) +
-                                                componentModel.dependencyCandidates.flatMap {
-                                                    listOf(
-                                                        ComponentDependencyCandidateMetadata::class.asClassName(),
-                                                        ComponentDependencyKind::class.asClassName(),
-                                                        it.dependencyKind.name
-                                                    ) +
-                                                            it.candidates.flatMap {
-                                                                listOf(
-                                                                    ComponentId::class.asClassName(),
-                                                                    it.component.id.moduleId,
-                                                                    it.component.id.moduleLocalId
-                                                                )
-                                                            }
-                                                }
-                                    }
-                                }.toTypedArray()
-                            )
-                        } else {
-                            addStatement("return %T(null)", containerImplementorClassName)
                         }
                     }
                     .build()
             )
+            .addFunction(
+                FunSpec.builder(ScopeInternal::close.name)
+                    .addModifiers(OVERRIDE, SUSPEND)
+                    .build()
+            )
             .build()
-            .writeTo(codeGenerator, true)
     }
 
-    private fun buildComponentGraph(
-        resolvedContainerModel: ResolvedContainerModel,
-        moduleDeclarations: Set<KSClassDeclaration>
-    ): DirectedGraph<ComponentId, Vertex<ComponentId>> =
-        DirectedGraph.build {
-            val modules = resolvedContainerModel.availableModules.filter { it.declaringClass in moduleDeclarations }
-            val components = modules.flatMap { it.components }.associateBy { it.id }
-            val vertexes = components.keys.associateWith {
-                vertex(it)
+    private fun processModuleReference(moduleReference: ModuleReference, resolver: Resolver): ModuleModel? {
+        val moduleDeclaration = moduleReference.moduleDeclaration
+        val moduleId = moduleDeclaration.getModuleId()
+
+        val inlineComponents =
+            moduleDeclaration
+                .findInlineComponents()
+                .map { processInlineComponent(it, moduleId) }
+                .toList()
+
+        val componentScanPackageName =
+            if (moduleDeclaration.isAnnotationPresent(ComponentScan::class)) moduleDeclaration.packageName.asString() else null
+
+        val componentClasses =
+            if (componentScanPackageName != null)
+                findComponentsByComponentScan(resolver, componentScanPackageName)
+                    .map { processComponentClass(it, moduleId) }
+                    .toList()
+            else
+                emptyList()
+
+        val hasInvalidComponents = (inlineComponents + componentClasses).contains(null)
+
+        return if (!hasInvalidComponents) {
+            @Suppress("UNCHECKED_CAST")
+            ModuleModel(
+                moduleId,
+                moduleDeclaration,
+                inlineComponents as List<ComponentModel> + componentClasses as List<ComponentModel>,
+                componentScanPackageName
+            )
+        } else {
+            kspLogger.error("Some components declared by this module are invalid.", moduleDeclaration)
+            null
+        }
+    }
+
+    private fun processComponentClass(
+        componentClassDeclaration: KSClassDeclaration,
+        moduleId: String
+    ): ComponentModel? =
+        if (componentClassDeclaration.qualifiedName != null) {
+            if (componentClassDeclaration.typeParameters.isEmpty()) {
+                if (componentClassDeclaration.primaryConstructor != null) {
+                    ComponentClassModel(
+                        ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString()),
+                        componentClassDeclaration.getAnnotationsOfType<Component>().first()
+                            .getArgumentValueOrNull("type") as? KSType
+                            ?: componentClassDeclaration.asType(emptyList()),
+                        componentClassDeclaration.primaryConstructor!!.parameters.associate {
+                            it.name!!.asString() to it.type.resolve().toComponentLookup()
+                        },
+                        componentClassDeclaration
+                    )
+                } else {
+                    kspLogger.error("Component should have a primary constructor.", componentClassDeclaration)
+                    null
+                }
+            } else {
+                kspLogger.error("Component should have no type parameters.", componentClassDeclaration)
+                null
             }
+        } else {
+            kspLogger.error("Component should be a top-level class.", componentClassDeclaration)
+            null
+        }
+
+    private fun processInlineComponent(
+        inlineComponentDeclaration: KSFunctionDeclaration,
+        moduleId: String
+    ): ComponentModel? =
+        if (inlineComponentDeclaration.returnType != null) {
+            InlineComponentModel(
+                ComponentId(moduleId, inlineComponentDeclaration.simpleName.asString()),
+                inlineComponentDeclaration.returnType!!.resolve(),
+                inlineComponentDeclaration.parameters.associate {
+                    it.name!!.asString() to it.type.resolve().toComponentLookup()
+                },
+                inlineComponentDeclaration.simpleName.asString()
+            )
+        } else {
+            kspLogger.error("Failed to resolve component type.", inlineComponentDeclaration)
+            null
+        }
+
+    private fun validateScopeInterfaceDeclaration(
+        scopeInterfaceDeclaration: KSDeclaration,
+        resolver: Resolver
+    ): KSClassDeclaration? =
+        if (scopeInterfaceDeclaration is KSClassDeclaration) {
+            if (scopeInterfaceDeclaration.classKind == INTERFACE) {
+                if (scopeInterfaceDeclaration.typeParameters.isEmpty()) {
+                    if (resolver
+                            .getClassDeclarationByName<ContainerScope>()!!
+                            .asType(emptyList())
+                            .isAssignableFrom(scopeInterfaceDeclaration.asType(emptyList()))
+                    ) {
+                        scopeInterfaceDeclaration
+                    } else {
+                        kspLogger.error(
+                            "Scope interface must extend `${ContainerScope::class.simpleName}`.",
+                            scopeInterfaceDeclaration
+                        )
+                        null
+                    }
+                } else {
+                    kspLogger.error(
+                        "Scope declaration should be an `interface` with no type parameters.",
+                        scopeInterfaceDeclaration
+                    )
+                    null
+                }
+            } else {
+                kspLogger.error(
+                    "Scope declaration should be an `interface`, `${scopeInterfaceDeclaration.classKind.toDisplayName()}` is not supported.",
+                    scopeInterfaceDeclaration
+                )
+                null
+            }
+        } else {
+            kspLogger.error("Scope declaration should be an `interface`.", scopeInterfaceDeclaration)
+            null
+        }
+
+    private fun buildComponentGraph(resolvedScopeModel: ResolvedScopeModel): DirectedGraph<ComponentId, Vertex<ComponentId>> =
+        DirectedGraph.build {
+            val components = resolvedScopeModel.collectComponents()
+            val vertexes = components.keys.associateWith { vertex(it) }
 
             components.forEach {
                 val componentId = it.key
                 it.value.dependencyCandidates
                     .forEach {
-                        it.candidates.forEach {
-                            edge(vertexes.getValue(componentId), vertexes.getValue(it.component.id))
-                        }
+                        it.value.candidates
+                            .forEach {
+                                edge(vertexes.getValue(componentId), vertexes.getValue(it.component.id))
+                            }
                     }
             }
         }
 
-    private fun collectTransitiveModules(explicitModules: List<KSType>): Set<KSClassDeclaration> {
-        val availableModules = mutableSetOf<KSClassDeclaration>()
-        explicitModules.forEach {
-            collectAvailableModules(it.declaration as KSClassDeclaration, availableModules)
+    // TODO ez használhatná belül a ComponentLookup-ot
+    private fun ResolvedComponentModel.resolveDependenciesInScope(resolvedScopeModel: ResolvedScopeModel): Map<String, List<ComponentId>> {
+        return dependencyCandidates.values.associate {
+            it.dependencyName to it.candidates.map { it.component.id }
         }
-        return availableModules
     }
 
-    private fun collectAvailableModules(
+    private fun collectAllModules(explicitModules: List<KSType>): Set<KSClassDeclaration> {
+        val allModules = mutableSetOf<KSClassDeclaration>()
+        explicitModules.forEach {
+            collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
+        }
+        return allModules
+    }
+
+    private fun collectTransitiveModules(
         moduleType: KSClassDeclaration,
-        availableModules: MutableSet<KSClassDeclaration>
+        allModules: MutableSet<KSClassDeclaration>
     ) {
-        if (!availableModules.contains(moduleType)) {
-            availableModules.add(moduleType)
+        if (!allModules.contains(moduleType)) {
+            allModules.add(moduleType)
 
             (moduleType.getAnnotationsOfType<Module>().first()
-                .getArgumentOrNull("includeModules")?.value as List<KSType>?)
+                .getArgumentValueOrNull("includeModules") as? List<KSType>)
                 ?.forEach {
-                    collectAvailableModules(it.declaration as KSClassDeclaration, availableModules)
+                    collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
                 }
         }
     }
-
-    private fun isModuleClassValid(
-        moduleDeclaration: KSClassDeclaration,
-        resolver: Resolver
-    ): Boolean =
-        if (moduleDeclaration.classKind == CLASS) {
-            if (moduleDeclaration.superTypes
-                    .filter { it.resolve() != resolver.builtIns.anyType }
-                    .toList()
-                    .isEmpty()
-            ) {
-                moduleDeclaration.findInlineComponents().forEach {
-                    // TODO validate
-                }
-                true
-            } else {
-                kspLogger.error(
-                    "Explicit supertypes are not supported for module declarations.",
-                    moduleDeclaration
-                )
-                false
-            }
-        } else {
-            kspLogger.error(
-                "Module class should be a normal 'class', '${moduleDeclaration.classKind.toDisplayName()}' is not supported as module declaration.",
-                moduleDeclaration
-            )
-            false
-        }
 
     private fun KSClassDeclaration.findInlineComponents() =
         getDeclaredFunctions().filter { it.isAnnotationPresent(Component::class) }
 
-    private fun KSClassDeclaration.findComponentsByComponentScan(resolver: Resolver) =
-        if (isAnnotationPresent(ComponentScan::class)) {
-            resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!)
-                .filterIsInstance<KSClassDeclaration>()
-                .filter { it.packageName.asString().startsWith(packageName.asString()) }
-        } else {
-            emptySequence()
-        }
+    private fun findComponentsByComponentScan(
+        resolver: Resolver,
+        modulePackageName: String
+    ): Sequence<KSClassDeclaration> =
+        resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!)
+            .filterIsInstance<KSClassDeclaration>()
+            .filter { it.packageName.asString().startsWith(modulePackageName) }
 
     private fun KSType.toComponentLookup(): ComponentLookup {
         val parameterDeclaration = declaration as KSClassDeclaration
@@ -428,40 +588,77 @@ class DiSymbolProcessor(
                 arguments[0].type!!.resolve(),
                 ComponentDependencyKind.MULTIPLE_OPTIONAL
             ) // TODO handle MULITPLE_REQUIRED
+        } else if (isMarkedNullable) {
+            ComponentLookup(this, ComponentDependencyKind.SINGLE_OPTIONAL)
         } else {
-            ComponentLookup(this, ComponentDependencyKind.SINGLE_REQUIRED) // TODO handle SINGLE_OPTIONAL
+            ComponentLookup(this, ComponentDependencyKind.SINGLE_REQUIRED)
         }
     }
 
-    private fun ContainerModel.resolve(resolver: Resolver) =
-        ResolvedContainerModel(
-            id,
-            availableModules.map {
-                ResolvedModuleModel(
-                    it.id,
-                    it.declaringClass,
-                    it.components.map {
-                        ResolvedComponentModel(
-                            it.id,
-                            it.isInline,
-                            it.implementationType,
-                            it.componentType,
-                            it.dependencies.map {
-                                ResolvedComponentDependencyModel(
-                                    it.type,
-                                    it.dependencyKind,
-                                    resolve(it)
-                                )
-                            })
-                    }
-                )
+    private fun resolveContainerModel(containerModel: ContainerModel): ResolvedContainerModel {
+        val resolvedScopes = mutableMapOf<String, ResolvedScopeModel>()
+        containerModel.scopes
+            .sortedWith { o1, o2 ->
+                if (o1.parentScopeName == o2.name) {
+                    1
+                } else if (o1.name == o2.parentScopeName) {
+                    -1
+                } else {
+                    0
+                }
+            }
+            .forEach { scope ->
+                val parentScopeModuleIds =
+                    scope.parentScopeName?.let { resolvedScopes.getValue(it).modules.keys } ?: emptyList()
+                resolvedScopes[scope.name] =
+                    scope.resolve(
+                        containerModel.modules
+                            .filter { scope.allModules.map { it.moduleId }.contains(it.id) }
+                            .filter { !parentScopeModuleIds.contains(it.id) }
+                            .map { ResolvedModuleModel(it, scope.name) },
+                        scope.parentScopeName?.let { resolvedScopes.getValue(it) }
+                    )
+            }
+
+        return ResolvedContainerModel(containerModel, resolvedScopes.values.associateBy { it.scopeModel.name })
+    }
+
+    private fun ScopeModel.resolve(
+        scopeModules: List<ResolvedModuleModel>,
+        parentScopeModel: ResolvedScopeModel?
+    ): ResolvedScopeModel =
+        ResolvedScopeModel(
+            this,
+            parentScopeModel,
+            scopeModules.associateBy { it.moduleModel.id },
+            scopeModules.flatMap {
+                it.moduleModel.components.map {
+                    ResolvedComponentModel(
+                        it,
+                        name,
+                        it.dependencyDefinitions.map {
+                            ResolvedComponentDependencyModel(
+                                it.key,
+                                it.value.type,
+                                it.value.dependencyKind,
+                                resolve(
+                                    scopeModules + (parentScopeModel?.modules?.values ?: emptyList()),
+                                    it.value
+                                ) // TODO több szintű parent-et is lekövetni rekurzívan
+                            )
+                        }.associateBy { it.dependencyName }
+                    )
+                }
             }
         )
 
-    private fun ContainerModel.resolve(componentLookup: ComponentLookup): List<ComponentDependencyCandidate> =
-        availableModules
+    private fun resolve(
+        scopeModules: List<ResolvedModuleModel>,
+        componentLookup: ComponentLookup
+    ): List<ComponentDependencyCandidate> =
+        scopeModules
             .flatMap { moduleModel ->
-                moduleModel.components.map { ComponentDependencyCandidate(moduleModel, it) }
+                moduleModel.moduleModel.components.map { ComponentDependencyCandidate(moduleModel.moduleModel, it) }
             }.filter {
                 componentLookup.type.isAssignableFrom(it.component.componentType)
             }
@@ -475,45 +672,9 @@ class DiSymbolProcessor(
             OBJECT -> "object"
             ANNOTATION_CLASS -> "annotation class"
         }
+
+    private fun KSClassDeclaration.getModuleId() = qualifiedName!!.asString()
 }
 
-data class ContainerModel(val id: String, val availableModules: List<ModuleModel>)
-
-data class ModuleModel(val id: String, val declaringClass: KSClassDeclaration, val components: List<ComponentModel>)
-
-data class ComponentModel(
-    val id: ComponentId,
-    val isInline: Boolean,
-    val implementationType: KSType,
-    val componentType: KSType,
-    val dependencies: List<ComponentLookup>
-)
-
-data class ComponentLookup(val type: KSType, val dependencyKind: ComponentDependencyKind)
-
-data class ResolvedContainerModel(val id: String, val availableModules: List<ResolvedModuleModel>)
-
-data class ResolvedModuleModel(
-    val id: String,
-    val declaringClass: KSClassDeclaration,
-    val components: List<ResolvedComponentModel>
-)
-
-data class ResolvedComponentModel(
-    val id: ComponentId,
-    val isInline: Boolean,
-    val implementationType: KSType,
-    val componentType: KSType,
-    val dependencyCandidates: List<ResolvedComponentDependencyModel>
-)
-
-data class ResolvedComponentDependencyModel(
-    val dependencyType: KSType,
-    val dependencyKind: ComponentDependencyKind,
-    val candidates: List<ComponentDependencyCandidate>
-)
-
-data class ComponentDependencyCandidate(val declaringModule: ModuleModel, val component: ComponentModel) {
-
-    override fun toString() = "ComponentDependencyCandidate(component.id=${component.id})"
-}
+private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =
+    components.associateBy { it.componentModel.id } + (parentScopeModel?.collectComponents() ?: emptyMap())
