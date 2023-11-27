@@ -19,3 +19,16 @@ data class ScopeCodeGenerationModel(
     val componentGraph: DirectedGraph<ComponentId, Vertex<ComponentId>>,
     val componentVariableMap: Map<ComponentId, String>
 )
+
+private fun ScopeCodeGenerationModel.generateComponentAccessor(
+    componentId: ComponentId,
+    accessorPrefix: String
+): String =
+    if (resolvedScopeModel.components.containsKey(componentId)) {
+        accessorPrefix + componentVariableMap.getValue(componentId)
+    } else {
+        checkNotNull(parentScopeCodeGenerationModel).generateComponentAccessor(componentId, "parentScope.")
+    }
+
+fun ScopeCodeGenerationModel.generateComponentAccessor(componentId: ComponentId): String =
+    generateComponentAccessor(componentId, "")

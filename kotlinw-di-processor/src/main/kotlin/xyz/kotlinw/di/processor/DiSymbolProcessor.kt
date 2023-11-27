@@ -274,7 +274,7 @@ class DiSymbolProcessor(
                 componentGraph,
                 componentGraph
                     .reverseTopologicalSort()
-                    .filter { it.data in resolvedScopeModel.components.map { it.componentModel.id } }
+                    .filter { it.data in resolvedScopeModel.components }
                     .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }
                     .toMap()
             )
@@ -307,17 +307,7 @@ class DiSymbolProcessor(
         val resolvedScopeModel = scopeCodeGenerationModel.resolvedScopeModel
 
         fun getComponentModel(componentId: ComponentId) =
-            resolvedScopeModel.components.first { it.componentModel.id == componentId }
-
-        fun generateComponentAccessorFromParentScope(scope: ResolvedScopeModel, componentId: ComponentId): String =
-            "TODO()"
-
-        fun generateComponentAccessor(componentId: ComponentId): String =
-            if (resolvedScopeModel.components.map { it.componentModel.id }.contains(componentId)) {
-                scopeCodeGenerationModel.componentVariableMap.getValue(componentId)
-            } else {
-                generateComponentAccessorFromParentScope(resolvedScopeModel, componentId)
-            }
+            resolvedScopeModel.components.getValue(componentId)
 
         fun generateComponentConstructorArguments(
             dependencyCandidates: Map<String, ResolvedComponentDependencyModel>,
@@ -325,10 +315,10 @@ class DiSymbolProcessor(
         ) = dependencyCandidates.values.joinToString {
             val dependencies = availableDependencies.getValue(it.dependencyName)
             if (it.dependencyKind.isMultiple) {
-                """listOf(${dependencies.joinToString { generateComponentAccessor(it) }})"""
+                """listOf(${dependencies.joinToString { scopeCodeGenerationModel.generateComponentAccessor(it) }})"""
             } else {
                 if (dependencies.isNotEmpty()) {
-                    generateComponentAccessor(dependencies.first())
+                    scopeCodeGenerationModel.generateComponentAccessor(dependencies.first())
                 } else {
                     "null"
                 }
@@ -664,7 +654,7 @@ class DiSymbolProcessor(
                         }.associateBy { it.dependencyName }
                     )
                 }
-            }
+            }.associateBy { it.componentModel.id }
         )
 
     private fun resolve(
@@ -692,4 +682,4 @@ class DiSymbolProcessor(
 }
 
 private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =
-    components.associateBy { it.componentModel.id } + (parentScopeModel?.collectComponents() ?: emptyMap())
+    components + (parentScopeModel?.collectComponents() ?: emptyMap())

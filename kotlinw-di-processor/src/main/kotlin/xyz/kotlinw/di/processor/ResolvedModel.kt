@@ -2,6 +2,7 @@ package xyz.kotlinw.di.processor
 
 import com.google.devtools.ksp.symbol.KSType
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
+import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ModuleId
 
 data class ResolvedContainerModel(
@@ -31,7 +32,7 @@ data class ResolvedScopeModel(
     val scopeModel: ScopeModel,
     val parentScopeModel: ResolvedScopeModel?,
     val modules: Map<ModuleId, ResolvedModuleModel>,
-    val components: List<ResolvedComponentModel>
+    val components: Map<ComponentId, ResolvedComponentModel>
 )
 
 data class ResolvedModuleModel(
