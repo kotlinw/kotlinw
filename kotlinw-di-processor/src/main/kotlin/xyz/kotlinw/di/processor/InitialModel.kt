@@ -5,6 +5,8 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
+import xyz.kotlinw.di.api.OnConstruction
+import xyz.kotlinw.di.api.OnTerminate
 
 data class ContainerModel(
     val id: String,
@@ -24,20 +26,36 @@ sealed interface ComponentModel {
     val id: ComponentId
     val componentType: KSType
     val dependencyDefinitions: Map<String, ComponentLookup>
+    val lifecycleModel: ComponentLifecycleModel
 }
+
+data class ComponentLifecycleModel(
+
+    /**
+     * Component function annotated with [OnConstruction] to be executed during construction.
+     */
+    val constructionFunction: KSFunctionDeclaration?,
+
+    /**
+     * Component function annotated with [OnTerminate] to be executed during component termination.
+     */
+    val terminationFunction: KSFunctionDeclaration?
+)
 
 data class InlineComponentModel(
     override val id: ComponentId,
     override val componentType: KSType,
     override val dependencyDefinitions: Map<String, ComponentLookup>,
-    val factoryMethodName: String
+    val factoryMethodName: String,
+    override val lifecycleModel: ComponentLifecycleModel
 ) : ComponentModel
 
 data class ComponentClassModel(
     override val id: ComponentId,
     override val componentType: KSType,
     override val dependencyDefinitions: Map<String, ComponentLookup>,
-    val componentClassDeclaration: KSClassDeclaration
+    val componentClassDeclaration: KSClassDeclaration,
+    override val lifecycleModel: ComponentLifecycleModel
 ) : ComponentModel
 
 data class ComponentLookup(val type: KSType, val dependencyKind: ComponentDependencyKind)

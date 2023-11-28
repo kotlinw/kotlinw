@@ -6,4 +6,4 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 @Retention(BINARY)
 @Target(FUNCTION)
 @MustBeDocumented
-annotation class OnInitialize
+annotation class OnConstruction

@@ -46,6 +46,8 @@ import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Container
 import xyz.kotlinw.di.api.ContainerScope
 import xyz.kotlinw.di.api.Module
+import xyz.kotlinw.di.api.OnConstruction
+import xyz.kotlinw.di.api.OnTerminate
 import xyz.kotlinw.di.api.Scope
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
@@ -388,7 +390,13 @@ class DiSymbolProcessor(
                                         componentModel.dependencyCandidates,
                                         dependencies
                                     )
-                                })
+                                })${
+                                    if (componentModel.componentModel.lifecycleModel.constructionFunction != null)
+                                        ".apply { ${componentModel.componentModel.lifecycleModel.constructionFunction!!.simpleName.asString()}() }"
+                                    else
+                                        ""
+
+                                }
                                 """.trimIndent(),
                                 *(
                                         if (componentModel.componentModel is ComponentClassModel)
@@ -453,16 +461,40 @@ class DiSymbolProcessor(
         if (componentClassDeclaration.qualifiedName != null) {
             if (componentClassDeclaration.typeParameters.isEmpty()) {
                 if (componentClassDeclaration.primaryConstructor != null) {
-                    ComponentClassModel(
-                        ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString()),
-                        componentClassDeclaration.getAnnotationsOfType<Component>().first()
-                            .getArgumentValueOrNull("type") as? KSType
-                            ?: componentClassDeclaration.asType(emptyList()),
-                        componentClassDeclaration.primaryConstructor!!.parameters.associate {
-                            it.name!!.asString() to it.type.resolve().toComponentLookup()
-                        },
-                        componentClassDeclaration
-                    )
+                    val onConstructionFunctions = componentClassDeclaration.getAllFunctions()
+                        .filter { it.isAnnotationPresent(OnConstruction::class) }.toList()
+                    val onTerminationFunctions = componentClassDeclaration.getAllFunctions()
+                        .filter { it.isAnnotationPresent(OnTerminate::class) }.toList()
+                    if (onConstructionFunctions.size <= 1 && onTerminationFunctions.size <= 1) {
+                        ComponentClassModel(
+                            ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString()),
+                            componentClassDeclaration.getAnnotationsOfType<Component>().first()
+                                .getArgumentValueOrNull("type") as? KSType
+                                ?: componentClassDeclaration.asType(emptyList()),
+                            componentClassDeclaration.primaryConstructor!!.parameters.associate {
+                                it.name!!.asString() to it.type.resolve().toComponentLookup()
+                            },
+                            componentClassDeclaration,
+                            ComponentLifecycleModel(
+                                onConstructionFunctions.firstOrNull(),
+                                onTerminationFunctions.firstOrNull()
+                            )
+                        )
+                    } else {
+                        if (onConstructionFunctions.size > 1) {
+                            kspLogger.error(
+                                "Component shouldn't have multiple functions annotated with ${annotationDisplayName<OnConstruction>()}.",
+                                componentClassDeclaration
+                            )
+                        }
+                        if (onTerminationFunctions.size > 1) {
+                            kspLogger.error(
+                                "Component shouldn't have multiple functions annotated with ${annotationDisplayName<OnTerminate>()}.",
+                                componentClassDeclaration
+                            )
+                        }
+                        null
+                    }
                 } else {
                     kspLogger.error("Component should have a primary constructor.", componentClassDeclaration)
                     null
@@ -487,7 +519,8 @@ class DiSymbolProcessor(
                 inlineComponentDeclaration.parameters.associate {
                     it.name!!.asString() to it.type.resolve().toComponentLookup()
                 },
-                inlineComponentDeclaration.simpleName.asString()
+                inlineComponentDeclaration.simpleName.asString(),
+                ComponentLifecycleModel(null, null) // TODO allow
             )
         } else {
             kspLogger.error("Failed to resolve component type.", inlineComponentDeclaration)
@@ -688,3 +721,5 @@ class DiSymbolProcessor(
 
 private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =
     components + (parentScopeModel?.collectComponents() ?: emptyMap())
+
+private inline fun <reified T : Annotation> annotationDisplayName(): String = "@" + T::class.simpleName
