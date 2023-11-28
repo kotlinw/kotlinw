@@ -8,4 +8,4 @@ import kotlin.reflect.KClass
 @Retention(BINARY)
 @Target(CLASS, FUNCTION)
 @MustBeDocumented
-annotation class Component(val type: KClass<Any> = Any::class)
+annotation class Component(val type: KClass<out Any> = Any::class)

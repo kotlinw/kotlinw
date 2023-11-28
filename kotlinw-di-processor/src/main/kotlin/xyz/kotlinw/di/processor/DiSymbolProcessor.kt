@@ -278,13 +278,13 @@ class DiSymbolProcessor(
                 resolvedScopeModel.modules
                     .filterValues { it.moduleModel.components.any { it is InlineComponentModel } }
                     .keys
-                    .mapIndexed { index, moduleId -> moduleId to "m$index" }
+                    .mapIndexed { index, moduleId -> moduleId to "m$index" } // TODO beszédes neveket, hogy a generált kód olvashatóbb legyen
                     .toMap(),
                 componentGraph,
                 componentGraph
                     .reverseTopologicalSort()
                     .filter { it.data in resolvedScopeModel.components }
-                    .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }
+                    .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }// TODO beszédes neveket, hogy a generált kód olvashatóbb legyen
                     .toMap()
             )
         }
