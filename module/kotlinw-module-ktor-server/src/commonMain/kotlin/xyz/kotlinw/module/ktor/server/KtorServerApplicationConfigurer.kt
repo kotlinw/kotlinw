@@ -1,7 +1,7 @@
-package kotlinw.module.serverbase
+package xyz.kotlinw.module.ktor.server
 
 import io.ktor.server.application.Application
-import kotlinw.module.serverbase.KtorServerApplicationConfigurer.Context
+import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer.Context
 import kotlinw.util.stdlib.HasPriority
 import kotlinw.util.stdlib.Priority
 import kotlinx.coroutines.CoroutineScope
@@ -13,8 +13,8 @@ abstract class KtorServerApplicationConfigurer(override val priority: Priority =
         val ktorServerCoroutineScope: CoroutineScope
     )
 
-    @PublishedApi
-    internal fun setupModule(context: Context) = context.setup()
+    // TODO make internal+@PublishedApi after removing koin
+    fun setupModule(context: Context) = context.setup()
 
     // TODO replace with context(Context)
     abstract fun Context.setup()

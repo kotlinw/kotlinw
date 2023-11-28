@@ -29,7 +29,7 @@ import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemoteConnectionData
 import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
-import kotlinw.remoting.server.ktor.ServerToClientCommunicationType
+import kotlinw.remoting.server.ktor.ServerToClientCommunicationType.WebSockets
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
@@ -37,6 +37,7 @@ import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 
 val serverRemotingModule by lazy {
     module {
@@ -56,7 +57,7 @@ val serverRemotingModule by lazy {
                         this.remoteCallHandlers = remoteCallHandlers
                         this.identifyClient = { 1 } // FIXME
                         this.supportedServerToClientCommunicationTypes =
-                            setOf(ServerToClientCommunicationType.WebSockets) // TODO configurable
+                            setOf(WebSockets) // TODO configurable
                         this.onConnectionAdded = { peerId, sessionId, messagingManager ->
                             remotePeerRegistry.addConnection(
                                 RemoteConnectionId(peerId, sessionId),

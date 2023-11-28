@@ -65,7 +65,7 @@ fun ConfigurationPropertyLookup.getMatchingEnumerableConfigurationProperties(key
     filterEnumerableConfigurationProperties { it.name.matches(keyRegex) }
 
 class ConfigurationPropertyLookupImpl(
-    configurationPropertyLookupSources: Iterable<ConfigurationPropertyLookupSource>
+    configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>
 ) : ConfigurationPropertyLookup {
 
     private val logger = PlatformLogging.getLogger()

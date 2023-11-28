@@ -8,17 +8,20 @@ import io.ktor.server.http.content.staticResources
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import kotlinw.module.serverbase.KtorServerApplicationConfigurer
 import kotlinx.io.asSink
 import kotlinx.io.buffered
 import org.koin.core.annotation.Singleton
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.pwa.core.BuiltInWebResourceMapping
 import xyz.kotlinw.pwa.core.ClasspathFolderWebResourceMapping
 import xyz.kotlinw.pwa.core.ResourceWebResourceMapping
 import xyz.kotlinw.pwa.core.WebResourceRegistry
 
-@Singleton
-class BuiltInWebResourceSupportController(private val webResourceRegistry: WebResourceRegistry) :
+@Component
+class BuiltInWebResourceSupportController(
+    private val webResourceRegistry: WebResourceRegistry
+) :
     KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {

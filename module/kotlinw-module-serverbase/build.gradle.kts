@@ -1,4 +1,3 @@
-
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
@@ -14,20 +13,24 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.module.kotlinwModuleCore)
+                api(projects.kotlinw.module.kotlinwModuleAppbase)
+                api(projects.kotlinw.module.kotlinwModuleKtorServer)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwRemotingServerKtor)
-                api(libs.ktor.server.caching.headers)
-                api(libs.ktor.server.core)
-                api(libs.ktor.server.host.common)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                // TODO implementation(libs.ktor.server.test.host)
+                // implementation(libs.ktor.server.test.host)
+                // implementation(libs.ktor.server.core)
                 implementation(libs.ktor.server.cio)
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.server.netty)
             }
         }
     }

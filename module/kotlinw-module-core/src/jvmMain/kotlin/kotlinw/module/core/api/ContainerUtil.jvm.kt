@@ -3,6 +3,7 @@ package kotlinw.module.core.api
 import kotlin.reflect.KClass
 import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.configuration.core.DeploymentMode
+import kotlinw.configuration.core.DeploymentMode.Development
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.configuration.core.StandardJvmConfigurationPropertyResolver
 import kotlinw.koin.core.api.coreModuleLogger
@@ -31,16 +32,7 @@ fun <T : Any> coreJvmModule(applicationClass: KClass<T>) = coreJvmModule(applica
 // TODO deploymentMode jöhetne paraméterben?
 fun coreJvmModule(classLoader: ClassLoader) =
     module {
-        single {
-            val deploymentModeFromSystemProperty = System.getProperty("kotlinw.core.deploymentMode")
-            if (deploymentModeFromSystemProperty.isNullOrBlank()) {
-                DeploymentMode.Development
-            } else {
-                DeploymentMode.of(deploymentModeFromSystemProperty)
-            }.also {
-                coreModuleLogger.info { "Deployment mode: " / it }
-            }
-        }
+        single { readDeploymentModeFromSystemProperty() }
 
         single<ConfigurationPropertyLookupSource> {
             EnumerableConfigurationPropertyLookupSourceImpl(
@@ -50,6 +42,17 @@ fun coreJvmModule(classLoader: ClassLoader) =
 
         single<ClasspathScanner> { ClasspathScannerImpl() }
     }
+
+fun readDeploymentModeFromSystemProperty(defaultDeploymentMode: DeploymentMode = Development): DeploymentMode {
+    val deploymentModeFromSystemProperty = System.getProperty("kotlinw.core.deploymentMode")
+    return if (deploymentModeFromSystemProperty.isNullOrBlank()) {
+        defaultDeploymentMode
+    } else {
+        DeploymentMode.of(deploymentModeFromSystemProperty)
+    }.also {
+        coreModuleLogger.info { "Deployment mode: " / it }
+    }
+}
 
 @KoinApplicationDslMarker
 suspend inline fun <reified A : Any> runJvmApplication(

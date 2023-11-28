@@ -22,6 +22,7 @@ import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 
 class ServerBaseModuleIntegrationTest {
 

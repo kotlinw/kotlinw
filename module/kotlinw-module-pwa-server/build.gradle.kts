@@ -7,7 +7,7 @@ plugins {
 dependencies {
     api(projects.kotlinw.module.kotlinwModuleCore)
     api(projects.kotlinw.kotlinwPwaCore)
-    implementation(projects.kotlinw.module.kotlinwModuleServerbase)
+    implementation(projects.kotlinw.module.kotlinwModuleKtorServer)
 
     implementation(libs.kotlin.bom)
 

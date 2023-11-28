@@ -25,7 +25,7 @@ object ConsoleLoggingIntegrator: LoggingIntegrator {
         message: LogMessage,
         attributes: Collection<LogEntryAttribute>
     ) {
-        TODO("Not yet implemented")
+        console.log(message.toString()) // TODO
     }
 
     @Deprecated("Not supported on JS platform", level = DeprecationLevel.ERROR)

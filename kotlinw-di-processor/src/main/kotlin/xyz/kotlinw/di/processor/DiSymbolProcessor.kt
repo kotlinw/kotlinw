@@ -21,10 +21,10 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.validate
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier.LATEINIT
 import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.KModifier.PRIVATE
 import com.squareup.kotlinpoet.KModifier.SUSPEND
@@ -41,6 +41,8 @@ import kotlinw.ksp.util.companionClassName
 import kotlinw.ksp.util.getAnnotationsOfType
 import kotlinw.ksp.util.getArgumentOrNull
 import kotlinw.ksp.util.getArgumentValueOrNull
+import kotlinw.ksp.util.hasCompanionObject
+import kotlinw.ksp.util.isSuspend
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Container
@@ -108,105 +110,116 @@ class DiSymbolProcessor(
 
         // TODO validate container model (e.g. all dependencies are resolvable with correct arity)
 
+        // TODO module class should be class with no-arg constructor
 
         val containerModel =
             if (containerDeclaration is KSClassDeclaration && containerDeclaration.classKind == INTERFACE) {
-                val scopeDeclarations =
-                    containerDeclaration
-                        .getAllFunctions()
-                        .filter { it.isAnnotationPresent(Scope::class) }
-                        .mapNotNull { scopeDeclarationFunction ->
-                            val scopeDeclarationTypeReference = scopeDeclarationFunction.returnType
-                            if (scopeDeclarationTypeReference != null) {
-                                val scopeInterfaceDeclaration = validateScopeInterfaceDeclaration(
-                                    scopeDeclarationTypeReference.resolve().declaration,
-                                    resolver
-                                )
-                                if (scopeInterfaceDeclaration != null) {
-                                    val scopeAnnotation = scopeDeclarationFunction.getAnnotationsOfType<Scope>().first()
-                                    val declaredModulesValue = scopeAnnotation.getArgumentOrNull("modules")
-                                    val declaredModules =
-                                        declaredModulesValue?.value as? List<KSType> ?: emptyList()
-                                    val parentScopeName = scopeAnnotation.getArgumentValueOrNull("parent") as? String
+                if (containerDeclaration.hasCompanionObject) {
+                    val scopeDeclarations =
+                        containerDeclaration
+                            .getAllFunctions()
+                            .filter { it.isAnnotationPresent(Scope::class) }
+                            .mapNotNull { scopeDeclarationFunction ->
+                                val scopeDeclarationTypeReference = scopeDeclarationFunction.returnType
+                                if (scopeDeclarationTypeReference != null) {
+                                    val scopeInterfaceDeclaration = validateScopeInterfaceDeclaration(
+                                        scopeDeclarationTypeReference.resolve().declaration,
+                                        resolver
+                                    )
+                                    if (scopeInterfaceDeclaration != null) {
+                                        val scopeAnnotation =
+                                            scopeDeclarationFunction.getAnnotationsOfType<Scope>().first()
+                                        val declaredModulesValue = scopeAnnotation.getArgumentOrNull("modules")
+                                        val declaredModules =
+                                            declaredModulesValue?.value as? List<KSType> ?: emptyList()
+                                        val parentScopeName =
+                                            (scopeAnnotation.getArgumentValueOrNull("parent") as? String)?.let { it.ifEmpty { null } }
 
-                                    if (declaredModules.all {
-                                            it.declaration is KSClassDeclaration
-                                                    && it.declaration.isAnnotationPresent(Module::class)
-                                        }
-                                    ) {
-                                        ScopeModel(
-                                            parentScopeName,
-                                            scopeDeclarationFunction.simpleName.asString(),
-                                            scopeDeclarationFunction,
-                                            scopeInterfaceDeclaration,
-                                            declaredModules.map {
-                                                ModuleReference(
-                                                    it.declaration as KSClassDeclaration,
-                                                    (it.declaration as KSClassDeclaration).getModuleId()
-                                                )
-                                            },
-                                            collectAllModules(declaredModules)
-                                                .map {
+                                        if (declaredModules.all {
+                                                it.declaration is KSClassDeclaration
+                                                        && it.declaration.isAnnotationPresent(Module::class)
+                                            }
+                                        ) {
+                                            ScopeModel(
+                                                parentScopeName,
+                                                scopeDeclarationFunction.simpleName.asString(),
+                                                scopeDeclarationFunction,
+                                                scopeInterfaceDeclaration,
+                                                declaredModules.map {
                                                     ModuleReference(
-                                                        it,
-                                                        it.getModuleId()
+                                                        it.declaration as KSClassDeclaration,
+                                                        (it.declaration as KSClassDeclaration).getModuleId()
                                                     )
-                                                }
-                                                .toSet()
-                                        )
+                                                },
+                                                collectAllModules(declaredModules)
+                                                    .map {
+                                                        ModuleReference(
+                                                            it,
+                                                            it.getModuleId()
+                                                        )
+                                                    }
+                                                    .toSet()
+                                            )
+                                        } else {
+                                            val invalidReferences =
+                                                declaredModules.filter { it.declaration is KSClassDeclaration }
+                                            kspLogger.error(
+                                                "Invalid reference(s) to non-module declaration(s): ${
+                                                    invalidReferences.joinToString { it.toTypeName().toString() }
+                                                }",
+                                                scopeDeclarationTypeReference
+                                            )
+                                            null
+                                        }
                                     } else {
-                                        val invalidReferences =
-                                            declaredModules.filter { it.declaration is KSClassDeclaration }
-                                        kspLogger.error(
-                                            "Invalid reference(s) to non-module declaration(s): ${
-                                                invalidReferences.joinToString { it.toTypeName().toString() }
-                                            }",
-                                            scopeDeclarationTypeReference
-                                        )
                                         null
                                     }
                                 } else {
+                                    kspLogger.error("Failed to resolve scope type.", scopeDeclarationFunction)
                                     null
                                 }
-                            } else {
-                                kspLogger.error("Failed to resolve scope type.", scopeDeclarationFunction)
-                                null
+                            }
+                            .toList()
+
+                    val moduleDeclarations =
+                        scopeDeclarations
+                            .flatMap { it.allModules }
+                            .toSet()
+                            .mapNotNull { processModuleReference(it, resolver) }
+
+                    val overlappingModules = mutableListOf<Pair<ModuleModel, ModuleModel>>()
+                    moduleDeclarations.forEach { currentModule ->
+                        moduleDeclarations.forEach { referenceModule ->
+                            if (currentModule != referenceModule
+                                && currentModule.componentScanPackageName != null
+                                && referenceModule.componentScanPackageName != null
+                                && !overlappingModules.contains(referenceModule to currentModule)
+                                && !overlappingModules.contains(currentModule to referenceModule)
+                                && (currentModule.componentScanPackageName.startsWith(referenceModule.componentScanPackageName))
+                            ) {
+                                overlappingModules.add(currentModule to referenceModule)
                             }
                         }
-                        .toList()
-
-                val moduleDeclarations =
-                    scopeDeclarations
-                        .flatMap { it.allModules }
-                        .toSet()
-                        .mapNotNull { processModuleReference(it, resolver) }
-
-                val overlappingModules = mutableListOf<Pair<ModuleModel, ModuleModel>>()
-                moduleDeclarations.forEach { currentModule ->
-                    moduleDeclarations.forEach { referenceModule ->
-                        if (currentModule != referenceModule
-                            && currentModule.componentScanPackageName != null
-                            && referenceModule.componentScanPackageName != null
-                            && !overlappingModules.contains(referenceModule to currentModule)
-                            && !overlappingModules.contains(currentModule to referenceModule)
-                            && (currentModule.componentScanPackageName.startsWith(referenceModule.componentScanPackageName))
-                        ) {
-                            overlappingModules.add(currentModule to referenceModule)
-                        }
                     }
-                }
 
-                if (overlappingModules.isEmpty()) {
-                    ContainerModel(
-                        containerDeclaration.qualifiedName!!.asString(),
-                        scopeDeclarations,
-                        moduleDeclarations,
+                    if (overlappingModules.isEmpty()) {
+                        ContainerModel(
+                            containerDeclaration.qualifiedName!!.asString(),
+                            scopeDeclarations,
+                            moduleDeclarations,
+                            containerDeclaration
+                        )
+                    } else {
+                        overlappingModules.forEach {
+                            kspLogger.error("Overlapping modules with @${ComponentScan::class.simpleName}: ${it.first.id} and ${it.second.id}")
+                        }
+                        null
+                    }
+                } else {
+                    kspLogger.error(
+                        "Container declaration interface should have a companion object.",
                         containerDeclaration
                     )
-                } else {
-                    overlappingModules.forEach {
-                        kspLogger.error("Overlapping modules with @${ComponentScan::class.simpleName}: ${it.first.id} and ${it.second.id}")
-                    }
                     null
                 }
             } else {
@@ -288,6 +301,7 @@ class DiSymbolProcessor(
         FunSpec
             .builder(scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeDeclarationFunction.simpleName.asString())
             .addModifiers(OVERRIDE)
+            .returns(scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
             .apply {
                 scopeCodeGenerationModel.parentScopeCodeGenerationModel?.also {
                     addParameter(
@@ -295,18 +309,19 @@ class DiSymbolProcessor(
                         it.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName()
                     )
                 }
-            }
-            .returns(scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
-            .apply {
+
                 if (scopeCodeGenerationModel.parentScopeCodeGenerationModel == null) {
-                    addStatement("return %T()", scopeCodeGenerationModel.implementationClassName)
+                    addStatement(
+                        "return %T()",
+                        scopeCodeGenerationModel.implementationClassName
+                    )
                 } else {
                     addStatement(
                         "return %T(%N as %T)",
                         scopeCodeGenerationModel.implementationClassName,
-                        "parentScope",
+                        "parentScope", // TODO tuti ez a neve?
                         scopeCodeGenerationModel.parentScopeCodeGenerationModel.implementationClassName
-                    ) // TODO fix parentScope
+                    )
                 }
             }
             .build()
@@ -327,6 +342,47 @@ class DiSymbolProcessor(
                 } else {
                     "null"
                 }
+            }
+        }
+
+        fun CodeBlock.Builder.buildScopeInitializer() {
+            scopeCodeGenerationModel.componentVariableMap.forEach {
+                val componentId = it.key
+                val componentVariableName = it.value
+
+                val componentModel = resolvedScopeModel.components.getValue(componentId)
+                val dependencies = componentModel.resolveDependenciesInScope()
+
+                addStatement(
+                    """
+                        $componentVariableName = ${
+                        when (componentModel.componentModel) {
+                            is ComponentClassModel -> "%T"
+                            is InlineComponentModel -> "${
+                                scopeCodeGenerationModel.moduleVariableMap.getValue(
+                                    componentId.moduleId
+                                )
+                            }.${componentModel.componentModel.factoryMethodName}"
+                        }
+                    }(${
+                        generateComponentConstructorArguments(
+                            componentModel.dependencyCandidates,
+                            dependencies
+                        )
+                    })${
+                        if (componentModel.componentModel.lifecycleModel.constructionFunction != null)
+                            ".apply { ${componentModel.componentModel.lifecycleModel.constructionFunction!!.simpleName.asString()}() }"
+                        else
+                            ""
+                    }
+                    """.trimIndent(),
+                    *(
+                            if (componentModel.componentModel is ComponentClassModel)
+                                listOf(componentModel.componentModel.componentClassDeclaration.toClassName())
+                            else
+                                emptyList()
+                            ).toTypedArray()
+                )
             }
         }
 
@@ -359,54 +415,19 @@ class DiSymbolProcessor(
                     .map { (componentId, propertyName) ->
                         PropertySpec.builder(
                             propertyName,
-                            resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName()
+                            resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName(),
+                            LATEINIT
                         )
+                            .mutable(true)
                             .build()
                     }
             )
-            .addInitializerBlock(
-                CodeBlock.builder()
-                    .apply {
-                        scopeCodeGenerationModel.componentVariableMap.forEach {
-                            val componentId = it.key
-                            val componentVariableName = it.value
-
-                            val componentModel = resolvedScopeModel.components.getValue(componentId)
-                            val dependencies = componentModel.resolveDependenciesInScope()
-
-                            addStatement(
-                                """
-                                    $componentVariableName = ${
-                                    when (componentModel.componentModel) {
-                                        is ComponentClassModel -> "%T"
-                                        is InlineComponentModel -> "${
-                                            scopeCodeGenerationModel.moduleVariableMap.getValue(
-                                                componentId.moduleId
-                                            )
-                                        }.${componentModel.componentModel.factoryMethodName}"
-                                    }
-                                }(${
-                                    generateComponentConstructorArguments(
-                                        componentModel.dependencyCandidates,
-                                        dependencies
-                                    )
-                                })${
-                                    if (componentModel.componentModel.lifecycleModel.constructionFunction != null)
-                                        ".apply { ${componentModel.componentModel.lifecycleModel.constructionFunction!!.simpleName.asString()}() }"
-                                    else
-                                        ""
-
-                                }
-                                """.trimIndent(),
-                                *(
-                                        if (componentModel.componentModel is ComponentClassModel)
-                                            listOf(componentModel.componentModel.componentClassDeclaration.toClassName())
-                                        else
-                                            emptyList()
-                                        ).toTypedArray()
-                            )
-                        }
-                    }
+            .addFunction(
+                FunSpec.builder(ScopeInternal::start.name)
+                    .addModifiers(OVERRIDE, SUSPEND)
+                    .addCode(
+                        CodeBlock.builder().apply { buildScopeInitializer() }.build()
+                    )
                     .build()
             )
             .addFunction(
@@ -468,9 +489,10 @@ class DiSymbolProcessor(
                     if (onConstructionFunctions.size <= 1 && onTerminationFunctions.size <= 1) {
                         ComponentClassModel(
                             ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString()),
-                            componentClassDeclaration.getAnnotationsOfType<Component>().first()
-                                .getArgumentValueOrNull("type") as? KSType
-                                ?: componentClassDeclaration.asType(emptyList()),
+// TODO
+//                            componentClassDeclaration.getAnnotationsOfType<Component>().first()
+//                                .getArgumentValueOrNull("type") as? KSType ?:
+                                componentClassDeclaration.asType(emptyList()),
                             componentClassDeclaration.primaryConstructor!!.parameters.associate {
                                 it.name!!.asString() to it.type.resolve().toComponentLookup()
                             },
@@ -519,7 +541,7 @@ class DiSymbolProcessor(
                 inlineComponentDeclaration.parameters.associate {
                     it.name!!.asString() to it.type.resolve().toComponentLookup()
                 },
-                inlineComponentDeclaration.simpleName.asString(),
+                inlineComponentDeclaration,
                 ComponentLifecycleModel(null, null) // TODO allow
             )
         } else {
@@ -620,9 +642,9 @@ class DiSymbolProcessor(
         resolver: Resolver,
         modulePackageName: String
     ): Sequence<KSClassDeclaration> =
-        resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!)
+        resolver.getDeclarationsFromPackage(modulePackageName)
             .filterIsInstance<KSClassDeclaration>()
-            .filter { it.packageName.asString().startsWith(modulePackageName) }
+            .filter { it.isAnnotationPresent(Component::class) }
 
     private fun KSType.toComponentLookup(): ComponentLookup {
         val parameterDeclaration = declaration as KSClassDeclaration
@@ -674,31 +696,33 @@ class DiSymbolProcessor(
             this,
             parentScopeModel,
             scopeModules.associateBy { it.moduleModel.id },
-            scopeModules.flatMap {
-                it.moduleModel.components.map {
-                    ResolvedComponentModel(
-                        it,
-                        name,
-                        it.dependencyDefinitions.map {
-                            ResolvedComponentDependencyModel(
-                                it.key,
-                                it.value.type,
-                                it.value.dependencyKind,
-                                resolve(
-                                    scopeModules + (parentScopeModel?.modules?.values ?: emptyList()),
-                                    it.value
-                                ) // TODO több szintű parent-et is lekövetni rekurzívan
-                            )
-                        }.associateBy { it.dependencyName }
-                    )
+            scopeModules
+                .flatMap {
+                    it.moduleModel.components.map {
+                        ResolvedComponentModel(
+                            it,
+                            name,
+                            it.dependencyDefinitions.map {
+                                ResolvedComponentDependencyModel(
+                                    it.key,
+                                    it.value.type,
+                                    it.value.dependencyKind,
+                                    resolve(
+                                        scopeModules + (parentScopeModel?.modules?.values ?: emptyList()),
+                                        it.value
+                                    ) // TODO több szintű parent-et is lekövetni rekurzívan
+                                )
+                            }.associateBy { it.dependencyName }
+                        )
+                    }
                 }
-            }.associateBy { it.componentModel.id }
+                .associateBy { it.componentModel.id }
         )
 
     private fun resolve(
         scopeModules: List<ResolvedModuleModel>,
         componentLookup: ComponentLookup
-    ): List<ComponentDependencyCandidate> =
+    ): List<ComponentDependencyCandidate> = // TODO sokkal hatékonyabbra
         scopeModules
             .flatMap { moduleModel ->
                 moduleModel.moduleModel.components.map { ComponentDependencyCandidate(moduleModel.moduleModel, it) }

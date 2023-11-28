@@ -46,9 +46,12 @@ data class InlineComponentModel(
     override val id: ComponentId,
     override val componentType: KSType,
     override val dependencyDefinitions: Map<String, ComponentLookup>,
-    val factoryMethodName: String,
+    val factoryMethod: KSFunctionDeclaration,
     override val lifecycleModel: ComponentLifecycleModel
-) : ComponentModel
+) : ComponentModel {
+
+    val factoryMethodName: String get() = factoryMethod.simpleName.asString()
+}
 
 data class ComponentClassModel(
     override val id: ComponentId,

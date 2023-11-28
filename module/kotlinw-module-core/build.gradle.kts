@@ -29,6 +29,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwRemotingClientKtor)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
+                api(projects.kotlinw.kotlinwDiApi)
 
                 api(libs.koin.core)
                 api(libs.koin.annotations)

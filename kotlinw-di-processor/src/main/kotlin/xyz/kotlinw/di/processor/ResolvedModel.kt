@@ -1,6 +1,8 @@
 package xyz.kotlinw.di.processor
 
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.Modifier
+import kotlinw.ksp.util.isSuspend
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ModuleId

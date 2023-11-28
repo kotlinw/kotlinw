@@ -9,11 +9,11 @@ import io.ktor.server.routing.routing
 import kotlinw.i18n.ApplicationLocaleService
 import kotlinw.i18n.LocaleIds
 import kotlinw.i18n.findBestSupportedLocale
-import kotlinw.module.serverbase.KtorServerApplicationConfigurer
-import org.koin.core.annotation.Singleton
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.pwa.core.WebManifestFactory
 
-@Singleton
+@Component
 class WebManifestHttpController(
     private val webManifestFactory: WebManifestFactory,
     private val applicationLocaleService: ApplicationLocaleService

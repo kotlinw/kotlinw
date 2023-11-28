@@ -8,10 +8,11 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.DeploymentMode.Development
-import kotlinw.module.serverbase.KtorServerApplicationConfigurer
 import org.koin.core.annotation.Singleton
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 
-@Singleton
+@Component
 class MainHttpController(private val deploymentMode: DeploymentMode): KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {
