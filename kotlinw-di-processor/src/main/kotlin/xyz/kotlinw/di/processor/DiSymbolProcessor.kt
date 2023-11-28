@@ -230,6 +230,7 @@ class DiSymbolProcessor(
                     TypeSpec
                         .classBuilder(codeGenerationModel.implementationName)
                         .addSuperinterface(codeGenerationModel.interfaceName)
+                        .addModifiers(PRIVATE)
                         .addFunctions(
                             codeGenerationModel.scopes.values.map { scopeCodeGenerationModel ->
                                 generateScopeBuilderFunction(scopeCodeGenerationModel)
@@ -311,9 +312,6 @@ class DiSymbolProcessor(
     private fun generateScopeClass(scopeCodeGenerationModel: ScopeCodeGenerationModel): TypeSpec {
         val resolvedScopeModel = scopeCodeGenerationModel.resolvedScopeModel
 
-        fun getComponentModel(componentId: ComponentId) =
-            resolvedScopeModel.components.getValue(componentId)
-
         fun generateComponentConstructorArguments(
             dependencyCandidates: Map<String, ResolvedComponentDependencyModel>,
             availableDependencies: Map<String, List<ComponentId>>
@@ -359,7 +357,7 @@ class DiSymbolProcessor(
                     .map { (componentId, propertyName) ->
                         PropertySpec.builder(
                             propertyName,
-                            getComponentModel(componentId).componentModel.componentType.toTypeName()
+                            resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName()
                         )
                             .build()
                     }
@@ -371,9 +369,8 @@ class DiSymbolProcessor(
                             val componentId = it.key
                             val componentVariableName = it.value
 
-                            val componentModel = getComponentModel(componentId)
-                            val dependencies =
-                                componentModel.resolveDependenciesInScope(resolvedScopeModel)
+                            val componentModel = resolvedScopeModel.components.getValue(componentId)
+                            val dependencies = componentModel.resolveDependenciesInScope()
 
                             addStatement(
                                 """
@@ -554,7 +551,7 @@ class DiSymbolProcessor(
         }
 
     // TODO ez használhatná belül a ComponentLookup-ot
-    private fun ResolvedComponentModel.resolveDependenciesInScope(resolvedScopeModel: ResolvedScopeModel): Map<String, List<ComponentId>> {
+    private fun ResolvedComponentModel.resolveDependenciesInScope(): Map<String, List<ComponentId>> {
         return dependencyCandidates.values.associate {
             it.dependencyName to it.candidates.map { it.component.id }
         }

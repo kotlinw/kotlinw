@@ -39,6 +39,6 @@ interface RootScope: ContainerScope {
 
 interface NestedScope: RootScope {
 
-    @ComponentQuery
-    fun getLongFormatter(): Formatter<Long>
+//    @ComponentQuery
+//    fun getLongFormatter(): Formatter<Long>
 }
