@@ -1,6 +1,5 @@
 package kotlinw.module.hibernate.core
 
-import kotlin.reflect.KClass
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
@@ -21,7 +20,7 @@ import xyz.kotlinw.di.api.Module
 @Module
 class HibernateModuleNew {
 
-    @Component
+    @Component(onTerminate = "close")
     fun bootstrapServiceRegistry(customizers: List<BootstrapServiceRegistryCustomizer>): BootstrapServiceRegistry =
         BootstrapServiceRegistryBuilder()
             .apply {
@@ -29,7 +28,7 @@ class HibernateModuleNew {
             }
             .build()
 
-    @Component
+    @Component(onTerminate = "close")
     fun standardServiceRegistry(
         bootstrapServiceRegistry: BootstrapServiceRegistry,
         configurationPropertyLookup: ConfigurationPropertyLookup,
@@ -61,7 +60,7 @@ class HibernateModuleNew {
             .build()
 
     @Component
-    fun persistentClassRegistrator(persistentClassProviders: List<PersistentClassProvider>) =
+    fun persistentClassProviderApplier(persistentClassProviders: List<PersistentClassProvider>) =
         MetadataSourcesCustomizer {
             persistentClassProviders.forEach {
                 it.getPersistentClasses().forEach {
@@ -80,7 +79,7 @@ class HibernateModuleNew {
                 customizers.forEach { it.customize() }
             }
 
-    @Component
+    @Component(onTerminate = "close")
     fun sessionFactory(metadata: Metadata, customizers: List<SessionFactoryCustomizer>): SessionFactory =
         metadata
             .sessionFactoryBuilder

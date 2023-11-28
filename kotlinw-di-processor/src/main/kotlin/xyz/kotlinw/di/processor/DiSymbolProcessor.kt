@@ -34,6 +34,7 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import kotlinw.graph.algorithm.reverseTopologicalSort
+import kotlinw.graph.algorithm.topologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 import kotlinw.graph.model.build
@@ -42,7 +43,6 @@ import kotlinw.ksp.util.getAnnotationsOfType
 import kotlinw.ksp.util.getArgumentOrNull
 import kotlinw.ksp.util.getArgumentValueOrNull
 import kotlinw.ksp.util.hasCompanionObject
-import kotlinw.ksp.util.isSuspend
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Container
@@ -345,7 +345,7 @@ class DiSymbolProcessor(
             }
         }
 
-        fun CodeBlock.Builder.buildScopeInitializer() {
+        fun CodeBlock.Builder.generateStartMethod() {
             scopeCodeGenerationModel.componentVariableMap.forEach {
                 val componentId = it.key
                 val componentVariableName = it.value
@@ -382,6 +382,38 @@ class DiSymbolProcessor(
                             else
                                 emptyList()
                             ).toTypedArray()
+                )
+            }
+        }
+
+        fun TypeSpec.Builder.generateCloseMethod() {
+            // TODO kezelni, ha a close() már meg lett hívva (pl. shutdown hook által)
+            if (scopeCodeGenerationModel.resolvedScopeModel.components.any { it.value.componentModel.lifecycleModel.terminationFunction != null }) {
+                addFunction(
+                    FunSpec.builder(ScopeInternal::close.name)
+                        .addModifiers(OVERRIDE, SUSPEND)
+                        .apply {
+                            scopeCodeGenerationModel.componentGraph.topologicalSort().forEach {
+                                val componentId = it.data
+                                val componentModel =
+                                    scopeCodeGenerationModel.resolvedScopeModel.components.getValue(componentId)
+                                val terminationFunction =
+                                    componentModel.componentModel.lifecycleModel.terminationFunction
+                                if (terminationFunction != null) {
+                                    addCode(
+                                        // TODO try-catch
+                                        CodeBlock.builder()
+                                            .addStatement(
+                                                scopeCodeGenerationModel.componentVariableMap.getValue(componentId) + ".%N()",
+                                                terminationFunction.simpleName.asString()
+                                            )
+                                            .build()
+                                    )
+                                        .build()
+                                }
+                            }
+                        }
+                        .build()
                 )
             }
         }
@@ -426,15 +458,13 @@ class DiSymbolProcessor(
                 FunSpec.builder(ScopeInternal::start.name)
                     .addModifiers(OVERRIDE, SUSPEND)
                     .addCode(
-                        CodeBlock.builder().apply { buildScopeInitializer() }.build()
+                        CodeBlock.builder().apply { generateStartMethod() }.build()
                     )
                     .build()
             )
-            .addFunction(
-                FunSpec.builder(ScopeInternal::close.name)
-                    .addModifiers(OVERRIDE, SUSPEND)
-                    .build()
-            )
+            .apply {
+                generateCloseMethod()
+            }
             .build()
     }
 
@@ -492,7 +522,7 @@ class DiSymbolProcessor(
 // TODO
 //                            componentClassDeclaration.getAnnotationsOfType<Component>().first()
 //                                .getArgumentValueOrNull("type") as? KSType ?:
-                                componentClassDeclaration.asType(emptyList()),
+                            componentClassDeclaration.asType(emptyList()),
                             componentClassDeclaration.primaryConstructor!!.parameters.associate {
                                 it.name!!.asString() to it.type.resolve().toComponentLookup()
                             },
@@ -535,19 +565,56 @@ class DiSymbolProcessor(
         moduleId: String
     ): ComponentModel? =
         if (inlineComponentDeclaration.returnType != null) {
+            val componentAnnotation = inlineComponentDeclaration.getAnnotationsOfType<Component>().first()
+            val componentType = inlineComponentDeclaration.returnType!!.resolve()
+            val componentTypeDeclaration =
+                componentType.declaration as KSClassDeclaration // TODO ezt valahol ellenőrizni
             InlineComponentModel(
                 ComponentId(moduleId, inlineComponentDeclaration.simpleName.asString()),
-                inlineComponentDeclaration.returnType!!.resolve(),
+                componentType,
                 inlineComponentDeclaration.parameters.associate {
                     it.name!!.asString() to it.type.resolve().toComponentLookup()
                 },
                 inlineComponentDeclaration,
-                ComponentLifecycleModel(null, null) // TODO allow
+                ComponentLifecycleModel( // TODO ezt csak inline-nál lehessen megadni
+                    (componentAnnotation.getArgumentValueOrNull(Component::onConstruction.name) as? String)?.let { methodName ->
+                        findComponentLifeCycleMethod(
+                            inlineComponentDeclaration,
+                            componentTypeDeclaration,
+                            methodName
+                        )
+                    },
+                    (componentAnnotation.getArgumentValueOrNull(Component::onTerminate.name) as? String)?.let { methodName ->
+                        findComponentLifeCycleMethod(
+                            inlineComponentDeclaration,
+                            componentTypeDeclaration,
+                            methodName
+                        )
+                    }
+                )
             )
         } else {
             kspLogger.error("Failed to resolve component type.", inlineComponentDeclaration)
             null
         }
+
+    private fun findComponentLifeCycleMethod(
+        inlineComponentDeclaration: KSFunctionDeclaration,
+        componentTypeDeclaration: KSClassDeclaration, methodName: String
+    ) =
+        if (methodName.isNotEmpty())
+            componentTypeDeclaration.getAllFunctions()
+                .firstOrNull { it.simpleName.asString() == methodName }
+                .also {
+                    if (it == null) {
+                        kspLogger.error(
+                            "Lifecycle method '$methodName' not found in component implementation `${componentTypeDeclaration.toClassName()}`.",
+                            inlineComponentDeclaration
+                        )
+                    }
+                }
+        else
+            null
 
     private fun validateScopeInterfaceDeclaration(
         scopeInterfaceDeclaration: KSDeclaration,
