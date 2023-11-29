@@ -20,6 +20,8 @@ suspend fun <T : ContainerScope> runApplication(
             try {
                 start()
                 block()
+            } catch (e: Exception) {
+                e.printStackTrace() // TODO log
             } finally {
                 close()
             }

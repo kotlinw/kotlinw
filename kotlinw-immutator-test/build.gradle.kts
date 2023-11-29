@@ -59,7 +59,7 @@ kotlin {
 
 compose {
 //    kotlinCompilerPlugin = dependencies.compiler.forKotlin("1.8.20")
-//    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.9.10")
+//    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.9.21")
 }
 
 dependencies {
