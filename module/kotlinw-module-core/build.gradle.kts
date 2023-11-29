@@ -21,7 +21,6 @@ kotlin {
                 api(projects.kotlinw.module.kotlinwModuleApi)
                 api(projects.kotlinw.kotlinwConfigurationCore)
                 api(projects.kotlinw.kotlinwEventbusLocal)
-                api(projects.kotlinw.kotlinwKoinContainer)
                 api(projects.kotlinw.kotlinwLoggingApi)
                 api(projects.kotlinw.kotlinwLoggingPlatform) // TODO implementation
                 api(projects.kotlinw.kotlinwSerializationCore)
@@ -30,9 +29,6 @@ kotlin {
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwDiApi)
-
-                api(libs.koin.core)
-                api(libs.koin.annotations)
             }
         }
         val commonTest by getting {

@@ -19,5 +19,4 @@ dependencies {
     api(projects.kotlinw.kotlinwJdbcUtil)
     api(libs.hibernate.core)
     api(libs.hibernate.envers)
-    api(libs.koin.annotations)
 }

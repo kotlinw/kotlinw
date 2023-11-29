@@ -10,7 +10,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import kotlinx.io.asSink
 import kotlinx.io.buffered
-import org.koin.core.annotation.Singleton
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.pwa.core.BuiltInWebResourceMapping

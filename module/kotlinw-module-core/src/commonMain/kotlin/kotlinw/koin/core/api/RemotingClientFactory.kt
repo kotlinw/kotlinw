@@ -5,7 +5,7 @@ import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
-import kotlinw.remoting.core.common.RemotePeerRegistryImpl
+import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 
@@ -15,7 +15,7 @@ interface RemotingClientFactory {
         remoteServerBaseUrl: Url,
         incomingCallDelegators: Map<String, RemoteCallHandler> = emptyMap(),
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
-        remotePeerRegistry: MutableRemotePeerRegistry = RemotePeerRegistryImpl(),
+        remotePeerRegistry: MutableRemotePeerRegistry = MutableRemotePeerRegistryImpl(),
         messageCodec: MessageCodec<*>? = null
     ): RemotingClient
 }

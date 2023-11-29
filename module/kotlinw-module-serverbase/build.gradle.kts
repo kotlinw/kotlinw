@@ -1,6 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.google.devtools.ksp")
 }
 
 kotlin {
@@ -35,3 +38,19 @@ kotlin {
         }
     }
 }
+
+dependencies {
+//    add("kspCommonMainMetadata", projects.kotlinw.kotlinwDiProcessor)
+//    add("kspJvm", projects.kotlinw.kotlinwDiProcessor)
+    add("kspJvmTest", projects.kotlinw.kotlinwDiProcessor)
+}
+
+//tasks.withType<KotlinCompile<*>>().configureEach {
+//    if (name != "kspCommonMainKotlinMetadata") {
+//        dependsOn("kspCommonMainKotlinMetadata")
+//    }
+//}
+
+//kotlin.sourceSets.commonMain {
+//    kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+//}

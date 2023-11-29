@@ -28,7 +28,7 @@ val isPublicationActive = buildMode == DevelopmentMode.Production
 
 val projectVersion: String by project
 
-val kotlinJavaCompatibility = "1.8"
+val kotlinJavaCompatibility = "19" // TODO make it compatible with Android
 println("Kotlin default Java compatibility: $kotlinJavaCompatibility")
 
 val notPublishedProjects = listOf(

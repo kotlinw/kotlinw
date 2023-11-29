@@ -3,6 +3,8 @@ package xyz.kotlinw.koin.core.api
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import kotlin.time.Duration.Companion.seconds
+import kotlinw.configuration.core.ConfigurationObjectLookup
+import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookupSource
@@ -63,6 +65,10 @@ class ConfigurationModule {
     @Component
     suspend fun configurationPropertyLookup(configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>): ConfigurationPropertyLookup =
         ConfigurationPropertyLookupImpl(configurationPropertyLookupSources).also { it.initialize() }
+
+    @Component
+    fun configurationObjectLookup(configurationPropertyLookup: ConfigurationPropertyLookup): ConfigurationObjectLookup =
+        ConfigurationObjectLookupImpl(configurationPropertyLookup)
 }
 
 @Module
@@ -79,8 +85,8 @@ class CoreModule {
     fun containerLifecycleCoordinator(listeners: List<ContainerLifecycleListener>): ContainerLifecycleCoordinator =
         ContainerLifecycleCoordinatorImpl(listeners)
 
-    @Component
-    fun applicationCoroutineService(): ApplicationCoroutineService = ApplicationCoroutineServiceImpl()
+    @Component(type = ApplicationCoroutineService::class, onTerminate = "close")
+    fun applicationCoroutineService() = ApplicationCoroutineServiceImpl()
 
     @Component
     fun localEventBus(): LocalEventBus = LocalEventBusImpl()

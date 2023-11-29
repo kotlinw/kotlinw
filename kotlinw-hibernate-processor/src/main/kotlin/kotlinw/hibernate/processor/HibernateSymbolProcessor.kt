@@ -22,8 +22,7 @@ import com.squareup.kotlinpoet.typeNameOf
 import jakarta.persistence.Entity
 import kotlin.reflect.KClass
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
-import org.koin.core.annotation.Named
-import org.koin.core.annotation.Singleton
+import xyz.kotlinw.di.api.Component
 
 class HibernateSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -73,12 +72,7 @@ class HibernateSymbolProcessor(
                 FileSpec.builder(packageName, generatedClassSimpleName)
                     .addType(
                         TypeSpec.classBuilder(generatedClassSimpleName)
-                            .addAnnotation(Singleton::class.asClassName())
-                            .addAnnotation(
-                                AnnotationSpec.builder(Named::class.asClassName())
-                                    .addMember("%L = %S", "value", "$packageName.$generatedClassSimpleName")
-                                    .build()
-                            )
+                            .addAnnotation(Component::class.asClassName())
                             .addSuperinterface(PersistentClassProvider::class)
                             .addFunction(
                                 FunSpec.builder("getPersistentClasses")

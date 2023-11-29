@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 @Target(CLASS, FUNCTION)
 @MustBeDocumented
 annotation class Component(
-    val type: KClass<out Any> = Any::class,
+    val type: KClass<out Any> = Any::class, // TODO ez tömb legyen, hogy több interfészt is lehessen megadni
     val onConstruction: String = "",
     val onTerminate: String = "",
 )

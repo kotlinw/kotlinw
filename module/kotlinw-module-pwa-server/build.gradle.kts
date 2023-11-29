@@ -10,6 +10,4 @@ dependencies {
     implementation(projects.kotlinw.module.kotlinwModuleKtorServer)
 
     implementation(libs.kotlin.bom)
-
-    ksp(libs.koin.ksp.compiler)
 }

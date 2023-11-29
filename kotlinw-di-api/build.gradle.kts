@@ -9,6 +9,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(libs.kotlinx.coroutines.core)
+                implementation(projects.kotlinw.kotlinwUtilStdlibMp)
             }
         }
         val commonTest by getting {

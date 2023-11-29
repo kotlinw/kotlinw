@@ -10,7 +10,7 @@ import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.RemoteConnectionData
 import kotlinw.remoting.core.common.RemoteConnectionId
-import kotlinw.remoting.core.common.RemotePeerRegistryImpl
+import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.remoting.server.ktor.ServerToClientCommunicationType.WebSockets
 import kotlinw.util.stdlib.Priority
@@ -32,7 +32,7 @@ class ServerRemotingModule {
 
             if (remoteCallHandlers.isNotEmpty()) {
                 ktorApplication.install(RemotingServerPlugin) {
-                    val remotePeerRegistry = RemotePeerRegistryImpl() // TODO
+                    val remotePeerRegistry = MutableRemotePeerRegistryImpl() // TODO
 
                     this.messageCodec = messageCodec
                     this.remoteCallHandlers = remoteCallHandlers

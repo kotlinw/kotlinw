@@ -3,24 +3,26 @@ package kotlinw.module.hibernate
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kotlinw.configuration.core.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlinw.configuration.core.ConstantConfigurationPropertyResolver
+import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.runReadOnlyJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
-import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.jdbc.util.executeStatements
-import kotlinw.module.hibernate.core.hibernateModule
-import org.hibernate.SessionFactory
-import org.koin.core.module.dsl.bind
-import org.koin.core.module.dsl.withOptions
-import org.koin.dsl.module
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlinw.koin.core.api.startContainer
+import kotlinw.module.hibernate.core.HibernateModule
+import kotlinw.module.hibernate.core.HibernateSqlSchemaExporterScope
 import kotlinx.coroutines.test.runTest
+import org.hibernate.SessionFactory
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.api.ComponentQuery
+import xyz.kotlinw.di.api.Container
+import xyz.kotlinw.di.api.Module
+import xyz.kotlinw.di.api.Scope
 
 @Entity
 @Table(name = "Person")
@@ -32,34 +34,42 @@ class PersonEntity(
     var name: String
 )
 
+@Container
+interface TestContainer {
+
+    companion object
+
+    @Module(includeModules = [HibernateModule::class])
+    class TestModule {
+
+        @Component
+        fun persistentClassProvider() = PersistentClassProvider { listOf(PersonEntity::class) }
+
+        @Component
+        fun configurationLookupSource() =
+            EnumerableConfigurationPropertyLookupSourceImpl(
+                ConstantConfigurationPropertyResolver.of("hibernate.connection.url" to "jdbc:h2:mem:")
+            )
+    }
+
+    interface TestScope : HibernateSqlSchemaExporterScope {
+
+        @ComponentQuery
+        fun sessionFactory(): SessionFactory
+    }
+
+    @Scope(modules = [TestModule::class])
+    fun testScope(): TestScope
+}
+
 class HibernateModuleIntegrationTest {
 
     @Test
     fun testBootstrap() = runTest {
-        val koinApplication = startContainer({
-            modules(
-                hibernateModule,
-                module {
-                    single {
-                        PersistentClassProvider {
-                            listOf(PersonEntity::class)
-                        }
-                    }
-                    single {
-                        EnumerableConfigurationPropertyLookupSourceImpl(
-                            ConstantConfigurationPropertyResolver.of("hibernate.connection.url" to "jdbc:h2:mem:")
-                        )
-                    }.withOptions {
-                        bind<ConfigurationPropertyLookupSource>()
-                        bind<EnumerableConfigurationPropertyLookupSource>()
-                    }
-                }
-            )
-        })
-
-        try {
-            with(koinApplication.koin) {
-                val sqlSchemaExporter = get<HibernateSqlSchemaExporter>()
+        TestContainer.create().testScope().apply {
+            start()
+            try {
+                val sqlSchemaExporter = hibernateSqlSchemaExporter()
 
                 val createSchemaScript = sqlSchemaExporter.exportSchema(ExportedSchemaScriptType.Create)
                 assertEquals(
@@ -69,7 +79,7 @@ class HibernateModuleIntegrationTest {
                     createSchemaScript
                 )
 
-                val sessionFactory = get<SessionFactory>()
+                val sessionFactory = sessionFactory()
 
                 sessionFactory.runTransactionalJpaTask {
                     jdbcTask {
@@ -92,9 +102,9 @@ class HibernateModuleIntegrationTest {
                 sessionFactory.runReadOnlyJpaTask {
                     assertEquals(1, findAllPersons().size)
                 }
+            } finally {
+                close()
             }
-        } finally {
-            koinApplication.close()
         }
     }
 }

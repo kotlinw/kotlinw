@@ -18,12 +18,28 @@ data class ResolvedComponentModel(
     val dependencyCandidates: Map<String, ResolvedComponentDependencyModel>
 )
 
+sealed interface ResolvedDependencyModel {
+    val dependencyType: KSType
+    val dependencyKind: ComponentDependencyKind
+    val candidates: List<ComponentDependencyCandidate>
+}
+
 data class ResolvedComponentDependencyModel(
     val dependencyName: String,
-    val dependencyType: KSType,
-    val dependencyKind: ComponentDependencyKind,
-    val candidates: List<ComponentDependencyCandidate>
-)
+    override val dependencyType: KSType,
+    override val dependencyKind: ComponentDependencyKind,
+    override val candidates: List<ComponentDependencyCandidate>
+): ResolvedDependencyModel
+
+data class ResolvedComponentQueryModel(
+    val staticModel: ComponentQueryModel,
+    val type: KSType,
+    override val dependencyKind: ComponentDependencyKind,
+    override val candidates: List<ComponentDependencyCandidate>
+): ResolvedDependencyModel {
+
+    override val dependencyType: KSType = staticModel.functionDeclaration.returnType!!.resolve()
+}
 
 data class ComponentDependencyCandidate(val declaringModule: ModuleModel, val component: ComponentModel) {
 
@@ -34,7 +50,8 @@ data class ResolvedScopeModel(
     val scopeModel: ScopeModel,
     val parentScopeModel: ResolvedScopeModel?,
     val modules: Map<ModuleId, ResolvedModuleModel>,
-    val components: Map<ComponentId, ResolvedComponentModel>
+    val components: Map<ComponentId, ResolvedComponentModel>,
+    val componentQueries: List<ResolvedComponentQueryModel>
 )
 
 data class ResolvedModuleModel(

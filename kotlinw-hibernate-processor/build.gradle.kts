@@ -16,6 +16,7 @@ kotlin {
     dependencies {
         implementation(projects.kotlinw.kotlinwHibernateApi)
         implementation(projects.kotlinw.kotlinwKspUtil)
+        api(projects.kotlinw.kotlinwDiApi)
 
         testImplementation(kotlin("test-junit5"))
         testImplementation(libs.logback.classic)

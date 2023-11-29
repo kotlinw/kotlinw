@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.jpa")
     kotlin("plugin.noarg")
     kotlin("plugin.allopen")
+    id("com.google.devtools.ksp")
 }
 
 noArg {
@@ -41,4 +42,6 @@ dependencies {
     testImplementation(projects.kotlinw.kotlinwJdbcUtil)
     testImplementation(libs.h2)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    kspTest(projects.kotlinw.kotlinwDiProcessor)
 }

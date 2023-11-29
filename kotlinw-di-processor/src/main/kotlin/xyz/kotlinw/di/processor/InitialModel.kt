@@ -71,7 +71,13 @@ data class ScopeModel(
     val scopeDeclarationFunction: KSFunctionDeclaration,
     val scopeInterfaceDeclaration: KSClassDeclaration,
     val declaredModules: List<ModuleReference>,
-    val allModules: Set<ModuleReference>
+    val allModules: Set<ModuleReference>,
+    val componentQueries: List<ComponentQueryModel>
+)
+
+data class ComponentQueryModel(
+    val functionDeclaration: KSFunctionDeclaration,
+    val componentLookup: ComponentLookup
 )
 
 typealias ScopeId = String

@@ -5,27 +5,20 @@ import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
-import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManager
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import kotlinw.module.api.ApplicationInitializerService
-import kotlinw.module.core.api.coreJvmModule
-import kotlinw.util.stdlib.Priority
-import kotlinw.util.stdlib.Priority.Companion.higherBy
-import xyz.kotlinw.koin.container.registerShutdownTask
 import org.hibernate.SessionFactory
 import org.hibernate.boot.Metadata
-import org.hibernate.boot.MetadataBuilder
 import org.hibernate.boot.MetadataSources
-import org.hibernate.boot.SessionFactoryBuilder
 import org.hibernate.boot.registry.BootstrapServiceRegistry
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder
 import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
-import org.koin.core.qualifier.named
-import org.koin.dsl.bind
-import org.koin.dsl.module
-import xyz.kotlinw.koin.container.registerStartupTask
+import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.api.Module
+import org.hibernate.boot.MetadataBuilder
+import org.hibernate.boot.SessionFactoryBuilder
+import xyz.kotlinw.koin.core.api.CoreModule
 
 fun interface BootstrapServiceRegistryCustomizer {
 
@@ -57,100 +50,80 @@ fun interface SessionFactoryCustomizer {
     fun customize()
 }
 
-val hibernateModule by lazy {
-    module {
-        single<ApplicationInitializerService>(named("HibernateInitializerService")) {
-            ApplicationInitializerService(Priority.Normal.higherBy(200)) {
-                get<BootstrapServiceRegistryProxy>().initialize(
-                    BootstrapServiceRegistryBuilder()
-                        .apply {
-                            getAll<BootstrapServiceRegistryCustomizer>().forEach {
-                                it.customize()
-                            }
-                        }
-                        .build()
-                )
-                get<StandardServiceRegistryProxy>().initialize(
-                    StandardServiceRegistryBuilder(get())
-                        .apply {
-                            get<ConfigurationPropertyLookup>()
-                                .filterEnumerableConfigurationProperties { it.startsWith("hibernate") }
-                                .also {
-                                    PlatformLogging.getLogger().info { "Hibernate configuration properties: " / it }
-                                }
-                                .forEach {
-                                    applySetting(it.key.name, it.value)
-                                }
+@Module(includeModules = [CoreModule::class])
+class HibernateModule {
 
-                            getAll<StandardServiceRegistryCustomizer>().forEach {
-                                it.customize()
-                            }
-                        }
-                        .build()
-                )
-                get<MetadataSources>().apply {
-                    getAll<PersistentClassProvider>().forEach {
-                        it.getPersistentClasses().forEach {
-                            addAnnotatedClass(it.java)
-                        }
+    @Component(onTerminate = "close")
+    fun bootstrapServiceRegistry(customizers: List<BootstrapServiceRegistryCustomizer>): BootstrapServiceRegistry =
+        BootstrapServiceRegistryBuilder()
+            .apply {
+                customizers.forEach { it.customize() }
+            }
+            .build()
+
+    @Component(onTerminate = "close")
+    fun standardServiceRegistry(
+        bootstrapServiceRegistry: BootstrapServiceRegistry,
+        configurationPropertyLookup: ConfigurationPropertyLookup,
+        customizers: List<StandardServiceRegistryCustomizer>
+    ): StandardServiceRegistry =
+        StandardServiceRegistryBuilder(bootstrapServiceRegistry)
+            .apply {
+                configurationPropertyLookup
+                    .filterEnumerableConfigurationProperties { it.startsWith("hibernate") }
+                    .also {
+                        PlatformLogging.getLogger()
+                            .info { "Hibernate configuration properties: " / it } // TODO egységes modul szintű logger
+                    }
+                    .forEach {
+                        applySetting(it.key.name, it.value)
                     }
 
-                    getAll<MetadataSourcesCustomizer>().forEach {
-                        it.customize()
-                    }
+                customizers.forEach { it.customize() }
+            }
+            .build()
+
+    @Component
+    fun metadata(metadataSources: MetadataSources, customizers: List<MetadataCustomizer>): Metadata =
+        metadataSources
+            .metadataBuilder
+            .apply {
+                customizers.forEach { it.customize() }
+            }
+            .build()
+
+    @Component
+    fun persistentClassProviderApplier(persistentClassProviders: List<PersistentClassProvider>) =
+        MetadataSourcesCustomizer {
+            persistentClassProviders.forEach {
+                it.getPersistentClasses().forEach {
+                    addAnnotatedClass(it.java)
                 }
-                get<MetadataProxy>().initialize(
-                    get<MetadataSources>()
-                        .metadataBuilder
-                        .apply {
-                            getAll<MetadataCustomizer>().forEach {
-                                it.customize()
-                            }
-                        }
-                        .build()
-                )
-                get<SessionFactoryProxy>().initialize(
-                    get<Metadata>()
-                        .sessionFactoryBuilder
-                        .apply {
-                            getAll<SessionFactoryCustomizer>().forEach {
-                                it.customize()
-                            }
-                        }
-                        .build()
-                )
             }
         }
 
-        single<BootstrapServiceRegistryProxy> {
-            BootstrapServiceRegistryProxy()
-                .registerShutdownTask(this) {
-                    it.close()
-                }
-        }.bind(BootstrapServiceRegistry::class)
+    @Component
+    fun metadataSources(
+        standardServiceRegistry: StandardServiceRegistry,
+        customizers: List<MetadataSourcesCustomizer>
+    ): MetadataSources =
+        MetadataSources(standardServiceRegistry)
+            .apply {
+                customizers.forEach { it.customize() }
+            }
 
-        single<StandardServiceRegistryProxy> {
-            StandardServiceRegistryProxy()
-                .registerShutdownTask(this) {
-                    it.close()
-                }
-        }.bind(StandardServiceRegistry::class)
+    @Component(onTerminate = "close")
+    fun sessionFactory(metadata: Metadata, customizers: List<SessionFactoryCustomizer>): SessionFactory =
+        metadata
+            .sessionFactoryBuilder
+            .apply {
+                customizers.forEach { it.customize() }
+            }
+            .build()
 
-        single<MetadataSources> {
-            MetadataSources(get<StandardServiceRegistry>())
-        }
-
-        single<MetadataProxy> {
-            MetadataProxy()
-        }.bind(Metadata::class)
-
-        single<SessionFactoryProxy> {
-            SessionFactoryProxy()
-                .registerShutdownTask(this) {
-                    it.close()
-                }
-        }.bind(SessionFactory::class)
-
-        single<HibernateSqlSchemaExporter> { HibernateSqlSchemaExporterImpl(get(), get()) }
-    }
+    @Component
+    fun hibernateSqlSchemaExporter(
+        standardServiceRegistry: StandardServiceRegistry,
+        metadata: Metadata
+    ): HibernateSqlSchemaExporter = HibernateSqlSchemaExporterImpl(standardServiceRegistry, metadata)
 }

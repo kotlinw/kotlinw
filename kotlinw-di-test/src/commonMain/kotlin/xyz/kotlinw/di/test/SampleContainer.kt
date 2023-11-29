@@ -24,21 +24,18 @@ interface SampleContainer {
 
 interface RootScope: ContainerScope {
 
-//    @ComponentQuery
-//    fun getGenericFormatter(): GenericFormatter
-//
-//    @ComponentQuery
-//    fun getFormatters(): List<Formatter<*>>
-//
-//    @ComponentQuery
-//    fun getAny(): List<Any>
-//
-//    @ComponentQuery
-//    fun getLongFormatter(): Formatter<Long>?
+    @ComponentQuery
+    fun getGenericFormatter(): GenericFormatter
+
+    @ComponentQuery
+    fun getFormatters(): List<Formatter<*>>
+
+    @ComponentQuery
+    fun getAny(): List<Any>
+
+    @ComponentQuery
+    fun getLongFormatter(): Formatter<Long>?
 }
 
 interface NestedScope: RootScope {
-
-//    @ComponentQuery
-//    fun getLongFormatter(): Formatter<Long>
 }

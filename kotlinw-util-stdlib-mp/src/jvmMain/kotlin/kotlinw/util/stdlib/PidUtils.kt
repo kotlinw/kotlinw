@@ -1,4 +1,4 @@
-package kotlinw.koin.core.internal
+package kotlinw.util.stdlib
 
 import java.io.File
 
