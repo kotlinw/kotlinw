@@ -1,7 +1,9 @@
 package xyz.kotlinw.di.processor
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
@@ -76,8 +78,14 @@ data class ScopeModel(
 )
 
 data class ComponentQueryModel(
-    val functionDeclaration: KSFunctionDeclaration,
+    val declaration: KSDeclaration,
+    val type: KSType,
     val componentLookup: ComponentLookup
-)
+) {
+
+    val isProperty get() = declaration is KSPropertyDeclaration
+
+    val isFunction get() = declaration is KSFunctionDeclaration
+}
 
 typealias ScopeId = String

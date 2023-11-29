@@ -1,8 +1,6 @@
 package xyz.kotlinw.di.processor
 
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.Modifier
-import kotlinw.ksp.util.isSuspend
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ModuleId
@@ -33,12 +31,11 @@ data class ResolvedComponentDependencyModel(
 
 data class ResolvedComponentQueryModel(
     val staticModel: ComponentQueryModel,
-    val type: KSType,
     override val dependencyKind: ComponentDependencyKind,
     override val candidates: List<ComponentDependencyCandidate>
 ): ResolvedDependencyModel {
 
-    override val dependencyType: KSType = staticModel.functionDeclaration.returnType!!.resolve()
+    override val dependencyType: KSType = staticModel.type
 }
 
 data class ComponentDependencyCandidate(val declaringModule: ModuleModel, val component: ComponentModel) {

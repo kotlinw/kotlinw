@@ -4,6 +4,7 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAllSuperTypes
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.getDeclaredFunctions
+import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
@@ -20,6 +21,7 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
@@ -37,7 +39,6 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.graph.algorithm.reverseTopologicalSort
-import kotlinw.graph.algorithm.topologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 import kotlinw.graph.model.build
@@ -190,24 +191,7 @@ class DiSymbolProcessor(
                                                         )
                                                     }
                                                     .toSet(),
-                                                (scopeInterfaceDeclaration.getDeclaredFunctions() +
-                                                        scopeInterfaceDeclaration.getAllSuperTypes()
-                                                            .filter {
-                                                                resolver.getClassDeclarationByName<ContainerScope>()!!
-                                                                    .asStarProjectedType().isAssignableFrom(it)
-                                                            }
-                                                            .map { it.declaration }
-                                                            .filterIsInstance<KSClassDeclaration>()
-                                                            .flatMap { it.getDeclaredFunctions() }
-                                                        )
-                                                    .filter { it.isAnnotationPresent(ComponentQuery::class) }
-                                                    .map {
-                                                        ComponentQueryModel(
-                                                            it,
-                                                            it.returnType!!.resolve().toComponentLookup()
-                                                        )
-                                                    }
-                                                    .toList()
+                                                collectComponentQueries(scopeInterfaceDeclaration, resolver)
                                             )
                                         } else {
                                             val invalidReferences =
@@ -313,6 +297,48 @@ class DiSymbolProcessor(
                 .build()
                 .writeTo(codeGenerator, true)
         }
+    }
+
+    private fun collectComponentQueries(
+        scopeInterfaceDeclaration: KSClassDeclaration,
+        resolver: Resolver
+    ): List<ComponentQueryModel> {
+        val parentScopeTypes =
+            scopeInterfaceDeclaration.getAllSuperTypes()
+                .filter {
+                    resolver.getClassDeclarationByName<ContainerScope>()!!
+                        .asStarProjectedType().isAssignableFrom(it)
+                }
+                .map { it.declaration }
+                .filterIsInstance<KSClassDeclaration>()
+                .toList()
+
+        val componentQueryProperties = (scopeInterfaceDeclaration.getDeclaredProperties() +
+                parentScopeTypes
+                    .flatMap { it.getDeclaredProperties() }
+                )
+            .filter { it.isAnnotationPresent(ComponentQuery::class) }
+            .toList()
+
+        val componentQueryFunctions = (scopeInterfaceDeclaration.getDeclaredFunctions() +
+                parentScopeTypes
+                    .flatMap { it.getDeclaredFunctions() }
+                )
+            .filter { it.isAnnotationPresent(ComponentQuery::class) }
+            .toList()
+
+        return componentQueryFunctions
+            .map {
+                val type = it.returnType!!.resolve()
+                ComponentQueryModel(it, type, type.toComponentLookup())
+            }
+            .toList() +
+                componentQueryProperties
+                    .map {
+                        val type = it.type.resolve()
+                        ComponentQueryModel(it, type, type.toComponentLookup())
+                    }
+                    .toList()
     }
 
     private fun createCodeGenerationModel(resolvedContainerModel: ResolvedContainerModel): ContainerCodeGenerationModel {
@@ -540,20 +566,47 @@ class DiSymbolProcessor(
                 generateCloseMethod()
             }
             .addFunctions(
-                resolvedScopeModel.componentQueries.map {
-                    val functionDeclaration = it.staticModel.functionDeclaration
-                    FunSpec.builder(functionDeclaration.simpleName.asString())
-                        .addModifiers(OVERRIDE)
-                        .returns(functionDeclaration.returnType!!.toTypeName())
-                        .addStatement(
-                            "return " +
-                                    generateComponentConstructorArgument(
-                                        it.resolveDependencies(),
-                                        it.dependencyKind
-                                    )
+                resolvedScopeModel.componentQueries
+                    .filter { it.staticModel.isFunction }
+                    .map {
+                        val functionDeclaration = it.staticModel.declaration as KSFunctionDeclaration
+                        FunSpec.builder(functionDeclaration.simpleName.asString())
+                            .addModifiers(OVERRIDE)
+                            .returns(functionDeclaration.returnType!!.toTypeName())
+                            .addStatement(
+                                "return " +
+                                        generateComponentConstructorArgument(
+                                            it.resolveDependencies(),
+                                            it.dependencyKind
+                                        )
+                            )
+                            .build()
+                    }
+            )
+            .addProperties(
+                // TODO ez nagyon hasonló az előzőhöz
+                resolvedScopeModel.componentQueries
+                    .filter { it.staticModel.isProperty }
+                    .map {
+                        val propertyDeclaration = it.staticModel.declaration as KSPropertyDeclaration
+                        PropertySpec.builder(
+                            propertyDeclaration.simpleName.asString(),
+                            propertyDeclaration.type.toTypeName()
                         )
-                        .build()
-                }
+                            .addModifiers(OVERRIDE)
+                            .getter(
+                                FunSpec.getterBuilder()
+                                    .addStatement(
+                                        "return " +
+                                                generateComponentConstructorArgument(
+                                                    it.resolveDependencies(),
+                                                    it.dependencyKind
+                                                )
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    }
             )
             .build()
     }
@@ -883,12 +936,11 @@ class DiSymbolProcessor(
             componentQueries.map {
                 ResolvedComponentQueryModel(
                     it,
-                    it.functionDeclaration.returnType!!.resolve(),
                     it.componentLookup.dependencyKind,
                     resolve(
                         scopeModules + (parentScopeModel?.modules?.values ?: emptyList()),
                         it.componentLookup
-                    ) // TODO kicsit feljebb pont ugyanez van
+                    ) // TODO kicsit feljebb majdnem ugyanez van
                 )
             }
         )
