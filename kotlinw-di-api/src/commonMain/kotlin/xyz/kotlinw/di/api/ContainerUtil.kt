@@ -1,6 +1,7 @@
 package xyz.kotlinw.di.api
 
 import kotlinx.coroutines.delay
+import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 
 // TODO non-public API
 // TODO hibakezelés
@@ -18,7 +19,10 @@ suspend fun <T : ContainerScope> runApplication(
     try {
         with(rootScope) {
             try {
+                // TODO részletes hibakezelést lépésenként
                 start()
+                (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runStartupTasks()
+
                 block()
             } catch (e: Exception) {
                 e.printStackTrace() // TODO log

@@ -305,10 +305,6 @@ class DiSymbolProcessor(
     ): List<ComponentQueryModel> {
         val parentScopeTypes =
             scopeInterfaceDeclaration.getAllSuperTypes()
-                .filter {
-                    resolver.getClassDeclarationByName<ContainerScope>()!!
-                        .asStarProjectedType().isAssignableFrom(it)
-                }
                 .map { it.declaration }
                 .filterIsInstance<KSClassDeclaration>()
                 .toList()

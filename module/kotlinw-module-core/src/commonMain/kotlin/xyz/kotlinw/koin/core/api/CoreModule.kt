@@ -11,7 +11,7 @@ import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.LocalEventBusImpl
 import kotlinw.koin.core.api.ApplicationCoroutineService
-import kotlinw.koin.core.api.ContainerLifecycleListener
+import xyz.kotlinw.di.api.ContainerLifecycleListener
 import kotlinw.koin.core.api.RemotingClientFactory
 import kotlinw.koin.core.api.RemotingClientFactoryImpl
 import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
@@ -24,8 +24,8 @@ import kotlinw.serialization.core.SerializerService
 import kotlinw.serialization.core.SerializerServiceImpl
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
-import xyz.kotlinw.koin.core.api.internal.ContainerLifecycleCoordinator
-import xyz.kotlinw.koin.core.api.internal.ContainerLifecycleCoordinatorImpl
+import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
+import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 
 @Module
 class HttpClientModule {
@@ -81,8 +81,8 @@ class LoggingModule {
 @Module(includeModules = [SerializerModule::class, HttpClientModule::class, HttpRemotingClientModule::class, LoggingModule::class, ConfigurationModule::class])
 class CoreModule {
 
-    @Component
-    fun containerLifecycleCoordinator(listeners: List<ContainerLifecycleListener>): ContainerLifecycleCoordinator =
+    @Component(type = ContainerLifecycleCoordinator::class)
+    fun containerLifecycleCoordinator(listeners: List<ContainerLifecycleListener>) =
         ContainerLifecycleCoordinatorImpl(listeners)
 
     @Component(type = ApplicationCoroutineService::class, onTerminate = "close")
