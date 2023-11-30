@@ -5,6 +5,7 @@ import kotlinw.util.stdlib.deletePidFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
+// TODO ennek inkább az appbase modulban lenne a helye
 suspend fun <T : ContainerScope> runJvmApplication(
     rootScopeFactory: () -> T,
     args: Array<out String> = emptyArray(), // TODO ezt passzoljuk tovább

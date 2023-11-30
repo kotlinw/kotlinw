@@ -60,6 +60,8 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
+// TODO körkörös referencia kezelése @Module.includeModules-ben
+// TODO warning, ha egy modul többször van felsorolva
 // TODO a container implementációt generálja le akkor is, ha egyébként vannak hibák, hogy a container-t és a scope-okat létrehozó kód még helyes maradjon
 // TODO attól, hogy csak container-t tartalmazó Gradle modul esetén generál kódot, ellenőrizni még kellene az adott Gradle modulban deklarált elemeket
 // TODO ellenőrizni, hogy @Container interfészben minden metódusnak @Scope-pal annotatáltnak kell lennie
@@ -249,7 +251,7 @@ class DiSymbolProcessor(
                     }
                 } else {
                     kspLogger.error(
-                        "Container declaration interface should have a companion object.",
+                        "Container declaration interface should have a `companion object` (see related Kotlin feature request: https://youtrack.jetbrains.com/issue/KT-11968/Research-and-prototype-namespace-based-solution-for-statics-and-static-extensions ).",
                         containerDeclaration
                     )
                     null
@@ -337,6 +339,9 @@ class DiSymbolProcessor(
     }
 
     private fun createCodeGenerationModel(resolvedContainerModel: ResolvedContainerModel): ContainerCodeGenerationModel {
+        val containerInterfaceName = resolvedContainerModel.containerModel.declaration.toClassName()
+        val containerImplementationPackageName = containerInterfaceName.packageName
+
         val scopes = mutableMapOf<ScopeId, ScopeCodeGenerationModel>()
         resolvedContainerModel.scopes.forEach { (scopeId, resolvedScopeModel) ->
             val componentGraph = buildComponentGraph(resolvedScopeModel)
@@ -345,16 +350,10 @@ class DiSymbolProcessor(
             scopes[scopeId] = ScopeCodeGenerationModel(
                 resolvedScopeModel,
                 resolvedScopeModel.parentScopeModel?.let { scopes.getValue(it.scopeModel.name) },
-                if (scopeInterfaceClassName == typeNameOf<ContainerScope>())
-                    ClassName(
-                        resolvedContainerModel.containerModel.declaration.toClassName().packageName,
-                        resolvedScopeModel.scopeModel.name.capitalize()
-                    )
-                else
-                    ClassName(
-                        scopeInterfaceClassName.packageName,
-                        scopeInterfaceDeclaration.simpleName.asString() + "Impl"
-                    ),
+                ClassName(
+                    containerImplementationPackageName,
+                    resolvedScopeModel.scopeModel.name.capitalize() + "Impl"
+                ),
                 resolvedScopeModel.modules
                     .filterValues { it.moduleModel.components.any { it is InlineComponentModel } }
                     .keys
@@ -369,10 +368,9 @@ class DiSymbolProcessor(
             )
         }
 
-        val containerInterfaceName = resolvedContainerModel.containerModel.declaration.toClassName()
         return ContainerCodeGenerationModel(
             containerInterfaceName,
-            ClassName(containerInterfaceName.packageName, containerInterfaceName.simpleName + "Impl"),
+            ClassName(containerImplementationPackageName, containerInterfaceName.simpleName + "Impl"),
             scopes
         )
     }

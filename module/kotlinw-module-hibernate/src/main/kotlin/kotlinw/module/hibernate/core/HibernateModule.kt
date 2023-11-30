@@ -3,21 +3,20 @@ package kotlinw.module.hibernate.core
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
-import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
-import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
+import kotlinw.module.hibernate.tool.HibernateSqlSchemaExporterModule
 import org.hibernate.SessionFactory
 import org.hibernate.boot.Metadata
+import org.hibernate.boot.MetadataBuilder
 import org.hibernate.boot.MetadataSources
+import org.hibernate.boot.SessionFactoryBuilder
 import org.hibernate.boot.registry.BootstrapServiceRegistry
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder
 import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
-import org.hibernate.boot.MetadataBuilder
-import org.hibernate.boot.SessionFactoryBuilder
 import xyz.kotlinw.koin.core.api.CoreModule
 
 fun interface BootstrapServiceRegistryCustomizer {
@@ -120,10 +119,5 @@ class HibernateModule {
                 customizers.forEach { it.customize() }
             }
             .build()
-
-    @Component
-    fun hibernateSqlSchemaExporter(
-        standardServiceRegistry: StandardServiceRegistry,
-        metadata: Metadata
-    ): HibernateSqlSchemaExporter = HibernateSqlSchemaExporterImpl(standardServiceRegistry, metadata)
 }
+

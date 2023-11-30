@@ -15,7 +15,7 @@ import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.jdbc.util.executeStatements
 import kotlinw.module.hibernate.core.HibernateModule
-import kotlinw.module.hibernate.core.HibernateSqlSchemaExporterScope
+import kotlinw.module.hibernate.tool.HibernateSqlSchemaExporterScope
 import kotlinx.coroutines.test.runTest
 import org.hibernate.SessionFactory
 import xyz.kotlinw.di.api.Component
