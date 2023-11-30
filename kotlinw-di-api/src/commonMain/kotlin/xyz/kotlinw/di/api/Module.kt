@@ -11,3 +11,5 @@ import kotlin.reflect.KClass
 annotation class Module(
     val includeModules: Array<KClass<out Any>> = []
 )
+
+// TODO lehessen egyes komponenseket is berántani, ami a @ComponentScan manuális megfelelője
