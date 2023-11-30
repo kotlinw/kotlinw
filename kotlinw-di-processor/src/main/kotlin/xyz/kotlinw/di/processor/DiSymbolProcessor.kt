@@ -486,14 +486,15 @@ class DiSymbolProcessor(
                                 val terminationFunction =
                                     componentModel.componentModel.lifecycleModel.terminationFunction
                                 if (terminationFunction != null) {
+                                    val variableName = it.second
                                     addCode(
                                         // TODO try-catch
                                         CodeBlock.builder()
                                             .addStatement(
                                                 "if (this::%N.%N) %N.%N()",
-                                                it.second,
+                                                variableName,
                                                 "isInitialized",
-                                                it.second,
+                                                variableName,
                                                 terminationFunction.simpleName.asString()
                                             )
                                             .build()
