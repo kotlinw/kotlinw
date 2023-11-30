@@ -99,19 +99,18 @@ class DiSymbolProcessor(
         val moduleDeclarations = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         val containerDeclarations = resolver.getSymbolsWithAnnotation(Container::class.qualifiedName!!).toList()
 
-        val invalidSymbols =
-            componentDeclarations.filter { !it.validate() } +
-                    moduleDeclarations.filter { !it.validate() } +
-                    containerDeclarations.filter { !it.validate() }
+        val validComponentDeclarations = componentDeclarations.filter { it.validate() }
+        val validModuleDeclarations = moduleDeclarations.filter { it.validate() }
+        val validContainerDeclarations = containerDeclarations.filter { it.validate() }
 
-        return if (invalidSymbols.isEmpty()) {
-            containerDeclarations.forEach {
-                processContainerDeclaration(it, resolver)
-            }
-            emptyList()
-        } else {
-            componentDeclarations + moduleDeclarations + containerDeclarations
+        validContainerDeclarations.forEach {
+            processContainerDeclaration(it, resolver)
         }
+
+        return (
+                (componentDeclarations + moduleDeclarations + containerDeclarations).toSet() -
+                        (validComponentDeclarations + validModuleDeclarations + validContainerDeclarations).toSet()
+                ).toList()
     }
 
     private fun processContainerDeclaration(containerDeclaration: KSAnnotated, resolver: Resolver) {
