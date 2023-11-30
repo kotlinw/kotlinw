@@ -39,7 +39,7 @@ interface TestContainer {
 
     companion object
 
-    @Module(includeModules = [HibernateModule::class])
+    @Module(includeModules = [HibernateModule::class, HibernateSqlSchemaExporterScope::class])
     class TestModule {
 
         @Component
