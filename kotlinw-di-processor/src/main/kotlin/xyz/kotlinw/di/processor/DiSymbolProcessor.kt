@@ -68,6 +68,7 @@ import xyz.kotlinw.di.api.internal.ScopeInternal
 // TODO ellenőrzés, hogy a scope interfészben minden metódus annotatált-e @ComponentQuery-vel
 // FIXME hiányzó dependency esetén hibás kódot generál, és nem ad hasznos fordítási hibát
 // TODO component query-nél ellenőrizni kellene a metódus elején, hogy el a scope-on meg lett-e már hívva a start()
+// TODO ha az includeModules-ben @Module-lal nem annotált class szerepel, akkor elszáll
 
 // TODO tök üres modulra elszáll
 //@Container

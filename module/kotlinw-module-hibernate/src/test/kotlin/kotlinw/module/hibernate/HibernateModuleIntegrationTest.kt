@@ -15,6 +15,7 @@ import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.jdbc.util.executeStatements
 import kotlinw.module.hibernate.core.HibernateModule
+import kotlinw.module.hibernate.tool.HibernateSqlSchemaExporterModule
 import kotlinw.module.hibernate.tool.HibernateSqlSchemaExporterScope
 import kotlinx.coroutines.test.runTest
 import org.hibernate.SessionFactory
@@ -39,7 +40,7 @@ interface TestContainer {
 
     companion object
 
-    @Module(includeModules = [HibernateModule::class, HibernateSqlSchemaExporterScope::class])
+    @Module(includeModules = [HibernateModule::class, HibernateSqlSchemaExporterModule::class])
     class TestModule {
 
         @Component
