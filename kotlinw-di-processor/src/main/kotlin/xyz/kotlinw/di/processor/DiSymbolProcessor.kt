@@ -490,7 +490,10 @@ class DiSymbolProcessor(
                                         // TODO try-catch
                                         CodeBlock.builder()
                                             .addStatement(
-                                                it.second + ".%N()",
+                                                "if (this::%N.%N) %N.%N()",
+                                                it.second,
+                                                "isInitialized",
+                                                it.second,
                                                 terminationFunction.simpleName.asString()
                                             )
                                             .build()
