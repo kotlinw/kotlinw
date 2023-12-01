@@ -32,12 +32,12 @@ import com.squareup.kotlinpoet.KModifier.LATEINIT
 import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.KModifier.PRIVATE
 import com.squareup.kotlinpoet.KModifier.SUSPEND
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
-import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.graph.algorithm.reverseTopologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
@@ -60,6 +60,7 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
+// TODO lehessen constructor reference-szel komponenst definiálni: @Component(type = A::class) fun a() = ::AImpl
 // TODO körkörös referencia kezelése @Module.includeModules-ben
 // TODO warning, ha egy modul többször van felsorolva
 // TODO a container implementációt generálja le akkor is, ha egyébként vannak hibák, hogy a container-t és a scope-okat létrehozó kód még helyes maradjon
@@ -192,8 +193,17 @@ class DiSymbolProcessor(
                                                             it.getModuleId()
                                                         )
                                                     }
+                                                    .mapNotNull {
+                                                        processModuleReference(it, resolver)
+                                                    }
                                                     .toSet(),
-                                                collectComponentQueries(scopeInterfaceDeclaration, resolver)
+                                                collectComponentQueries(scopeInterfaceDeclaration),
+                                                scopeDeclarationFunction
+                                                    .parameters
+                                                    .drop(if (parentScopeName != null) 1 else 0)
+                                                    .map {
+                                                        ExternalComponentModel(it.name!!.asString(), it.type.resolve())
+                                                    }
                                             )
                                         } else {
                                             val invalidReferences =
@@ -216,40 +226,34 @@ class DiSymbolProcessor(
                             }
                             .toList()
 
-                    val moduleDeclarations =
-                        scopeDeclarations
-                            .flatMap { it.allModules }
-                            .toSet()
-                            .mapNotNull { processModuleReference(it, resolver) }
-
-                    val overlappingModules = mutableListOf<Pair<ModuleModel, ModuleModel>>()
-                    moduleDeclarations.forEach { currentModule ->
-                        moduleDeclarations.forEach { referenceModule ->
-                            if (currentModule != referenceModule
-                                && currentModule.componentScanPackageName != null
-                                && referenceModule.componentScanPackageName != null
-                                && !overlappingModules.contains(referenceModule to currentModule)
-                                && !overlappingModules.contains(currentModule to referenceModule)
-                                && (currentModule.componentScanPackageName.startsWith(referenceModule.componentScanPackageName))
-                            ) {
-                                overlappingModules.add(currentModule to referenceModule)
-                            }
-                        }
-                    }
-
-                    if (overlappingModules.isEmpty()) {
-                        ContainerModel(
-                            containerDeclaration.qualifiedName!!.asString(),
-                            scopeDeclarations,
-                            moduleDeclarations,
-                            containerDeclaration
-                        )
-                    } else {
-                        overlappingModules.forEach {
-                            kspLogger.error("Overlapping modules with @${ComponentScan::class.simpleName}: ${it.first.id} and ${it.second.id}")
-                        }
-                        null
-                    }
+// TODO check overlapping modules
+//                    val overlappingModules = mutableListOf<Pair<ModuleModel, ModuleModel>>()
+//                    moduleDeclarations.forEach { currentModule ->
+//                        moduleDeclarations.forEach { referenceModule ->
+//                            if (currentModule != referenceModule
+//                                && currentModule.componentScanPackageName != null
+//                                && referenceModule.componentScanPackageName != null
+//                                && !overlappingModules.contains(referenceModule to currentModule)
+//                                && !overlappingModules.contains(currentModule to referenceModule)
+//                                && (currentModule.componentScanPackageName.startsWith(referenceModule.componentScanPackageName))
+//                            ) {
+//                                overlappingModules.add(currentModule to referenceModule)
+//                            }
+//                        }
+//                    }
+//
+//                    if (overlappingModules.isEmpty()) {
+                    ContainerModel(
+                        containerDeclaration.qualifiedName!!.asString(),
+                        scopeDeclarations,
+                        containerDeclaration
+                    )
+//                    } else {
+//                        overlappingModules.forEach {
+//                            kspLogger.error("Overlapping modules with @${ComponentScan::class.simpleName}: ${it.first.id} and ${it.second.id}")
+//                        }
+//                        null
+//                    }
                 } else {
                     kspLogger.error(
                         "Container declaration interface should have a `companion object` (see related Kotlin feature request: https://youtrack.jetbrains.com/issue/KT-11968/Research-and-prototype-namespace-based-solution-for-statics-and-static-extensions ).",
@@ -301,10 +305,7 @@ class DiSymbolProcessor(
         }
     }
 
-    private fun collectComponentQueries(
-        scopeInterfaceDeclaration: KSClassDeclaration,
-        resolver: Resolver
-    ): List<ComponentQueryModel> {
+    private fun collectComponentQueries(scopeInterfaceDeclaration: KSClassDeclaration): List<ComponentQueryModel> {
         val parentScopeTypes =
             scopeInterfaceDeclaration.getAllSuperTypes()
                 .map { it.declaration }
@@ -346,8 +347,6 @@ class DiSymbolProcessor(
         val scopes = mutableMapOf<ScopeId, ScopeCodeGenerationModel>()
         resolvedContainerModel.scopes.forEach { (scopeId, resolvedScopeModel) ->
             val componentGraph = buildComponentGraph(resolvedScopeModel)
-            val scopeInterfaceDeclaration = resolvedScopeModel.scopeModel.scopeInterfaceDeclaration
-            val scopeInterfaceClassName = scopeInterfaceDeclaration.toClassName()
             scopes[scopeId] = ScopeCodeGenerationModel(
                 resolvedScopeModel,
                 resolvedScopeModel.parentScopeModel?.let { scopes.getValue(it.scopeModel.name) },
@@ -364,7 +363,9 @@ class DiSymbolProcessor(
                 componentGraph
                     .reverseTopologicalSort()
                     .filter { it.data in resolvedScopeModel.components }
-                    .mapIndexed { index, componentVertex -> componentVertex.data to "c$index" }// TODO beszédes neveket, hogy a generált kód olvashatóbb legyen
+                    .mapIndexed { index, componentVertex ->
+                        componentVertex.data to "c$index"
+                    }// TODO beszédes neveket, hogy a generált kód olvashatóbb legyen
                     .toMap()
             )
         }
@@ -382,23 +383,25 @@ class DiSymbolProcessor(
             .addModifiers(OVERRIDE)
             .returns(scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
             .apply {
-                scopeCodeGenerationModel.parentScopeCodeGenerationModel?.also {
-                    addParameter(
-                        "parentScope", // TODO it.resolvedScopeModel.scopeModel.scopeDeclarationFunction.parameters.first().name!!.asString(),
-                        it.resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName()
-                    )
-                }
+                addParameters(
+                    scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeDeclarationFunction.parameters.map {
+                        ParameterSpec(it.name!!.asString(), it.type.toTypeName())
+                    }
+                )
+
+                val externalComponentParameterNames =
+                    scopeCodeGenerationModel.resolvedScopeModel.scopeModel.externalComponents.joinToString { it.name }
 
                 if (scopeCodeGenerationModel.parentScopeCodeGenerationModel == null) {
                     addStatement(
-                        "return %T()",
+                        "return %T($externalComponentParameterNames)",
                         scopeCodeGenerationModel.implementationClassName
                     )
                 } else {
                     addStatement(
-                        "return %T(%N as %T)",
+                        "return %T(%N as %T, $externalComponentParameterNames)",
                         scopeCodeGenerationModel.implementationClassName,
-                        "parentScope", // TODO tuti ez a neve?
+                        scopeCodeGenerationModel.resolvedScopeModel.scopeModel.scopeDeclarationFunction.parameters.first().name!!.asString(),
                         scopeCodeGenerationModel.parentScopeCodeGenerationModel.implementationClassName
                     )
                 }
@@ -439,36 +442,41 @@ class DiSymbolProcessor(
                 val componentModel = resolvedScopeModel.components.getValue(componentId)
                 val dependencies = componentModel.resolveDependenciesInScope()
 
-                addStatement(
-                    """
+                if (componentModel.componentModel !is ExternalComponentModel) {
+                    addStatement(
+                        """
                         $componentVariableName = ${
-                        when (componentModel.componentModel) {
-                            is ComponentClassModel -> "%T"
-                            is InlineComponentModel -> "${
-                                scopeCodeGenerationModel.moduleVariableMap.getValue(
-                                    componentId.moduleId
-                                )
-                            }.${componentModel.componentModel.factoryMethodName}"
-                        }
-                    }(${
-                        generateComponentConstructorArguments(
-                            componentModel.dependencyCandidates,
-                            dependencies
-                        )
-                    })${
-                        if (componentModel.componentModel.lifecycleModel.constructionFunction != null)
-                            ".apply { ${componentModel.componentModel.lifecycleModel.constructionFunction!!.simpleName.asString()}() }"
-                        else
-                            ""
-                    }
-                    """.trimIndent(),
-                    *(
-                            if (componentModel.componentModel is ComponentClassModel)
-                                listOf(componentModel.componentModel.componentClassDeclaration.toClassName())
+                            when (componentModel.componentModel) {
+                                is ComponentClassModel -> "%T"
+
+                                is InlineComponentModel -> "${
+                                    scopeCodeGenerationModel.moduleVariableMap.getValue(
+                                        componentId.moduleId
+                                    )
+                                }.${componentModel.componentModel.factoryMethodName}"
+
+                                is ExternalComponentModel -> AssertionError()
+                            }
+                        }(${
+                            generateComponentConstructorArguments(
+                                componentModel.dependencyCandidates,
+                                dependencies
+                            )
+                        })${
+                            if (componentModel.componentModel.lifecycleModel.constructionFunction != null)
+                                ".apply { ${componentModel.componentModel.lifecycleModel.constructionFunction!!.simpleName.asString()}() }"
                             else
-                                emptyList()
-                            ).toTypedArray()
-                )
+                                ""
+                        }
+                    """.trimIndent(),
+                        *(
+                                if (componentModel.componentModel is ComponentClassModel)
+                                    listOf(componentModel.componentModel.componentClassDeclaration.toClassName())
+                                else
+                                    emptyList()
+                                ).toTypedArray()
+                    )
+                }
             }
         }
 
@@ -512,23 +520,47 @@ class DiSymbolProcessor(
             .addSuperinterface(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
             .addModifiers(PRIVATE)
             .apply {
-                if (scopeCodeGenerationModel.parentScopeCodeGenerationModel != null) {
+                val hasParentScope = scopeCodeGenerationModel.parentScopeCodeGenerationModel != null
+                val hasExternalComponents = resolvedScopeModel.scopeModel.externalComponents.isNotEmpty()
+                if (hasParentScope || hasExternalComponents) {
                     primaryConstructor(
                         FunSpec.constructorBuilder()
-                            .addParameter(
+                            .apply {
+                                if (hasParentScope) {
+                                    addParameter(
+                                        "parentScope",
+                                        scopeCodeGenerationModel.parentScopeCodeGenerationModel!!.implementationClassName
+                                    )
+                                }
+
+                                resolvedScopeModel.scopeModel.externalComponents.forEach {
+                                    addParameter(it.name, it.componentType.toTypeName())
+                                }
+                            }
+                            .build()
+                    )
+
+                    if (hasParentScope) {
+                        addProperty(
+                            PropertySpec.builder(
                                 "parentScope",
-                                scopeCodeGenerationModel.parentScopeCodeGenerationModel.implementationClassName
+                                scopeCodeGenerationModel.parentScopeCodeGenerationModel!!.implementationClassName
                             )
-                            .build()
-                    )
-                    addProperty(
-                        PropertySpec.builder(
-                            "parentScope",
-                            scopeCodeGenerationModel.parentScopeCodeGenerationModel.implementationClassName
+                                .initializer("parentScope") // TODO konstansba kitenni
+                                .build()
                         )
-                            .initializer("parentScope") // TODO konstansba kitenni
-                            .build()
-                    )
+                    }
+
+                    resolvedScopeModel.scopeModel.externalComponents.forEach {
+                        addProperty(
+                            PropertySpec.builder(
+                                it.name,
+                                it.componentType.toTypeName()
+                            )
+                                .initializer(it.name)
+                                .build()
+                        )
+                    }
                 }
             }
             .addProperties(
@@ -891,8 +923,8 @@ class DiSymbolProcessor(
                     scope.parentScopeName?.let { resolvedScopes.getValue(it).modules.keys } ?: emptyList()
                 resolvedScopes[scope.name] =
                     scope.resolve(
-                        containerModel.modules
-                            .filter { scope.allModules.map { it.moduleId }.contains(it.id) }
+                        // TODO ennek az első paramétere ne átadva legyen, hanem maga a metódus határozza meg az értékét
+                        scope.allModules
                             .filter { !parentScopeModuleIds.contains(it.id) }
                             .map { ResolvedModuleModel(it, scope.name) },
                         scope.parentScopeName?.let { resolvedScopes.getValue(it) }
@@ -905,54 +937,61 @@ class DiSymbolProcessor(
     private fun ScopeModel.resolve(
         scopeModules: List<ResolvedModuleModel>,
         parentScopeModel: ResolvedScopeModel?
-    ): ResolvedScopeModel =
-        ResolvedScopeModel(
+    ): ResolvedScopeModel {
+        val componentDependencyCandidates =
+            (scopeModules + (parentScopeModel?.modules?.values ?: emptyList()))
+                .flatMap { moduleModel ->
+                    moduleModel.moduleModel.components.map { ComponentDependencyCandidate(it) }
+                } +
+                    externalComponents.map { ComponentDependencyCandidate(it) }
+        return ResolvedScopeModel(
             this,
             parentScopeModel,
             scopeModules.associateBy { it.moduleModel.id },
-            scopeModules
-                .flatMap {
-                    it.moduleModel.components.map {
-                        ResolvedComponentModel(
-                            it,
-                            name,
-                            it.dependencyDefinitions.map {
-                                ResolvedComponentDependencyModel(
-                                    it.key,
-                                    it.value.type,
-                                    it.value.dependencyKind,
-                                    resolve(
-                                        scopeModules + (parentScopeModel?.modules?.values ?: emptyList()),
-                                        it.value
-                                    ) // TODO több szintű parent-et is lekövetni rekurzívan
+            (
+                    scopeModules
+                        .flatMap {
+                            it.moduleModel.components.map {
+                                ResolvedComponentModel(
+                                    it,
+                                    name,
+                                    it.dependencyDefinitions.map {
+                                        ResolvedComponentDependencyModel(
+                                            it.key,
+                                            it.value.type,
+                                            it.value.dependencyKind,
+                                            resolve(
+                                                componentDependencyCandidates,
+                                                it.value
+                                            ) // TODO több szintű parent-et is lekövetni rekurzívan
+                                        )
+                                    }.associateBy { it.dependencyName }
                                 )
-                            }.associateBy { it.dependencyName }
-                        )
-                    }
-                }
+                            }
+                        } +
+                            externalComponents.map { ResolvedComponentModel(it, name, emptyMap()) }
+                    )
                 .associateBy { it.componentModel.id },
             componentQueries.map {
                 ResolvedComponentQueryModel(
                     it,
                     it.componentLookup.dependencyKind,
                     resolve(
-                        scopeModules + (parentScopeModel?.modules?.values ?: emptyList()),
+                        componentDependencyCandidates,
                         it.componentLookup
                     ) // TODO kicsit feljebb majdnem ugyanez van
                 )
             }
         )
+    }
 
     private fun resolve(
-        scopeModules: List<ResolvedModuleModel>,
+        componentDependencyCandidates: List<ComponentDependencyCandidate>,
         componentLookup: ComponentLookup
     ): List<ComponentDependencyCandidate> = // TODO sokkal hatékonyabbra
-        scopeModules
-            .flatMap { moduleModel ->
-                moduleModel.moduleModel.components.map { ComponentDependencyCandidate(moduleModel.moduleModel, it) }
-            }.filter {
-                componentLookup.type.isAssignableFrom(it.component.componentType)
-            }
+        componentDependencyCandidates.filter {
+            componentLookup.type.isAssignableFrom(it.component.componentType)
+        }
 
     private fun ClassKind.toDisplayName(): String =
         when (this) {

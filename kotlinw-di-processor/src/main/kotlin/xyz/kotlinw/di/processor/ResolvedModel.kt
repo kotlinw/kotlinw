@@ -38,7 +38,7 @@ data class ResolvedComponentQueryModel(
     override val dependencyType: KSType = staticModel.type
 }
 
-data class ComponentDependencyCandidate(val declaringModule: ModuleModel, val component: ComponentModel) {
+data class ComponentDependencyCandidate(val component: ComponentModel) {
 
     override fun toString() = "ComponentDependencyCandidate(component.id=${component.id})"
 }

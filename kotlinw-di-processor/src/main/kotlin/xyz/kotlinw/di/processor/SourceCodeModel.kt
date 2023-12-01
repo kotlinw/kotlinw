@@ -5,6 +5,7 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSValueParameter
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.OnConstruction
@@ -13,7 +14,6 @@ import xyz.kotlinw.di.api.OnTerminate
 data class ContainerModel(
     val id: String,
     val scopes: List<ScopeModel>,
-    val modules: List<ModuleModel>,
     val declaration: KSClassDeclaration
 )
 
@@ -63,6 +63,20 @@ data class ComponentClassModel(
     override val lifecycleModel: ComponentLifecycleModel
 ) : ComponentModel
 
+private const val EXTERNAL_MODULE_ID = "<external>"
+
+data class ExternalComponentModel(
+    val name: String,
+    override val componentType: KSType
+) : ComponentModel {
+
+    override val id: ComponentId get() = ComponentId(EXTERNAL_MODULE_ID, name)
+
+    override val dependencyDefinitions: Map<String, ComponentLookup> get() = emptyMap()
+
+    override val lifecycleModel: ComponentLifecycleModel get() = ComponentLifecycleModel(null, null)
+}
+
 data class ComponentLookup(val type: KSType, val dependencyKind: ComponentDependencyKind)
 
 data class ModuleReference(val moduleDeclaration: KSClassDeclaration, val moduleId: String)
@@ -73,8 +87,9 @@ data class ScopeModel(
     val scopeDeclarationFunction: KSFunctionDeclaration,
     val scopeInterfaceDeclaration: KSClassDeclaration,
     val declaredModules: List<ModuleReference>,
-    val allModules: Set<ModuleReference>,
-    val componentQueries: List<ComponentQueryModel>
+    val allModules: Set<ModuleModel>,
+    val componentQueries: List<ComponentQueryModel>,
+    val externalComponents: List<ExternalComponentModel>
 )
 
 data class ComponentQueryModel(

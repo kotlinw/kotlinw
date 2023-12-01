@@ -13,6 +13,22 @@ class SampleContainerTest {
         var rootScope: ContainerScope? = null
         try {
             rootScope = container.rootScope()
+
+            var nestedScope: NestedScope? = null
+            try {
+                nestedScope = container.nestedScope(rootScope)
+                // ..
+            } finally {
+                nestedScope?.close()
+            }
+
+            var nestedScope2: NestedScope? = null
+            try {
+                nestedScope2 = container.nestedScopeWithExternalComponent(rootScope, ExternalComponent)
+                // ..
+            } finally {
+                nestedScope2?.close()
+            }
         } finally {
             rootScope?.close()
         }

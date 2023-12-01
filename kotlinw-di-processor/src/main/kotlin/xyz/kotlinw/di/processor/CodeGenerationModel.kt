@@ -25,8 +25,12 @@ private fun ScopeCodeGenerationModel.generateComponentAccessor(
     componentId: ComponentId,
     accessorPrefix: String
 ): String =
-    if (resolvedScopeModel.components.containsKey(componentId)) {
-        accessorPrefix + componentVariableMap.getValue(componentId)
+    if (resolvedScopeModel.components.containsKey(componentId)) { // TODO szebbre
+        if (resolvedScopeModel.components.getValue(componentId).componentModel is ExternalComponentModel) {
+            (resolvedScopeModel.components.getValue(componentId).componentModel as ExternalComponentModel).name
+        } else {
+            accessorPrefix + componentVariableMap.getValue(componentId)
+        }
     } else {
         checkNotNull(parentScopeCodeGenerationModel).generateComponentAccessor(componentId, "parentScope.")
     }

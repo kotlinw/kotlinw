@@ -1,5 +1,6 @@
 package xyz.kotlinw.di.test
 
+import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.Container
 import xyz.kotlinw.di.api.Scope
@@ -9,6 +10,8 @@ import xyz.kotlinw.di.test.module3.Formatter
 import xyz.kotlinw.di.test.module3.GenericFormatter
 import xyz.kotlinw.di.test.module4.Module4
 import xyz.kotlinw.di.test.module5.Module5
+
+object ExternalComponent
 
 @Container
 interface SampleContainer {
@@ -20,9 +23,15 @@ interface SampleContainer {
 
     @Scope(modules = [Module5::class], parent = "rootScope")
     fun nestedScope(parentScope: RootScope): NestedScope
+
+    @Scope(modules = [Module5::class], parent = "rootScope")
+    fun nestedScopeWithExternalComponent(
+        parentScope: RootScope,
+        @Component externalComponent: ExternalComponent
+    ): NestedScope
 }
 
-interface RootScope: ContainerScope {
+interface RootScope : ContainerScope {
 
     @ComponentQuery
     fun getGenericFormatter(): GenericFormatter
@@ -37,5 +46,5 @@ interface RootScope: ContainerScope {
     fun getLongFormatter(): Formatter<Long>?
 }
 
-interface NestedScope: RootScope {
+interface NestedScope : RootScope {
 }

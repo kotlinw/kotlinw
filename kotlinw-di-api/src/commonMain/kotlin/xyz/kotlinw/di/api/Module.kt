@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 @Target(CLASS, FUNCTION)
 @MustBeDocumented
 annotation class Module(
-    val includeModules: Array<KClass<out Any>> = []
+    val includeModules: Array<KClass<out Any>> = [] // TODO rename to `importModules`
 )
 
-// TODO lehessen egyes komponenseket is berántani, ami a @ComponentScan manuális megfelelője
+// TODO lehessen egyes komponenseket is berántani, ami a @ComponentScan manuális megfelelője: `includeComponents`
