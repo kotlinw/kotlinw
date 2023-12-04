@@ -50,6 +50,7 @@ class MainHttpController(private val deploymentMode: DeploymentMode): KtorServer
                                     </script>
                                 </head>
                                 <body>
+                                asdasdsa
                                     <div id="root"></div>
                                     <script src="$applicationFilePath"></script>
                                 </body>

@@ -1,7 +1,7 @@
 // TODO should be in kotlinw-module-serverbase/commonTest but KSP does not work because of bugs
 
 plugins {
-    `kotlinw-jvm`
+    `kotlinw-jvm-library`
 }
 
 dependencies {

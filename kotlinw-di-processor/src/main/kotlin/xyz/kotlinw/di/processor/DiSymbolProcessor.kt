@@ -60,6 +60,12 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
+// TODO ha egy inline component típusa egy generált class, ami még nem lett legenerálva, akkor
+// [ksp] java.lang.IllegalArgumentException: Error type '<ERROR TYPE>' is not resolvable in the current round of processing.
+// hiba jelentkezik, pl. ennél:
+//     @Component
+//    fun applicationPersistentClassProvider() = GeneratedPackagePersistentClassProvider()
+
 // TODO lehessen constructor reference-szel komponenst definiálni: @Component(type = A::class) fun a() = ::AImpl
 // TODO körkörös referencia kezelése @Module.includeModules-ben
 // TODO warning, ha egy modul többször van felsorolva
@@ -103,18 +109,17 @@ class DiSymbolProcessor(
         val moduleDeclarations = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         val containerDeclarations = resolver.getSymbolsWithAnnotation(Container::class.qualifiedName!!).toList()
 
-        val validComponentDeclarations = componentDeclarations.filter { it.validate() }
-        val validModuleDeclarations = moduleDeclarations.filter { it.validate() }
-        val validContainerDeclarations = containerDeclarations.filter { it.validate() }
+        val invalidSymbols =
+                    containerDeclarations.filter { !it.validate() }
 
-        validContainerDeclarations.forEach {
-            processContainerDeclaration(it, resolver)
+        return if (invalidSymbols.isEmpty()) {
+            containerDeclarations.forEach {
+                processContainerDeclaration(it, resolver)
+            }
+            emptyList()
+        } else {
+            containerDeclarations
         }
-
-        return (
-                (componentDeclarations + moduleDeclarations + containerDeclarations).toSet() -
-                        (validComponentDeclarations + validModuleDeclarations + validContainerDeclarations).toSet()
-                ).toList()
     }
 
     private fun processContainerDeclaration(containerDeclaration: KSAnnotated, resolver: Resolver) {

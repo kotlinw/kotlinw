@@ -1,16 +1,9 @@
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    `kotlinw-multiplatform-library`
 }
 
 kotlin {
-    targetHierarchy.default()
-    jvm { }
-    if (isNativeTargetEnabled()) {
-        linuxX64()
-    }
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -19,7 +12,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                implementation(libs.kotlin.test)
             }
         }
     }

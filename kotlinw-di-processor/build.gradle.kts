@@ -1,5 +1,5 @@
 plugins {
-    `kotlinw-jvm`
+    `kotlinw-jvm-library`
 }
 
 dependencies {

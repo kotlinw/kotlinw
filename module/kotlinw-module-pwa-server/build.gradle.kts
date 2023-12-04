@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 plugins {
-    `kotlinw-jvm`
+    `kotlinw-jvm-library`
 }
 
 dependencies {
