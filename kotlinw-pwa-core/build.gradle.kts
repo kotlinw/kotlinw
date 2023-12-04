@@ -27,6 +27,7 @@ kotlin {
 
 val jvmProcessResources by tasks.named("jvmProcessResources")
 
+// TODO ehhez van issue valahol felvéve?
 val fixMissingResources by tasks.registering(Copy::class) {
     dependsOn(jvmProcessResources)
 

@@ -109,8 +109,7 @@ class DiSymbolProcessor(
         val moduleDeclarations = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         val containerDeclarations = resolver.getSymbolsWithAnnotation(Container::class.qualifiedName!!).toList()
 
-        val invalidSymbols =
-                    containerDeclarations.filter { !it.validate() }
+        val invalidSymbols = containerDeclarations.filter { !it.validate() }
 
         return if (invalidSymbols.isEmpty()) {
             containerDeclarations.forEach {

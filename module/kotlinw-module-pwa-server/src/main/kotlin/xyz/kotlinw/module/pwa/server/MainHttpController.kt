@@ -21,9 +21,10 @@ class MainHttpController(private val deploymentMode: DeploymentMode): KtorServer
                 // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
                 val title = "PWA" // TODO paraméterként + i18n
                 val applicationFilePath = if (deploymentMode == Development)
-                    "/appman-hub-webapp.js" // TODO általánosabb, pl. app.js
+                    "/app.js" // TODO lehetne valami directory is, de eddig nem sikerült úgy bekonfigolni a webapp build-et :\
                 else
-                    TODO()
+                    "/app/pwa/js/app.js" // TODO konfigurálható
+
                 get {
                     // TODO html/lang
                     // TODO theme-color
@@ -50,7 +51,6 @@ class MainHttpController(private val deploymentMode: DeploymentMode): KtorServer
                                     </script>
                                 </head>
                                 <body>
-                                asdasdsa
                                     <div id="root"></div>
                                     <script src="$applicationFilePath"></script>
                                 </body>

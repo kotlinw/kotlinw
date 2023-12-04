@@ -7,7 +7,7 @@ import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.module.appbase.api.AppbaseJvmModule
 import xyz.kotlinw.module.ktor.server.KtorServerModule
 
-@Module(includeModules = [AppbaseJvmModule::class, KtorServerModule::class])
+@Module(includeModules = [AppbaseJvmModule::class, KtorServerModule::class, ServerBaseModule::class])
 class ServerBaseJvmModule {
 
     @Component

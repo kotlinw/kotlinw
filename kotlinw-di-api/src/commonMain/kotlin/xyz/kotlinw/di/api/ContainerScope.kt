@@ -2,6 +2,7 @@ package xyz.kotlinw.di.api
 
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
 
+// TODO ezeknek a metódusoknak valami rejtett helyen kellene lennie, mert ha a ContainerScope receiver-ként van használva, akkor simán meg lehet hívni őket bármikor
 interface ContainerScope {
 
     suspend fun start()

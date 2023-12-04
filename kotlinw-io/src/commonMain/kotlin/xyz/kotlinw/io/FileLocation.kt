@@ -46,6 +46,10 @@ fun FileLocation.sink() = fileSystem.sink(path)
 
 fun FileLocation.bufferedSink() = sink().buffered()
 
-fun FileLocation.readString() = bufferedSource().readString()
+fun FileLocation.readString(): String = bufferedSource().use { it.readString() }
 
-fun FileLocation.writeString(string: String) = bufferedSink().writeString(string)
+fun FileLocation.writeString(string: String) {
+    bufferedSink().use {
+        it.writeString(string)
+    }
+}
