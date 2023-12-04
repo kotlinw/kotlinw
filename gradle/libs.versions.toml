@@ -13,7 +13,7 @@ ktor = "2.3.6"
 junit = "5.10.0"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
-serialization = "1.6.0"
+serialization = "1.6.2"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.8.0-RC"
