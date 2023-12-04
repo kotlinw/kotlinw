@@ -80,7 +80,7 @@ mina = "2.9.2"
 
 ksp = "1.9.21-1.0.15"
 
-kotlinpoet = "1.15.2"
+kotlinpoet = "1.15.3"
 
 okio = "3.5.0"
 
