@@ -60,6 +60,8 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
+// TODO ha egy nem többértékű függőségből 1+ példány elérhető, akkor adjon hibát
+
 // TODO ha egy inline component típusa egy generált class, ami még nem lett legenerálva, akkor
 // [ksp] java.lang.IllegalArgumentException: Error type '<ERROR TYPE>' is not resolvable in the current round of processing.
 // hiba jelentkezik, pl. ennél:

@@ -10,7 +10,10 @@ suspend fun <T : ContainerScope> runJvmApplication(
     rootScopeFactory: () -> T,
     args: Array<out String> = emptyArray(), // TODO ezt passzoljuk tovább
     block: suspend T.() -> Unit = { delay(Long.MAX_VALUE) }
-) =
+) {
+    println(System.getProperty("java.vendor")) // TODO remove
+    println(System.getProperty("java.version")) // TODO remove
+
     runApplication(
         rootScopeFactory,
         ::createPidFile,
@@ -30,3 +33,4 @@ suspend fun <T : ContainerScope> runJvmApplication(
         ::deletePidFile,
         block
     )
+}

@@ -17,7 +17,7 @@ fun readDeploymentModeFromSystemProperty(defaultDeploymentMode: DeploymentMode =
     return if (deploymentModeFromSystemProperty.isNullOrBlank()) {
         defaultDeploymentMode
     } else {
-        DeploymentMode.of(deploymentModeFromSystemProperty)
+        DeploymentMode.of(deploymentModeFromSystemProperty) // TODO kisbetűsen is fogadja el
     }.also {
         PlatformLogging.getLogger().info { "Deployment mode: " / it } // TODO egységes loggert
     }

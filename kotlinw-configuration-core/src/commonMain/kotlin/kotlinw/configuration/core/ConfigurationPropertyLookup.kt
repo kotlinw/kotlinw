@@ -82,7 +82,7 @@ class ConfigurationPropertyLookupImpl(
         sources.forEach {
             it.initialize()
         }
-        logger.info { "Enumerable configuration properties: " / filterEnumerableConfigurationProperties { true } }
+        logger.info { "Enumerable configuration properties: " / filterEnumerableConfigurationProperties { true } } // FIXME a jelszavak ne legyenek logolva
     }
 
     override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? {
