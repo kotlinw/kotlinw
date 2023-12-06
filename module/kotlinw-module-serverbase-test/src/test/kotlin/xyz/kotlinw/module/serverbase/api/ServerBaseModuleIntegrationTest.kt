@@ -11,6 +11,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinw.configuration.core.ConstantConfigurationPropertyResolver
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
+import kotlinw.remoting.core.codec.JsonMessageCodec
+import kotlinw.remoting.core.codec.MessageCodec
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import xyz.kotlinw.di.api.Component
@@ -46,6 +48,9 @@ class ServerBaseModuleIntegrationTest {
                         "kotlinw.serverbase.port" to port.toString()
                     )
                 )
+
+            @Component
+            fun messageCodec(): MessageCodec<*> = JsonMessageCodec.Default
 
             @Component
             fun testController() =
