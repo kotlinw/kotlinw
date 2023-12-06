@@ -8,9 +8,11 @@ import kotlinw.module.serverbase.MessagingPeerConnectedEvent
 import kotlinw.module.serverbase.MessagingPeerDisconnectedEvent
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemoteConnectionData
 import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
+import kotlinw.remoting.core.common.RemotePeerRegistry
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.remoting.server.ktor.ServerToClientCommunicationType.WebSockets
 import kotlinw.util.stdlib.Priority
@@ -22,18 +24,21 @@ import xyz.kotlinw.di.api.Module
 class ServerRemotingModule {
 
     @Component
+    fun remotePeerRegistry(): RemotePeerRegistry = MutableRemotePeerRegistryImpl()
+
+    @Component
     fun remoteCallHandlersBinder(
         remoteCallHandlers: List<RemoteCallHandler>,
         eventBus: LocalEventBus,
-        messageCodec: MessageCodec<*>
-    ) =
-        KtorServerApplicationConfigurer(Priority.Normal.lowerBy(10)) {
+        messageCodec: MessageCodec<*>,
+        remotePeerRegistry: RemotePeerRegistry
+    ): KtorServerApplicationConfigurer {
+        require(remotePeerRegistry is MutableRemotePeerRegistry)
+        return KtorServerApplicationConfigurer(Priority.Normal.lowerBy(10)) {
             val ktorApplication = application
 
             if (remoteCallHandlers.isNotEmpty()) {
                 ktorApplication.install(RemotingServerPlugin) {
-                    val remotePeerRegistry = MutableRemotePeerRegistryImpl() // TODO
-
                     this.messageCodec = messageCodec
                     this.remoteCallHandlers = remoteCallHandlers
                     this.identifyClient = { 1 } // FIXME
@@ -59,4 +64,5 @@ class ServerRemotingModule {
                 }
             }
         }
+    }
 }

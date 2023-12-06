@@ -93,4 +93,16 @@ class Oauth2UtilsIntegrationTest {
             println(tokenExchangeResponse.body<Oauth2TokenResponse>())
         }
     }
+
+    @Test
+    fun testClientCredentialsGrant() = runTest {
+        val httpClient = createHttpClient()
+        val response = ClientCredentialsGrant.requestToken(
+            httpClient,
+            Url("https://sso.erinors.com/realms/erinors/protocol/openid-connect/token"),
+            "appman-agent-vmi494890",
+            "jMzM7YzZnbzLC5sBHp2TCIFvHfMWrQq8"
+        )
+        println(response.decodeJwtAccessToken())
+    }
 }

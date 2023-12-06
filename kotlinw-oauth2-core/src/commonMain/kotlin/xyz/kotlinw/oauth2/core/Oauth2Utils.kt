@@ -11,6 +11,8 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -21,7 +23,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import xyz.kotlinw.jwt.model.JwtToken
+import xyz.kotlinw.oauth2.model.AccessToken
 import xyz.kotlinw.oauth2.model.Oauth2TokenErrorResponse
 import xyz.kotlinw.oauth2.model.Oauth2TokenResponse
 import xyz.kotlinw.oauth2.model.OpenidConnectProviderMetadata
@@ -246,3 +251,18 @@ suspend fun HttpClient.authorizeDevice(
         throw IllegalStateException() // Should not be reached
     }
 }
+
+@OptIn(ExperimentalEncodingApi::class)
+private fun decodeJwtChunk(chunk: String) = Base64.UrlSafe.decode(chunk).decodeToString()
+
+fun decodeJwtToken(token: String) =
+    token.split(Regex("""\.""")).let {
+        require(it.size == 3)
+        JwtToken(
+            Json.Default.decodeFromString(decodeJwtChunk(it[0])),
+            if (it[1].isNotEmpty()) Json.Default.decodeFromString(decodeJwtChunk(it[1])) else null,
+            it[2]
+        )
+    }
+
+fun Oauth2TokenResponse.decodeJwtAccessToken() = decodeJwtToken(accessToken)
