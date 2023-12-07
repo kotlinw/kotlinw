@@ -11,6 +11,7 @@ import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.RemotePeerRegistry
 import kotlinw.remoting.server.ktor.RemotingConfiguration
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
+import kotlinw.remoting.server.ktor.WebRequestRemotingProvider
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import xyz.kotlinw.di.api.Component
@@ -36,6 +37,9 @@ class ServerRemotingModule {
             }
         }
     }
+
+    @Component
+    fun webRequestRemotingProvider() = WebRequestRemotingProvider()
 }
 
 // TODO
