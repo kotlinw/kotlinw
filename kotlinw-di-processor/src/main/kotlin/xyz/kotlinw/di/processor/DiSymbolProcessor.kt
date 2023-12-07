@@ -28,6 +28,7 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier.INTERNAL
 import com.squareup.kotlinpoet.KModifier.LATEINIT
 import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.KModifier.PRIVATE
@@ -42,7 +43,7 @@ import kotlinw.graph.algorithm.reverseTopologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 import kotlinw.graph.model.build
-import kotlinw.ksp.util.companionClassName
+import kotlinw.ksp.util.companionObjectOrNull
 import kotlinw.ksp.util.getAnnotationsOfType
 import kotlinw.ksp.util.getArgumentOrNull
 import kotlinw.ksp.util.getArgumentValueOrNull
@@ -106,21 +107,57 @@ class DiSymbolProcessor(
     private val kspOptions: Map<String, String>
 ) : SymbolProcessor {
 
+    private val containerCreateFunctionsAlreadyGenerated = mutableSetOf<ClassName>()
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val componentDeclarations = resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!).toList()
-        val moduleDeclarations = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
+//        val componentDeclarations = resolver.getSymbolsWithAnnotation(Component::class.qualifiedName!!).toList()
+//        val moduleDeclarations = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         val containerDeclarations = resolver.getSymbolsWithAnnotation(Container::class.qualifiedName!!).toList()
 
-        val invalidSymbols = containerDeclarations.filter { !it.validate() }
+        val processableContainerDeclarations = mutableSetOf<KSAnnotated>()
 
-        return if (invalidSymbols.isEmpty()) {
-            containerDeclarations.forEach {
-                processContainerDeclaration(it, resolver)
+        containerDeclarations
+            .forEach { containerDeclaration ->
+                if (containerDeclaration is KSClassDeclaration) {
+                    if (containerDeclaration.toClassName() !in containerCreateFunctionsAlreadyGenerated) {
+                        if (containerDeclaration.hasCompanionObject) {
+                            generateContainerCreateFunction(containerDeclaration)
+                            containerCreateFunctionsAlreadyGenerated.add(containerDeclaration.toClassName())
+                            processableContainerDeclarations.add(containerDeclaration)
+                        } else {
+                            kspLogger.error(
+                                "Container declaration interface should have a `companion object` (see related Kotlin feature request: https://youtrack.jetbrains.com/issue/KT-11968/Research-and-prototype-namespace-based-solution-for-statics-and-static-extensions ).",
+                                containerDeclaration
+                            )
+                        }
+                    }
+                } else {
+                    kspLogger.error("Container declaration should be an `interface`.", containerDeclaration)
+                }
             }
-            emptyList()
-        } else {
-            containerDeclarations
+
+        val validContainerDeclarations = processableContainerDeclarations.filter { it.validate() }
+
+        validContainerDeclarations.forEach {
+            processContainerDeclaration(it, resolver)
         }
+
+        return containerDeclarations - validContainerDeclarations.toSet()
+    }
+
+    private fun generateContainerCreateFunction(containerDeclaration: KSClassDeclaration) {
+        FileSpec
+            .builder(containerDeclaration.packageName.asString(), containerDeclaration.simpleName.asString() + "Util")
+            .addFunction(
+                FunSpec
+                    .builder("create")
+                    .receiver(containerDeclaration.companionObjectOrNull!!.toClassName())
+                    .returns(containerDeclaration.toClassName())
+                    .addStatement("return %T()", containerImplementationName(containerDeclaration.toClassName()))
+                    .build()
+            )
+            .build()
+            .writeTo(codeGenerator, false)
     }
 
     private fun processContainerDeclaration(containerDeclaration: KSAnnotated, resolver: Resolver) {
@@ -290,7 +327,7 @@ class DiSymbolProcessor(
                     TypeSpec
                         .classBuilder(codeGenerationModel.implementationName)
                         .addSuperinterface(codeGenerationModel.interfaceName)
-                        .addModifiers(PRIVATE)
+                        .addModifiers(INTERNAL) // TODO jelezni, hogy nem része az API-nak
                         .addFunctions(
                             codeGenerationModel.scopes.values.map { scopeCodeGenerationModel ->
                                 generateScopeBuilderFunction(scopeCodeGenerationModel)
@@ -298,14 +335,14 @@ class DiSymbolProcessor(
                         )
                         .build()
                 )
-                .addFunction(
-                    FunSpec
-                        .builder("create")
-                        .receiver(codeGenerationModel.interfaceName.companionClassName())
-                        .returns(codeGenerationModel.interfaceName)
-                        .addStatement("return %T()", codeGenerationModel.implementationName)
-                        .build()
-                )
+//                .addFunction(
+//                    FunSpec
+//                        .builder("create")
+//                        .receiver(codeGenerationModel.interfaceName.companionClassName())
+//                        .returns(codeGenerationModel.interfaceName)
+//                        .addStatement("return %T()", codeGenerationModel.implementationName)
+//                        .build()
+//                )
                 .build()
                 .writeTo(codeGenerator, true)
         }
@@ -378,10 +415,17 @@ class DiSymbolProcessor(
 
         return ContainerCodeGenerationModel(
             containerInterfaceName,
-            ClassName(containerImplementationPackageName, containerInterfaceName.simpleName + "Impl"),
+            containerImplementationName(containerInterfaceName),
             scopes
         )
     }
+
+    private fun containerImplementationName(
+        containerInterfaceName: ClassName
+    ) = ClassName(
+        containerInterfaceName.packageName,
+        containerInterfaceName.simpleName + "Impl"
+    )
 
     private fun generateScopeBuilderFunction(scopeCodeGenerationModel: ScopeCodeGenerationModel) =
         FunSpec

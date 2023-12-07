@@ -75,7 +75,9 @@ class BasicTest {
                 class Module1
                 
                 @Container(Module1::class)
-                class SampleContainer
+                class SampleContainer {
+                    companion object
+                }
             """.trimIndent(),
             listOf(DiSymbolProcessorProvider())
         ) {
