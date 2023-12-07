@@ -16,10 +16,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(projects.kotlinw.module.kotlinwModuleAppbase)
                 api(projects.kotlinw.module.kotlinwModuleKtorServer)
-                api(projects.kotlinw.module.kotlinwModuleRemotingServer)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                api(projects.kotlinw.kotlinwRemotingApi)
+                api(projects.kotlinw.kotlinwRemotingServerKtor)
             }
         }
         val commonTest by getting {

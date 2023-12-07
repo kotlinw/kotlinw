@@ -19,6 +19,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
+import kotlinw.remoting.processor.test.ExampleServiceWithDownstreamFlows
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -36,15 +37,24 @@ class KtorSupportTest {
 
         install(WebSockets)
         install(RemotingServerPlugin) {
-            this.messageCodec = messageCodec
-            this.remoteCallHandlers = listOf(ExampleService.remoteCallHandler(service))
-            this.identifyClient = { 1 }
-            this.supportedServerToClientCommunicationTypes += ServerToClientCommunicationType.WebSockets
+            this.remotingConfigurations = listOf(
+                WebRequestRemotingConfiguration(
+                    WebRequestRemotingProvider(),
+                    listOf(ExampleService.remoteCallHandler(service)),
+                    null
+                )
+            )
         }
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(client)
         val remotingClient =
-            HttpRemotingClient(messageCodec, remotingHttpClientImplementor, MutableRemotePeerRegistryImpl(), Url(""), emptyMap())
+            HttpRemotingClient(
+                messageCodec,
+                remotingHttpClientImplementor,
+                MutableRemotePeerRegistryImpl(),
+                Url(""),
+                emptyMap()
+            )
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
 
@@ -59,7 +69,7 @@ class KtorSupportTest {
 
     @Test
     fun testFlowReturnType() = testApplication {
-        val service = mockk<ExampleService>(relaxed = true)
+        val service = mockk<ExampleServiceWithDownstreamFlows>(relaxed = true)
         coEvery { service.coldFlow() } returns flowOf(1.0, 2.0, 3.0)
         coEvery { service.numberFlow(any()) } answers {
             flow {
@@ -74,10 +84,13 @@ class KtorSupportTest {
 
         install(WebSockets)
         install(RemotingServerPlugin) {
-            this.messageCodec = messageCodec
-            this.remoteCallHandlers = listOf(ExampleService.remoteCallHandler(service))
-            this.identifyClient = { 1 }
-            this.supportedServerToClientCommunicationTypes += ServerToClientCommunicationType.WebSockets
+            this.remotingConfigurations = listOf(
+                WebSocketRemotingConfiguration(
+                    WebSocketRemotingProvider({ 1 }, null, null),
+                    listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
+                    null
+                )
+            )
         }
 
         val httpClient = createClient {
@@ -93,7 +106,7 @@ class KtorSupportTest {
                 Url(""),
                 emptyMap()
             )
-        val clientProxy = ExampleService.clientProxy(remotingClient)
+        val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)
 
         coroutineScope {
             val loopJob = launch(start = UNDISPATCHED) {

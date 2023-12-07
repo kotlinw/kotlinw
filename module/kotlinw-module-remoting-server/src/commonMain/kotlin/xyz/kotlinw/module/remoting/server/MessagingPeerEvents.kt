@@ -1,4 +1,4 @@
-package kotlinw.module.serverbase
+package xyz.kotlinw.module.remoting.server
 
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
