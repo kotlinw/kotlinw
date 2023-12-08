@@ -20,7 +20,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwRemotingApi)
                 implementation(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingCoreKtor)
-                api(libs.ktor.server.auth)
+                api(libs.ktor.server.auth.core)
                 api(libs.ktor.server.core)
                 api(libs.ktor.server.sessions)
                 api(libs.ktor.server.websockets)

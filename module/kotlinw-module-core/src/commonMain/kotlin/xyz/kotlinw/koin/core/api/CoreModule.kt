@@ -2,6 +2,8 @@ package xyz.kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
@@ -33,6 +35,9 @@ class HttpClientModule {
     @Component // TODO close!
     fun httpClient(): HttpClient =
         HttpClient {
+            install(ContentNegotiation) {
+                json()
+            }
             install(HttpTimeout) {
                 connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
                 requestTimeoutMillis = 10.seconds.inWholeMilliseconds // TODO config
