@@ -157,7 +157,7 @@ class DiSymbolProcessor(
                     .build()
             )
             .build()
-            .writeTo(codeGenerator, false)
+            .writeTo(codeGenerator, true)
     }
 
     private fun processContainerDeclaration(containerDeclaration: KSAnnotated, resolver: Resolver) {

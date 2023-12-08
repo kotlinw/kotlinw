@@ -5,6 +5,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.application.pluginOrNull
+import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveText
@@ -21,7 +23,7 @@ import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.MessageCodec
@@ -45,6 +47,10 @@ class WebRequestRemotingProvider : RemotingProvider {
             throw IllegalStateException("Downstream communication is not supported by ${WebRequestRemotingProvider::class}.")
         }
 
+        if (authenticationProviderName != null && ktorApplication.pluginOrNull(Authentication) == null) {
+            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}")
+        }
+
         ktorApplication.routing {
             route("/remoting") {
 
@@ -54,9 +60,11 @@ class WebRequestRemotingProvider : RemotingProvider {
 
                 if (authenticationProviderName != null) {
                     authenticate(authenticationProviderName) {
+                        logger.info { "Remote call handlers (authorization by '" / authenticationProviderName / "'): " / delegators.mapValues { it.value.servicePath } }
                         configureRouting()
                     }
                 } else {
+                    logger.info { "Remote call handlers (no authorization): " / delegators.mapValues { it.value.servicePath } }
                     configureRouting()
                 }
             }
@@ -71,97 +79,68 @@ class WebRequestRemotingProvider : RemotingProvider {
 
         route("/call") { // TODO configurable path
             contentType(contentType) {
-                logger.info { "Remote call handlers: " / remoteCallHandlers }
-                post("/{serviceId}/{methodId}") {
-                    // TODO handle errors
+                remoteCallHandlers.forEach { (serviceId, handler) ->
+                    handler.methodDescriptors.forEach { (methodId, methodDescriptor) ->
+                        logger.trace { "Binding RPC call: " / serviceId / methodId }
+                        post("/$serviceId/${methodDescriptor.memberId}") {
+                            logger.trace { "Processing RPC call: " / serviceId / methodId }
 
-                    val serviceId = call.parameters["serviceId"]
-                    if (serviceId != null) {
-                        val delegator = remoteCallHandlers[serviceId]
-                        if (delegator != null) {
-                            val methodId = call.parameters["methodId"]
-                            if (methodId != null) {
-                                val methodDescriptor = delegator.methodDescriptors[methodId]
-                                if (methodDescriptor != null) {
-                                    logger.trace { "Processing RPC call: " / serviceId / methodId }
+                            when (methodDescriptor) {
+                                is SynchronousCall<*, *> ->
+                                    handleSynchronousCall(
+                                        call,
+                                        messageCodec,
+                                        methodDescriptor,
+                                        handler
+                                    )
 
-                                    when (methodDescriptor) {
-                                        is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {
-                                            logger.warning { "Remoting methods with ${Flow::class.simpleName} return types are not supported by this endpoint." }
-                                            call.response.status(HttpStatusCode.BadRequest)
-                                        }
-
-                                        is RemotingMethodDescriptor.SynchronousCall<*, *> ->
-                                            handleSynchronousCall(
-                                                call,
-                                                messageCodec,
-                                                methodDescriptor,
-                                                delegator
-                                            )
-                                    }
-                                } else {
-                                    logger.warning {
-                                        "Invalid incoming RPC call, handler does not support the requested method: " /
-                                                listOf(serviceId, methodId)
-                                    }
-                                }
-                            } else {
-                                logger.warning {
-                                    "Invalid incoming RPC call, no `methodId` present: " /
-                                            named("serviceId", serviceId) / call.request.uri
-                                }
-                            }
-                        } else {
-                            logger.warning {
-                                "Invalid incoming RPC call, no handler found for " /
-                                        named("serviceId", serviceId)
+                                is DownstreamColdFlow<*, *> -> throw AssertionError() // Validated in WebRequestRemotingProvider.install()
                             }
                         }
-                    } else {
-                        logger.warning { "Invalid incoming RPC call, no `serviceId` present: " / call.request.uri }
                     }
                 }
             }
         }
     }
+}
 
-    private suspend fun <M : RawMessage> handleSynchronousCall(
-        call: ApplicationCall,
-        messageCodec: MessageCodec<M>,
-        callDescriptor: RemotingMethodDescriptor.SynchronousCall<*, *>,
-        delegator: RemoteCallHandler
-    ) {
-        val isBinaryCodec = messageCodec.isBinary
+private suspend fun <M : RawMessage> handleSynchronousCall(
+    call: ApplicationCall,
+    messageCodec: MessageCodec<M>,
+    callDescriptor: SynchronousCall<*, *>,
+    delegator: RemoteCallHandler
+) {
+    val isBinaryCodec = messageCodec.isBinary
 
-        val rawRequestMessage =
-            if (isBinaryCodec) {
-                RawMessage.Binary(call.receive<ByteArray>().view())
-            } else {
-                RawMessage.Text(call.receiveText())
-            }
-
-        val parameter = messageCodec.decodeMessage(
-            rawRequestMessage as M,
-            callDescriptor.parameterSerializer
-        ).payload
-
-        val result = delegator.processCall(callDescriptor.memberId, parameter)
-
-        val responseMessage = RemotingMessage(result, null) // TODO metadata
-        val rawResponseMessage = messageCodec.encodeMessage(
-            responseMessage,
-            callDescriptor.resultSerializer as KSerializer<Any?>
-        )
-
-        call.response.status(HttpStatusCode.OK)
-        call.response.header(HttpHeaders.ContentType, messageCodec.contentType)
-
+    val rawRequestMessage =
         if (isBinaryCodec) {
-            check(rawResponseMessage is RawMessage.Binary)
-            call.respondBytes(rawResponseMessage.byteArrayView.toReadOnlyByteArray())
+            RawMessage.Binary(call.receive<ByteArray>().view())
         } else {
-            check(rawResponseMessage is RawMessage.Text)
-            call.respondText(rawResponseMessage.text)
+            RawMessage.Text(call.receiveText())
         }
+
+    val parameter = messageCodec.decodeMessage(
+        rawRequestMessage as M,
+        callDescriptor.parameterSerializer
+    ).payload
+
+    val result = delegator.processCall(callDescriptor.memberId, parameter)
+
+    val responseMessage = RemotingMessage(result, null) // TODO metadata
+    val rawResponseMessage = messageCodec.encodeMessage(
+        responseMessage,
+        callDescriptor.resultSerializer as KSerializer<Any?>
+    )
+
+    call.response.status(HttpStatusCode.OK)
+    call.response.header(HttpHeaders.ContentType, messageCodec.contentType)
+
+    if (isBinaryCodec) {
+        check(rawResponseMessage is RawMessage.Binary)
+        call.respondBytes(rawResponseMessage.byteArrayView.toReadOnlyByteArray())
+    } else {
+        check(rawResponseMessage is RawMessage.Text)
+        call.respondText(rawResponseMessage.text)
     }
 }
+

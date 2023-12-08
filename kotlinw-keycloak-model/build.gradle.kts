@@ -7,10 +7,6 @@ kotlin {
         commonMain {
             dependencies {
                 api(projects.kotlinw.kotlinwJwtModel)
-                api(libs.kotlinx.serialization.core)
-                api(projects.kotlinw.kotlinwUtilStdlibMp)
-                api(libs.kotlinx.serialization.json)
-                api(libs.kotlinx.datetime)
             }
         }
     }

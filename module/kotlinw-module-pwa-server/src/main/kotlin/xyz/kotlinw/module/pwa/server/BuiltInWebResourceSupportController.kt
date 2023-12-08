@@ -24,7 +24,7 @@ class BuiltInWebResourceSupportController(
     KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {
-        application.routing {
+        ktorApplication.routing {
             webResourceRegistry.webResourceMappings.filterIsInstance<BuiltInWebResourceMapping>()
                 .forEach { webResourceMapping ->
                     when (webResourceMapping) {

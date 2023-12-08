@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 abstract class KtorServerApplicationConfigurer(override val priority: Priority = Priority.Normal) : HasPriority {
 
     data class Context(
-        val application: Application,
+        val ktorApplication: Application,
         val ktorServerCoroutineScope: CoroutineScope
     )
 

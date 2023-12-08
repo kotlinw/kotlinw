@@ -15,7 +15,7 @@ import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 class MainHttpController(private val deploymentMode: DeploymentMode): KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {
-        application.routing {
+        ktorApplication.routing {
             route("/") {
                 // TODO további oldalakat is kiszolgálni, ne csak a root-ot
                 // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c

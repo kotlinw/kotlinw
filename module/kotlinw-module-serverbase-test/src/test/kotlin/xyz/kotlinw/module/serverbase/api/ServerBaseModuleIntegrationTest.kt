@@ -55,7 +55,7 @@ class ServerBaseModuleIntegrationTest {
             @Component
             fun testController() =
                 KtorServerApplicationConfigurer {
-                    application.routing {
+                    ktorApplication.routing {
                         get("/test") {
                             call.respondText("test-response")
                         }

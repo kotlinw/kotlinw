@@ -20,7 +20,7 @@ class WebManifestHttpController(
 ) : KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {
-        application.routing {
+        ktorApplication.routing {
             get("/manifest.webmanifest") {
                 val localeId =
                     applicationLocaleService.findBestSupportedLocale(

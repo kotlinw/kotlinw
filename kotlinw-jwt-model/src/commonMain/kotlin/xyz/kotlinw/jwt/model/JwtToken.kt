@@ -9,18 +9,9 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-
-private inline val JsonElement.asString get() = jsonPrimitive.content
-
-private inline val JsonElement.asInstant get() = jsonPrimitive.long.let { Instant.fromEpochSeconds(it) }
-
-private inline val JsonElement.asStringList
-    get() =
-        when (this) {
-            is JsonArray -> toList().map { it.asString }
-            is JsonPrimitive -> listOf(asString)
-            else -> throw IllegalStateException("Unexpected value: $this")
-        }
+import xyz.kotlinw.jwt.model.JwtToken.Converters.asInstant
+import xyz.kotlinw.jwt.model.JwtToken.Converters.asString
+import xyz.kotlinw.jwt.model.JwtToken.Converters.asStringList
 
 @Serializable
 data class JwtToken(
@@ -28,6 +19,21 @@ data class JwtToken(
     val payload: JwtTokenPayload?,
     val signature: String
 ) {
+
+    object Converters {
+
+        inline val JsonElement.asString get() = jsonPrimitive.content
+
+        inline val JsonElement.asInstant get() = jsonPrimitive.long.let { Instant.fromEpochSeconds(it) }
+
+        inline val JsonElement.asStringList
+            get() =
+                when (this) {
+                    is JsonArray -> toList().map { it.asString }
+                    is JsonPrimitive -> listOf(asString)
+                    else -> throw IllegalStateException("Unexpected value: $this")
+                }
+    }
 
     @JvmInline
     @Serializable
@@ -70,8 +76,6 @@ data class JwtToken(
             private val commonFields = setOf(
                 FIELD_ISS, FIELD_SUB, FIELD_AUD, FIELD_EXP, FIELD_NBF, FIELD_IAT, FIELD_JTI, FIELD_TYP, FIELD_AZP
             )
-
-            val JwtTokenPayload.keycloakRoles get() = (jsonObject["realm_access"] as? JsonObject)?.get("roles")?.asStringList
         }
 
         val issuer get() = jsonObject[FIELD_ISS]?.asStringList
