@@ -1,14 +1,16 @@
 package kotlinw.remoting.client.ktor
 
 import arrow.atomic.AtomicBoolean
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
@@ -21,10 +23,12 @@ import kotlinw.util.stdlib.Url
 import kotlinx.datetime.Clock
 
 class KtorHttpRemotingClientImplementor(
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {}
 ) : SynchronousCallSupport, BidirectionalCommunicationImplementor {
 
-    internal constructor(engine: HttpClientEngine) : this(HttpClient(engine))
+    internal constructor(engine: HttpClientEngine, httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {})
+            : this(HttpClient(engine), httpRequestCustomizer)
 
     override suspend fun <M : RawMessage> call(
         url: String,
@@ -33,6 +37,8 @@ class KtorHttpRemotingClientImplementor(
     ): M {
         val response =
             httpClient.post(url) {
+                httpRequestCustomizer()
+
                 header(HttpHeaders.Accept, messageCodecDescriptor.contentType)
                 header(HttpHeaders.ContentType, messageCodecDescriptor.contentType)
 

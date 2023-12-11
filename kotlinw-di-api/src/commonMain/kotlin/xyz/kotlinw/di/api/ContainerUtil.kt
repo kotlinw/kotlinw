@@ -25,7 +25,7 @@ suspend fun <T : ContainerScope> runApplication(
 
                 block()
             } catch (e: Exception) {
-                e.printStackTrace() // TODO log
+                throw RuntimeException(e) // TODO log
             } finally {
                 close()
             }

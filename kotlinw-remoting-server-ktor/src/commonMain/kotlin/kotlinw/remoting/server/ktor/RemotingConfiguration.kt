@@ -8,6 +8,8 @@ import xyz.kotlinw.remoting.api.MessagingSessionId
 
 interface RemotingConfiguration {
 
+    val id: String
+
     val remotingProvider: RemotingProvider
 
     val messageCodec: MessageCodec<*>?
@@ -18,6 +20,7 @@ interface RemotingConfiguration {
 }
 
 data class WebRequestRemotingConfiguration(
+    override val id: String,
     override val remotingProvider: WebRequestRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler>,
     override val authenticationProviderName: String?,
@@ -25,6 +28,7 @@ data class WebRequestRemotingConfiguration(
 ) : RemotingConfiguration
 
 data class WebSocketRemotingConfiguration(
+    override val id: String,
     override val remotingProvider: WebSocketRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler>,
     override val authenticationProviderName: String?,

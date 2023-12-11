@@ -10,7 +10,6 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveText
-import io.ktor.server.request.uri
 import io.ktor.server.response.header
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondText
@@ -22,15 +21,14 @@ import io.ktor.server.routing.routing
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.*
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
+import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.SynchronousCall
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
-import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
 
 class WebRequestRemotingProvider : RemotingProvider {
@@ -48,7 +46,7 @@ class WebRequestRemotingProvider : RemotingProvider {
         }
 
         if (authenticationProviderName != null && ktorApplication.pluginOrNull(Authentication) == null) {
-            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}")
+            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}. It should be installed to support authentication provider '$authenticationProviderName' required by remoting provider '$remotingProviderId'.")
         }
 
         ktorApplication.routing {

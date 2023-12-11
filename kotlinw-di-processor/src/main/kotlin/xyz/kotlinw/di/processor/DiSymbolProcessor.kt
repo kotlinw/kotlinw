@@ -18,9 +18,11 @@ import com.google.devtools.ksp.symbol.ClassKind.ENUM_ENTRY
 import com.google.devtools.ksp.symbol.ClassKind.INTERFACE
 import com.google.devtools.ksp.symbol.ClassKind.OBJECT
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.validate
@@ -39,6 +41,7 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
+import kotlin.reflect.KClass
 import kotlinw.graph.algorithm.reverseTopologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
@@ -57,8 +60,14 @@ import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
 import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.di.api.Scope.RemovedComponent
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
+import xyz.kotlinw.di.api.internal.ComponentDependencyKind.MULTIPLE_OPTIONAL
+import xyz.kotlinw.di.api.internal.ComponentDependencyKind.MULTIPLE_REQUIRED
+import xyz.kotlinw.di.api.internal.ComponentDependencyKind.SINGLE_OPTIONAL
+import xyz.kotlinw.di.api.internal.ComponentDependencyKind.SINGLE_REQUIRED
 import xyz.kotlinw.di.api.internal.ComponentId
+import xyz.kotlinw.di.api.internal.ModuleId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
 // TODO ha egy nem többértékű függőségből 1+ példány elérhető, akkor adjon hibát
@@ -69,6 +78,7 @@ import xyz.kotlinw.di.api.internal.ScopeInternal
 //     @Component
 //    fun applicationPersistentClassProvider() = GeneratedPackagePersistentClassProvider()
 
+// TODO legyen a scope interfészben lehetőség arra, hogy bizonyos komponenseket felírjunk, pl. egy external component lehetne @ExternalComponent(override = true)
 // TODO lehessen constructor reference-szel komponenst definiálni: @Component(type = A::class) fun a() = ::AImpl
 // TODO körkörös referencia kezelése @Module.includeModules-ben
 // TODO warning, ha egy modul többször van felsorolva
@@ -207,17 +217,30 @@ class DiSymbolProcessor(
                                     if (scopeInterfaceDeclaration != null) {
                                         val scopeAnnotation =
                                             scopeDeclarationFunction.getAnnotationsOfType<Scope>().first()
-                                        val declaredModulesValue = scopeAnnotation.getArgumentOrNull("modules")
                                         val declaredModules =
-                                            declaredModulesValue?.value as? List<KSType> ?: emptyList()
+                                            scopeAnnotation.getArgumentValueOrNull<List<KSType>>("modules")
+                                                ?: emptyList()
                                         val parentScopeName =
-                                            (scopeAnnotation.getArgumentValueOrNull("parent") as? String)?.let { it.ifEmpty { null } }
+                                            scopeAnnotation.getArgumentValueOrNull<String>("parent")
+                                                ?.let { it.ifEmpty { null } }
 
                                         if (declaredModules.all {
                                                 it.declaration is KSClassDeclaration
                                                         && it.declaration.isAnnotationPresent(Module::class)
                                             }
                                         ) {
+                                            val removedComponents =
+                                                scopeAnnotation
+                                                    .getArgumentValueOrNull<List<KSAnnotation>>("removedComponents")
+                                                    ?.map {
+                                                        ComponentId(
+                                                            it.getArgumentValueOrNull<KSType>("module")!!.getModuleId(),
+                                                            it.getArgumentValueOrNull<String>("localComponentId")!!
+                                                        )
+                                                    }
+                                                    ?.toSet()
+                                                    ?: emptySet()
+
                                             ScopeModel(
                                                 parentScopeName,
                                                 scopeDeclarationFunction.simpleName.asString(),
@@ -237,7 +260,7 @@ class DiSymbolProcessor(
                                                         )
                                                     }
                                                     .mapNotNull {
-                                                        processModuleReference(it, resolver)
+                                                        processModuleReference(it, resolver, removedComponents)
                                                     }
                                                     .toSet(),
                                                 collectComponentQueries(scopeInterfaceDeclaration),
@@ -246,7 +269,8 @@ class DiSymbolProcessor(
                                                     .drop(if (parentScopeName != null) 1 else 0)
                                                     .map {
                                                         ExternalComponentModel(it.name!!.asString(), it.type.resolve())
-                                                    }
+                                                    },
+                                                removedComponents
                                             )
                                         } else {
                                             val invalidReferences =
@@ -372,13 +396,13 @@ class DiSymbolProcessor(
         return componentQueryFunctions
             .map {
                 val type = it.returnType!!.resolve()
-                ComponentQueryModel(it, type, type.toComponentLookup())
+                ComponentQueryModel(it, type, createComponentLookup(type, it))
             }
             .toList() +
                 componentQueryProperties
                     .map {
                         val type = it.type.resolve()
-                        ComponentQueryModel(it, type, type.toComponentLookup())
+                        ComponentQueryModel(it, type, createComponentLookup(type, it))
                     }
                     .toList()
     }
@@ -691,7 +715,11 @@ class DiSymbolProcessor(
             .build()
     }
 
-    private fun processModuleReference(moduleReference: ModuleReference, resolver: Resolver): ModuleModel? {
+    private fun processModuleReference(
+        moduleReference: ModuleReference,
+        resolver: Resolver,
+        removedComponents: Set<ComponentId>
+    ): ModuleModel? {
         val moduleDeclaration = moduleReference.moduleDeclaration
         val moduleId = moduleDeclaration.getModuleId()
 
@@ -719,7 +747,8 @@ class DiSymbolProcessor(
             ModuleModel(
                 moduleId,
                 moduleDeclaration,
-                inlineComponents as List<ComponentModel> + componentClasses as List<ComponentModel>,
+                (inlineComponents as List<ComponentModel> + componentClasses as List<ComponentModel>)
+                    .filter { it.id !in removedComponents },
                 componentScanPackageName
             )
         } else {
@@ -747,7 +776,7 @@ class DiSymbolProcessor(
 //                                .getArgumentValueOrNull("type") as? KSType ?:
                             componentClassDeclaration.asType(emptyList()),
                             componentClassDeclaration.primaryConstructor!!.parameters.associate {
-                                it.name!!.asString() to it.type.resolve().toComponentLookup()
+                                it.name!!.asString() to createComponentLookup(it.type.resolve(), it)
                             },
                             componentClassDeclaration,
                             ComponentLifecycleModel(
@@ -796,7 +825,7 @@ class DiSymbolProcessor(
                 ComponentId(moduleId, inlineComponentDeclaration.simpleName.asString()),
                 componentType,
                 inlineComponentDeclaration.parameters.associate {
-                    it.name!!.asString() to it.type.resolve().toComponentLookup()
+                    it.name!!.asString() to createComponentLookup(it.type.resolve(), it)
                 },
                 inlineComponentDeclaration,
                 ComponentLifecycleModel( // TODO ezt csak inline-nál lehessen megadni
@@ -942,17 +971,20 @@ class DiSymbolProcessor(
             .filterIsInstance<KSClassDeclaration>()
             .filter { it.isAnnotationPresent(Component::class) }
 
-    private fun KSType.toComponentLookup(): ComponentLookup {
-        val parameterDeclaration = declaration as KSClassDeclaration
-        return if (parameterDeclaration.qualifiedName!!.asString() == List::class.qualifiedName) {
+    private fun createComponentLookup(ksType: KSType, kspMessageTarget: KSNode): ComponentLookup {
+        val parameterDeclaration = ksType.declaration as KSClassDeclaration
+        return if (parameterDeclaration.qualifiedName == null) {
+            throw IllegalStateException("" + this) // TODO erre nem itt kellene rádöbbenni; pl. akkor van ilyen, ha module osztály @Component metódusának return type hibás, vagy scope factory metódus @Component paraméter osztályának típusa hibás
+        } else if (parameterDeclaration.qualifiedName!!.asString() == List::class.qualifiedName) {
             ComponentLookup(
-                arguments[0].type!!.resolve(),
-                ComponentDependencyKind.MULTIPLE_OPTIONAL
+                ksType.arguments[0].type!!.resolve(),
+                MULTIPLE_OPTIONAL,
+                kspMessageTarget
             ) // TODO handle MULITPLE_REQUIRED
-        } else if (isMarkedNullable) {
-            ComponentLookup(this, ComponentDependencyKind.SINGLE_OPTIONAL)
+        } else if (ksType.isMarkedNullable) {
+            ComponentLookup(ksType, SINGLE_OPTIONAL, kspMessageTarget)
         } else {
-            ComponentLookup(this, ComponentDependencyKind.SINGLE_REQUIRED)
+            ComponentLookup(ksType, SINGLE_REQUIRED, kspMessageTarget)
         }
     }
 
@@ -1001,12 +1033,13 @@ class DiSymbolProcessor(
             (
                     scopeModules
                         .flatMap {
-                            it.moduleModel.components.map {
+                            it.moduleModel.components.map { componentModel ->
                                 ResolvedComponentModel(
-                                    it,
+                                    componentModel,
                                     name,
-                                    it.dependencyDefinitions.map {
+                                    componentModel.dependencyDefinitions.map {
                                         ResolvedComponentDependencyModel(
+                                            it.value,
                                             it.key,
                                             it.value.type,
                                             it.value.dependencyKind,
@@ -1014,7 +1047,35 @@ class DiSymbolProcessor(
                                                 componentDependencyCandidates,
                                                 it.value
                                             ) // TODO több szintű parent-et is lekövetni rekurzívan
-                                        )
+                                        ).also { resolvedComponentDependencyModel ->
+                                            when (resolvedComponentDependencyModel.dependencyKind) {
+                                                SINGLE_OPTIONAL ->
+                                                    if (resolvedComponentDependencyModel.candidates.size > 1) {
+                                                        kspLogger.error(
+                                                            "0 or 1 component instance of type ${resolvedComponentDependencyModel.dependencyType} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            resolvedComponentDependencyModel.componentLookup.kspMessageTarget
+                                                        )
+                                                    }
+
+                                                SINGLE_REQUIRED ->
+                                                    if (resolvedComponentDependencyModel.candidates.size != 1) {
+                                                        kspLogger.error(
+                                                            "Exactly 1 component instance of type ${resolvedComponentDependencyModel.dependencyType} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            resolvedComponentDependencyModel.componentLookup.kspMessageTarget
+                                                        )
+                                                    }
+
+                                                MULTIPLE_OPTIONAL -> {}
+
+                                                MULTIPLE_REQUIRED ->
+                                                    if (resolvedComponentDependencyModel.candidates.isEmpty()) {
+                                                        kspLogger.error(
+                                                            "1 or more component instances of type ${resolvedComponentDependencyModel.dependencyType} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            resolvedComponentDependencyModel.componentLookup.kspMessageTarget
+                                                        )
+                                                    }
+                                            }
+                                        }
                                     }.associateBy { it.dependencyName }
                                 )
                             }
@@ -1053,7 +1114,10 @@ class DiSymbolProcessor(
             ANNOTATION_CLASS -> "annotation class"
         }
 
-    private fun KSClassDeclaration.getModuleId() = qualifiedName!!.asString()
+    private fun KSClassDeclaration.getModuleId() = qualifiedName!!.asString() // TODO !!
+
+    private fun KSType.getModuleId() = (declaration as? KSClassDeclaration)?.getModuleId()
+        ?: throw IllegalStateException() // TODO rendes KSP hibát adni
 }
 
 private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =

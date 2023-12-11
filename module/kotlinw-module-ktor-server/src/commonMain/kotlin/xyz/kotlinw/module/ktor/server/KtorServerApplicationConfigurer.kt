@@ -14,7 +14,7 @@ abstract class KtorServerApplicationConfigurer(override val priority: Priority =
     )
 
     // TODO make internal+@PublishedApi after removing koin
-    fun setupModule(context: Context) = context.setup()
+    fun setupKtorModule(context: Context) = context.setup()
 
     // TODO replace with context(Context)
     abstract fun Context.setup()

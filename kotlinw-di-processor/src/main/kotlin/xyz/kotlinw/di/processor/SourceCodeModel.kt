@@ -3,6 +3,7 @@ package xyz.kotlinw.di.processor
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueParameter
@@ -10,6 +11,7 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
+import xyz.kotlinw.di.api.Scope.RemovedComponent
 
 data class ContainerModel(
     val id: String,
@@ -77,7 +79,7 @@ data class ExternalComponentModel(
     override val lifecycleModel: ComponentLifecycleModel get() = ComponentLifecycleModel(null, null)
 }
 
-data class ComponentLookup(val type: KSType, val dependencyKind: ComponentDependencyKind)
+data class ComponentLookup(val type: KSType, val dependencyKind: ComponentDependencyKind, val kspMessageTarget: KSNode)
 
 data class ModuleReference(val moduleDeclaration: KSClassDeclaration, val moduleId: String)
 
@@ -89,7 +91,8 @@ data class ScopeModel(
     val declaredModules: List<ModuleReference>,
     val allModules: Set<ModuleModel>,
     val componentQueries: List<ComponentQueryModel>,
-    val externalComponents: List<ExternalComponentModel>
+    val externalComponents: List<ExternalComponentModel>,
+    val removedComponents: Set<ComponentId>
 )
 
 data class ComponentQueryModel(

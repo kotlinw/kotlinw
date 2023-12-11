@@ -1,14 +1,11 @@
 package kotlinw.remoting.server.ktor
 
-import io.ktor.server.application.*
+import io.ktor.server.application.createApplicationPlugin
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.RawMessage
-import kotlinw.remoting.core.RawMessage.Text
 import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.codec.MessageDecoder
 import kotlinx.coroutines.CoroutineScope
 
 class RemotingPluginConfiguration {
@@ -33,6 +30,8 @@ val RemotingServerPlugin =
             pluginConfig.remotingConfigurations.forEach {
                 it.remotingProvider.installInternal(
                     object : RemotingProvider.InstallationContext {
+
+                        override val remotingProviderId: String get() = it.id
 
                         override val ktorApplication get() = application
 

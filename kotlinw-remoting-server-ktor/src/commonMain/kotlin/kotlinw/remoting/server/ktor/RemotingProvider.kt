@@ -10,6 +10,8 @@ interface RemotingProvider {
 
     interface InstallationContext {
 
+        val remotingProviderId: String
+
         val ktorApplication: Application
 
         val ktorServerCoroutineScope: CoroutineScope?

@@ -24,8 +24,6 @@ kotlin {
                 api(projects.kotlinw.kotlinwLoggingApi)
                 api(projects.kotlinw.kotlinwLoggingPlatform) // TODO implementation
                 api(projects.kotlinw.kotlinwSerializationCore)
-                api(projects.kotlinw.kotlinwRemotingCore)
-                api(projects.kotlinw.kotlinwRemotingClientKtor)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwDiApi)

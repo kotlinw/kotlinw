@@ -13,18 +13,13 @@ import kotlinw.configuration.core.ConfigurationPropertyLookupSource
 import kotlinw.eventbus.local.LocalEventBus
 import kotlinw.eventbus.local.LocalEventBusImpl
 import kotlinw.koin.core.api.ApplicationCoroutineService
-import xyz.kotlinw.di.api.ContainerLifecycleListener
-import kotlinw.koin.core.api.RemotingClientFactory
-import kotlinw.koin.core.api.RemotingClientFactoryImpl
 import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
 import kotlinw.koin.core.internal.defaultLoggingIntegrator
 import kotlinw.logging.spi.LoggingIntegrator
-import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.codec.JsonMessageCodec
-import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.serialization.core.SerializerService
 import kotlinw.serialization.core.SerializerServiceImpl
 import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.api.ContainerLifecycleListener
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
@@ -43,18 +38,6 @@ class HttpClientModule {
                 requestTimeoutMillis = 10.seconds.inWholeMilliseconds // TODO config
             }
         }
-
-}
-
-@Module(includeModules = [HttpClientModule::class])
-class HttpRemotingClientModule {
-
-    @Component
-    fun remotingClientImplementor(httpClient: HttpClient) = KtorHttpRemotingClientImplementor(httpClient)
-
-    @Component
-    fun remotingClientFactory(defaultSynchronousCallSupportImplementor: SynchronousCallSupport?): RemotingClientFactory =
-        RemotingClientFactoryImpl(JsonMessageCodec.Default, defaultSynchronousCallSupportImplementor)
 }
 
 @Module
@@ -83,7 +66,7 @@ class LoggingModule {
     fun loggingIntegrator(): LoggingIntegrator = defaultLoggingIntegrator
 }
 
-@Module(includeModules = [SerializerModule::class, HttpClientModule::class, HttpRemotingClientModule::class, LoggingModule::class, ConfigurationModule::class])
+@Module(includeModules = [SerializerModule::class, LoggingModule::class, ConfigurationModule::class])
 class CoreModule {
 
     @Component(type = ContainerLifecycleCoordinator::class)

@@ -26,7 +26,9 @@ class ServerRemotingModule {
     ): KtorServerApplicationConfigurer {
         return KtorServerApplicationConfigurer(Priority.Normal.lowerBy(10)) {
             ktorApplication.install(RemotingServerPlugin) {
-                this.defaultMessageCodec = defaultMessageCodec
+                if (defaultMessageCodec != null) {
+                    this.defaultMessageCodec = defaultMessageCodec
+                }
                 this.remotingConfigurations = remotingConfigurations
                 this.ktorServerCoroutineScope = this@KtorServerApplicationConfigurer.ktorServerCoroutineScope
             }

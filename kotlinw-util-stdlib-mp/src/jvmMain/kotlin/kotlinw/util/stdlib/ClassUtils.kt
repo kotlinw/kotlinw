@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor
 import java.nio.charset.Charset
 import kotlin.reflect.KClass
 
-actual val KClass<*>.debugName: String get() = qualifiedName ?: "<unknown class>"
+actual val KClass<*>.debugName: String get() = qualifiedName ?: simpleName ?: "<unknown class>"
 
 fun KClass<*>.noArgsConstructor(): Constructor<*> = java.declaredConstructors.first { it.parameterCount == 0 }
 

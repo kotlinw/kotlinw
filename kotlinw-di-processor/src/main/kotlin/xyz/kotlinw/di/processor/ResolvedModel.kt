@@ -23,6 +23,7 @@ sealed interface ResolvedDependencyModel {
 }
 
 data class ResolvedComponentDependencyModel(
+    val componentLookup: ComponentLookup,
     val dependencyName: String,
     override val dependencyType: KSType,
     override val dependencyKind: ComponentDependencyKind,

@@ -3,6 +3,7 @@ package xyz.kotlinw.oauth2.core
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.pluginOrNull
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.http.Parameters
@@ -25,21 +26,22 @@ import xyz.kotlinw.jwt.model.JwtToken.Companion.parseJwtToken
 
 private val logger = PlatformLogging.getLogger()
 
-suspend fun HttpClient.fetchOpenidConnectProviderMetadata(authorizationServerUrl: Url) =
-    config {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-    }
-        .get(
-            URLBuilder(authorizationServerUrl.value)
-                .appendPathSegments(".well-known", "openid-configuration")
-                .build()
+private fun HttpClient.configureHttpClient() = config {
+    pluginOrNull(ContentNegotiation) ?: install(ContentNegotiation) {
+        json(
+            Json {
+                ignoreUnknownKeys = true
+            }
         )
+    }
+}
+
+suspend fun HttpClient.fetchOpenidConnectProviderMetadata(authorizationServerUrl: Url) =
+    configureHttpClient().get(
+        URLBuilder(authorizationServerUrl.value)
+            .appendPathSegments(".well-known", "openid-configuration")
+            .build()
+    )
         .body<OpenidConnectProviderMetadata>()
 
 internal fun buildGenericAuthorizationUrl(
@@ -126,7 +128,7 @@ object ClientCredentialsGrant {
         clientId: String,
         clientSecret: String
     ): Oauth2TokenResponse =
-        httpClient.submitForm(
+        httpClient.configureHttpClient().submitForm(
             tokenEndpointUrl.value,
             Parameters.build {
                 append("client_id", clientId)
@@ -185,7 +187,9 @@ suspend fun HttpClient.authorizeDevice(
 ): Oauth2TokenResponse {
     logger.debug { "Initiating device authorization flow..." }
 
-    val authorizationResponse = submitForm(
+    val httpClient = configureHttpClient()
+
+    val authorizationResponse = httpClient.submitForm(
         deviceAuthorizationEndpoint.value,
         Parameters.build {
             append("client_id", clientId)
@@ -209,7 +213,7 @@ suspend fun HttpClient.authorizeDevice(
             logger.debug { "Waiting for " / pollingDelay / " before checking the result..." }
             delay(pollingDelay)
 
-            val tokenResponse = submitForm(
+            val tokenResponse = httpClient.submitForm(
                 tokenEndpoint.value,
                 Parameters.build {
                     append("client_id", clientId)

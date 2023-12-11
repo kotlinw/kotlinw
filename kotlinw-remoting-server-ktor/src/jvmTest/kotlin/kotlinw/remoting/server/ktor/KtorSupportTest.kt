@@ -39,6 +39,7 @@ class KtorSupportTest {
         install(RemotingServerPlugin) {
             this.remotingConfigurations = listOf(
                 WebRequestRemotingConfiguration(
+                    "test",
                     WebRequestRemotingProvider(),
                     listOf(ExampleService.remoteCallHandler(service)),
                     null
@@ -86,6 +87,7 @@ class KtorSupportTest {
         install(RemotingServerPlugin) {
             this.remotingConfigurations = listOf(
                 WebSocketRemotingConfiguration(
+                    "test",
                     WebSocketRemotingProvider({ 1 }, null, null),
                     listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
                     null
