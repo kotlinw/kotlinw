@@ -6,12 +6,10 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSValueParameter
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
-import xyz.kotlinw.di.api.Scope.RemovedComponent
 
 data class ContainerModel(
     val id: String,
@@ -92,7 +90,7 @@ data class ScopeModel(
     val allModules: Set<ModuleModel>,
     val componentQueries: List<ComponentQueryModel>,
     val externalComponents: List<ExternalComponentModel>,
-    val removedComponents: Set<ComponentId>
+    val ignoredComponents: Set<ComponentId>
 )
 
 data class ComponentQueryModel(

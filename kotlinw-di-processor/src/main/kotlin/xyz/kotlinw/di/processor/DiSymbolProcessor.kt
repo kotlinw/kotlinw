@@ -41,14 +41,12 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
-import kotlin.reflect.KClass
 import kotlinw.graph.algorithm.reverseTopologicalSort
 import kotlinw.graph.model.DirectedGraph
 import kotlinw.graph.model.Vertex
 import kotlinw.graph.model.build
 import kotlinw.ksp.util.companionObjectOrNull
 import kotlinw.ksp.util.getAnnotationsOfType
-import kotlinw.ksp.util.getArgumentOrNull
 import kotlinw.ksp.util.getArgumentValueOrNull
 import kotlinw.ksp.util.hasCompanionObject
 import xyz.kotlinw.di.api.Component
@@ -60,14 +58,12 @@ import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
 import xyz.kotlinw.di.api.Scope
-import xyz.kotlinw.di.api.Scope.RemovedComponent
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind.MULTIPLE_OPTIONAL
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind.MULTIPLE_REQUIRED
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind.SINGLE_OPTIONAL
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind.SINGLE_REQUIRED
 import xyz.kotlinw.di.api.internal.ComponentId
-import xyz.kotlinw.di.api.internal.ModuleId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
 // TODO ha egy nem többértékű függőségből 1+ példány elérhető, akkor adjon hibát
@@ -229,9 +225,9 @@ class DiSymbolProcessor(
                                                         && it.declaration.isAnnotationPresent(Module::class)
                                             }
                                         ) {
-                                            val removedComponents =
+                                            val ignoredComponents =
                                                 scopeAnnotation
-                                                    .getArgumentValueOrNull<List<KSAnnotation>>("removedComponents")
+                                                    .getArgumentValueOrNull<List<KSAnnotation>>("ignoredComponents")
                                                     ?.map {
                                                         ComponentId(
                                                             it.getArgumentValueOrNull<KSType>("module")!!.getModuleId(),
@@ -260,7 +256,7 @@ class DiSymbolProcessor(
                                                         )
                                                     }
                                                     .mapNotNull {
-                                                        processModuleReference(it, resolver, removedComponents)
+                                                        processModuleReference(it, resolver, ignoredComponents)
                                                     }
                                                     .toSet(),
                                                 collectComponentQueries(scopeInterfaceDeclaration),
@@ -270,7 +266,7 @@ class DiSymbolProcessor(
                                                     .map {
                                                         ExternalComponentModel(it.name!!.asString(), it.type.resolve())
                                                     },
-                                                removedComponents
+                                                ignoredComponents
                                             )
                                         } else {
                                             val invalidReferences =
@@ -718,7 +714,7 @@ class DiSymbolProcessor(
     private fun processModuleReference(
         moduleReference: ModuleReference,
         resolver: Resolver,
-        removedComponents: Set<ComponentId>
+        ignoredComponents: Set<ComponentId>
     ): ModuleModel? {
         val moduleDeclaration = moduleReference.moduleDeclaration
         val moduleId = moduleDeclaration.getModuleId()
@@ -748,7 +744,7 @@ class DiSymbolProcessor(
                 moduleId,
                 moduleDeclaration,
                 (inlineComponents as List<ComponentModel> + componentClasses as List<ComponentModel>)
-                    .filter { it.id !in removedComponents },
+                    .filter { it.id !in ignoredComponents },
                 componentScanPackageName
             )
         } else {
