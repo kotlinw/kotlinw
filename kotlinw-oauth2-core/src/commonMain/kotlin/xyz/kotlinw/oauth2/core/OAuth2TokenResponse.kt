@@ -4,15 +4,15 @@ import kotlinw.util.stdlib.Url
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-typealias AccessToken = String
+typealias OAuth2AccessToken = String
 
-typealias RefreshToken = String
+typealias OAuth2RefreshToken = String
 
 @Serializable
-data class Oauth2TokenResponse(
+data class OAuth2TokenResponse(
 
     @SerialName("access_token")
-    val accessToken: AccessToken,
+    val accessToken: OAuth2AccessToken,
 
     @SerialName("token_type")
     val tokenType: String,
@@ -21,7 +21,7 @@ data class Oauth2TokenResponse(
     val accessTokenExpirySeconds: Int? = null,
 
     @SerialName("refresh_token")
-    val refreshToken: RefreshToken? = null,
+    val refreshToken: OAuth2RefreshToken? = null,
 
     @SerialName("refresh_expires_in")
     val refreshTokenExpirySeconds: Int? = null,
@@ -40,6 +40,8 @@ data class Oauth2TokenResponse(
     @SerialName("session_state")
     val sessionState: String? = null
 )
+
+val OAuth2TokenResponse.tokens get() = OAuth2BearerTokens(accessToken, refreshToken)
 
 @Serializable
 data class Oauth2TokenErrorResponse(

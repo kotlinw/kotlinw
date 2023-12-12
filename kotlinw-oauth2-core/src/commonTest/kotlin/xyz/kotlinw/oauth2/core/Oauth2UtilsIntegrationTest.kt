@@ -83,7 +83,7 @@ class Oauth2UtilsIntegrationTest {
                 }
             )
 
-            println(tokenExchangeResponse.body<Oauth2TokenResponse>())
+            println(tokenExchangeResponse.body<OAuth2TokenResponse>())
         }
     }
 

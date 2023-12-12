@@ -1,11 +1,11 @@
 package xyz.kotlinw.oauth2.server
 
 import io.ktor.server.auth.OAuthAccessTokenResponse
-import xyz.kotlinw.oauth2.core.Oauth2TokenResponse
+import xyz.kotlinw.oauth2.core.OAuth2TokenResponse
 
-fun OAuthAccessTokenResponse.OAuth2.convertToOauth2TokenResponse(): Oauth2TokenResponse {
+fun OAuthAccessTokenResponse.OAuth2.convertToOauth2TokenResponse(): OAuth2TokenResponse {
     val extraParameters = extraParameters
-    return Oauth2TokenResponse(
+    return OAuth2TokenResponse(
         accessToken = accessToken,
         tokenType = tokenType,
         accessTokenExpirySeconds = expiresIn.toInt(),

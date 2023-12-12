@@ -7,7 +7,7 @@ import io.ktor.client.request.get
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.trailingPathSeparatorRemoved
 import xyz.kotlinw.jwt.model.JwtToken.JwtTokenPayload
-import xyz.kotlinw.oauth2.core.AccessToken
+import xyz.kotlinw.oauth2.core.OAuth2AccessToken
 
 fun createKeycloakAuthorizationServerUrl(keycloakBaseUrl: Url, realm: String) =
     Url("${keycloakBaseUrl.trailingPathSeparatorRemoved().value}/realms/$realm")
@@ -16,7 +16,7 @@ suspend fun HttpClient.fetchKeycloakExternalIdentityProviderToken(
     keycloakBaseUrl: Url,
     realm: String,
     providerAlias: String,
-    keycloakAccessToken: AccessToken
+    keycloakAccessToken: OAuth2AccessToken
 ) =
     fetchKeycloakExternalIdentityProviderToken(
         createKeycloakAuthorizationServerUrl(keycloakBaseUrl, realm), providerAlias, keycloakAccessToken
@@ -25,7 +25,7 @@ suspend fun HttpClient.fetchKeycloakExternalIdentityProviderToken(
 suspend fun HttpClient.fetchKeycloakExternalIdentityProviderToken(
     keycloakRealmBaseUrl: Url,
     providerAlias: String,
-    keycloakAccessToken: AccessToken
+    keycloakAccessToken: OAuth2AccessToken
 ) =
     get(keycloakRealmBaseUrl.value + "/broker/$providerAlias/token") {
         bearerAuth(keycloakAccessToken)

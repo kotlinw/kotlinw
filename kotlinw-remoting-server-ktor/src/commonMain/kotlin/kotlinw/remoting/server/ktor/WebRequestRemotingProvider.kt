@@ -85,14 +85,10 @@ class WebRequestRemotingProvider : RemotingProvider {
 
                             when (methodDescriptor) {
                                 is SynchronousCall<*, *> ->
-                                    handleSynchronousCall(
-                                        call,
-                                        messageCodec,
-                                        methodDescriptor,
-                                        handler
-                                    )
+                                    handleSynchronousCall(call, messageCodec, methodDescriptor, handler)
 
-                                is DownstreamColdFlow<*, *> -> throw AssertionError() // Validated in WebRequestRemotingProvider.install()
+                                is DownstreamColdFlow<*, *> ->
+                                    throw AssertionError() // Validated in WebRequestRemotingProvider.install()
                             }
                         }
                     }

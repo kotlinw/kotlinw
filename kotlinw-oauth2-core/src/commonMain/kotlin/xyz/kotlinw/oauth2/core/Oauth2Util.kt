@@ -127,7 +127,7 @@ object ClientCredentialsGrant {
         tokenEndpointUrl: Url,
         clientId: String,
         clientSecret: String
-    ): Oauth2TokenResponse =
+    ): OAuth2TokenResponse =
         httpClient.configureHttpClient().submitForm(
             tokenEndpointUrl.value,
             Parameters.build {
@@ -135,7 +135,7 @@ object ClientCredentialsGrant {
                 append("client_secret", clientSecret)
                 append("grant_type", "client_credentials")
             }
-        ).body<Oauth2TokenResponse>() // TODO 401 és további hibák kezelése
+        ).body<OAuth2TokenResponse>() // TODO 401 és további hibák kezelése
 }
 
 /**
@@ -184,7 +184,7 @@ suspend fun HttpClient.authorizeDevice(
     scopes: List<String>? = null,
     defaultAuthorizationTimeout: Duration = 5.minutes,
     authorizationResponseCallback: suspend (DeviceAuthorizationResponse) -> Unit
-): Oauth2TokenResponse {
+): OAuth2TokenResponse {
     logger.debug { "Initiating device authorization flow..." }
 
     val httpClient = configureHttpClient()
@@ -223,7 +223,7 @@ suspend fun HttpClient.authorizeDevice(
             )
 
             if (tokenResponse.status.isSuccess()) {
-                return@withTimeout tokenResponse.body<Oauth2TokenResponse>()
+                return@withTimeout tokenResponse.body<OAuth2TokenResponse>()
             } else {
                 when (val error = tokenResponse.body<Oauth2TokenErrorResponse>().error) {
                     "invalid_request", "invalid_client", "invalid_grant", "unauthorized_client", "unsupported_grant_type", "error_description", "error_uri" -> {
@@ -248,4 +248,4 @@ suspend fun HttpClient.authorizeDevice(
     }
 }
 
-fun Oauth2TokenResponse.decodeJwtAccessToken() = accessToken.parseJwtToken()
+fun OAuth2TokenResponse.decodeJwtAccessToken() = accessToken.parseJwtToken()
