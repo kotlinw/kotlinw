@@ -7,7 +7,7 @@ kotlin {
         commonMain {
             dependencies {
                 api(projects.kotlinw.kotlinwJwtCore)
-                api(projects.kotlinw.kotlinwOauth2ClientCore)
+                api(projects.kotlinw.kotlinwOauth2Core)
 
                 api(libs.ktor.client.core)
             }

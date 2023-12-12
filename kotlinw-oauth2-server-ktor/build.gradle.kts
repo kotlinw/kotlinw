@@ -13,7 +13,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.kotlinw.kotlinwOauth2ClientCore)
+                api(projects.kotlinw.kotlinwOauth2Core)
 
                 api(libs.ktor.server.auth.core)
             }
