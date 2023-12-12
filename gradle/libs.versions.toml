@@ -18,6 +18,7 @@ serialization = "1.6.2"
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.8.0-RC"
 
+# https://github.com/Kotlin/kotlinx-io/releases
 kotlinx-io = "0.3.0"
 
 # https://github.com/arrow-kt/arrow/releases
@@ -33,7 +34,7 @@ arrowGradleConfig = "0.12.0-rc.1"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-composeVersion = "1.5.11"
+compose = "1.5.11"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -47,14 +48,11 @@ skiko = "0.7.79"
 # https://github.com/mipt-npm/kmath/releases
 kmath = "0.3.0"
 
-# https://github.com/arkivanov/Decompose/releases
-decompose = "1.0.0-alpha-07"
-
-#jaxb = "2.3.2"
+jaxb = "2.3.2"
 
 #cxf = "3.5.3"
 
-jaxws = "4.0.0"
+jaxws = "4.0.2"
 
 # https://github.com/mockk/mockk/releases
 mockk = "1.12.7"
@@ -90,6 +88,25 @@ kotlinresult = "1.1.18"
 
 hibernate = "6.3.1.Final"
 
+agp = "8.1.0"
+
+androidx-appcompat = "1.6.1"
+androidx-activityCompose = "1.7.2"
+compose-uitooling = "1.5.11"
+
+libres = "1.1.8"
+voyager = "1.0.0-rc07"
+composeImageLoader = "1.6.6"
+napier = "2.6.1"
+buildConfig = "4.1.1"
+
+kobweb = "0.14.0"
+
+pdvrieze-xmlutil = "0.86.2"
+
+# https://github.com/johnrengelman/shadow/releases
+shadow = "8.1.1"
+
 androidxCollection = "1.3.0"
 
 [libraries]
@@ -116,9 +133,6 @@ jaxws-ri = { module = "com.sun.xml.ws:jaxws-ri", version.ref = "jaxws" }
 #jaxb-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jaxb" }
 #jaxb-impl = { module = "com.sun.xml.bind:jaxb-ri", version.ref = "jaxb" }
 
-decompose-core = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
-decompose-extensions-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "decompose" }
-
 keycloak-adapter-installed = { module = "org.keycloak:keycloak-installed-adapter", version.ref = "keycloak" }
 
 kmath-complex = { module = "space.kscience:kmath-complex", version.ref = "kmath" }
@@ -128,10 +142,11 @@ kmath-real = { module = "space.kscience:kmath-real", version.ref = "kmath" }
 jetbrains-skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
 jetbrains-markdown = { module = "org.jetbrains:markdown", version = "0.5.0" }
 
-jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeVersion" }
-jetbrains-compose-web-core = { module = "org.jetbrains.compose.web:web-core", version.ref = "composeVersion" }
-jetbrains-compose-material-materialiconsextended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeVersion" }
-jetbrains-compose-components-desktop-splitpane = { module = "org.jetbrains.compose.components:components-splitpane-desktop", version.ref = "composeVersion" }
+jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
+jetbrains-compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "compose" }
+jetbrains-compose-html-svg = { module = "org.jetbrains.compose.html:html-svg", version.ref = "compose" }
+jetbrains-compose-material-materialiconsextended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "compose" }
+jetbrains-compose-components-desktop-splitpane = { module = "org.jetbrains.compose.components:components-splitpane-desktop", version.ref = "compose" }
 
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
@@ -141,6 +156,7 @@ arrow-optics-ksp-plugin = { module = "io.arrow-kt:arrow-optics-ksp-plugin", vers
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-scripting-jsr223 = { module = "org.jetbrains.kotlin:kotlin-scripting-jsr223", version.ref = "kotlin" }
 
 kotlinjs-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlinjs-wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinWrappers" }
@@ -193,12 +209,16 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-serialization-properties = { module = "org.jetbrains.kotlinx:kotlinx-serialization-properties", version.ref = "serialization" }
 
+pdvrieze-xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "pdvrieze-xmlutil" }
+pdvrieze-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "pdvrieze-xmlutil" }
+
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "coroutines" }
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.23.1" }
 
@@ -210,6 +230,7 @@ spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
 gradle-plugin-spring-boot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
+spring-boot-starter-oauth2server = { module = "org.springframework.boot:spring-boot-starter-oauth2-authorization-server", version.ref = "springBoot" }
 spring-context = { module = "org.springframework:spring-context" }
 spring-web = { module = "org.springframework:spring-web" }
 
@@ -220,7 +241,7 @@ jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api",
 
 ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
-ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktor-client-auth-core = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -235,9 +256,12 @@ ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.re
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-core = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-caching-headers = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktor" }
+ktor-server-calllogging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-host-common = { module = "io.ktor:ktor-server-host-common", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
@@ -256,7 +280,7 @@ hibernate-envers = { module = "org.hibernate.orm:hibernate-envers", version.ref 
 hibernate-graalvm = { module = "org.hibernate.orm:hibernate-graalvm", version.ref = "hibernate" }
 hibernate-hikaricp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate" }
 
-protobuf-java = { module = "com.google.protobuf:protobuf-java", version = "3.19.3" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version = "3.19.6" }
 
 # https://github.com/DevSrSouza/compose-icons/blob/master/simple-icons/DOCUMENTATION.md
 devsrsouza-compose-icons-simpleicons = { module = "br.com.devsrsouza.compose.icons.jetbrains:simple-icons", version.ref = "devsrsouzaComposeIcons" }
@@ -296,8 +320,9 @@ huxi-sulky-ulid = { module = "de.huxhorn.sulky:de.huxhorn.sulky.ulid", version.r
 servlet-api = { module = "jakarta-servlet:servlet-api" }
 
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version = "3.0.0" }
 
 cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
 
@@ -332,6 +357,31 @@ kotlinresult-core = { module = "com.michael-bull.kotlin-result:kotlin-result", v
 kotlinresult-coroutines = { module = "com.michael-bull.kotlin-result:kotlin-result-coroutines", version.ref = "kotlinresult" }
 
 h2 = { module = "com.h2database:h2", version = "2.1.212" }
+
+kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version = "0.9.1" }
+
+google-api-services-homegraph = { module = "com.google.apis:google-api-services-homegraph", version = "v1-rev20230707-2.0.0" }
+google-actions = { module = "com.google.actions:actions-on-google", version = "1.8.0" }
+
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+compose-uitooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose-uitooling" }
+libres = { module = "io.github.skeptick.libres:libres-compose", version.ref = "libres" }
+voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
+composeImageLoader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "composeImageLoader" }
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+russhwolf-settings = { module = "com.russhwolf:multiplatform-settings", version = "1.0.0" }
+
+kobweb-api = { module = "com.varabyte.kobweb:kobweb-api", version.ref = "kobweb" }
+kobweb-compose-core = { module = "com.varabyte.kobweb:kobweb-compose", version.ref = "kobweb" }
+kobweb-compose-html-ext = { module = "com.varabyte.kobweb:compose-html-ext", version.ref = "kobweb" }
+kobweb-core = { module = "com.varabyte.kobweb:kobweb-core", version.ref = "kobweb" }
+kobweb-silk-core = { module = "com.varabyte.kobweb:kobweb-silk", version.ref = "kobweb" }
+kobweb-silk-icons-fa = { module = "com.varabyte.kobweb:kobweb-silk-icons-fa", version.ref = "kobweb" }
+kobweb-silk-widgets = { module = "com.varabyte.kobweb:kobweb-silk-widgets", version.ref = "kobweb" }
+kobwebx-markdown = { module = "com.varabyte.kobwebx:kobwebx-markdown", version.ref = "kobweb" }
+
+classgraph = { module = "io.github.classgraph:classgraph", version = "4.8.163" }
 
 [plugins]
 

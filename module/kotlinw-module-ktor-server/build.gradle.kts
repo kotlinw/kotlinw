@@ -15,7 +15,6 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleCore)
                 api(libs.ktor.server.caching.headers)
-                api(libs.ktor.server.calllogging)
                 api(libs.ktor.server.core)
                 api(libs.ktor.server.host.common)
             }

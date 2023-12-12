@@ -25,11 +25,10 @@ class LocalEventBusImpl(
     override suspend fun on(
         eventPredicate: (LocalEvent) -> Boolean,
         handler: suspend (LocalEvent) -> Unit
-    ): Nothing {
+    ): Nothing =
         events.collect { event ->
             if (eventPredicate(event)) {
                 handler(event)
             }
         }
-    }
 }

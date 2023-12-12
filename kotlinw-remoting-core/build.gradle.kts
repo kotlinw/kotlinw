@@ -52,15 +52,13 @@ kotlin {
 }
 
 dependencies {
-    add("kspCommonMainMetadata", projects.kotlinw.kotlinwRemotingProcessor)
-//    add("kspJs", projects.kotlinw.kotlinwRemotingProcessor)
-//    add("kspJsTest", projects.kotlinw.kotlinwRemotingProcessor)
+    // add("kspCommonMainMetadata", projects.kotlinw.kotlinwRemotingProcessor)
+    // add("kspJsTest", projects.kotlinw.kotlinwRemotingProcessor)
     add("kspJvm", projects.kotlinw.kotlinwRemotingProcessor)
-    add("kspJvmTest", projects.kotlinw.kotlinwRemotingProcessor)
 }
 
-tasks.withType<KotlinCompile<*>>().configureEach {
-    if (name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
-}
+//tasks.withType<KotlinCompile<*>>().configureEach {
+//    if (name != "kspCommonMainKotlinMetadata") {
+//        dependsOn("kspCommonMainKotlinMetadata")
+//    }
+//}

@@ -11,12 +11,10 @@ import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.plugins.cachingheaders.CachingHeaders
-import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.DeploymentMode
-import kotlinw.configuration.core.DeploymentMode.Development
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.configuration.core.getConfigurationPropertyValue
 import kotlinw.koin.core.api.ApplicationCoroutineService
@@ -26,7 +24,6 @@ import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinw.util.stdlib.DelicateKotlinwApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.slf4j.event.Level.DEBUG
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer.Context
@@ -44,12 +41,6 @@ class KtorServerModule {
             configurers: List<KtorServerApplicationConfigurer>
         ) {
             with(ktorApplication) {
-                if (deploymentMode == Development) {
-                    install(CallLogging) {
-                        level = DEBUG
-                    }
-                }
-
                 install(CachingHeaders) {
                     // TODO https://youtrack.jetbrains.com/issue/KTOR-750/Setting-multiple-cache-control-directives-is-impossible-with-current-API
                     options { _, _ -> CachingOptions(NoCache(null)) }

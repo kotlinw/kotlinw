@@ -10,7 +10,7 @@ internal actual inline fun resolveLoggerName(noinline function: () -> Unit): Str
         if (found) {
             return line.substringBefore(".kt").substringAfterLast(".").substringAfterLast("/")
         }
-        if (line.contains("at KotlinLogging")) {
+        if (line.contains("at KotlinLogging")) { // TODO KotlinLogging helyett...
             found = true
         }
     }
