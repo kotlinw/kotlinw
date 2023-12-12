@@ -223,3 +223,7 @@ data class OpenidConnectProviderMetadata(
         val backchannelAuthenticationEndpoint: Url? = null
     )
 }
+
+val OpenidConnectProviderMetadata.tokenEndpointOrThrow: Url
+    get() = tokenEndpoint
+        ?: throw IllegalStateException("Authorization server $issuer does not expose a token endpoint.")
