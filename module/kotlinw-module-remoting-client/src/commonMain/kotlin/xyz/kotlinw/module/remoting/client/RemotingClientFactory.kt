@@ -21,8 +21,8 @@ interface RemotingClientFactory {
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         remotePeerRegistry: MutableRemotePeerRegistry = MutableRemotePeerRegistryImpl(),
         messageCodec: MessageCodec<*>? = null,
-        httpClientCustomizer: HttpClient.() -> HttpClient = { this },
-        httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {}
+        httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {},
+        httpClientCustomizer: HttpClient.() -> HttpClient = { this }
     ): RemotingClient
 }
 
@@ -37,8 +37,8 @@ class RemotingClientFactoryImpl(
         synchronousCallSupportImplementor: SynchronousCallSupport?,
         remotePeerRegistry: MutableRemotePeerRegistry,
         messageCodec: MessageCodec<*>?,
-        httpClientCustomizer: HttpClient.() -> HttpClient,
-        httpRequestCustomizer: HttpRequestBuilder.() -> Unit
+        httpRequestCustomizer: HttpRequestBuilder.() -> Unit,
+        httpClientCustomizer: HttpClient.() -> HttpClient
     ): RemotingClient =
         HttpRemotingClient(
             messageCodec
