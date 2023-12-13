@@ -158,6 +158,9 @@ data class OpenidConnectProviderMetadata(
     @SerialName("tls_client_certificate_bound_access_tokens")
     val tlsClientCertificateBoundAccessTokens: Boolean? = null,
 
+    @SerialName("dpop_signing_alg_values_supported")
+    val dpopSigningAlgValuesSupported: List<String>? = null,
+
     @SerialName("revocation_endpoint")
     val revocationEndpoint: Url? = null,
 

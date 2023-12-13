@@ -30,9 +30,6 @@ class HttpClientModule {
     @Component // TODO close!
     fun httpClient(): HttpClient =
         HttpClient {
-            install(ContentNegotiation) {
-                json()
-            }
             install(HttpTimeout) {
                 connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
                 requestTimeoutMillis = 10.seconds.inWholeMilliseconds // TODO config
