@@ -8,11 +8,19 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.DeploymentMode.Development
+import kotlinw.serialization.core.SerializerService
+import kotlinw.serialization.core.serialize
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
+import xyz.kotlinw.module.webapp.core.InitialWebAppClientEnvironmentData
+import xyz.kotlinw.module.webapp.core.initialWebAppClientEnvironmentJsDataVariableName
 
 @Component
-class MainHttpController(private val deploymentMode: DeploymentMode): KtorServerApplicationConfigurer() {
+class WebAppMainHttpController(
+    private val deploymentMode: DeploymentMode,
+    private val webAppServerEnvironmentProvider: WebAppServerEnvironmentProvider,
+    private val serializerService: SerializerService
+) : KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {
         ktorApplication.routing {
@@ -26,6 +34,13 @@ class MainHttpController(private val deploymentMode: DeploymentMode): KtorServer
                     "/app/pwa/js/app.js" // TODO konfigurálható
 
                 get {
+                    val initialWebAppClientEnvironmentData = with(call) {
+                        InitialWebAppClientEnvironmentData(
+                            webAppServerEnvironmentProvider.localeId,
+                            webAppServerEnvironmentProvider.authenticationStatus
+                        )
+                    }
+
                     // TODO html/lang
                     // TODO theme-color
                     // TODO további meta tag-ek
@@ -39,7 +54,7 @@ class MainHttpController(private val deploymentMode: DeploymentMode): KtorServer
                             <html lang="hu">
                                 <head>
                                     <meta charset="UTF-8">
-                                    <meta name="viewport" content="width=device-width; initial-scale=1.0">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                                     <meta name="theme-color" content="#000000" />
                                     <meta http-equiv="X-UA-Compatible" content="ie=edge">
                                     <link rel="manifest" href="/manifest.webmanifest">
@@ -48,6 +63,11 @@ class MainHttpController(private val deploymentMode: DeploymentMode): KtorServer
                                         if ('serviceWorker' in navigator) {
                                             navigator.serviceWorker.register('$serviceWorkerWebPath');
                                         }
+                                        var $initialWebAppClientEnvironmentJsDataVariableName = `${
+                            serializerService.serialize(
+                                initialWebAppClientEnvironmentData
+                            )
+                        }`;
                                     </script>
                                 </head>
                                 <body>

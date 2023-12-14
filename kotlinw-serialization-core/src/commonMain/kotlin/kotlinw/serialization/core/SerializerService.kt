@@ -65,7 +65,7 @@ interface HasSerializerService {
 }
 
 val defaultSerializationJson = Json {
-    encodeDefaults = false
+    encodeDefaults = true
     ignoreUnknownKeys = true
     isLenient = false
     allowStructuredMapKeys = false

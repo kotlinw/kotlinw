@@ -1,0 +1,3 @@
+package xyz.kotlinw.module.webapp.core
+
+const val initialWebAppClientEnvironmentJsDataVariableName = "xyz_kotlinw_module_webapp_core_initialEnvironmentData"
