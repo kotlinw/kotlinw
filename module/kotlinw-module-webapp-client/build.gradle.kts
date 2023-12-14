@@ -7,7 +7,7 @@ kotlin {
     sourceSets {
         val jsMain by getting {
             dependencies {
-                api(projects.kotlinw.module.kotlinwModuleAppbase)
+                api(projects.kotlinw.module.kotlinwModuleWebappCore)
                 api(libs.kotlinjs.wrappers.browser)
                 api(compose.html.core)
                 api(compose.html.svg)
