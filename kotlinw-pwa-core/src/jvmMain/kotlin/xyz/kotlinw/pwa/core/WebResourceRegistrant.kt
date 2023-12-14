@@ -11,6 +11,7 @@ fun interface WebResourceRegistrant {
         fun registerClasspathFolder(
             folderWebBasePath: RelativePath,
             classpathFolderPath: AbsolutePath,
+            authorizationProviderId: String?,
             classLoader: ClassLoader = Thread.currentThread().contextClassLoader
         )
 
@@ -23,7 +24,8 @@ fun interface WebResourceRegistrant {
 
         fun registerResource(
             fileWebPath: RelativePath,
-            resource: Resource
+            resource: Resource,
+            authorizationProviderId: String?
         )
     }
 

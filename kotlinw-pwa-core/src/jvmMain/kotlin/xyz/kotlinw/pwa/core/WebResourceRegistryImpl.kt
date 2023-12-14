@@ -2,13 +2,9 @@ package xyz.kotlinw.pwa.core
 
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.PersistentCollection
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentListOf
 import xyz.kotlinw.io.AbsolutePath
 import xyz.kotlinw.io.ClasspathLocation
@@ -42,6 +38,7 @@ class WebResourceRegistryImpl(
         override fun registerClasspathFolder(
             folderWebBasePath: RelativePath,
             classpathFolderPath: AbsolutePath,
+            authorizationProviderId: String?,
             classLoader: ClassLoader
         ) {
             logger.debug {
@@ -51,11 +48,15 @@ class WebResourceRegistryImpl(
                 )
             }
             webResourceMappingsHolder.update {
-                it.add(ClasspathFolderWebResourceMapping(folderWebBasePath, ClasspathLocation(classpathFolderPath)))
+                it.add(ClasspathFolderWebResourceMapping(
+                    folderWebBasePath,
+                    ClasspathLocation(classpathFolderPath),
+                    authorizationProviderId
+                ))
             }
         }
 
-        override fun registerResource(fileWebPath: RelativePath, resource: Resource) {
+        override fun registerResource(fileWebPath: RelativePath, resource: Resource, authorizationProviderId: String?) {
             logger.debug {
                 "Registering resource as web resource: " / mapOf(
                     "fileWebPath" to fileWebPath,
@@ -74,7 +75,7 @@ class WebResourceRegistryImpl(
 //            }
 
             webResourceMappingsHolder.update {
-                it.add(ResourceWebResourceMapping(fileWebPath, resource))
+                it.add(ResourceWebResourceMapping(fileWebPath, resource, authorizationProviderId))
             }
         }
     }

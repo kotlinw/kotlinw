@@ -8,9 +8,10 @@ import xyz.kotlinw.io.append
 import xyz.kotlinw.io.asRelativeTo
 import xyz.kotlinw.io.isDescendantOf
 
-class ClasspathFolderWebResourceMapping(
+data class ClasspathFolderWebResourceMapping(
     val folderWebBasePath: RelativePath,
-    val classpathFolderPath: ClasspathLocation
+    val classpathFolderPath: ClasspathLocation,
+    override val authorizationProviderId: String?
 ) : BuiltInWebResourceMapping {
 
     override fun getResourceWebPath(resource: Resource): RelativePath? =

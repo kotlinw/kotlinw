@@ -3,10 +3,8 @@ package xyz.kotlinw.pwa
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import xyz.kotlinw.io.AbsolutePath
 import xyz.kotlinw.io.ClasspathLocation
 import xyz.kotlinw.io.ClasspathResource
-import xyz.kotlinw.io.ClasspathScanner
 import xyz.kotlinw.io.ClasspathScannerImpl
 import xyz.kotlinw.io.RelativePath
 import xyz.kotlinw.pwa.core.ClasspathFolderWebResourceMapping
@@ -17,7 +15,8 @@ class ClasspathFolderWebResourceMappingTest {
     fun test() {
         val o = ClasspathFolderWebResourceMapping(
             RelativePath("public/text-files"),
-            ClasspathLocation.of("xyz/kotlinw/pwa/files")
+            ClasspathLocation.of("xyz/kotlinw/pwa/files"),
+            null
         )
         assertEquals(
             RelativePath("public/text-files/a.txt"),

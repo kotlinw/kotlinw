@@ -14,6 +14,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleCore)
+                api(libs.ktor.server.auth.core)
                 api(libs.ktor.server.caching.headers)
                 api(libs.ktor.server.sessions)
                 api(libs.ktor.server.core)

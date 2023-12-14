@@ -5,7 +5,8 @@ import xyz.kotlinw.io.Resource
 
 class ResourceWebResourceMapping(
     val fileWebPath: RelativePath,
-    val resource: Resource
+    val resource: Resource,
+    override val authorizationProviderId: String?
 ) : BuiltInWebResourceMapping {
 
     override fun getResourceWebPath(resource: Resource): RelativePath? =

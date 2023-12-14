@@ -17,7 +17,8 @@ class ResourceWebResourceMappingTest {
     fun testClasspathResource() {
         val o = ResourceWebResourceMapping(
             RelativePath("public/js/sw.js"),
-            ClasspathResource(ClasspathScannerImpl(), ClasspathLocation.of("xyz/kotlinw/pwa/core/js/sw-noop.js"))
+            ClasspathResource(ClasspathScannerImpl(), ClasspathLocation.of("xyz/kotlinw/pwa/core/js/sw-noop.js")),
+            null
         )
         assertEquals(
             RelativePath("public/js/sw.js"),
