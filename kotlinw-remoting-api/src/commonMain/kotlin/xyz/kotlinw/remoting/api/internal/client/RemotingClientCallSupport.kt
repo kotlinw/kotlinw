@@ -1,6 +1,6 @@
-package kotlinw.remoting.api.internal.client
+package xyz.kotlinw.remoting.api.internal.client
 
-import kotlinw.remoting.api.client.RemotingClient
+import xyz.kotlinw.remoting.api.RemotingClient
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction

@@ -4,7 +4,7 @@ import kotlinw.ksp.testutil.assertCompilationFailed
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
-import xyz.kotlinw.remoting.annotation.SupportsRemoting
+import xyz.kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlinx.serialization.Serializable
 import kotlin.test.Test

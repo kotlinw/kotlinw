@@ -8,8 +8,8 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinw.logging.platform.PlatformLogging
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind

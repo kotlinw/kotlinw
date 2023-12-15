@@ -1,6 +1,6 @@
 package kotlinw.remoting.core.client
 
-import kotlinw.remoting.api.internal.client.RemotingClientCallSupport
+import xyz.kotlinw.remoting.api.internal.client.RemotingClientCallSupport
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata

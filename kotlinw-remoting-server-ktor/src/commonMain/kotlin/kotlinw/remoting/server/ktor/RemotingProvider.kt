@@ -1,7 +1,7 @@
 package kotlinw.remoting.server.ktor
 
 import io.ktor.server.application.Application
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinx.coroutines.CoroutineScope
 

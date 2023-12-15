@@ -1,4 +1,4 @@
-package kotlinw.remoting.api.internal.server
+package xyz.kotlinw.remoting.api.internal.server
 
 interface RemoteCallHandler {
 

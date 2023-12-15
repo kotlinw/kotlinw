@@ -4,8 +4,8 @@ import app.cash.turbine.turbineScope
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.JsonMessageCodec

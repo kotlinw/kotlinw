@@ -1,6 +1,6 @@
 package kotlinw.remoting.processor.test
 
-import xyz.kotlinw.remoting.annotation.SupportsRemoting
+import xyz.kotlinw.remoting.api.SupportsRemoting
 
 @SupportsRemoting
 interface ExampleReverseService {

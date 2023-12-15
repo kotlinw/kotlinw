@@ -1,6 +1,6 @@
 package kotlinw.remoting.server.ktor
 
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import xyz.kotlinw.remoting.api.MessagingPeerId

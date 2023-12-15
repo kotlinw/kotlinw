@@ -5,9 +5,9 @@ import arrow.core.continuations.AtomicRef
 import arrow.core.nonFatalOrThrow
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
-import kotlinw.remoting.api.internal.client.RemotingClientCallSupport
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
+import xyz.kotlinw.remoting.api.internal.client.RemotingClientCallSupport
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.ServiceLocator

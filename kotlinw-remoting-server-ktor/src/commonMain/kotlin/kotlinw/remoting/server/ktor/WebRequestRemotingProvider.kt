@@ -20,9 +20,9 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.SynchronousCall
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
+import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.SynchronousCall
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.MessageCodec

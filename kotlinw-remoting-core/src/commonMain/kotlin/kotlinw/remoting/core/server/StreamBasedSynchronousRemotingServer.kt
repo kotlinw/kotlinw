@@ -1,7 +1,7 @@
 package kotlinw.remoting.core.server
 
-import kotlinw.remoting.api.internal.server.RemoteCallHandler
-import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
