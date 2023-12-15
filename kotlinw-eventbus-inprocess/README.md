@@ -2,7 +2,7 @@
 
 ## Overview
 
-`kotlinw-eventbus-inprocess` is a Kotlin library that provides an in-process event bus mechanism based on Kotlin
+`kotlinw-eventbus-inprocess` is a multiplatform Kotlin library that provides an in-process event bus mechanism based on Kotlin
 coroutines.
 
 It helps to decouple your application components using an event-driven architecture.
