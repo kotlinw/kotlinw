@@ -19,7 +19,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
-                api(projects.kotlinw.kotlinwEventbusLocal)
+                api(projects.kotlinw.kotlinwEventbusInprocess)
                 api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.serialization.properties)

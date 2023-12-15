@@ -1,14 +1,12 @@
 package kotlinw.configuration.core
 
 import arrow.core.continuations.AtomicRef
-import kotlinw.eventbus.local.LocalEventBus
+import kotlinw.eventbus.local.InProcessEventBus
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
-import kotlinx.io.buffered
-import kotlinx.io.readString
 import xyz.kotlinw.io.Resource
 import xyz.kotlinw.io.readUtf8String
 
@@ -16,7 +14,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
     private val resource: Resource,
     private val delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
     private val watcherCoroutineScope: CoroutineScope?,
-    private val eventBus: LocalEventBus?,
+    private val eventBus: InProcessEventBus?,
     private val watchDelay: Duration?,
     @Suppress("UNUSED_PARAMETER") primaryConstructorMarker: Unit
 ) : EnumerableConfigurationPropertyResolver {
@@ -31,7 +29,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
         resource: Resource,
         delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
         watcherCoroutineScope: CoroutineScope,
-        eventBus: LocalEventBus,
+        eventBus: InProcessEventBus,
         watchDelay: Duration = Duration.INFINITE
     ) :
             this(resource, delegateFactory, watcherCoroutineScope, eventBus, watchDelay, Unit)
@@ -60,7 +58,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
                         previousPropertiesDefinition = currentPropertiesDefinition
                         delegateHolder.value = delegateFactory(currentPropertiesDefinition)
 
-                        eventBus.dispatch(ConfigurationPropertySourceChangeEvent)
+                        eventBus.publish(ConfigurationPropertySourceChangeEvent)
                     }
                 }
             }

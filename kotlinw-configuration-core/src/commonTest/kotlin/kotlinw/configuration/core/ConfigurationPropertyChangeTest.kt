@@ -2,7 +2,7 @@ package kotlinw.configuration.core
 
 import app.cash.turbine.test
 import arrow.core.continuations.AtomicRef
-import kotlinw.eventbus.local.LocalEventBusImpl
+import kotlinw.eventbus.local.InProcessEventBusImpl
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.cancelChildren
@@ -35,7 +35,7 @@ class ConfigurationPropertyChangeTest {
                 source,
                 ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
             )
-        val eventBus = LocalEventBusImpl()
+        val eventBus = InProcessEventBusImpl()
 
         coroutineScope {
             val pollingDelayMillis = 100L
@@ -82,7 +82,7 @@ class ConfigurationPropertyChangeTest {
                 source,
                 ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
             )
-        val eventBus = LocalEventBusImpl()
+        val eventBus = InProcessEventBusImpl()
 
         coroutineScope {
             lookup.watchConfigurationProperties(
@@ -97,7 +97,7 @@ class ConfigurationPropertyChangeTest {
 
                 val newValue = "1"
                 propertyValueHolder.value = newValue
-                eventBus.dispatch(ConfigurationPropertyChangeEvent(propertyName, newValue))
+                eventBus.publish(ConfigurationPropertyChangeEvent(propertyName, newValue))
 
                 assertEquals(
                     mapOf(ConfigurationPropertyKey("a") to "1", ConfigurationPropertyKey("b") to "x"),

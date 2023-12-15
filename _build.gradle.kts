@@ -8,6 +8,7 @@ buildscript {
     dependencies {
         // TODO classpath("org.jetbrains.dokka:kotlin-as-java-plugin:1.7.20")
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.23.1")
+        classpath("org.jetbrains.kotlinx:kotlinx-knit:0.5.0")
     }
 }
 

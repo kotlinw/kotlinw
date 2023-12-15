@@ -1,6 +1,6 @@
 package kotlinw.configuration.core
 
-import kotlinw.eventbus.local.LocalEventBus
+import kotlinw.eventbus.local.InProcessEventBus
 import kotlinx.coroutines.CoroutineScope
 import java.io.StringReader
 import java.util.Properties
@@ -28,7 +28,7 @@ class JavaPropertiesFileConfigurationPropertyResolver private constructor(
     constructor(
         resource: Resource,
         watcherCoroutineScope: CoroutineScope,
-        eventBus: LocalEventBus,
+        eventBus: InProcessEventBus,
         watchDelay: Duration
     ) :
             this(

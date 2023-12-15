@@ -1,8 +1,8 @@
 package kotlinw.configuration.core
 
 import arrow.core.continuations.AtomicRef
-import kotlinw.eventbus.local.LocalEventBus
-import kotlinw.eventbus.local.launchEventHandler
+import kotlinw.eventbus.local.InProcessEventBus
+import kotlinw.eventbus.local.asyncOn
 import kotlinw.util.stdlib.collection.filterNotNullValues
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
+import kotlinw.eventbus.local.on
 
 suspend fun ConfigurationPropertyLookup.pollEnumerableConfigurationProperties(
     pollingDelay: Duration,
@@ -44,7 +45,7 @@ private fun ConfigurationPropertyLookup.resolveConfigurationPropertiesByName(pro
 private suspend fun pollConfigurationPropertiesImpl(
     pollingDelay: Duration,
     eventListenerCoroutineScope: CoroutineScope? = null,
-    eventBus: LocalEventBus? = null,
+    eventBus: InProcessEventBus? = null,
     resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>,
 ) =
     flow {
@@ -92,7 +93,7 @@ data class ConfigurationPropertyChangeEvent(
 
 suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
     eventListenerCoroutineScope: CoroutineScope,
-    eventBus: LocalEventBus,
+    eventBus: InProcessEventBus,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean
 ) =
@@ -107,7 +108,7 @@ suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
 
 suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
     eventListenerCoroutineScope: CoroutineScope,
-    eventBus: LocalEventBus,
+    eventBus: InProcessEventBus,
     pollingDelay: Duration,
     propertyNames: Set<ConfigurationPropertyKey>
 ) =
@@ -121,7 +122,7 @@ suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
 
 private suspend fun watchConfigurationPropertiesImpl(
     eventListenerCoroutineScope: CoroutineScope,
-    eventBus: LocalEventBus,
+    eventBus: InProcessEventBus,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean,
     resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>
@@ -137,7 +138,7 @@ private suspend fun watchConfigurationPropertiesImpl(
     val watcherFlow = channelFlow {
         send(emptyMap())
 
-        eventBus.launchEventHandler<ConfigurationPropertyChangeEvent>(eventListenerCoroutineScope) {
+        eventBus.asyncOn<ConfigurationPropertyChangeEvent>(eventListenerCoroutineScope) {
             if (configurationPropertyNamePredicate(it.name)) {
                 send(mapOf(it.name to it.newValue))
             }

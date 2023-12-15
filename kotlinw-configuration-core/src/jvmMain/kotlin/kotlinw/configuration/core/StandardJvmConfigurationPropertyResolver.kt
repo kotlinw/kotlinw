@@ -1,12 +1,11 @@
 package kotlinw.configuration.core
 
 import kotlin.time.Duration
-import kotlinw.eventbus.local.LocalEventBus
+import kotlinw.eventbus.local.InProcessEventBus
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
 import xyz.kotlinw.io.AbsolutePath
 import xyz.kotlinw.io.ClasspathLocation
 import xyz.kotlinw.io.ClasspathResource
@@ -21,7 +20,7 @@ private constructor(
     private val classLoader: ClassLoader,
     watchLocalFiles: Boolean,
     watcherCoroutineScope: CoroutineScope?,
-    eventBus: LocalEventBus?,
+    eventBus: InProcessEventBus?,
     watchDelay: Duration?
 ) : EnumerableConfigurationPropertyResolver {
 
@@ -40,7 +39,7 @@ private constructor(
         deploymentMode: DeploymentMode,
         classLoader: ClassLoader,
         watcherCoroutineScope: CoroutineScope,
-        eventBus: LocalEventBus,
+        eventBus: InProcessEventBus,
         watchDelay: Duration
     ) : this(classpathScanner, deploymentMode, classLoader, true, watcherCoroutineScope, eventBus, watchDelay)
 

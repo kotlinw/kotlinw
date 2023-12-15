@@ -20,7 +20,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleApi)
                 api(projects.kotlinw.kotlinwConfigurationCore)
-                api(projects.kotlinw.kotlinwEventbusLocal)
+                api(projects.kotlinw.kotlinwEventbusInprocess)
                 api(projects.kotlinw.kotlinwLoggingApi)
                 api(projects.kotlinw.kotlinwLoggingPlatform) // TODO implementation
                 api(projects.kotlinw.kotlinwSerializationCore)

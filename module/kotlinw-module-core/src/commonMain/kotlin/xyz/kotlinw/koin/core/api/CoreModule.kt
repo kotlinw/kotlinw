@@ -2,16 +2,13 @@ package xyz.kotlinw.koin.core.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.configuration.core.ConfigurationObjectLookup
 import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookupSource
-import kotlinw.eventbus.local.LocalEventBus
-import kotlinw.eventbus.local.LocalEventBusImpl
+import kotlinw.eventbus.local.InProcessEventBus
 import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
 import kotlinw.koin.core.internal.defaultLoggingIntegrator
@@ -74,5 +71,5 @@ class CoreModule {
     fun applicationCoroutineService() = ApplicationCoroutineServiceImpl()
 
     @Component
-    fun localEventBus(): LocalEventBus = LocalEventBusImpl()
+    fun localEventBus(): InProcessEventBus = InProcessEventBus()
 }

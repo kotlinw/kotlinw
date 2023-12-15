@@ -17,20 +17,20 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 
 @ExperimentalCoroutinesApi
-class LocalEventBusTest {
+class InProcessEventBusTest {
 
     @Test
     fun testBasics() = runTest {
         class Event1
         class Event2
 
-        val eventBus = LocalEventBusImpl()
+        val eventBus = InProcessEventBusImpl()
 
         var event1Count = 0
-        val job1 = eventBus.launchEventHandler<Event1>(this) { event1Count++ }
+        val job1 = eventBus.asyncOn<Event1>(this) { event1Count++ }
 
         var event2Count = 0
-        val job2 = eventBus.launchEventHandler<Event2>(this) { event2Count++ }
+        val job2 = eventBus.asyncOn<Event2>(this) { event2Count++ }
 
         yield()
 
@@ -40,15 +40,15 @@ class LocalEventBusTest {
         assertTrue(job1.isActive)
         assertTrue(job2.isActive)
 
-        eventBus.dispatch(Event1())
-        eventBus.dispatch(Event1())
+        eventBus.publish(Event1())
+        eventBus.publish(Event1())
         yield()
 
         assertEquals(2, event1Count)
         assertEquals(0, event2Count)
 
-        eventBus.dispatch(Event1())
-        eventBus.dispatch(Event2())
+        eventBus.publish(Event1())
+        eventBus.publish(Event2())
         yield()
 
         assertEquals(3, event1Count)
@@ -56,8 +56,8 @@ class LocalEventBusTest {
 
         job1.cancel()
 
-        eventBus.dispatch(Event1())
-        eventBus.dispatch(Event2())
+        eventBus.publish(Event1())
+        eventBus.publish(Event2())
         yield()
 
         assertEquals(3, event1Count)
@@ -70,7 +70,7 @@ class LocalEventBusTest {
 
     @Test
     fun testOnce() = runTest {
-        val eventBus: LocalEventBus = LocalEventBusImpl()
+        val eventBus: InProcessEventBus = InProcessEventBusImpl()
 
         val deferredResult = async {
             eventBus.once<OneTimeEvent, _> { it.id }
@@ -81,7 +81,7 @@ class LocalEventBusTest {
 
     @Test
     fun testAsyncOnce() = runTest {
-        val eventBus: LocalEventBus = LocalEventBusImpl()
+        val eventBus: InProcessEventBus = InProcessEventBusImpl()
 
         val deferredResult = eventBus.asyncOnce<OneTimeEvent, _>(this) {
             it.id
@@ -92,7 +92,7 @@ class LocalEventBusTest {
 
     private suspend fun executeTestOnce(
         deferredResult: Deferred<Int>,
-        eventBus: LocalEventBus
+        eventBus: InProcessEventBus
     ) {
         yield()
 
@@ -100,7 +100,7 @@ class LocalEventBusTest {
         assertFalse(deferredResult.isCompleted)
         assertFalse(deferredResult.isCancelled)
 
-        eventBus.dispatch(OneTimeEvent(123))
+        eventBus.publish(OneTimeEvent(123))
 
         yield()
 
@@ -115,11 +115,11 @@ class LocalEventBusTest {
     fun testEventHandlerExecutionModel() = runTest {
         class Event
 
-        val eventBus = LocalEventBusImpl()
+        val eventBus = InProcessEventBusImpl()
 
         withContext(Dispatchers.Default) {
             val eventCount = AtomicInt(0)
-            val job = eventBus.launchEventHandler<Event>(this) {
+            val job = eventBus.asyncOn<Event>(this) {
                 eventCount.incrementAndGet()
                 delay(10.milliseconds)
             }
@@ -128,7 +128,7 @@ class LocalEventBusTest {
             assertEquals(0, eventCount.value)
 
             repeat(10) {
-                eventBus.dispatch(Event())
+                eventBus.publish(Event())
             }
 
             delay(25.milliseconds)
