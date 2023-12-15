@@ -1,7 +1,5 @@
 package kotlinw.remoting.core.server
 
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
-import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.codec.BinaryMessageCodecWithMetadataPrefetchSupport
@@ -10,6 +8,9 @@ import kotlinx.coroutines.yield
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.serialization.KSerializer
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 
 class StreamBasedSynchronousRemotingServer(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
@@ -17,7 +18,9 @@ class StreamBasedSynchronousRemotingServer(
     private val source: Source,
     private val sink: Sink
 ) {
-    private val delegators = remoteCallHandlers.associateBy { it.servicePath }
+    private val delegators =
+        (remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>)
+            .associateBy { it.servicePath }
 
     suspend fun listen(): Nothing {
         while (true) {

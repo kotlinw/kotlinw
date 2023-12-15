@@ -35,6 +35,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
 
 interface BidirectionalMessagingManager : CoroutineScope {
 
@@ -65,7 +66,7 @@ interface BidirectionalMessagingManager : CoroutineScope {
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val bidirectionalConnection: BidirectionalMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>,
-    private val remoteCallHandlers: Map<String, RemoteCallHandler>,
+    private val remoteCallHandlers: Map<String, RemoteCallHandlerImplementor>,
 ) : BidirectionalMessagingManager, CoroutineScope by bidirectionalConnection {
 
     private val logger =

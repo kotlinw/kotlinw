@@ -30,6 +30,7 @@ import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.serialization.KSerializer
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
 
 class WebRequestRemotingProvider : RemotingProvider {
 
@@ -38,7 +39,7 @@ class WebRequestRemotingProvider : RemotingProvider {
     override fun InstallationContext.install() {
         val messageCodec = requireNotNull(messageCodec) { "Message codec is undefined." }
 
-        val delegators = remotingConfiguration.remoteCallHandlers.associateBy { it.servicePath }
+        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.servicePath }
         if (
             delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
         ) {
@@ -72,7 +73,7 @@ class WebRequestRemotingProvider : RemotingProvider {
 
     private fun Route.setupRouting(
         messageCodec: MessageCodec<out RawMessage>,
-        remoteCallHandlers: Map<String, RemoteCallHandler>
+        remoteCallHandlers: Map<String, RemoteCallHandlerImplementor>
     ) {
         val contentType = ContentType.parse(messageCodec.contentType)
 
@@ -103,7 +104,7 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     call: ApplicationCall,
     messageCodec: MessageCodec<M>,
     callDescriptor: SynchronousCall<*, *>,
-    delegator: RemoteCallHandler
+    delegator: RemoteCallHandlerImplementor
 ) {
     val isBinaryCodec = messageCodec.isBinary
 

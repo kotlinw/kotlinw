@@ -24,6 +24,7 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
@@ -113,7 +114,7 @@ class HttpRemotingClient<M : RawMessage>(
                         val messagingManager = BidirectionalMessagingManagerImpl(
                             this,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>,
-                            incomingCallDelegators
+                            incomingCallDelegators as Map<String, RemoteCallHandlerImplementor>
                         )
 
                         val previousStatus = statusHolder.value

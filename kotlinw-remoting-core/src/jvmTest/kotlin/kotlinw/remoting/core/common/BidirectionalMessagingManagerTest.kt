@@ -21,6 +21,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
 
 class BidirectionalMessagingManagerTest {
 
@@ -92,7 +93,7 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer1ToPeer2Call() = runTest {
-        val peer2RemoteCallHandler = mockk<RemoteCallHandler>()
+        val peer2RemoteCallHandler = mockk<RemoteCallHandlerImplementor>()
         every { peer2RemoteCallHandler.servicePath } answers { "peer2Service" }
         every { peer2RemoteCallHandler.methodDescriptors } answers {
             setOf(
@@ -130,7 +131,7 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer2ToPeer1Call() = runTest {
-        val peer1RemoteCallHandler = mockk<RemoteCallHandler>()
+        val peer1RemoteCallHandler = mockk<RemoteCallHandlerImplementor>()
         every { peer1RemoteCallHandler.servicePath } answers { "peer1Service" }
         every { peer1RemoteCallHandler.methodDescriptors } answers {
             setOf(
@@ -168,7 +169,7 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer1CollectingFlowProducedByPeer2() = runTest {
-        val peer2RemoteCallHandler = mockk<RemoteCallHandler>()
+        val peer2RemoteCallHandler = mockk<RemoteCallHandlerImplementor>()
         every { peer2RemoteCallHandler.servicePath } answers { "peer2Service" }
         every { peer2RemoteCallHandler.methodDescriptors } answers {
             setOf(

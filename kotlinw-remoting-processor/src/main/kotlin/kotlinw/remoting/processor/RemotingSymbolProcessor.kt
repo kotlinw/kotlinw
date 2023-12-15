@@ -36,7 +36,7 @@ import xyz.kotlinw.remoting.api.SupportsRemoting
 import xyz.kotlinw.remoting.api.RemotingClient
 import xyz.kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
 import xyz.kotlinw.remoting.api.internal.client.RemotingClientCallSupport
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
@@ -257,7 +257,7 @@ class RemotingSymbolProcessor(
             val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallHandlerClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
                 .addModifiers(KModifier.PRIVATE)
-                .addSuperinterface(RemoteCallHandler::class)
+                .addSuperinterface(RemoteCallHandlerImplementor::class)
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
@@ -372,7 +372,7 @@ class RemotingSymbolProcessor(
             FunSpec.builder("remoteCallHandler")
                 .receiver(definitionInterfaceName.nestedClass("Companion"))
                 .addParameter("target", definitionInterfaceName)
-                .returns(RemoteCallHandler::class)
+                .returns(RemoteCallHandlerImplementor::class)
                 .addStatement("return %T(target)", definitionInterfaceName.remoteCallHandlerClassName)
                 .build()
         )

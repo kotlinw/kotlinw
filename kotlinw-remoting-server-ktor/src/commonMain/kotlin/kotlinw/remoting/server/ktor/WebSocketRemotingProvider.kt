@@ -25,6 +25,7 @@ import kotlinw.uuid.Uuid
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
 
 private val logger by lazy { PlatformLogging.getLogger() }
 
@@ -91,7 +92,7 @@ class WebSocketRemotingProvider(
             }
         }
 
-        val delegators = remotingConfiguration.remoteCallHandlers.associateBy { it.servicePath }
+        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.servicePath }
 
         ktorApplication.routing {
 
@@ -119,7 +120,7 @@ class WebSocketRemotingProvider(
 
     private fun Route.setupWebsocketRouting(
         messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-        delegators: Map<String, RemoteCallHandler>,
+        delegators: Map<String, RemoteCallHandlerImplementor>,
         identifyClient: (ApplicationCall) -> MessagingPeerId,
         addConnection: suspend (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit,
         removeConnection: suspend (MessagingSessionId) -> Unit
