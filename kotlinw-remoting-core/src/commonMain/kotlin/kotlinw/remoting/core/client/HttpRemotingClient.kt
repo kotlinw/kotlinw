@@ -53,7 +53,7 @@ class HttpRemotingClient<M : RawMessage>(
 
     private val messagingLoopRunningFlag = AtomicBoolean(false)
 
-    private val isReconnectingAutomatically = incomingCallDelegators.isNotEmpty()
+    private val isReconnectingAutomatically = incomingCallDelegators.isNotEmpty() // TODO add ability to force its value
 
     private suspend fun <T> withMessagingManager(block: suspend BidirectionalMessagingManager.() -> T): T {
         var messagingManager: BidirectionalMessagingManager? = null
@@ -92,7 +92,7 @@ class HttpRemotingClient<M : RawMessage>(
                         "http",
                         "ws"
                     )
-                }/remoting/websocket"
+                }/remoting/websocket" // TODO fix string
             )
 
             while (true) {
@@ -166,6 +166,7 @@ class HttpRemotingClient<M : RawMessage>(
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
     ): R {
+        // TODO nem szabad, hogy ez itt dőljön el, mert a RemotingConfiguration egyértelműen meghatározza, hogy milyen provider-rel kell végezni a kommunikációt
         return if (statusHolder.value is BidirectionalMessagingStatus.Connected) {
             withMessagingManager {
                 call(

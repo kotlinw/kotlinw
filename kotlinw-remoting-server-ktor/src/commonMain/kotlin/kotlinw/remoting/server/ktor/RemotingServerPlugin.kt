@@ -27,21 +27,18 @@ val RemotingServerPlugin =
         createConfiguration = ::RemotingPluginConfiguration
     ) {
         if (pluginConfig.remotingConfigurations.isNotEmpty()) {
-            pluginConfig.remotingConfigurations.forEach {
-                it.remotingProvider.installInternal(
+            pluginConfig.remotingConfigurations.forEach { remotingConfiguration ->
+                remotingConfiguration.remotingProvider.installInternal(
                     object : RemotingProvider.InstallationContext {
 
-                        override val remotingProviderId: String get() = it.id
+                        override val remotingConfiguration get() = remotingConfiguration
 
                         override val ktorApplication get() = application
 
                         override val ktorServerCoroutineScope get() = pluginConfig.ktorServerCoroutineScope
 
-                        override val messageCodec get() = it.messageCodec ?: pluginConfig.defaultMessageCodec
-
-                        override val remoteCallHandlers get() = it.remoteCallHandlers
-
-                        override val authenticationProviderName get() = it.authenticationProviderName
+                        override val messageCodec
+                            get() = remotingConfiguration.messageCodec ?: pluginConfig.defaultMessageCodec
                     }
                 )
             }

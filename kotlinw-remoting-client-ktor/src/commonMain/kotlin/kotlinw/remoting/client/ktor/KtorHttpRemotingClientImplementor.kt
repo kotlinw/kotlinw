@@ -69,6 +69,7 @@ class KtorHttpRemotingClientImplementor(
         if (runInSessionIsRunning.compareAndSet(false, true)) {
             try {
                 val messagingPeerId = url.toString()
+                // TODO túl későn, csak itt derül ki, ha a WebSockets plugin nincs install-álva
                 httpClient.webSocket(
                     url.toString(),
                     request = {
@@ -81,7 +82,7 @@ class KtorHttpRemotingClientImplementor(
                     block(
                         WebSocketBidirectionalMessagingConnection(
                             messagingPeerId,
-                            messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds(),
+                            messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds(), // TODO
                             this,
                             messageCodecDescriptor
                         )

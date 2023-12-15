@@ -50,3 +50,8 @@ class RemotingClientFactoryImpl(
             incomingCallDelegators
         )
 }
+
+// TODO valahogy külön kell választani a remoting-ban azt, hogy kétirányú-e a kapcsolat; simán a kliens dönthesse el,
+//  hogy ő hogyan kapcsolódik; a lényeg, hogy akkor is tudjon a kliens ws-en kapcsolódni,
+//  ha a szerver nem ajánl ki egyetlen remote service-t sem
+// TODO esetleg maga a kliens küldhetné fel, hogy milyen RPC megoldásokat támogat, pl. ajánlott-e ki RPC szolgáltatásokat

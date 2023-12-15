@@ -4,24 +4,35 @@ import arrow.core.continuations.AtomicRef
 import arrow.core.continuations.getAndUpdate
 import arrow.core.continuations.update
 import arrow.core.nonFatalOrThrow
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
-import kotlinw.remoting.core.*
+import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RemotingMessage
+import kotlinw.remoting.core.RemotingMessageKind
+import kotlinw.remoting.core.RemotingMessageMetadata
+import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.util.stdlib.concurrent.value
+import kotlinw.util.stdlib.debugName
 import kotlinw.uuid.Uuid.Companion.randomUuid
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlinw.util.stdlib.debugName
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
 
@@ -100,10 +111,13 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
             when (messageKind) {
                 is RemotingMessageKind.CallRequest -> {
+                    val serviceId = messageKind.serviceLocator.serviceId
                     val targetServiceDescriptor =
-                        remoteCallHandlers[messageKind.serviceLocator.serviceId] ?: TODO()
+                        remoteCallHandlers[serviceId]
+                            ?: throw IllegalStateException("Unexpected remote service ID: $serviceId")
                     val methodId = messageKind.serviceLocator.methodId
-                    val targetMethodDescriptor = targetServiceDescriptor.methodDescriptors[methodId] ?: TODO()
+                    val targetMethodDescriptor = targetServiceDescriptor.methodDescriptors[methodId]
+                        ?: throw IllegalStateException("Unexpected remote method ID: $methodId")
 
                     when (targetMethodDescriptor) {
                         is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {

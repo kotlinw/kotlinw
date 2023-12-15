@@ -1,13 +1,15 @@
 package kotlinw.remoting.server.ktor
 
 import arrow.core.nonFatalOrThrow
-import io.ktor.http.*
-import io.ktor.server.application.*
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.install
+import io.ktor.server.application.pluginOrNull
 import io.ktor.server.auth.authenticate
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.webSocket
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
@@ -28,8 +30,8 @@ private val logger by lazy { PlatformLogging.getLogger() }
 
 class WebSocketRemotingProvider(
     private val identifyClient: (ApplicationCall) -> MessagingPeerId,
-    private val onConnectionAdded: ((MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null,
-    private val onConnectionRemoved: ((MessagingPeerId, MessagingSessionId) -> Unit)? = null
+    private val onConnectionAdded: (suspend (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null,
+    private val onConnectionRemoved: (suspend (MessagingPeerId, MessagingSessionId) -> Unit)? = null
 ) : RemotingProvider {
 
     override fun InstallationContext.install() {
@@ -44,7 +46,7 @@ class WebSocketRemotingProvider(
 
         val connections: ConcurrentMutableMap<MessagingSessionId, BidirectionalMessagingManager> = ConcurrentHashMap()
 
-        fun addConnection(
+        suspend fun addConnection(
             peerId: MessagingPeerId,
             sessionId: MessagingSessionId,
             messagingManager: BidirectionalMessagingManager
@@ -59,23 +61,37 @@ class WebSocketRemotingProvider(
             } catch (e: Throwable) {
                 logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
             }
+
+            try {
+                (remotingConfiguration as WebSocketRemotingConfiguration).onConnectionAdded
+                    ?.invoke(peerId, sessionId, messagingManager)
+            } catch (e: Throwable) {
+                logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
+            }
         }
 
-        fun removeConnection(sessionId: MessagingSessionId) {
+        suspend fun removeConnection(sessionId: MessagingSessionId) {
             val messagingManager = connections.remove(sessionId)
 
             if (messagingManager != null) {
                 try {
                     onConnectionRemoved?.invoke(messagingManager.remotePeerId, sessionId)
                 } catch (e: Throwable) {
-                    logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
+                    logger.warning(e.nonFatalOrThrow()) { "onConnectionRemoved() has thrown an exception." }
+                }
+
+                try {
+                    (remotingConfiguration as WebSocketRemotingConfiguration).onConnectionRemoved
+                        ?.invoke(messagingManager.remotePeerId, sessionId)
+                } catch (e: Throwable) {
+                    logger.warning(e.nonFatalOrThrow()) { "onConnectionRemoved() has thrown an exception." }
                 }
             } else {
                 logger.warning { "Tried to remove non-existing connection: " / ("sessionId" to sessionId) }
             }
         }
 
-        val delegators = remoteCallHandlers.associateBy { it.servicePath }
+        val delegators = remotingConfiguration.remoteCallHandlers.associateBy { it.servicePath }
 
         ktorApplication.routing {
 
@@ -90,8 +106,8 @@ class WebSocketRemotingProvider(
             }
 
             route("/remoting") {
-                if (authenticationProviderName != null) {
-                    authenticate(authenticationProviderName) {
+                if (remotingConfiguration.authenticationProviderName != null) {
+                    authenticate(remotingConfiguration.authenticationProviderName) {
                         configureRouting()
                     }
                 } else {
@@ -105,14 +121,14 @@ class WebSocketRemotingProvider(
         messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
         delegators: Map<String, RemoteCallHandler>,
         identifyClient: (ApplicationCall) -> MessagingPeerId,
-        addConnection: (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit,
-        removeConnection: (MessagingSessionId) -> Unit
+        addConnection: suspend (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit,
+        removeConnection: suspend (MessagingSessionId) -> Unit
     ) {
 
         // TODO fix string
         webSocket("/websocket") {
             val messagingPeerId = identifyClient(call) // TODO hibaell.
-            val messagingSessionId: MessagingSessionId = Uuid.randomUuid().toString()
+            val messagingSessionId: MessagingSessionId = Uuid.randomUuid().toString() // TODO customizable
 
             try {
                 val connection =

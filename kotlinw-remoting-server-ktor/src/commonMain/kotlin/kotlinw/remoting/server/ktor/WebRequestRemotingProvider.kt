@@ -38,15 +38,16 @@ class WebRequestRemotingProvider : RemotingProvider {
     override fun InstallationContext.install() {
         val messageCodec = requireNotNull(messageCodec) { "Message codec is undefined." }
 
-        val delegators = remoteCallHandlers.associateBy { it.servicePath }
+        val delegators = remotingConfiguration.remoteCallHandlers.associateBy { it.servicePath }
         if (
             delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
         ) {
             throw IllegalStateException("Downstream communication is not supported by ${WebRequestRemotingProvider::class}.")
         }
 
-        if (authenticationProviderName != null && ktorApplication.pluginOrNull(Authentication) == null) {
-            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}. It should be installed to support authentication provider '$authenticationProviderName' required by remoting provider '$remotingProviderId'.")
+        if (remotingConfiguration.authenticationProviderName != null && ktorApplication.pluginOrNull(Authentication) == null) {
+            // TODO install automatically instead of the error message
+            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}. It should be installed to support authentication provider '${remotingConfiguration.authenticationProviderName}' required by remoting provider '${remotingConfiguration.id}'.")
         }
 
         ktorApplication.routing {
@@ -56,9 +57,9 @@ class WebRequestRemotingProvider : RemotingProvider {
                     setupRouting(messageCodec, delegators)
                 }
 
-                if (authenticationProviderName != null) {
-                    authenticate(authenticationProviderName) {
-                        logger.info { "Remote call handlers (authorization by '" / authenticationProviderName / "'): " / delegators.mapValues { it.value.servicePath } }
+                if (remotingConfiguration.authenticationProviderName != null) {
+                    authenticate(remotingConfiguration.authenticationProviderName) {
+                        logger.info { "Remote call handlers (authorization by '" / remotingConfiguration.authenticationProviderName / "'): " / delegators.mapValues { it.value.servicePath } }
                         configureRouting()
                     }
                 } else {

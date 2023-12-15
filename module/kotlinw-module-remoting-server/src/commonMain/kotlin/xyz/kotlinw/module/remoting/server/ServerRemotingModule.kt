@@ -7,6 +7,7 @@ import kotlinw.remoting.core.common.RemotePeerRegistry
 import kotlinw.remoting.server.ktor.RemotingConfiguration
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.remoting.server.ktor.WebRequestRemotingProvider
+import kotlinw.remoting.server.ktor.WebSocketRemotingProvider
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import xyz.kotlinw.di.api.Component
@@ -37,24 +38,15 @@ class ServerRemotingModule {
 
     @Component
     fun webRequestRemotingProvider() = WebRequestRemotingProvider()
-}
 
-// TODO
-// require(remotePeerRegistry is MutableRemotePeerRegistry)
-//this.onConnectionAdded = { peerId, sessionId, messagingManager ->
-//    remotePeerRegistry.addConnection(
-//        RemoteConnectionId(peerId, sessionId),
-//        RemoteConnectionData(messagingManager)
-//    )
-//    eventBus.dispatch(
-//        ktorServerCoroutineScope,
-//        MessagingPeerConnectedEvent(peerId, sessionId)
-//    )
-//}
-//this.onConnectionRemoved = { peerId, sessionId ->
-//    remotePeerRegistry.removeConnection(RemoteConnectionId(peerId, sessionId))
-//    eventBus.dispatch(
-//        ktorServerCoroutineScope,
-//        MessagingPeerDisconnectedEvent(peerId, sessionId)
-//    )
-//}
+    @Component
+    fun webSocketRemotingProvider() = WebSocketRemotingProvider(
+        identifyClient = { 1 },
+        onConnectionAdded = { messagingPeerId, messagingSessionId, bidirectionalMessagingManager ->
+            println("ServerRemotingModule / connection added: " + messagingSessionId)
+        },
+        onConnectionRemoved = { messagingPeerId, messagingSessionId ->
+            println("ServerRemotingModule / connection removed: " + messagingSessionId)
+        }
+    )
+}

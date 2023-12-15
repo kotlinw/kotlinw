@@ -2,7 +2,6 @@ package kotlinw.remoting.server.ktor
 
 import io.ktor.server.application.Application
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
-import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinx.coroutines.CoroutineScope
 
@@ -10,17 +9,13 @@ interface RemotingProvider {
 
     interface InstallationContext {
 
-        val remotingProviderId: String
-
         val ktorApplication: Application
 
         val ktorServerCoroutineScope: CoroutineScope?
 
         val messageCodec: MessageCodec<*>?
 
-        val remoteCallHandlers: Collection<RemoteCallHandler>
-
-        val authenticationProviderName: String?
+        val remotingConfiguration: RemotingConfiguration
     }
 
     // TODO context receivers
