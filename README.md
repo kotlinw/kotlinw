@@ -18,4 +18,6 @@ kotlin {
 
 ## Modules
 
+## Libraries
+
 - [`kotlinw-eventbus-inprocess`](doc/kotlinw-eventbus-inprocess.md): Provides an in-process event bus mechanism based on Kotlin coroutines.
