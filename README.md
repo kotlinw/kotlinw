@@ -18,6 +18,5 @@ kotlin {
 
 ## Modules
 
-## Libraries
-
-- [`kotlinw-eventbus-inprocess`](doc/kotlinw-eventbus-inprocess.md): Provides an in-process event bus mechanism based on Kotlin coroutines.
+- [In-process event bus](doc/kotlinw-eventbus-inprocess.md): an in-process event bus mechanism based on Kotlin coroutines and flows
+- [Remoting](doc/kotlinw-remoting.md): a flexible remoting implementation based on _ktor_ and _kotlinx-serialization_

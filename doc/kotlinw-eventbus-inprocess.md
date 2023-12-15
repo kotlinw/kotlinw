@@ -1,4 +1,4 @@
-# kotlinw-eventbus-inprocess
+# KotlinW / In-process event bus
 
 ## Overview
 
