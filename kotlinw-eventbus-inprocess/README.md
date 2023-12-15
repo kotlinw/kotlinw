@@ -1,1 +1,1 @@
-See: [kotlinw-eventbus-inprocess documentation](../doc/kotlinw-eventbus-inprocess.md)
+See: [documentation](../doc/eventbus-inprocess.md)
