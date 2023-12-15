@@ -69,7 +69,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 ) : BidirectionalMessagingManager, CoroutineScope by bidirectionalConnection {
 
     private val logger =
-        PlatformLogging.getLogger(this::class.debugName + "/" + bidirectionalConnection.peerId + "/" + bidirectionalConnection.sessionId)
+        PlatformLogging.getLogger(this::class.debugName /* + "/" + bidirectionalConnection.peerId + "/" + bidirectionalConnection.sessionId */)
 
     private class InitiatedConversationData(val callId: ConversationId) {
 

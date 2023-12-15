@@ -13,16 +13,16 @@ import xyz.kotlinw.module.ktor.server.KtorServerModule
 
 @Deprecated(
     level = ERROR,
-    message = "Do not call `runTest()` from `testApplication(), `runTest()` without receiver will call it implicitly."
+    message = "Do not call `runTest()` from `testApplication()`, calling `runTest()` without receiver will call `testApplication()` implicitly."
 )
-fun <T : TestScopeBase> ApplicationTestBuilder.runTest(
+fun <T : TestScopeBase> ApplicationTestBuilder.runKtorIntegrationTest(
     rootScopeFactory: () -> T,
     block: suspend T.() -> Unit
 ) {
     throw UnsupportedOperationException()
 }
 
-fun <T : TestScopeBase> runTest(
+fun <T : TestScopeBase> runKtorIntegrationTest(
     rootScopeFactory: ApplicationTestBuilder.() -> T,
     setupTestApplication: TestApplicationBuilder.() -> Unit = {},
     block: suspend T.() -> Unit

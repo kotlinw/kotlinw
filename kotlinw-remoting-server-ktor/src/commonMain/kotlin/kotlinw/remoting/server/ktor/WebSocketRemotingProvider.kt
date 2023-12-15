@@ -30,8 +30,8 @@ private val logger by lazy { PlatformLogging.getLogger() }
 
 class WebSocketRemotingProvider(
     private val identifyClient: (ApplicationCall) -> MessagingPeerId,
-    private val onConnectionAdded: (suspend (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null,
-    private val onConnectionRemoved: (suspend (MessagingPeerId, MessagingSessionId) -> Unit)? = null
+    private val onConnectionAdded: ((MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null,
+    private val onConnectionRemoved: ((MessagingPeerId, MessagingSessionId) -> Unit)? = null
 ) : RemotingProvider {
 
     override fun InstallationContext.install() {
@@ -46,7 +46,7 @@ class WebSocketRemotingProvider(
 
         val connections: ConcurrentMutableMap<MessagingSessionId, BidirectionalMessagingManager> = ConcurrentHashMap()
 
-        suspend fun addConnection(
+        fun addConnection(
             peerId: MessagingPeerId,
             sessionId: MessagingSessionId,
             messagingManager: BidirectionalMessagingManager
@@ -70,7 +70,7 @@ class WebSocketRemotingProvider(
             }
         }
 
-        suspend fun removeConnection(sessionId: MessagingSessionId) {
+        fun removeConnection(sessionId: MessagingSessionId) {
             val messagingManager = connections.remove(sessionId)
 
             if (messagingManager != null) {

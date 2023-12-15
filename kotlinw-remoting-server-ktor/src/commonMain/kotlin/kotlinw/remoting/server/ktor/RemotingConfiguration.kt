@@ -32,7 +32,7 @@ data class WebSocketRemotingConfiguration(
     override val remotingProvider: WebSocketRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler>,
     override val authenticationProviderName: String?,
-    val onConnectionAdded: (suspend (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null, // TODO nem szabadna hozzáférni a BidirectionalMessagingManager-hez, az itt túl alacsony szintű API
-    val onConnectionRemoved: (suspend (MessagingPeerId, MessagingSessionId) -> Unit)? = null,
+    val onConnectionAdded: ((MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null, // TODO nem szabadna hozzáférni a BidirectionalMessagingManager-hez, az itt túl alacsony szintű API
+    val onConnectionRemoved: ((MessagingPeerId, MessagingSessionId) -> Unit)? = null,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration
