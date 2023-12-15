@@ -88,7 +88,7 @@ eventBus.publish(MessageEvent("Interesting: Kotlin 2.0 will be out soon!"))
 eventBus.publish(MessageEvent("Boring: Matrix multiplication is not commutative."))
 ```
 
-## Dealing with backpressure (fast event publishers and slow event handlers)
+## Backpressure handling (dealing with fast event publishers and slow event handlers)
 
 Handling events can take various time, some handlers are fast, some are slow. \
 As a guideline, event handlers should be as fast as possible, if a handler is very slow then it should probably start a
