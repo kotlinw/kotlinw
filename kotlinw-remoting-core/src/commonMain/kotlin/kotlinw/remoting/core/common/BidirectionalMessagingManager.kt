@@ -33,14 +33,14 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 interface BidirectionalMessagingManager : CoroutineScope {
 
     val remotePeerId: MessagingPeerId
 
-    val sessionId: MessagingSessionId
+    val sessionId: MessagingConnectionId
 
     suspend fun <P : Any, F> requestColdFlowResult(
         serviceLocator: ServiceLocator,

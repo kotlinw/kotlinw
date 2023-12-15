@@ -10,11 +10,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.MessagingConnectionId
 
 class WebSocketBidirectionalMessagingConnection(
     override val peerId: MessagingPeerId,
-    override val sessionId: MessagingSessionId,
+    override val sessionId: MessagingConnectionId,
     private val webSocketSession: DefaultWebSocketSession,
     private val messageCodecDescriptor: MessageCodecDescriptor
 ) : BidirectionalMessagingConnection, CoroutineScope by webSocketSession {

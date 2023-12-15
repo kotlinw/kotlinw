@@ -4,7 +4,7 @@ import kotlinw.remoting.core.RawMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.MessagingConnectionId
 
 class MessagingChannelDisconnectedException(): RuntimeException()
 
@@ -12,7 +12,7 @@ interface BidirectionalMessagingConnection : CoroutineScope {
 
     val peerId: MessagingPeerId
 
-    val sessionId: MessagingSessionId
+    val sessionId: MessagingConnectionId
 
     suspend fun incomingRawMessages(): Flow<RawMessage>
 

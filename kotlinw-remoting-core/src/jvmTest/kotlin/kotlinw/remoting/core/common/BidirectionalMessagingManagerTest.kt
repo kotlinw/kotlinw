@@ -19,7 +19,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 class BidirectionalMessagingManagerTest {
@@ -37,7 +37,7 @@ class BidirectionalMessagingManagerTest {
         val peer1 = object : BidirectionalMessagingConnection {
             override val peerId: MessagingPeerId get() = "peer1"
 
-            override val sessionId: MessagingSessionId = "$peerId-$messagingSessionId"
+            override val sessionId: MessagingConnectionId = "$peerId-$messagingSessionId"
 
             override suspend fun incomingRawMessages(): Flow<RawMessage> = peer1IncomingMessagesFlow
 
@@ -53,7 +53,7 @@ class BidirectionalMessagingManagerTest {
         val peer2 = object : BidirectionalMessagingConnection {
             override val peerId: MessagingPeerId get() = "peer2"
 
-            override val sessionId: MessagingSessionId = "$peerId-$messagingSessionId"
+            override val sessionId: MessagingConnectionId = "$peerId-$messagingSessionId"
 
             override suspend fun incomingRawMessages(): Flow<RawMessage> = peer2IncomingMessagesFlow
 

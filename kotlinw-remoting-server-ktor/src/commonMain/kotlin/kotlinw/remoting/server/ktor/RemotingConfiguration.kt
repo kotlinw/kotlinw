@@ -2,9 +2,8 @@ package kotlinw.remoting.server.ktor
 
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.common.BidirectionalMessagingManager
-import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
+import kotlinw.remoting.core.common.NewConnectionData
+import kotlinw.remoting.core.common.RemovedConnectionData
 
 interface RemotingConfiguration {
 
@@ -32,7 +31,7 @@ data class WebSocketRemotingConfiguration(
     override val remotingProvider: WebSocketRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler>,
     override val authenticationProviderName: String?,
-    val onConnectionAdded: ((MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null, // TODO nem szabadna hozzáférni a BidirectionalMessagingManager-hez, az itt túl alacsony szintű API
-    val onConnectionRemoved: ((MessagingPeerId, MessagingSessionId) -> Unit)? = null,
+    val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
+    val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration

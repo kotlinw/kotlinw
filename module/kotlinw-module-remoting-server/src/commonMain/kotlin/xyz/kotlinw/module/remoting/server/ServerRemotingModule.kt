@@ -42,11 +42,11 @@ class ServerRemotingModule {
     @Component
     fun webSocketRemotingProvider() = WebSocketRemotingProvider(
         identifyClient = { 1 },
-        onConnectionAdded = { messagingPeerId, messagingSessionId, bidirectionalMessagingManager ->
-            println("ServerRemotingModule / connection added: " + messagingSessionId)
+        onConnectionAdded = {
+            println("ServerRemotingModule / connection added: " + it.connectionId) // TODO remoting
         },
-        onConnectionRemoved = { messagingPeerId, messagingSessionId ->
-            println("ServerRemotingModule / connection removed: " + messagingSessionId)
+        onConnectionRemoved = {
+            println("ServerRemotingModule / connection removed: " + it.connectionId) // TODO remoting
         }
     )
 }

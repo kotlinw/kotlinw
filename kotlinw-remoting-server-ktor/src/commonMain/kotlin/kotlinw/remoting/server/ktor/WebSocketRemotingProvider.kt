@@ -16,6 +16,9 @@ import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
+import kotlinw.remoting.core.common.DelegatingRemotingClient
+import kotlinw.remoting.core.common.NewConnectionData
+import kotlinw.remoting.core.common.RemovedConnectionData
 import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
@@ -23,15 +26,15 @@ import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingSessionId
+import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 private val logger by lazy { PlatformLogging.getLogger() }
 
 class WebSocketRemotingProvider(
     private val identifyClient: (ApplicationCall) -> MessagingPeerId,
-    private val onConnectionAdded: ((MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit)? = null,
-    private val onConnectionRemoved: ((MessagingPeerId, MessagingSessionId) -> Unit)? = null
+    private val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
+    private val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null
 ) : RemotingProvider {
 
     override fun InstallationContext.install() {
@@ -44,11 +47,14 @@ class WebSocketRemotingProvider(
             ktorApplication.install(WebSockets)
         }
 
-        val connections: ConcurrentMutableMap<MessagingSessionId, BidirectionalMessagingManager> = ConcurrentHashMap()
+        val webSocketRemotingConfiguration =
+            remotingConfiguration as? WebSocketRemotingConfiguration ?: throw AssertionError()
+
+        val connections: ConcurrentMutableMap<MessagingConnectionId, BidirectionalMessagingManager> = ConcurrentHashMap()
 
         fun addConnection(
             peerId: MessagingPeerId,
-            sessionId: MessagingSessionId,
+            sessionId: MessagingConnectionId,
             messagingManager: BidirectionalMessagingManager
         ) {
             connections.compute(sessionId) { key, previousValue ->
@@ -56,42 +62,51 @@ class WebSocketRemotingProvider(
                 messagingManager
             }
 
-            try {
-                onConnectionAdded?.invoke(peerId, sessionId, messagingManager)
-            } catch (e: Throwable) {
-                logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
-            }
+            if (onConnectionAdded != null || webSocketRemotingConfiguration.onConnectionAdded != null) {
+                val reverseRemotingClient = DelegatingRemotingClient(messagingManager)
+                val newConnectionData =
+                    NewConnectionData(peerId, sessionId, reverseRemotingClient, messagingManager)
 
-            try {
-                (remotingConfiguration as WebSocketRemotingConfiguration).onConnectionAdded
-                    ?.invoke(peerId, sessionId, messagingManager)
-            } catch (e: Throwable) {
-                logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
-            }
-        }
-
-        fun removeConnection(sessionId: MessagingSessionId) {
-            val messagingManager = connections.remove(sessionId)
-
-            if (messagingManager != null) {
                 try {
-                    onConnectionRemoved?.invoke(messagingManager.remotePeerId, sessionId)
+                    onConnectionAdded?.invoke(newConnectionData)
                 } catch (e: Throwable) {
-                    logger.warning(e.nonFatalOrThrow()) { "onConnectionRemoved() has thrown an exception." }
+                    logger.error(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
                 }
 
                 try {
-                    (remotingConfiguration as WebSocketRemotingConfiguration).onConnectionRemoved
-                        ?.invoke(messagingManager.remotePeerId, sessionId)
+                    webSocketRemotingConfiguration.onConnectionAdded?.invoke(newConnectionData)
                 } catch (e: Throwable) {
-                    logger.warning(e.nonFatalOrThrow()) { "onConnectionRemoved() has thrown an exception." }
+                    logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
+                }
+            }
+        }
+
+        fun removeConnection(sessionId: MessagingConnectionId) {
+            val messagingManager = connections.remove(sessionId)
+
+            if (messagingManager != null) {
+                if (onConnectionRemoved != null || webSocketRemotingConfiguration.onConnectionRemoved != null) {
+                    val removedConnectionData = RemovedConnectionData(messagingManager.remotePeerId, sessionId)
+
+                    try {
+                        onConnectionRemoved?.invoke(removedConnectionData)
+                    } catch (e: Throwable) {
+                        logger.warning(e.nonFatalOrThrow()) { "onConnectionRemoved() has thrown an exception." }
+                    }
+
+                    try {
+                        webSocketRemotingConfiguration.onConnectionRemoved?.invoke(removedConnectionData)
+                    } catch (e: Throwable) {
+                        logger.warning(e.nonFatalOrThrow()) { "onConnectionRemoved() has thrown an exception." }
+                    }
                 }
             } else {
                 logger.warning { "Tried to remove non-existing connection: " / ("sessionId" to sessionId) }
             }
         }
 
-        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.servicePath }
+        val delegators =
+            (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.servicePath }
 
         ktorApplication.routing {
 
@@ -121,20 +136,20 @@ class WebSocketRemotingProvider(
         messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
         delegators: Map<String, RemoteCallHandlerImplementor>,
         identifyClient: (ApplicationCall) -> MessagingPeerId,
-        addConnection: suspend (MessagingPeerId, MessagingSessionId, BidirectionalMessagingManager) -> Unit,
-        removeConnection: suspend (MessagingSessionId) -> Unit
+        addConnection: suspend (MessagingPeerId, MessagingConnectionId, BidirectionalMessagingManager) -> Unit,
+        removeConnection: suspend (MessagingConnectionId) -> Unit
     ) {
 
         // TODO fix string
         webSocket("/websocket") {
             val messagingPeerId = identifyClient(call) // TODO hibaell.
-            val messagingSessionId: MessagingSessionId = Uuid.randomUuid().toString() // TODO customizable
+            val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
 
             try {
                 val connection =
-                    WebSocketBidirectionalMessagingConnection(messagingPeerId, messagingSessionId, this, messageCodec)
+                    WebSocketBidirectionalMessagingConnection(messagingPeerId, messagingConnectionId, this, messageCodec)
                 val sessionMessagingManager = BidirectionalMessagingManagerImpl(connection, messageCodec, delegators)
-                addConnection(messagingPeerId, messagingSessionId, sessionMessagingManager)
+                addConnection(messagingPeerId, messagingConnectionId, sessionMessagingManager)
                 sessionMessagingManager.processIncomingMessages()
             } catch (e: ClosedReceiveChannelException) {
                 val closeReason = closeReason.await()
@@ -142,7 +157,7 @@ class WebSocketRemotingProvider(
             } catch (e: Throwable) {
                 logger.error(e.nonFatalOrThrow()) { "Disconnected." }
             } finally {
-                removeConnection(messagingSessionId)
+                removeConnection(messagingConnectionId)
             }
         }
     }
