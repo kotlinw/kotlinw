@@ -34,16 +34,16 @@ import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.ksp.util.hasCompanionObject
 import xyz.kotlinw.remoting.api.SupportsRemoting
 import xyz.kotlinw.remoting.api.RemotingClient
-import xyz.kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
-import xyz.kotlinw.remoting.api.internal.client.RemotingClientCallSupport
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
-import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.time.Duration
+import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,

@@ -8,8 +8,7 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinw.logging.platform.PlatformLogging
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
-import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -35,7 +34,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 interface BidirectionalMessagingManager : CoroutineScope {
 

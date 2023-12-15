@@ -5,9 +5,8 @@ import arrow.core.continuations.AtomicRef
 import arrow.core.nonFatalOrThrow
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import xyz.kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
-import xyz.kotlinw.remoting.api.internal.client.RemotingClientCallSupport
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.ServiceLocator
@@ -24,7 +23,8 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 
 class HttpRemotingClient<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,

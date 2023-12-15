@@ -1,6 +1,5 @@
 package kotlinw.remoting.core.client
 
-import xyz.kotlinw.remoting.api.internal.client.RemotingClientCallSupport
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
@@ -15,6 +14,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlinx.io.Sink
 import kotlinx.io.Source
+import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 
 class StreamBasedSynchronousRemotingClient(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,

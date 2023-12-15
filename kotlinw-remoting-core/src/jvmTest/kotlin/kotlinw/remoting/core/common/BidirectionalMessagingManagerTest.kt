@@ -4,8 +4,7 @@ import app.cash.turbine.turbineScope
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
-import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.JsonMessageCodec
@@ -21,7 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingSessionId
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 class BidirectionalMessagingManagerTest {
 

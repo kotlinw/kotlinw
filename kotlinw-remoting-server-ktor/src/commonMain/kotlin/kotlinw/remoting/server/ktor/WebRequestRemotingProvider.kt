@@ -20,9 +20,8 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
-import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.DownstreamColdFlow
-import xyz.kotlinw.remoting.api.internal.server.RemotingMethodDescriptor.SynchronousCall
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.DownstreamColdFlow
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.SynchronousCall
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.MessageCodec
@@ -30,7 +29,7 @@ import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.serialization.KSerializer
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 class WebRequestRemotingProvider : RemotingProvider {
 

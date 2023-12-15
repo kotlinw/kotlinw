@@ -3,7 +3,7 @@ package xyz.kotlinw.module.remoting.client
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import xyz.kotlinw.remoting.api.RemotingClient
-import xyz.kotlinw.remoting.api.internal.server.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.HttpRemotingClient
 import kotlinw.remoting.core.codec.JsonMessageCodec

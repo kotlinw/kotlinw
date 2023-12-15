@@ -1,4 +1,4 @@
-package xyz.kotlinw.remoting.api.internal.server
+package xyz.kotlinw.remoting.api.internal
 
 import kotlinx.serialization.KSerializer
 
