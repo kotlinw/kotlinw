@@ -34,7 +34,7 @@ import com.squareup.kotlinpoet.typeNameOf
 import kotlinw.ksp.util.hasCompanionObject
 import xyz.kotlinw.remoting.annotation.SupportsRemoting
 import kotlinw.remoting.api.client.RemotingClient
-import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
+import kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
@@ -104,7 +104,7 @@ class RemotingSymbolProcessor(
 
         val remotingClientParameterName = "remotingClient"
         val remotingClientSynchronousCallSupportPropertyName = "remotingClientSynchronousCallSupport"
-        val remotingClientDownstreamFlowSupportPropertyName = "remotingClientDownstreamFlowSupport"
+        val remotingClientFlowSupportPropertyName = "remotingClientFlowSupport"
         val servicePathPropertyName = "servicePath"
 
         val processedMemberFunctions = getProcessedMemberFunctions(definitionInterfaceDeclaration)
@@ -151,14 +151,14 @@ class RemotingSymbolProcessor(
                 )
                 .addProperty(
                     PropertySpec.builder(
-                        remotingClientDownstreamFlowSupportPropertyName,
-                        RemotingClientDownstreamFlowSupport::class
+                        remotingClientFlowSupportPropertyName,
+                        RemotingClientFlowSupport::class
                     )
                         .addModifiers(KModifier.PRIVATE)
                         .getter(
                             FunSpec.getterBuilder().addStatement(
                                 "return $remotingClientParameterName as %T",
-                                RemotingClientDownstreamFlowSupport::class
+                                RemotingClientFlowSupport::class
                             ).build()
                         ) // TODO runtime hibaell.
                         .build()
@@ -196,7 +196,7 @@ class RemotingSymbolProcessor(
                     if (returnsFlow) {
                         funBuilder.addStatement(
                             """
-                                return $remotingClientDownstreamFlowSupportPropertyName.requestIncomingColdFlow(
+                                return $remotingClientFlowSupportPropertyName.requestIncomingColdFlow(
                                     %T::class, 
                                     %T::%N,
                                     $servicePathPropertyName,

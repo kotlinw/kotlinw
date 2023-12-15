@@ -6,7 +6,7 @@ import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-interface RemotingClientDownstreamFlowSupport : RemotingClient {
+interface RemotingClientFlowSupport : RemotingClient {
 
     suspend fun <T : Any, P : Any, F> requestIncomingColdFlow(
         serviceKClass: KClass<T>,

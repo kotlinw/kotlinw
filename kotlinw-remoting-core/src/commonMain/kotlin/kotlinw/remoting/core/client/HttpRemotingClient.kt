@@ -5,7 +5,7 @@ import arrow.core.continuations.AtomicRef
 import arrow.core.nonFatalOrThrow
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlinw.remoting.api.internal.client.RemotingClientDownstreamFlowSupport
+import kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
 import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.core.RawMessage
@@ -31,7 +31,7 @@ class HttpRemotingClient<M : RawMessage>(
     private val peerRegistry: MutableRemotePeerRegistry,
     private val remoteServerBaseUrl: Url,
     private val incomingCallDelegators: Map<String, RemoteCallHandler>
-) : RemotingClientSynchronousCallSupport, RemotingClientDownstreamFlowSupport {
+) : RemotingClientSynchronousCallSupport, RemotingClientFlowSupport {
 
     private val logger = PlatformLogging.getLogger()
 
