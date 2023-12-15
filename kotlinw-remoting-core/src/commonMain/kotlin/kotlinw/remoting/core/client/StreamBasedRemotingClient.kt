@@ -1,6 +1,6 @@
 package kotlinw.remoting.core.client
 
-import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.client.RemotingClientCallSupport
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
 import kotlinw.remoting.core.RemotingMessageMetadata
@@ -20,7 +20,7 @@ class StreamBasedSynchronousRemotingClient(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
     private val source: Source,
     private val sink: Sink
-) : RemotingClientSynchronousCallSupport {
+) : RemotingClientCallSupport {
 
     private val mutex = Mutex()
 

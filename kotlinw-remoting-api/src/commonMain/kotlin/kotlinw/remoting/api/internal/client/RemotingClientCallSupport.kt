@@ -5,7 +5,7 @@ import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-interface RemotingClientSynchronousCallSupport : RemotingClient {
+interface RemotingClientCallSupport : RemotingClient {
 
     suspend fun <T : Any, P: Any, R> call(
         serviceKClass: KClass<T>,

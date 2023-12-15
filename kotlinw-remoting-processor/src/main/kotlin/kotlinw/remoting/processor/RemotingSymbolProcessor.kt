@@ -35,7 +35,7 @@ import kotlinw.ksp.util.hasCompanionObject
 import xyz.kotlinw.remoting.annotation.SupportsRemoting
 import kotlinw.remoting.api.client.RemotingClient
 import kotlinw.remoting.api.internal.client.RemotingClientFlowSupport
-import kotlinw.remoting.api.internal.client.RemotingClientSynchronousCallSupport
+import kotlinw.remoting.api.internal.client.RemotingClientCallSupport
 import kotlinw.remoting.api.internal.server.RemoteCallHandler
 import kotlinw.remoting.api.internal.server.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
@@ -103,7 +103,7 @@ class RemotingSymbolProcessor(
         val clientProxyClassName = definitionInterfaceName.clientProxyClassName
 
         val remotingClientParameterName = "remotingClient"
-        val remotingClientSynchronousCallSupportPropertyName = "remotingClientSynchronousCallSupport"
+        val remotingClientCallSupportPropertyName = "remotingClientCallSupport"
         val remotingClientFlowSupportPropertyName = "remotingClientFlowSupport"
         val servicePathPropertyName = "servicePath"
 
@@ -137,14 +137,14 @@ class RemotingSymbolProcessor(
                 )
                 .addProperty(
                     PropertySpec.builder(
-                        remotingClientSynchronousCallSupportPropertyName,
-                        RemotingClientSynchronousCallSupport::class
+                        remotingClientCallSupportPropertyName,
+                        RemotingClientCallSupport::class
                     )
                         .addModifiers(KModifier.PRIVATE)
                         .getter(
                             FunSpec.getterBuilder().addStatement(
                                 "return $remotingClientParameterName as %T",
-                                RemotingClientSynchronousCallSupport::class
+                                RemotingClientCallSupport::class
                             ).build()
                         ) // TODO runtime hibaell.
                         .build()
@@ -221,7 +221,7 @@ class RemotingSymbolProcessor(
                     } else {
                         funBuilder.addStatement(
                             """
-                                ${if (returnType.isUnit) "" else "return "}$remotingClientSynchronousCallSupportPropertyName.call<%T, %T, %T>(
+                                ${if (returnType.isUnit) "" else "return "}$remotingClientCallSupportPropertyName.call<%T, %T, %T>(
                                     %T::class, 
                                     %T::%N,
                                     $servicePathPropertyName,
