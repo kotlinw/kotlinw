@@ -1,7 +1,7 @@
 package kotlinw.configuration.core
 
 import kotlin.time.Duration
-import kotlinw.eventbus.local.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinx.coroutines.CoroutineScope

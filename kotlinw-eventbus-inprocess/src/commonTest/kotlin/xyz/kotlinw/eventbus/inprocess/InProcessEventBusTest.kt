@@ -1,4 +1,4 @@
-package kotlinw.eventbus.local
+package xyz.kotlinw.eventbus.inprocess
 
 import arrow.atomic.AtomicInt
 import arrow.atomic.value

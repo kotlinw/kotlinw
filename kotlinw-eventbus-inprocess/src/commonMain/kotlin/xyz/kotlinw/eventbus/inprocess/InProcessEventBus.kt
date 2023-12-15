@@ -1,4 +1,4 @@
-package kotlinw.eventbus.local
+package xyz.kotlinw.eventbus.inprocess
 
 import kotlinw.xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
 import kotlinx.coroutines.CancellationException
@@ -31,11 +31,11 @@ sealed interface InProcessEventBus {
      *
      * This function never completes normally, it will collect events until cancelled, see [SharedFlow.collect] for more details.
      *
-     * @param eventPredicate The predicate to filter events. By default, it accepts all events.
+     * @param filter The predicate to filter events. By default, it accepts all events.
      * @param handler The event handler function that will be executed when an event is matched by the predicate.
      */
     suspend fun on(
-        eventPredicate: (LocalEvent) -> Boolean = { true },
+        filter: (LocalEvent) -> Boolean = { true },
         handler: suspend (LocalEvent) -> Unit
     ): Nothing
 }
@@ -46,16 +46,16 @@ sealed interface InProcessEventBus {
  * This function never completes normally, see [SharedFlow.collect] for more details.
  *
  * @param E The type of the event to handle.
- * @param eventPredicate The predicate to filter events. By default, it accepts all events of type [E].
+ * @param filter The predicate to filter events. By default, it accepts all events of type [E].
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  */
 suspend inline fun <reified E : LocalEvent> InProcessEventBus.on(
-    noinline eventPredicate: (E) -> Boolean = { true },
+    noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> Unit
 ): Nothing =
     @Suppress("UNCHECKED_CAST")
     on(
-        eventPredicate = { it is E && eventPredicate(it) },
+        filter = { it is E && filter(it) },
         handler as suspend (LocalEvent) -> Unit
     )
 
@@ -66,17 +66,17 @@ suspend inline fun <reified E : LocalEvent> InProcessEventBus.on(
  *
  * @param E The type of the event to handle.
  * @param handlerCoroutineScope The [CoroutineScope] in which the handler will be executed.
- * @param eventPredicate The predicate to filter events. By default, it accepts all events of type [E].
+ * @param filter The predicate to filter events. By default, it accepts all events of type [E].
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  * @return The [Job] representing the execution of the event handler.
  */
 suspend inline fun <reified E : LocalEvent> InProcessEventBus.asyncOn(
     @ReplaceWithContextReceiver handlerCoroutineScope: CoroutineScope,
-    noinline eventPredicate: (E) -> Boolean = { true },
+    noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> Unit
 ): Job = handlerCoroutineScope.launch(start = UNDISPATCHED) {
     @Suppress("UNCHECKED_CAST")
-    on(eventPredicate, handler as suspend (LocalEvent) -> Unit)
+    on(filter, handler as suspend (LocalEvent) -> Unit)
 }
 
 /**
@@ -86,16 +86,16 @@ suspend inline fun <reified E : LocalEvent> InProcessEventBus.asyncOn(
  *
  * @param E The type of the event to handle.
  * @param T The return type of the event handler function.
- * @param eventPredicate The predicate to filter events. By default, it accepts all events of type [E].
+ * @param filter The predicate to filter events. By default, it accepts all events of type [E].
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  * @return The result of the event handler function execution.
  */
 suspend inline fun <reified E : LocalEvent, T> InProcessEventBus.once(
-    noinline eventPredicate: (LocalEvent) -> Boolean = { true },
+    noinline filter: (LocalEvent) -> Boolean = { true },
     noinline handler: suspend (E) -> T
 ): T {
     try {
-        on<E>(eventPredicate) { event ->
+        on<E>(filter) { event ->
             throw ControlledEventCollectingStop(handler(event))
         }
     } catch (e: ControlledEventCollectingStop) {
@@ -118,16 +118,16 @@ internal class ControlledEventCollectingStop(val result: Any?) : CancellationExc
  * @param E The type of the event to handle.
  * @param T The return type of the event handler function.
  * @param handlerCoroutineScope The [CoroutineScope] in which the handler will be executed.
- * @param eventPredicate The predicate to filter events. By default, it accepts all events of type [E].
+ * @param filter The predicate to filter events. By default, it accepts all events of type [E].
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  * @return The [Deferred] representing the execution of the event handler.
  */
 inline fun <reified E : LocalEvent, T> InProcessEventBus.asyncOnce(
     @ReplaceWithContextReceiver handlerCoroutineScope: CoroutineScope,
-    noinline eventPredicate: (E) -> Boolean = { true },
+    noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> T
 ): Deferred<T> =
     handlerCoroutineScope.async(start = UNDISPATCHED) {
         @Suppress("UNCHECKED_CAST")
-        once(eventPredicate as (LocalEvent) -> Boolean, handler)
+        once(filter as (LocalEvent) -> Boolean, handler)
     }

@@ -8,7 +8,7 @@ import kotlinw.configuration.core.ConfigurationObjectLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.ConfigurationPropertyLookupImpl
 import kotlinw.configuration.core.ConfigurationPropertyLookupSource
-import kotlinw.eventbus.local.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.koin.core.internal.ApplicationCoroutineServiceImpl
 import kotlinw.koin.core.internal.defaultLoggingIntegrator

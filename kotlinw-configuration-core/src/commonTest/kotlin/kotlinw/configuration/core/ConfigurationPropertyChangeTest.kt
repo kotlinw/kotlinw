@@ -2,7 +2,7 @@ package kotlinw.configuration.core
 
 import app.cash.turbine.test
 import arrow.core.continuations.AtomicRef
-import kotlinw.eventbus.local.InProcessEventBusImpl
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBusImpl
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.cancelChildren

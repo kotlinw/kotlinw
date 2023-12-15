@@ -1,8 +1,8 @@
 package kotlinw.configuration.core
 
 import arrow.core.continuations.AtomicRef
-import kotlinw.eventbus.local.InProcessEventBus
-import kotlinw.eventbus.local.asyncOn
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.asyncOn
 import kotlinw.util.stdlib.collection.filterNotNullValues
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
-import kotlinw.eventbus.local.on
+import xyz.kotlinw.eventbus.inprocess.on
 
 suspend fun ConfigurationPropertyLookup.pollEnumerableConfigurationProperties(
     pollingDelay: Duration,

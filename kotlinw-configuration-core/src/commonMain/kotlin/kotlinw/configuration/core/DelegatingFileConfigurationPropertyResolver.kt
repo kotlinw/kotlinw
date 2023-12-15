@@ -1,7 +1,7 @@
 package kotlinw.configuration.core
 
 import arrow.core.continuations.AtomicRef
-import kotlinw.eventbus.local.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay

@@ -1,6 +1,6 @@
 package kotlinw.configuration.core
 
-import kotlinw.eventbus.local.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import kotlinx.coroutines.CoroutineScope
 import java.io.StringReader
 import java.util.Properties

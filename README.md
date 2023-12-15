@@ -9,7 +9,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("xyz.kotlinw:kotlinw-util-stdlib-mp:0.0.4")
+                implementation("xyz.kotlinw:$MODULE_ID:$LATEST_VERSION")
             }
         }
     }
@@ -18,6 +18,4 @@ kotlin {
 
 ## Modules
 
-Group ID: `xyz.kotlinw`
-
-- `kotlinw-util-stdlib-mp`: Utilities with only core dependencies (used by most applications like kotlinx-collections-immutable, etc.)
+- `kotlinw-eventbus-inprocess`: Provides an in-process event bus mechanism based on Kotlin coroutines.
