@@ -196,7 +196,7 @@ class RemotingSymbolProcessor(
                     if (returnsFlow) {
                         funBuilder.addStatement(
                             """
-                                return $remotingClientDownstreamFlowSupportPropertyName.requestDownstreamColdFlow(
+                                return $remotingClientDownstreamFlowSupportPropertyName.requestIncomingColdFlow(
                                     %T::class, 
                                     %T::%N,
                                     $servicePathPropertyName,

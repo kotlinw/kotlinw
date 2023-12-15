@@ -203,7 +203,7 @@ class HttpRemotingClient<M : RawMessage>(
         }
     }
 
-    override suspend fun <T : Any, P : Any, F> requestDownstreamColdFlow(
+    override suspend fun <T : Any, P : Any, F> requestIncomingColdFlow(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<Flow<F>>,
         serviceId: String,
