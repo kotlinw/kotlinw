@@ -5,6 +5,7 @@ import io.ktor.server.testing.TestApplicationBuilder
 import io.ktor.server.testing.testApplication
 import kotlin.DeprecationLevel.ERROR
 import kotlinw.configuration.core.DeploymentMode.Development
+import kotlinw.util.stdlib.DelicateKotlinwApi
 import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.ContainerScope
 import xyz.kotlinw.di.api.runApplication
@@ -22,6 +23,7 @@ fun <T : TestScopeBase> ApplicationTestBuilder.runKtorServerIntegrationTest(
     throw UnsupportedOperationException()
 }
 
+@OptIn(DelicateKotlinwApi::class)
 fun <T : TestScopeBase> runKtorServerTest(
     rootScopeFactory: ApplicationTestBuilder.() -> T,
     setupTestApplication: TestApplicationBuilder.() -> Unit = {},
