@@ -1,20 +1,9 @@
-
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    `kotlinw-multiplatform-library`
+    id("org.jetbrains.kotlinx.kover")
 }
 
 kotlin {
-    targetHierarchy.default()
-    jvm { }
-    js(IR) {
-        browser()
-    }
-    if (isNativeTargetEnabled()) {
-        mingwX64()
-        linuxX64()
-    }
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -25,10 +14,18 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                implementation(libs.kotlin.test)
                 implementation(projects.kotlinw.kotlinwLoggingPlatform)
                 implementation(libs.kotlinx.coroutines.test)
             }
+        }
+    }
+}
+
+koverReport {
+    filters {
+        includes {
+            classes("kotlinw.eventbus.local.*")
         }
     }
 }

@@ -22,13 +22,15 @@ class LocalEventBusImpl(
         _events.emit(event)
     }
 
-    override suspend fun on(
+    override suspend fun <E : LocalEvent> on(
         eventPredicate: (LocalEvent) -> Boolean,
-        handler: suspend (LocalEvent) -> Unit
+        handler: suspend (E) -> Unit
     ): Nothing =
         events.collect { event ->
             if (eventPredicate(event)) {
-                handler(event)
+                (event as? E)
+                    ?.let { handler(it) }
+                    ?: throw IllegalStateException("Inconsistent `eventPredicate`: event=$event")
             }
         }
 }

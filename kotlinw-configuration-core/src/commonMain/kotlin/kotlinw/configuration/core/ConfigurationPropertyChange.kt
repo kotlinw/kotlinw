@@ -2,7 +2,7 @@ package kotlinw.configuration.core
 
 import arrow.core.continuations.AtomicRef
 import kotlinw.eventbus.local.LocalEventBus
-import kotlinw.eventbus.local.on
+import kotlinw.eventbus.local.launchEventHandler
 import kotlinw.util.stdlib.collection.filterNotNullValues
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
@@ -137,7 +137,7 @@ private suspend fun watchConfigurationPropertiesImpl(
     val watcherFlow = channelFlow {
         send(emptyMap())
 
-        eventBus.on<ConfigurationPropertyChangeEvent>(eventListenerCoroutineScope) {
+        eventBus.launchEventHandler<ConfigurationPropertyChangeEvent>(eventListenerCoroutineScope) {
             if (configurationPropertyNamePredicate(it.name)) {
                 send(mapOf(it.name to it.newValue))
             }

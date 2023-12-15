@@ -1,10 +1,12 @@
 package kotlinw.eventbus.local
 
+import kotlinw.xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 typealias LocalEvent = Any
@@ -16,67 +18,53 @@ sealed interface LocalEventBus {
 
     suspend fun dispatch(event: LocalEvent)
 
-    suspend fun on(
-        eventPredicate: (LocalEvent) -> Boolean,
-        handler: suspend (LocalEvent) -> Unit
+    suspend fun <E: LocalEvent> on(
+        eventPredicate: (LocalEvent) -> Boolean = { true },
+        handler: suspend (E) -> Unit
     ): Nothing
 }
 
-suspend inline fun <reified E : LocalEvent> LocalEventBus.on(
-    noinline handler: suspend (E) -> Unit
-): Nothing =
-    on({ it is E }) { handler(it as E) }
-
-suspend fun LocalEventBus.once(
-    eventPredicate: (LocalEvent) -> Boolean,
-    handler: suspend (LocalEvent) -> Unit
-) {
-    on(eventPredicate) { event ->
-        handler(event)
-        currentCoroutineContext().cancel()
-    }
-}
-
-suspend inline fun <reified E : LocalEvent> LocalEventBus.once(
-    noinline handler: suspend (E) -> Unit
-) =
-    once({ it is E }) { handler(it as E) }
-
-fun LocalEventBus.dispatch(coroutineScope: CoroutineScope, event: LocalEvent): Job =
+fun LocalEventBus.launchDispatch(
+    @ReplaceWithContextReceiver coroutineScope: CoroutineScope,
+    event: LocalEvent
+): Job =
     coroutineScope.launch(start = UNDISPATCHED) {
         dispatch(event)
     }
 
-fun LocalEventBus.on(
+suspend inline fun <reified E : LocalEvent> LocalEventBus.launchEventHandler(
     handlerCoroutineScope: CoroutineScope,
-    eventPredicate: (LocalEvent) -> Boolean,
-    handler: suspend (LocalEvent) -> Unit
-) =
+    noinline eventPredicate: (LocalEvent) -> Boolean = { it is E },
+    noinline handler: suspend (E) -> Unit
+): Job =
     handlerCoroutineScope.launch(start = UNDISPATCHED) {
         on(eventPredicate, handler)
     }
 
-suspend inline fun <reified E : LocalEvent> LocalEventBus.on(
-    handlerCoroutineScope: CoroutineScope,
-    noinline handler: suspend (E) -> Unit
-): Job =
-    handlerCoroutineScope.launch(start = UNDISPATCHED) {
-        on(handler)
+suspend inline fun <reified E : LocalEvent, T> LocalEventBus.once(
+    noinline eventPredicate: (LocalEvent) -> Boolean = { it is E},
+    crossinline handler: suspend (E) -> T
+): T {
+    try {
+        on<E>(eventPredicate) { event ->
+            throw ControlledEventCollectingStop(handler(event))
+        }
+    } catch (e: ControlledEventCollectingStop) {
+        @Suppress("UNCHECKED_CAST")
+        return e.result as T
+    } catch (e: Throwable) {
+        throw e
     }
+}
 
-fun LocalEventBus.once(
-    handlerCoroutineScope: CoroutineScope,
-    eventPredicate: (LocalEvent) -> Boolean,
-    handler: suspend (LocalEvent) -> Unit
-) =
-    handlerCoroutineScope.launch(start = UNDISPATCHED) {
+@PublishedApi
+internal class ControlledEventCollectingStop(val result: Any?) : CancellationException(null as String?)
+
+inline fun <reified E : LocalEvent, T> LocalEventBus.asyncOnce(
+    @ReplaceWithContextReceiver handlerCoroutineScope: CoroutineScope,
+    noinline eventPredicate: (LocalEvent) -> Boolean = { it is E },
+    crossinline handler: suspend (E) -> T
+): Deferred<T> =
+    handlerCoroutineScope.async(start = UNDISPATCHED) {
         once(eventPredicate, handler)
-    }
-
-suspend inline fun <reified E : LocalEvent> LocalEventBus.once(
-    handlerCoroutineScope: CoroutineScope,
-    noinline handler: suspend (E) -> Unit
-): Job =
-    handlerCoroutineScope.launch(start = UNDISPATCHED) {
-        once(handler)
     }
