@@ -111,7 +111,7 @@ val eventBus = InProcessEventBus(bufferCapacity = 1000, bufferOverflowStrategy =
 
 The possible strategies are:
 
-- SUSPEND: Suspend on buffer overflow
-- DROP_OLDEST: Drop the oldest event in the buffer on overflow, add the new event to the buffer, do not suspend
-- DROP_LATEST: Drop the event that is being added to the buffer right now on buffer overflow (so that buffer contents stay the same), do not suspend
-- REJECT: Reject the new event, throw an `EventBusBufferOverflowException`
+- `SUSPEND`: Suspend on buffer overflow
+- `DROP_OLDEST`: Drop the oldest event in the buffer on overflow, add the new event to the buffer, do not suspend
+- `DROP_LATEST`: Drop the event that is being added to the buffer right now on buffer overflow (so that buffer contents stay the same), do not suspend
+- `REJECT`: Reject the new event, throw an `EventBusBufferOverflowException`
