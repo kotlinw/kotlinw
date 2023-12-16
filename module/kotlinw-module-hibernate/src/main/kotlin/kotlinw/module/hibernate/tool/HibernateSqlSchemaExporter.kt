@@ -13,7 +13,7 @@ import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.runJvmApplication
 import xyz.kotlinw.module.appbase.api.AppbaseJvmModule
 
-interface HibernateSqlSchemaExporterScope: ContainerScope {
+interface HibernateSqlSchemaExporterScope : ContainerScope {
 
     @ComponentQuery
     fun hibernateSqlSchemaExporter(): HibernateSqlSchemaExporter
@@ -31,6 +31,8 @@ class HibernateSqlSchemaExporterModule {
 
 suspend fun <T : HibernateSqlSchemaExporterScope> exportSqlSchema(rootScopeFactory: () -> T) {
     runJvmApplication(rootScopeFactory) {
-        hibernateSqlSchemaExporter().exportSchema(ExportedSchemaScriptType.Update)
+        println(
+            hibernateSqlSchemaExporter().exportSchema(ExportedSchemaScriptType.Update)
+        )
     }
 }

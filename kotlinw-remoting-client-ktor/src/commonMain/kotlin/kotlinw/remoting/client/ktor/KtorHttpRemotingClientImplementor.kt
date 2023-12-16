@@ -11,6 +11,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
@@ -53,10 +54,14 @@ class KtorHttpRemotingClientImplementor(
                 )
             }
 
-        return if (messageCodecDescriptor.isBinary)
-            RawMessage.Binary(response.body<ByteArray>().view()) as M
-        else
-            RawMessage.Text(response.bodyAsText()) as M
+        return if (response.status.isSuccess()) {
+            if (messageCodecDescriptor.isBinary)
+                RawMessage.Binary(response.body<ByteArray>().view()) as M
+            else
+                RawMessage.Text(response.bodyAsText()) as M
+        } else {
+            throw RuntimeException("Response status: ${response.status}") // TODO more info, specific result
+        }
     }
 
     private val runInSessionIsRunning = AtomicBoolean(false)
