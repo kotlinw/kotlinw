@@ -106,7 +106,7 @@ class WebSocketRemotingProvider(
         }
 
         val delegators =
-            (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.servicePath }
+            (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.serviceId }
 
         ktorApplication.routing {
 

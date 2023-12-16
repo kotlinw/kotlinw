@@ -105,7 +105,7 @@ class RemotingSymbolProcessor(
         val remotingClientParameterName = "remotingClient"
         val remotingClientCallSupportPropertyName = "remotingClientCallSupport"
         val remotingClientFlowSupportPropertyName = "remotingClientFlowSupport"
-        val servicePathPropertyName = "servicePath"
+        val serviceIdPropertyName = "serviceId"
 
         val processedMemberFunctions = getProcessedMemberFunctions(definitionInterfaceDeclaration)
 
@@ -117,7 +117,7 @@ class RemotingSymbolProcessor(
         fun KSFunctionDeclaration.remotingMethodPath(nestedClassClassifier: Int) =
             simpleName.asString() + "_" + nestedClassClassifier // TODO customizable
 
-        val servicePath = definitionInterfaceName.simpleName // TODO customizable
+        val serviceId = definitionInterfaceName.simpleName // TODO customizable
 
         fun generateClientProxyClass(): TypeSpec {
             val builder = TypeSpec.classBuilder(clientProxyClassName)
@@ -164,9 +164,9 @@ class RemotingSymbolProcessor(
                         .build()
                 )
                 .addProperty(
-                    PropertySpec.builder(servicePathPropertyName, String::class)
+                    PropertySpec.builder(serviceIdPropertyName, String::class)
                         .addModifiers(KModifier.PRIVATE)
-                        .initializer("\"$servicePath\"")
+                        .initializer("\"$serviceId\"")
                         .build()
                 )
 
@@ -199,7 +199,7 @@ class RemotingSymbolProcessor(
                                 return $remotingClientFlowSupportPropertyName.requestIncomingColdFlow(
                                     %T::class, 
                                     %T::%N,
-                                    $servicePathPropertyName,
+                                    $serviceIdPropertyName,
                                     "$methodPath",
                                     %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
                                     %M<%T>(),
@@ -224,7 +224,7 @@ class RemotingSymbolProcessor(
                                 ${if (returnType.isUnit) "" else "return "}$remotingClientCallSupportPropertyName.call<%T, %T, %T>(
                                     %T::class, 
                                     %T::%N,
-                                    $servicePathPropertyName,
+                                    $serviceIdPropertyName,
                                     "$methodPath",
                                     %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
                                     %M<%T>(),
@@ -270,9 +270,9 @@ class RemotingSymbolProcessor(
                         .build()
                 )
                 .addProperty(
-                    PropertySpec.builder("servicePath", String::class)
+                    PropertySpec.builder("serviceId", String::class)
                         .addModifiers(KModifier.OVERRIDE)
-                        .initializer("\"$servicePath\"")
+                        .initializer("\"$serviceId\"")
                         .build()
                 )
 

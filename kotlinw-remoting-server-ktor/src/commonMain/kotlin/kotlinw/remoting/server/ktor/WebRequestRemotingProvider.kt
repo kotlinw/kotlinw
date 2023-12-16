@@ -38,7 +38,7 @@ class WebRequestRemotingProvider : RemotingProvider {
     override fun InstallationContext.install() {
         val messageCodec = requireNotNull(messageCodec) { "Message codec is undefined." }
 
-        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.servicePath }
+        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.serviceId }
         if (
             delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
         ) {
@@ -59,11 +59,11 @@ class WebRequestRemotingProvider : RemotingProvider {
 
                 if (remotingConfiguration.authenticationProviderName != null) {
                     authenticate(remotingConfiguration.authenticationProviderName) {
-                        logger.info { "Remote call handlers (authorization by '" / remotingConfiguration.authenticationProviderName / "'): " / delegators.mapValues { it.value.servicePath } }
+                        logger.info { "Remote call handlers (authorization by '" / remotingConfiguration.authenticationProviderName / "'): " / delegators.mapValues { it.value.serviceId } }
                         configureRouting()
                     }
                 } else {
-                    logger.info { "Remote call handlers (no authorization): " / delegators.mapValues { it.value.servicePath } }
+                    logger.info { "Remote call handlers (no authorization): " / delegators.mapValues { it.value.serviceId } }
                     configureRouting()
                 }
             }

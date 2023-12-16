@@ -20,7 +20,7 @@ class StreamBasedSynchronousRemotingServer(
 ) {
     private val delegators =
         (remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>)
-            .associateBy { it.servicePath }
+            .associateBy { it.serviceId }
 
     suspend fun listen(): Nothing {
         while (true) {
