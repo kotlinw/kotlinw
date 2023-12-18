@@ -2,6 +2,5 @@ package kotlinw.logging.platform
 
 import kotlinw.logging.spi.LoggingIntegrator
 
-internal expect val platformLoggingIntegrator: LoggingIntegrator
-
-object PlatformLogging: LoggingIntegrator by platformLoggingIntegrator
+// TODO this should not be referenced directly from most places
+expect object PlatformLogging: LoggingIntegrator

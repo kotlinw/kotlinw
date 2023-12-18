@@ -1,7 +1,7 @@
 package kotlinw.configuration.core
 
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.stdlib.HasPriority
 
 typealias EncodedConfigurationPropertyValue = String
@@ -65,14 +65,17 @@ fun ConfigurationPropertyLookup.getMatchingEnumerableConfigurationProperties(key
     filterEnumerableConfigurationProperties { it.name.matches(keyRegex) }
 
 class ConfigurationPropertyLookupImpl(
+    loggerFactory: LoggerFactory,
     configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>
 ) : ConfigurationPropertyLookup {
 
-    private val logger = PlatformLogging.getLogger()
+    private val logger = loggerFactory.getLogger()
 
-    constructor(vararg configurationPropertyLookupSources: ConfigurationPropertyLookupSource) : this(
-        configurationPropertyLookupSources.toList()
-    )
+    constructor(
+        loggerFactory: LoggerFactory,
+        vararg configurationPropertyLookupSources: ConfigurationPropertyLookupSource
+    ) :
+            this(loggerFactory, configurationPropertyLookupSources.toList())
 
     private val sources: List<ConfigurationPropertyLookupSource> =
         configurationPropertyLookupSources.sortedWith(HasPriority.comparator)

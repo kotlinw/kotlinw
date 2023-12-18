@@ -1,13 +1,14 @@
 package kotlinw.configuration.core
 
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlinw.logging.platform.PlatformLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 import kotlinx.serialization.properties.encodeToStringMap
 import kotlinx.serialization.serializer
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class ConfigurationObjectLookupTest {
 
@@ -34,7 +35,7 @@ class ConfigurationObjectLookupTest {
 
     @Test
     fun testMissingObject() {
-        val configurationPropertyLookup = ConfigurationPropertyLookupImpl(emptyList())
+        val configurationPropertyLookup = ConfigurationPropertyLookupImpl(PlatformLogging, emptyList())
         val configurationObjectLookup: ConfigurationObjectLookup =
             ConfigurationObjectLookupImpl(configurationPropertyLookup)
         assertNull(configurationObjectLookup.getConfigurationObjectOrNull(serializer<TestConfig>()))
@@ -44,6 +45,7 @@ class ConfigurationObjectLookupTest {
     @Test
     fun testRootObject() {
         val configurationPropertyLookup = ConfigurationPropertyLookupImpl(
+            PlatformLogging,
             ConstantConfigurationPropertyResolver.of(
                 mapOf("a" to "13", "b" to "abc")
             ).asConfigurationPropertySource()

@@ -1,11 +1,11 @@
 package kotlinw.configuration.core
 
 import kotlin.time.Duration
-import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.files.Path
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import xyz.kotlinw.io.AbsolutePath
 import xyz.kotlinw.io.ClasspathLocation
 import xyz.kotlinw.io.ClasspathResource
@@ -15,6 +15,7 @@ import xyz.kotlinw.io.FileSystemResource
 
 class StandardJvmConfigurationPropertyResolver
 private constructor(
+    loggerFactory: LoggerFactory,
     private val classpathScanner: ClasspathScanner,
     private val deploymentMode: DeploymentMode,
     private val classLoader: ClassLoader,
@@ -29,19 +30,34 @@ private constructor(
         const val configurationFilePathSystemPropertyName = "kotlinw.configuration.file"
     }
 
-    private val logger = PlatformLogging.getLogger()
-
-    constructor(classpathScanner: ClasspathScanner, deploymentMode: DeploymentMode, classLoader: ClassLoader) :
-            this(classpathScanner, deploymentMode, classLoader, false, null, null, null)
+    private val logger = loggerFactory.getLogger()
 
     constructor(
+        loggerFactory: LoggerFactory,
+        classpathScanner: ClasspathScanner,
+        deploymentMode: DeploymentMode,
+        classLoader: ClassLoader
+    ) :
+            this(loggerFactory, classpathScanner, deploymentMode, classLoader, false, null, null, null)
+
+    constructor(
+        loggerFactory: LoggerFactory,
         classpathScanner: ClasspathScanner,
         deploymentMode: DeploymentMode,
         classLoader: ClassLoader,
         watcherCoroutineScope: CoroutineScope,
         eventBus: InProcessEventBus,
         watchDelay: Duration
-    ) : this(classpathScanner, deploymentMode, classLoader, true, watcherCoroutineScope, eventBus, watchDelay)
+    ) : this(
+        loggerFactory,
+        classpathScanner,
+        deploymentMode,
+        classLoader,
+        true,
+        watcherCoroutineScope,
+        eventBus,
+        watchDelay
+    )
 
     private val delegate = AggregatingEnumerableConfigurationPropertyResolver(
         buildList {

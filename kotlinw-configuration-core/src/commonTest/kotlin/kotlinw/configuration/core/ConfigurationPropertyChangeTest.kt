@@ -2,6 +2,10 @@ package kotlinw.configuration.core
 
 import app.cash.turbine.test
 import arrow.core.continuations.AtomicRef
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.cancelChildren
@@ -9,9 +13,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.time.Duration.Companion.milliseconds
 import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 
 class ConfigurationPropertyChangeTest {
@@ -32,6 +33,7 @@ class ConfigurationPropertyChangeTest {
         }
         val lookup =
             ConfigurationPropertyLookupImpl(
+                PlatformLogging,
                 source,
                 ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
             )
@@ -79,6 +81,7 @@ class ConfigurationPropertyChangeTest {
         }
         val lookup =
             ConfigurationPropertyLookupImpl(
+                PlatformLogging,
                 source,
                 ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
             )
