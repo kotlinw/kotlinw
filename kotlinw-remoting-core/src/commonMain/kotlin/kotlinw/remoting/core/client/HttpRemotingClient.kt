@@ -161,8 +161,8 @@ class HttpRemotingClient<M : RawMessage>(
     override suspend fun <T : Any, P : Any, R> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<R>,
-        serviceName: String,
-        methodName: String,
+        serviceId: String,
+        methodId: String,
         parameter: P,
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
@@ -171,7 +171,7 @@ class HttpRemotingClient<M : RawMessage>(
         return if (statusHolder.value is BidirectionalMessagingStatus.Connected) {
             withMessagingManager {
                 call(
-                    ServiceLocator(serviceName, methodName),
+                    ServiceLocator(serviceId, methodId),
                     parameter,
                     parameterSerializer,
                     resultDeserializer
@@ -183,7 +183,7 @@ class HttpRemotingClient<M : RawMessage>(
                 messageCodec.encodeMessage(requestMessage, parameterSerializer)
             val rawResponseMessage =
                 httpSupportImplementor.call(
-                    buildServiceUrl(serviceName, methodName),
+                    buildServiceUrl(serviceId, methodId),
                     rawRequestMessage,
                     messageCodec
                 )
@@ -193,7 +193,7 @@ class HttpRemotingClient<M : RawMessage>(
                     messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
                 } catch (e: Exception) {
                     throw RuntimeException(
-                        "Failed to decode response message of RPC method $serviceName.$methodName: $rawResponseMessage",
+                        "Failed to decode response message of RPC method $serviceId.$methodId: $rawResponseMessage",
                         e
                     )
                 }

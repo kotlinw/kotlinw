@@ -2,7 +2,7 @@ package xyz.kotlinw.remoting.api.internal
 
 interface RemoteCallHandlerImplementor: RemoteCallHandler {
 
-    val serviceId: String // TODO helyette serviceId
+    val serviceId: String
 
     val methodDescriptors: Map<String, RemotingMethodDescriptor>
 

@@ -10,8 +10,8 @@ interface RemotingClientCallSupport : RemotingClient {
     suspend fun <T : Any, P: Any, R> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<R>,
-        serviceName: String,
-        methodName: String,
+        serviceId: String,
+        methodId: String,
         parameter: P,
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>

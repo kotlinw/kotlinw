@@ -27,8 +27,8 @@ class StreamBasedSynchronousRemotingClient(
     override suspend fun <T : Any, P : Any, R> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<R>,
-        serviceName: String,
-        methodName: String,
+        serviceId: String,
+        methodId: String,
         parameter: P,
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
@@ -36,7 +36,7 @@ class StreamBasedSynchronousRemotingClient(
         val callId = Uuid.randomUuid().toString()
         val parameterMessage = RemotingMessage(
             parameter,
-            RemotingMessageMetadata(messageKind = RemotingMessageKind.CallRequest(callId, ServiceLocator(serviceName, methodName)))
+            RemotingMessageMetadata(messageKind = RemotingMessageKind.CallRequest(callId, ServiceLocator(serviceId, methodId)))
         )
         val rawParameterMessage = messageCodec.encodeMessage(parameterMessage, parameterSerializer)
 
