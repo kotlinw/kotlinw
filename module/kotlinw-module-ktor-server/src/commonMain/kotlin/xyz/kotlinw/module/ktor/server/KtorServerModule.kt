@@ -17,7 +17,7 @@ import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.configuration.core.getConfigurationPropertyValue
-import kotlinw.koin.core.api.ApplicationCoroutineService
+import xyz.kotlinw.module.core.ApplicationCoroutineService
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.util.coroutine.createNestedSupervisorScope
@@ -65,7 +65,7 @@ class KtorServerModule {
         applicationEngineFactory: ApplicationEngineFactory<*, *>,
         deploymentMode: DeploymentMode
     ): ApplicationEngine {
-        val ktorServerCoroutineScope = applicationCoroutineService.coroutineScope.createNestedSupervisorScope()
+        val ktorServerCoroutineScope = applicationCoroutineService.applicationCoroutineScope.createNestedSupervisorScope()
 
         val environment = applicationEngineEnvironment {
             this.parentCoroutineContext = ktorServerCoroutineScope.coroutineContext

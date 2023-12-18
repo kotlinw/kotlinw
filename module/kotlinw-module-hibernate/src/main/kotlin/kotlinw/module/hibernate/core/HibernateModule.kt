@@ -17,7 +17,7 @@ import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
-import xyz.kotlinw.koin.core.api.CoreModule
+import xyz.kotlinw.module.core.CoreModule
 
 fun interface BootstrapServiceRegistryCustomizer {
 

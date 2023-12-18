@@ -1,7 +1,7 @@
 package xyz.kotlinw.module.appbase.api
 
 import kotlinw.configuration.core.DeploymentMode
-import kotlinw.module.core.api.readDeploymentModeFromSystemProperty
+import xyz.kotlinw.module.core.readDeploymentModeFromSystemProperty
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
 

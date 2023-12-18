@@ -1,4 +1,4 @@
-package kotlinw.module.core.api
+package xyz.kotlinw.module.core
 
 import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.DeploymentMode.Development

@@ -1,6 +1,5 @@
-package kotlinw.koin.core.internal
+package xyz.kotlinw.module.core
 
-import kotlinw.koin.core.api.ApplicationCoroutineService
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -17,7 +16,7 @@ class ApplicationCoroutineServiceImpl(
 
     private val logger = PlatformLogging.getLogger()
 
-    override val coroutineScope =
+    override val applicationCoroutineScope =
         CoroutineScope(
             SupervisorJob(parentJob) +
                     CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -30,6 +29,6 @@ class ApplicationCoroutineServiceImpl(
     }
 
     override fun close() {
-        coroutineScope.cancel("Application shutdown is in progress.")
+        applicationCoroutineScope.cancel("Application shutdown is in progress.")
     }
 }
