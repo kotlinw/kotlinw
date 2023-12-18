@@ -6,6 +6,7 @@ import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManagerImpl
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgraderProvider
 import kotlinw.hibernate.core.schemaupgrade.SortableDatabaseUpgraderId
 import kotlinw.jdbc.util.executeSingleResultQuery
+import kotlinw.logging.api.LoggerFactory
 import org.hibernate.SessionFactory
 import java.time.Instant
 
@@ -20,6 +21,7 @@ private fun updateSchemaVersionInfo(schemaVersion: SortableDatabaseUpgraderId) {
 }
 
 fun SimpleDatabaseUpgradeManager(
+    loggerFactory: LoggerFactory,
     sessionFactory: SessionFactory,
     databaseUpgraderProviders: Collection<DatabaseUpgraderProvider>,
     checkSchemaVersionTableExistsQueryString: String = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE LOWER(table_name)=LOWER('DatabaseSchemaVersionInfo'))",
@@ -27,6 +29,7 @@ fun SimpleDatabaseUpgradeManager(
 ): DatabaseUpgradeManager {
 
     return DatabaseUpgradeManagerImpl(
+        loggerFactory,
         sessionFactory,
         databaseUpgraderProviders,
         ::updateSchemaVersionInfo,

@@ -2,6 +2,7 @@ package kotlinw.module.hibernate.schemaupgrade.simple
 
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgraderProvider
 import kotlinw.hibernate.core.schemaupgrade.simple.SimpleDatabaseUpgradeManager
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
 import org.hibernate.SessionFactory
@@ -14,11 +15,12 @@ class SimpleDatabaseUpgraderManagerServicesModule {
 
     @Component
     fun databaseUpgradeManager(
+        loggerFactory: LoggerFactory,
         sessionFactory: SessionFactory,
         databaseUpgraderProviders: List<DatabaseUpgraderProvider>,
         lifecycleCoordinator: ContainerLifecycleCoordinator
     ) =
-        SimpleDatabaseUpgradeManager(sessionFactory, databaseUpgraderProviders)
+        SimpleDatabaseUpgradeManager(loggerFactory, sessionFactory, databaseUpgraderProviders)
             .apply {
                 lifecycleCoordinator.registerListener({ upgradeSchema() }, {}, Priority.Highest.lowerBy(1000))
             }

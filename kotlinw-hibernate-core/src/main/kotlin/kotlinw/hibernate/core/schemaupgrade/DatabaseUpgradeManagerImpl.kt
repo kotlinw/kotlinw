@@ -5,12 +5,13 @@ import kotlinw.hibernate.core.api.runReadOnlyJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
 import org.hibernate.SessionFactory
 import java.sql.Connection
 
 class DatabaseUpgradeManagerImpl(
+    loggerFactory: LoggerFactory,
     private val sessionFactory: SessionFactory,
     private val databaseUpgraderProviders: Collection<DatabaseUpgraderProvider>,
     private val onStructureUpgraded: context(JpaSessionContext) (SortableDatabaseUpgraderId) -> Unit,
@@ -26,7 +27,7 @@ class DatabaseUpgradeManagerImpl(
         private const val emptySchemaVersion = "197001010000"
     }
 
-    private val logger = PlatformLogging.getLogger()
+    private val logger = loggerFactory.getLogger()
 
     override fun upgradeSchema() {
         val currentSchemaVersion: String = sessionFactory.runReadOnlyJpaTask {
