@@ -1,20 +1,8 @@
-
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    `kotlinw-multiplatform-library`
 }
 
 kotlin {
-    targetHierarchy.default()
-    jvm { }
-    js(IR) {
-        browser()
-    }
-    if (isNativeTargetEnabled()) {
-        mingwX64()
-        linuxX64()
-    }
-
     sourceSets {
         val commonMain by getting {
             dependencies {
