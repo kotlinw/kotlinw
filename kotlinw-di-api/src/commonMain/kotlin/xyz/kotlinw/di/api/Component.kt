@@ -6,6 +6,12 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 import kotlin.reflect.KClass
 
+/**
+ * Annotation used to mark a source code element as a KotlinW component.
+ *
+ * @param onConstruction The code to be executed during the construction of the component instance.
+ * @param onTerminate The code to be executed when the container instance containing the component instance is terminated.
+ */
 @Retention(BINARY)
 @Target(CLASS, FUNCTION, VALUE_PARAMETER)
 @MustBeDocumented
