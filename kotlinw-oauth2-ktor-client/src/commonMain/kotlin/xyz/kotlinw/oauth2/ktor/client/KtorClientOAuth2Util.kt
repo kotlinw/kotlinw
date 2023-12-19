@@ -24,7 +24,7 @@ fun Auth.bearer(
     loadInitialTokens: suspend () -> OAuth2BearerTokens? = { null },
     renewTokens: suspend (httpClient: HttpClient, httpResponse: HttpResponse, oldTokens: OAuth2BearerTokens?) -> OAuth2TokenResponse,
 ) {
-    val tokensRevisionHolder = AtomicInt()
+    val tokensRevisionHolder = AtomicInt(0)
     val refreshTokensLock = Mutex()
 
     bearer {
