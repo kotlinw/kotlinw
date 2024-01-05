@@ -16,6 +16,7 @@ import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
@@ -112,8 +113,7 @@ class KtorHttpRemotingClientImplementor(
                 ) {
                     block(
                         WebSocketBidirectionalMessagingConnection(
-                            messagingPeerId,
-                            messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds(), // TODO
+                            RemoteConnectionId(messagingPeerId,messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds()), // TODO
                             this,
                             messageCodecDescriptor
                         )

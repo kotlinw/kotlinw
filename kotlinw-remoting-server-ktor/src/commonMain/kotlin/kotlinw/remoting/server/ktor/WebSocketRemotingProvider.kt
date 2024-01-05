@@ -18,6 +18,7 @@ import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.DelegatingRemotingClient
 import kotlinw.remoting.core.common.NewConnectionData
+import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.RemovedConnectionData
 import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
@@ -25,8 +26,8 @@ import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingConnectionId
+import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 private val logger by lazy { PlatformLogging.getLogger() }
@@ -50,22 +51,22 @@ class WebSocketRemotingProvider(
         val webSocketRemotingConfiguration =
             remotingConfiguration as? WebSocketRemotingConfiguration ?: throw AssertionError()
 
-        val connections: ConcurrentMutableMap<MessagingConnectionId, BidirectionalMessagingManager> = ConcurrentHashMap()
+        val connections: ConcurrentMutableMap<MessagingConnectionId, BidirectionalMessagingManager> =
+            ConcurrentHashMap()
 
         fun addConnection(
-            peerId: MessagingPeerId,
-            sessionId: MessagingConnectionId,
+            remoteConnectionId: RemoteConnectionId,
             messagingManager: BidirectionalMessagingManager
         ) {
-            connections.compute(sessionId) { key, previousValue ->
-                check(previousValue == null) { "Session is already connected: $key" }
+            connections.compute(remoteConnectionId.connectionId) { key, previousValue ->
+                check(previousValue == null) { "Connection already exists: $key" }
                 messagingManager
             }
 
             if (onConnectionAdded != null || webSocketRemotingConfiguration.onConnectionAdded != null) {
                 val reverseRemotingClient = DelegatingRemotingClient(messagingManager)
                 val newConnectionData =
-                    NewConnectionData(peerId, sessionId, reverseRemotingClient, messagingManager)
+                    NewConnectionData(remoteConnectionId, reverseRemotingClient, messagingManager)
 
                 try {
                     onConnectionAdded?.invoke(newConnectionData)
@@ -86,7 +87,8 @@ class WebSocketRemotingProvider(
 
             if (messagingManager != null) {
                 if (onConnectionRemoved != null || webSocketRemotingConfiguration.onConnectionRemoved != null) {
-                    val removedConnectionData = RemovedConnectionData(messagingManager.remotePeerId, sessionId)
+                    val removedConnectionData =
+                        RemovedConnectionData(messagingManager.remoteConnectionId)
 
                     try {
                         onConnectionRemoved?.invoke(removedConnectionData)
@@ -137,7 +139,7 @@ class WebSocketRemotingProvider(
         messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
         delegators: Map<String, RemoteCallHandlerImplementor<*>>,
         identifyClient: (ApplicationCall) -> MessagingPeerId,
-        addConnection: suspend (MessagingPeerId, MessagingConnectionId, BidirectionalMessagingManager) -> Unit,
+        addConnection: suspend (RemoteConnectionId, BidirectionalMessagingManager) -> Unit,
         removeConnection: suspend (MessagingConnectionId) -> Unit
     ) {
 
@@ -148,9 +150,13 @@ class WebSocketRemotingProvider(
 
             try {
                 val connection =
-                    WebSocketBidirectionalMessagingConnection(messagingPeerId, messagingConnectionId, this, messageCodec)
+                    WebSocketBidirectionalMessagingConnection(
+                        RemoteConnectionId(messagingPeerId, messagingConnectionId),
+                        this,
+                        messageCodec
+                    )
                 val sessionMessagingManager = BidirectionalMessagingManagerImpl(connection, messageCodec, delegators)
-                addConnection(messagingPeerId, messagingConnectionId, sessionMessagingManager)
+                addConnection(RemoteConnectionId(messagingPeerId, messagingConnectionId), sessionMessagingManager)
                 sessionMessagingManager.processIncomingMessages()
             } catch (e: ClosedReceiveChannelException) {
                 val closeReason = closeReason.await()

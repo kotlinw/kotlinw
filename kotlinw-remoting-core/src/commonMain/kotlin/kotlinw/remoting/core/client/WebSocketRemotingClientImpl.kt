@@ -1,40 +1,50 @@
 package kotlinw.remoting.core.client
 
 import arrow.atomic.AtomicBoolean
-import arrow.core.continuations.AtomicRef
 import arrow.core.nonFatalOrThrow
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
-import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
-import kotlinw.remoting.core.RawMessage
-import kotlinw.remoting.core.RemotingMessage
-import kotlinw.remoting.core.ServiceLocator
-import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
-import kotlinw.remoting.core.common.*
-import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.collection.ConcurrentHashSet
-import kotlinw.util.stdlib.concurrent.value
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.KSerializer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
+import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.ServiceLocator
+import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.NotInitialized
+import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
+import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
+import kotlinw.remoting.core.common.BidirectionalMessagingManager
+import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
+import kotlinw.remoting.core.common.DelegatingRemotingClient
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
+import kotlinw.remoting.core.common.RemoteConnectionData
+import kotlinw.remoting.core.common.RemoteConnectionId
+import kotlinw.remoting.core.common.SynchronousCallSupport
+import kotlinw.util.stdlib.Url
+import kotlinw.util.stdlib.collection.ConcurrentHashSet
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
+import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 
-class HttpRemotingClient<M : RawMessage>(
+class WebSocketRemotingClientImpl<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
     private val httpSupportImplementor: SynchronousCallSupport,
     private val peerRegistry: MutableRemotePeerRegistry,
     private val remoteServerBaseUrl: Url,
-    private val incomingCallDelegators: Set<RemoteCallHandler<*>>
-) : RemotingClientCallSupport, RemotingClientFlowSupport {
+    private val incomingCallDelegators: Set<RemoteCallHandler<*>>,
+    loggerFactory: LoggerFactory,
+    private val reconnectAutomatically: Boolean = true
+) : RemotingClientCallSupport, RemotingClientFlowSupport, PersistentRemotingClient {
 
-    private val logger = PlatformLogging.getLogger()
+    private val logger = loggerFactory.getLogger()
 
     private sealed interface BidirectionalMessagingStatus {
 
@@ -50,40 +60,40 @@ class HttpRemotingClient<M : RawMessage>(
         data class Connected(val messagingManager: BidirectionalMessagingManager) : BidirectionalMessagingStatus
     }
 
-    private val statusHolder = AtomicRef<BidirectionalMessagingStatus>(BidirectionalMessagingStatus.NotInitialized)
+    private var statusHolder: BidirectionalMessagingStatus by atomic(NotInitialized)
 
     private val messagingLoopRunningFlag = AtomicBoolean(false)
-
-    private val isReconnectingAutomatically = true // TODO add ability to force its value independent of `incomingCallDelegators`
 
     private suspend fun <T> withMessagingManager(block: suspend BidirectionalMessagingManager.() -> T): T {
         val messagingManager: BidirectionalMessagingManager?
         while (true) {
-            when (val currentStatus = statusHolder.value) {
+            when (val currentStatus = statusHolder) {
                 is BidirectionalMessagingStatus.Connected -> {
                     messagingManager = currentStatus.messagingManager
                     break
                 }
 
                 is BidirectionalMessagingStatus.Connecting -> {
+                    logger.debug { "Suspending until WS connection is established..." }
                     suspendCancellableCoroutine {
                         currentStatus.coroutinesAwaitingConnection.add(it)
                     }
                 }
 
                 is BidirectionalMessagingStatus.NotConnected -> {
-                    statusHolder.value = BidirectionalMessagingStatus.Connecting()
+                    check(!reconnectAutomatically)
+                    logger.debug { "Resuming messaging loop (automatic reconnect is disabled)" }
                     currentStatus.messagingLoopContinuation.resume(Unit)
                 }
 
-                BidirectionalMessagingStatus.NotInitialized -> throw IllegalStateException("Not initialized yet.")
+                NotInitialized -> throw IllegalStateException("${WebSocketRemotingClientImpl<*>::runMessagingLoop.name}() is not running.")
             }
         }
 
         return messagingManager?.block() ?: throw IllegalStateException()
     }
 
-    suspend fun runMessagingLoop(): Nothing {
+    override suspend fun runMessagingLoop(): Nothing {
         if (messagingLoopRunningFlag.compareAndSet(false, true)) {
             check(httpSupportImplementor is BidirectionalCommunicationImplementor)
 
@@ -95,22 +105,22 @@ class HttpRemotingClient<M : RawMessage>(
                     )
                 }/remoting/websocket" // TODO fix string
             )
-            logger.debug { "Remote ws URL: " / wsUrl }
+            logger.debug { "Remote WS URL: " / wsUrl }
 
             while (true) {
-                if (!isReconnectingAutomatically) {
+                if (!reconnectAutomatically) {
+                    logger.debug { "Suspending messaging loop (automatic reconnect is disabled)" }
                     suspendCancellableCoroutine {
-                        statusHolder.value = BidirectionalMessagingStatus.NotConnected(it)
+                        statusHolder = BidirectionalMessagingStatus.NotConnected(it)
                     }
-                } else {
-                    statusHolder.value = BidirectionalMessagingStatus.Connecting()
                 }
+
+                statusHolder = BidirectionalMessagingStatus.Connecting()
 
                 var connectionIdForClosing: RemoteConnectionId? = null
                 try {
                     httpSupportImplementor.runInSession(wsUrl, messageCodec) {
-                        val connectionId = RemoteConnectionId(peerId, sessionId)
-                        connectionIdForClosing = connectionId
+                        connectionIdForClosing = remoteConnectionId
 
                         val messagingManager = BidirectionalMessagingManagerImpl(
                             this,
@@ -118,16 +128,19 @@ class HttpRemotingClient<M : RawMessage>(
                             (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
                         )
 
-                        val previousStatus = statusHolder.value
+                        val previousStatus = statusHolder
                         check(previousStatus is BidirectionalMessagingStatus.Connecting)
+                        statusHolder = BidirectionalMessagingStatus.Connected(messagingManager)
 
-                        statusHolder.value = BidirectionalMessagingStatus.Connected(messagingManager)
-
+                        logger.debug { "WS connection is established, resuming coroutines awaiting connection." }
                         previousStatus.coroutinesAwaitingConnection.forEach {
                             it.resume(Unit)
                         }
 
-                        peerRegistry.addConnection(connectionId, RemoteConnectionData(messagingManager))
+                        peerRegistry.addConnection(
+                            remoteConnectionId,
+                            RemoteConnectionData(remoteConnectionId, DelegatingRemotingClient(messagingManager))
+                        )
                         messagingManager.processIncomingMessages()
                     }
                 } catch (e: Throwable) {
@@ -140,7 +153,7 @@ class HttpRemotingClient<M : RawMessage>(
                     }
 
                     withContext(NonCancellable) {
-                        val previousStatus = statusHolder.value
+                        val previousStatus = statusHolder
                         if (previousStatus is BidirectionalMessagingStatus.Connected) {
                             try {
                                 previousStatus.messagingManager.close()
@@ -156,9 +169,6 @@ class HttpRemotingClient<M : RawMessage>(
         }
     }
 
-    private fun buildServiceUrl(serviceName: String, methodName: String): String =
-        "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO konfigurálható path-t
-
     override suspend fun <T : Any, P : Any, R> call(
         serviceKClass: KClass<T>,
         methodKFunction: KFunction<R>,
@@ -167,43 +177,15 @@ class HttpRemotingClient<M : RawMessage>(
         parameter: P,
         parameterSerializer: KSerializer<P>,
         resultDeserializer: KSerializer<R>
-    ): R {
-        // TODO nem szabad, hogy ez itt dőljön el, mert a RemotingConfiguration egyértelműen meghatározza, hogy milyen provider-rel kell végezni a kommunikációt
-        return if (statusHolder.value is BidirectionalMessagingStatus.Connected) {
-            withMessagingManager {
-                call(
-                    ServiceLocator(serviceId, methodId),
-                    parameter,
-                    parameterSerializer,
-                    resultDeserializer
-                )
-            }
-        } else {
-            val requestMessage = RemotingMessage(parameter, null) // TODO metadata
-            val rawRequestMessage =
-                messageCodec.encodeMessage(requestMessage, parameterSerializer)
-            val rawResponseMessage =
-                httpSupportImplementor.call(
-                    buildServiceUrl(serviceId, methodId),
-                    rawRequestMessage,
-                    messageCodec
-                )
-
-            val resultMessage =
-                try {
-                    messageCodec.decodeMessage(rawResponseMessage, resultDeserializer)
-                } catch (e: Exception) {
-                    throw RuntimeException(
-                        "Failed to decode response message of RPC method $serviceId.$methodId: $rawResponseMessage",
-                        e
-                    )
-                }
-
-            // TODO metadata
-
-            resultMessage.payload
+    ): R =
+        withMessagingManager {
+            call(
+                ServiceLocator(serviceId, methodId),
+                parameter,
+                parameterSerializer,
+                resultDeserializer
+            )
         }
-    }
 
     override suspend fun <T : Any, P : Any, F> requestIncomingColdFlow(
         serviceKClass: KClass<T>,

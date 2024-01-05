@@ -6,7 +6,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
 import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.clientProxy
@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinw.logging.platform.PlatformLogging
+import kotlinw.remoting.core.client.WebSocketRemotingClientImpl
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 import kotlinw.remoting.processor.test.ExampleServiceWithDownstreamFlows
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
@@ -49,12 +51,11 @@ class KtorSupportTest {
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(client)
         val remotingClient =
-            HttpRemotingClient(
+            WebRequestRemotingClientImpl(
                 messageCodec,
                 remotingHttpClientImplementor,
-                MutableRemotePeerRegistryImpl(),
                 Url(""),
-                emptySet()
+                PlatformLogging
             )
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
@@ -101,12 +102,13 @@ class KtorSupportTest {
 
         val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(httpClient)
         val remotingClient =
-            HttpRemotingClient(
+            WebSocketRemotingClientImpl(
                 messageCodec,
                 remotingHttpClientImplementor,
-                MutableRemotePeerRegistryImpl(),
+                MutableRemotePeerRegistryImpl(PlatformLogging),
                 Url(""),
-                emptySet()
+                emptySet(),
+                PlatformLogging
             )
         val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)
 

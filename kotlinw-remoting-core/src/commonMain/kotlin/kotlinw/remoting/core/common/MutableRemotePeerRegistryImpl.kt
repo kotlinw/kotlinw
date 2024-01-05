@@ -1,13 +1,16 @@
 package kotlinw.remoting.core.common
 
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 
-class MutableRemotePeerRegistryImpl : MutableRemotePeerRegistry {
+class MutableRemotePeerRegistryImpl(
+    loggerFactory: LoggerFactory
+) : MutableRemotePeerRegistry {
 
-    private val logger = PlatformLogging.getLogger()
+    private val logger = loggerFactory.getLogger()
 
     private val _connectedPeers: ConcurrentMutableMap<RemoteConnectionId, RemoteConnectionData> =
         ConcurrentHashMap()

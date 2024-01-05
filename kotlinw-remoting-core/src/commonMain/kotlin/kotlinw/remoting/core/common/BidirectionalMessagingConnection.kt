@@ -10,9 +10,7 @@ class MessagingChannelDisconnectedException(): RuntimeException()
 
 interface BidirectionalMessagingConnection : CoroutineScope {
 
-    val peerId: MessagingPeerId
-
-    val sessionId: MessagingConnectionId
+    val remoteConnectionId: RemoteConnectionId
 
     suspend fun incomingRawMessages(): Flow<RawMessage>
 

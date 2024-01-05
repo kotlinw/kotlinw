@@ -4,23 +4,26 @@ import app.cash.turbine.turbineScope
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
+import kotlin.coroutines.CoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.serializer
-import kotlin.coroutines.CoroutineContext
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingConnectionId
+import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 
 class BidirectionalMessagingManagerTest {
 
@@ -35,9 +38,8 @@ class BidirectionalMessagingManagerTest {
         private val peer2IncomingMessagesFlow = MutableSharedFlow<RawMessage>()
 
         val peer1 = object : BidirectionalMessagingConnection {
-            override val peerId: MessagingPeerId get() = "peer1"
 
-            override val sessionId: MessagingConnectionId = "$peerId-$messagingSessionId"
+            override val remoteConnectionId get() = RemoteConnectionId("peer1", messagingSessionId)
 
             override suspend fun incomingRawMessages(): Flow<RawMessage> = peer1IncomingMessagesFlow
 
@@ -51,9 +53,8 @@ class BidirectionalMessagingManagerTest {
         }
 
         val peer2 = object : BidirectionalMessagingConnection {
-            override val peerId: MessagingPeerId get() = "peer2"
 
-            override val sessionId: MessagingConnectionId = "$peerId-$messagingSessionId"
+            override val remoteConnectionId get() = RemoteConnectionId("peer2", messagingSessionId)
 
             override suspend fun incomingRawMessages(): Flow<RawMessage> = peer2IncomingMessagesFlow
 

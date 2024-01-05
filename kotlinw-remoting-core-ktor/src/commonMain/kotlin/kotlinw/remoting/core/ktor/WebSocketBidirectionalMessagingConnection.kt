@@ -4,6 +4,7 @@ import io.ktor.websocket.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
@@ -13,8 +14,7 @@ import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.MessagingConnectionId
 
 class WebSocketBidirectionalMessagingConnection(
-    override val peerId: MessagingPeerId,
-    override val sessionId: MessagingConnectionId,
+    override val remoteConnectionId: RemoteConnectionId,
     private val webSocketSession: DefaultWebSocketSession,
     private val messageCodecDescriptor: MessageCodecDescriptor
 ) : BidirectionalMessagingConnection, CoroutineScope by webSocketSession {
@@ -49,6 +49,6 @@ class WebSocketBidirectionalMessagingConnection(
     }
 
     override fun toString(): String {
-        return "WebSocketBidirectionalMessagingConnection(peerId=$peerId, sessionId=$sessionId, webSocketSession=$webSocketSession, messageCodecDescriptor=$messageCodecDescriptor)"
+        return "WebSocketBidirectionalMessagingConnection(remoteConnectionId=$remoteConnectionId, webSocketSession=$webSocketSession, messageCodecDescriptor=$messageCodecDescriptor)"
     }
 }

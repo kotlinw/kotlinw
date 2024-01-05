@@ -1,9 +1,12 @@
 package xyz.kotlinw.module.remoting.server
 
 import io.ktor.server.application.install
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
+import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
-import kotlinw.remoting.core.common.RemotePeerRegistry
+import kotlinw.remoting.core.common.RemoteConnectionData
 import kotlinw.remoting.server.ktor.RemotingConfiguration
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.remoting.server.ktor.WebRequestRemotingProvider
@@ -18,7 +21,7 @@ import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 class ServerRemotingModule {
 
     @Component
-    fun remotePeerRegistry(): RemotePeerRegistry = MutableRemotePeerRegistryImpl()
+    fun remotePeerRegistry(loggerFactory: LoggerFactory): MutableRemotePeerRegistry = MutableRemotePeerRegistryImpl(loggerFactory)
 
     @Component
     fun remoteCallHandlersBinder(
@@ -40,13 +43,14 @@ class ServerRemotingModule {
     fun webRequestRemotingProvider() = WebRequestRemotingProvider()
 
     @Component
-    fun webSocketRemotingProvider() = WebSocketRemotingProvider(
-        identifyClient = { 1 },
-        onConnectionAdded = {
-            println("ServerRemotingModule / connection added: " + it.connectionId) // TODO remoting
-        },
-        onConnectionRemoved = {
-            println("ServerRemotingModule / connection removed: " + it.connectionId) // TODO remoting
-        }
-    )
+    fun webSocketRemotingProvider(remotePeerRegistry: MutableRemotePeerRegistry) =
+        WebSocketRemotingProvider(
+            identifyClient = { 1 },
+            onConnectionAdded = {
+                remotePeerRegistry.addConnection(it.connectionId, RemoteConnectionData(it.connectionId, it.reverseRemotingClient))
+            },
+            onConnectionRemoved = {
+                remotePeerRegistry.removeConnection(it.connectionId)
+            }
+        )
 }

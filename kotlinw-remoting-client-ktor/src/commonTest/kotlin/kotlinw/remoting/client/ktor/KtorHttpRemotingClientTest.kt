@@ -6,19 +6,19 @@ import io.ktor.client.utils.buildHeaders
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
-import kotlinw.remoting.core.client.HttpRemotingClient
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageSerializer
+import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
+import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlinw.remoting.core.codec.JsonMessageCodec
-import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 
 class KtorHttpRemotingClientTest {
 
@@ -55,12 +55,11 @@ class KtorHttpRemotingClientTest {
             )
         }
 
-        val remotingClient = HttpRemotingClient(
+        val remotingClient = WebRequestRemotingClientImpl(
             JsonMessageCodec.Default,
             KtorHttpRemotingClientImplementor(mockEngine),
-            MutableRemotePeerRegistryImpl(),
             Url(""),
-            emptySet()
+            PlatformLogging
         )
 
         runTest {

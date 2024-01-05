@@ -8,7 +8,6 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinw.logging.platform.PlatformLogging
-import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageKind
@@ -32,15 +31,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 
 interface BidirectionalMessagingManager : CoroutineScope {
 
-    val remotePeerId: MessagingPeerId
-
-    val sessionId: MessagingConnectionId
+    val remoteConnectionId: RemoteConnectionId
 
     suspend fun <P : Any, F> requestColdFlowResult(
         serviceLocator: ServiceLocator,
@@ -65,7 +61,7 @@ interface BidirectionalMessagingManager : CoroutineScope {
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val bidirectionalConnection: BidirectionalMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>,
-    private val remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>,
+    private val remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>
 ) : BidirectionalMessagingManager, CoroutineScope by bidirectionalConnection {
 
     private val logger =
@@ -95,9 +91,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val supervisorScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
 
 
-    override val remotePeerId get() = bidirectionalConnection.peerId
-
-    override val sessionId get() = bidirectionalConnection.sessionId
+    override val remoteConnectionId: RemoteConnectionId get() = bidirectionalConnection.remoteConnectionId
 
     override suspend fun processIncomingMessages() {
         logger.debug { "Starting message processing: " / bidirectionalConnection }
@@ -159,7 +153,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
                 is RemotingMessageKind.ColdFlowCollectKind, is RemotingMessageKind.CallResponse -> {
                     val conversationData = initiatedConversations[callId]
-                        ?: throw IllegalStateException("The requested conversation does not exist: peerId=${bidirectionalConnection.peerId}, callMetadata=$metadata")
+                        ?: throw IllegalStateException("The requested conversation does not exist: peerId=${bidirectionalConnection.remoteConnectionId.remotePeerId}, callMetadata=$metadata")
 
                     val suspendedCoroutineData =
                         conversationData.suspendedCoroutineData.value ?: throw IllegalStateException()
