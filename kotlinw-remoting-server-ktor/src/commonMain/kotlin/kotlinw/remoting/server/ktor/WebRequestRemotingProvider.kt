@@ -18,6 +18,7 @@ import io.ktor.server.routing.contentType
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.DownstreamColdFlow
@@ -31,9 +32,11 @@ import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.serialization.KSerializer
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
-class WebRequestRemotingProvider : RemotingProvider {
+class WebRequestRemotingProvider(
+    loggerFactory: LoggerFactory
+) : RemotingProvider {
 
-    private val logger by lazy { PlatformLogging.getLogger() }
+    private val logger = loggerFactory.getLogger()
 
     override fun InstallationContext.install() {
         val messageCodec = requireNotNull(messageCodec) { "Message codec is undefined." }

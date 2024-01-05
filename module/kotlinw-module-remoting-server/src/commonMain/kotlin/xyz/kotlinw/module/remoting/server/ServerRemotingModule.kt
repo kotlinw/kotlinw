@@ -2,9 +2,7 @@ package xyz.kotlinw.module.remoting.server
 
 import io.ktor.server.application.install
 import kotlinw.logging.api.LoggerFactory
-import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 import kotlinw.remoting.core.common.RemoteConnectionData
@@ -23,7 +21,8 @@ import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 class ServerRemotingModule {
 
     @Component
-    fun remotePeerRegistry(loggerFactory: LoggerFactory): MutableRemotePeerRegistry = MutableRemotePeerRegistryImpl(loggerFactory)
+    fun remotePeerRegistry(loggerFactory: LoggerFactory): MutableRemotePeerRegistry =
+        MutableRemotePeerRegistryImpl(loggerFactory)
 
     @Component
     fun remoteCallHandlersBinder(
@@ -42,7 +41,8 @@ class ServerRemotingModule {
     }
 
     @Component
-    fun webRequestRemotingProvider() = WebRequestRemotingProvider()
+    fun webRequestRemotingProvider(loggerFactory: LoggerFactory) =
+        WebRequestRemotingProvider(loggerFactory)
 
     @Component
     fun webSocketRemotingProvider(
@@ -54,7 +54,10 @@ class ServerRemotingModule {
             loggerFactory,
             identifyClient = { clientAuthenticator.authenticateClient(it) },
             onConnectionAdded = {
-                remotePeerRegistry.addConnection(it.connectionId, RemoteConnectionData(it.connectionId, it.reverseRemotingClient))
+                remotePeerRegistry.addConnection(
+                    it.connectionId,
+                    RemoteConnectionData(it.connectionId, it.reverseRemotingClient)
+                )
             },
             onConnectionRemoved = {
                 remotePeerRegistry.removeConnection(it.connectionId)

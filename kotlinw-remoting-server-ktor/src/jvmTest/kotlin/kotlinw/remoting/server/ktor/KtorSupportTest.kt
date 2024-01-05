@@ -42,7 +42,7 @@ class KtorSupportTest {
             this.remotingConfigurations = listOf(
                 WebRequestRemotingConfiguration(
                     "test",
-                    WebRequestRemotingProvider(),
+                    WebRequestRemotingProvider(PlatformLogging),
                     listOf(ExampleService.remoteCallHandler(service)),
                     null
                 )
