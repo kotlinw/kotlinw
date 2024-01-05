@@ -2,11 +2,13 @@ package xyz.kotlinw.module.remoting.server
 
 import io.ktor.server.application.install
 import kotlinw.logging.api.LoggerFactory
+import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 import kotlinw.remoting.core.common.RemoteConnectionData
+import kotlinw.remoting.server.ktor.RemotingClientAuthenticator
 import kotlinw.remoting.server.ktor.RemotingConfiguration
 import kotlinw.remoting.server.ktor.RemotingServerPlugin
 import kotlinw.remoting.server.ktor.WebRequestRemotingProvider
@@ -43,9 +45,14 @@ class ServerRemotingModule {
     fun webRequestRemotingProvider() = WebRequestRemotingProvider()
 
     @Component
-    fun webSocketRemotingProvider(remotePeerRegistry: MutableRemotePeerRegistry) =
+    fun webSocketRemotingProvider(
+        remotePeerRegistry: MutableRemotePeerRegistry,
+        clientAuthenticator: RemotingClientAuthenticator,
+        loggerFactory: LoggerFactory
+    ) =
         WebSocketRemotingProvider(
-            identifyClient = { 1 },
+            loggerFactory,
+            identifyClient = { clientAuthenticator.authenticateClient(it) },
             onConnectionAdded = {
                 remotePeerRegistry.addConnection(it.connectionId, RemoteConnectionData(it.connectionId, it.reverseRemotingClient))
             },

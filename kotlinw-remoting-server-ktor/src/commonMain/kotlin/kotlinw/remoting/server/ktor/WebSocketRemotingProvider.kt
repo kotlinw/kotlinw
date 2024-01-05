@@ -10,6 +10,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
+import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.core.RawMessage
@@ -30,13 +31,14 @@ import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
-private val logger by lazy { PlatformLogging.getLogger() }
-
 class WebSocketRemotingProvider(
+    loggerFactory: LoggerFactory,
     private val identifyClient: (ApplicationCall) -> MessagingPeerId,
     private val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
     private val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null
 ) : RemotingProvider {
+
+    private val logger = loggerFactory.getLogger()
 
     override fun InstallationContext.install() {
         require(messageCodec is MessageCodecWithMetadataPrefetchSupport) {
@@ -147,22 +149,23 @@ class WebSocketRemotingProvider(
         webSocket("/websocket") {
             val messagingPeerId = identifyClient(call) // TODO hibaell.
             val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
+            val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
             try {
                 val connection =
                     WebSocketBidirectionalMessagingConnection(
-                        RemoteConnectionId(messagingPeerId, messagingConnectionId),
+                        remoteConnectionId,
                         this,
                         messageCodec
                     )
                 val sessionMessagingManager = BidirectionalMessagingManagerImpl(connection, messageCodec, delegators)
-                addConnection(RemoteConnectionId(messagingPeerId, messagingConnectionId), sessionMessagingManager)
+                addConnection(remoteConnectionId, sessionMessagingManager)
                 sessionMessagingManager.processIncomingMessages()
             } catch (e: ClosedReceiveChannelException) {
                 val closeReason = closeReason.await()
-                logger.info { "Connection closed, reason: " / closeReason }
+                logger.debug { "Connection closed, reason: " / closeReason }
             } catch (e: Throwable) {
-                logger.error(e.nonFatalOrThrow()) { "Disconnected." }
+                logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
             } finally {
                 removeConnection(messagingConnectionId)
             }

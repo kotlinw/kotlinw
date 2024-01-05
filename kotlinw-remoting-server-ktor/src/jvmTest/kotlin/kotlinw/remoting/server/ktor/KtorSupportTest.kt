@@ -89,7 +89,7 @@ class KtorSupportTest {
             this.remotingConfigurations = listOf(
                 WebSocketRemotingConfiguration(
                     "test",
-                    WebSocketRemotingProvider({ 1 }, null, null),
+                    WebSocketRemotingProvider(PlatformLogging, { 1 }, null, null),
                     listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
                     null
                 )
