@@ -1,6 +1,6 @@
 package xyz.kotlinw.remoting.api.internal
 
-interface RemoteCallHandlerImplementor: RemoteCallHandler {
+interface RemoteCallHandlerImplementor<T: Any>: RemoteCallHandler<T> {
 
     val serviceId: String
 

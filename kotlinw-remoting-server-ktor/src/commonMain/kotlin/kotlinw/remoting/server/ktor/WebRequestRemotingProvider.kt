@@ -38,7 +38,7 @@ class WebRequestRemotingProvider : RemotingProvider {
     override fun InstallationContext.install() {
         val messageCodec = requireNotNull(messageCodec) { "Message codec is undefined." }
 
-        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.serviceId }
+        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
         if (
             delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
         ) {
@@ -72,7 +72,7 @@ class WebRequestRemotingProvider : RemotingProvider {
 
     private fun Route.setupRouting(
         messageCodec: MessageCodec<out RawMessage>,
-        remoteCallHandlers: Map<String, RemoteCallHandlerImplementor>
+        remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>
     ) {
         val contentType = ContentType.parse(messageCodec.contentType)
 
@@ -103,7 +103,7 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     call: ApplicationCall,
     messageCodec: MessageCodec<M>,
     callDescriptor: SynchronousCall<*, *>,
-    delegator: RemoteCallHandlerImplementor
+    delegator: RemoteCallHandlerImplementor<*>
 ) {
     val isBinaryCodec = messageCodec.isBinary
 

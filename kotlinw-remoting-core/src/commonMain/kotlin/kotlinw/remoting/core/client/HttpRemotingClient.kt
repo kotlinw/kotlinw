@@ -31,7 +31,7 @@ class HttpRemotingClient<M : RawMessage>(
     private val httpSupportImplementor: SynchronousCallSupport,
     private val peerRegistry: MutableRemotePeerRegistry,
     private val remoteServerBaseUrl: Url,
-    private val incomingCallDelegators: Map<String, RemoteCallHandler>
+    private val incomingCallDelegators: Set<RemoteCallHandler<*>>
 ) : RemotingClientCallSupport, RemotingClientFlowSupport {
 
     private val logger = PlatformLogging.getLogger()
@@ -54,10 +54,10 @@ class HttpRemotingClient<M : RawMessage>(
 
     private val messagingLoopRunningFlag = AtomicBoolean(false)
 
-    private val isReconnectingAutomatically = incomingCallDelegators.isNotEmpty() // TODO add ability to force its value
+    private val isReconnectingAutomatically = incomingCallDelegators.isNotEmpty() // TODO add ability to force its value independent of `incomingCallDelegators`
 
     private suspend fun <T> withMessagingManager(block: suspend BidirectionalMessagingManager.() -> T): T {
-        var messagingManager: BidirectionalMessagingManager? = null
+        val messagingManager: BidirectionalMessagingManager?
         while (true) {
             when (val currentStatus = statusHolder.value) {
                 is BidirectionalMessagingStatus.Connected -> {
@@ -114,7 +114,7 @@ class HttpRemotingClient<M : RawMessage>(
                         val messagingManager = BidirectionalMessagingManagerImpl(
                             this,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>,
-                            incomingCallDelegators as Map<String, RemoteCallHandlerImplementor>
+                            (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
                         )
 
                         val previousStatus = statusHolder.value
@@ -156,7 +156,7 @@ class HttpRemotingClient<M : RawMessage>(
     }
 
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
-        "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO
+        "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO konfigurálható path-t
 
     override suspend fun <T : Any, P : Any, R> call(
         serviceKClass: KClass<T>,

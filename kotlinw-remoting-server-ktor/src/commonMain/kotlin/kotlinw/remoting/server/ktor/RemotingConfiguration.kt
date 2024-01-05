@@ -13,7 +13,7 @@ interface RemotingConfiguration {
 
     val messageCodec: MessageCodec<*>?
 
-    val remoteCallHandlers: Collection<RemoteCallHandler>
+    val remoteCallHandlers: Collection<RemoteCallHandler<*>>
 
     val authenticationProviderName: String?
 }
@@ -21,7 +21,7 @@ interface RemotingConfiguration {
 data class WebRequestRemotingConfiguration(
     override val id: String,
     override val remotingProvider: WebRequestRemotingProvider,
-    override val remoteCallHandlers: Collection<RemoteCallHandler>,
+    override val remoteCallHandlers: Collection<RemoteCallHandler<*>>,
     override val authenticationProviderName: String?,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration
@@ -29,7 +29,7 @@ data class WebRequestRemotingConfiguration(
 data class WebSocketRemotingConfiguration(
     override val id: String,
     override val remotingProvider: WebSocketRemotingProvider,
-    override val remoteCallHandlers: Collection<RemoteCallHandler>,
+    override val remoteCallHandlers: Collection<RemoteCallHandler<*>>,
     override val authenticationProviderName: String?,
     val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
     val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null,

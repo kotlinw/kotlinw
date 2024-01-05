@@ -1,11 +1,20 @@
 package xyz.kotlinw.di.impl
 
+import kotlin.concurrent.Volatile
 import kotlinw.util.stdlib.Priority
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.ReentrantLock
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 import xyz.kotlinw.di.api.ContainerLifecycleListener
 
 interface ContainerLifecycleCoordinator {
 
-    fun registerListener(onStartup: suspend () -> Unit, onShutdown: suspend () -> Unit, priority: Priority = Priority.Normal)
+    fun <T : Any> registerListener(
+        onStartup: suspend () -> T,
+        onShutdown: suspend (T) -> Unit,
+        priority: Priority = Priority.Normal
+    )
 }
 
 class ContainerLifecycleCoordinatorImpl(
@@ -14,27 +23,46 @@ class ContainerLifecycleCoordinatorImpl(
 
     private val additionalListeners = mutableListOf<ContainerLifecycleListener>()
 
-    override fun registerListener(onStartup: suspend () -> Unit, onShutdown: suspend () -> Unit, priority: Priority) {
-        additionalListeners.add(
-            object : ContainerLifecycleListener {
+    private var runStartupTasksInvoked = false
 
-                override val lifecycleListenerPriority get() = priority
+    private val listenersLock = reentrantLock()
 
-                override suspend fun onContainerStartup() {
-                    onStartup()
+    override fun <T : Any> registerListener(
+        onStartup: suspend () -> T,
+        onShutdown: suspend (T) -> Unit,
+        priority: Priority
+    ) {
+        listenersLock.withLock {
+            check(!runStartupTasksInvoked)
+            additionalListeners.add(
+                object : ContainerLifecycleListener {
+
+                    override val lifecycleListenerPriority get() = priority
+
+                    @Volatile
+                    private var startupResult: T? = null
+
+                    override suspend fun onContainerStartup() {
+                        startupResult = onStartup()
+                    }
+
+                    override suspend fun onContainerShutdown() {
+                        onShutdown(startupResult!!)
+                    }
                 }
-
-                override suspend fun onContainerShutdown() {
-                    onShutdown()
-                }
-            }
-        )
+            )
+        }
     }
 
     suspend fun runStartupTasks() {
-        // TODO ezután már ne lehessen újat hozzáadni az additionalListeners-hez
-        (staticListeners + additionalListeners).sortedBy { it.lifecycleListenerPriority }.forEach {
-            it.onContainerStartup() // TODO handle exceptions
+        listenersLock.withLock {
+            runStartupTasksInvoked = true
         }
+
+        (staticListeners + additionalListeners)
+            .sortedBy { it.lifecycleListenerPriority }
+            .forEach {
+                it.onContainerStartup() // TODO handle exceptions
+            }
     }
 }

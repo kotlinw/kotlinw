@@ -92,7 +92,7 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer1ToPeer2Call() = runTest {
-        val peer2RemoteCallHandler = mockk<RemoteCallHandlerImplementor>()
+        val peer2RemoteCallHandler = mockk<RemoteCallHandlerImplementor<*>>()
         every { peer2RemoteCallHandler.serviceId } answers { "peer2Service" }
         every { peer2RemoteCallHandler.methodDescriptors } answers {
             setOf(
@@ -130,7 +130,7 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer2ToPeer1Call() = runTest {
-        val peer1RemoteCallHandler = mockk<RemoteCallHandlerImplementor>()
+        val peer1RemoteCallHandler = mockk<RemoteCallHandlerImplementor<*>>()
         every { peer1RemoteCallHandler.serviceId } answers { "peer1Service" }
         every { peer1RemoteCallHandler.methodDescriptors } answers {
             setOf(
@@ -168,7 +168,7 @@ class BidirectionalMessagingManagerTest {
 
     @Test
     fun testPeer1CollectingFlowProducedByPeer2() = runTest {
-        val peer2RemoteCallHandler = mockk<RemoteCallHandlerImplementor>()
+        val peer2RemoteCallHandler = mockk<RemoteCallHandlerImplementor<*>>()
         every { peer2RemoteCallHandler.serviceId } answers { "peer2Service" }
         every { peer2RemoteCallHandler.methodDescriptors } answers {
             setOf(

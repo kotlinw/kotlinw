@@ -22,6 +22,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
@@ -43,6 +44,7 @@ import kotlinx.serialization.Serializable
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.time.Duration
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 
 class RemotingSymbolProcessor(
@@ -257,7 +259,7 @@ class RemotingSymbolProcessor(
             val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallHandlerClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
                 .addModifiers(KModifier.PRIVATE)
-                .addSuperinterface(RemoteCallHandlerImplementor::class)
+                .addSuperinterface(RemoteCallHandlerImplementor::class.asTypeName().parameterizedBy(definitionInterfaceName))
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
@@ -372,7 +374,7 @@ class RemotingSymbolProcessor(
             FunSpec.builder("remoteCallHandler")
                 .receiver(definitionInterfaceName.nestedClass("Companion"))
                 .addParameter("target", definitionInterfaceName)
-                .returns(RemoteCallHandlerImplementor::class)
+                .returns(RemoteCallHandler::class.asTypeName().parameterizedBy(definitionInterfaceName))
                 .addStatement("return %T(target)", definitionInterfaceName.remoteCallHandlerClassName)
                 .build()
         )

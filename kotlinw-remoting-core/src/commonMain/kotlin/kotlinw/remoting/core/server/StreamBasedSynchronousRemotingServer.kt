@@ -14,12 +14,12 @@ import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 
 class StreamBasedSynchronousRemotingServer(
     private val messageCodec: BinaryMessageCodecWithMetadataPrefetchSupport,
-    remoteCallHandlers: Iterable<RemoteCallHandler>,
+    remoteCallHandlers: Iterable<RemoteCallHandler<*>>,
     private val source: Source,
     private val sink: Sink
 ) {
     private val delegators =
-        (remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>)
+        (remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>)
             .associateBy { it.serviceId }
 
     suspend fun listen(): Nothing {

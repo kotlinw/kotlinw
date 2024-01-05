@@ -17,7 +17,7 @@ interface RemotingClientFactory {
 
     fun createRemotingClient(
         remoteServerBaseUrl: Url,
-        incomingCallDelegators: Map<String, RemoteCallHandler> = emptyMap(),
+        incomingCallDelegators: Set<RemoteCallHandler<*>> = emptySet(),
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         remotePeerRegistry: MutableRemotePeerRegistry = MutableRemotePeerRegistryImpl(),
         messageCodec: MessageCodec<*>? = null,
@@ -33,7 +33,7 @@ class RemotingClientFactoryImpl(
 
     override fun createRemotingClient(
         remoteServerBaseUrl: Url,
-        incomingCallDelegators: Map<String, RemoteCallHandler>,
+        incomingCallDelegators: Set<RemoteCallHandler<*>>,
         synchronousCallSupportImplementor: SynchronousCallSupport?,
         remotePeerRegistry: MutableRemotePeerRegistry,
         messageCodec: MessageCodec<*>?,

@@ -647,7 +647,12 @@ class DiSymbolProcessor(
                     .map { (componentId, propertyName) ->
                         PropertySpec.builder(
                             propertyName,
-                            resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName(),
+                            try {
+                                resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName()
+                            } catch (e: Exception) {
+                                kspLogger.error("wtf: $componentId")
+                                throw e
+                            },
                             LATEINIT
                         )
                             .mutable(true)

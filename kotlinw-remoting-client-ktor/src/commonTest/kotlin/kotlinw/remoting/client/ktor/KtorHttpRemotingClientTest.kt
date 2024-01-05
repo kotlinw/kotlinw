@@ -60,7 +60,7 @@ class KtorHttpRemotingClientTest {
             KtorHttpRemotingClientImplementor(mockEngine),
             MutableRemotePeerRegistryImpl(),
             Url(""),
-            emptyMap()
+            emptySet()
         )
 
         runTest {

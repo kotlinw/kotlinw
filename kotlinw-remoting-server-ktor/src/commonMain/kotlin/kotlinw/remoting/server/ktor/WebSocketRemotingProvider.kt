@@ -106,7 +106,7 @@ class WebSocketRemotingProvider(
         }
 
         val delegators =
-            (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor>).associateBy { it.serviceId }
+            (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
 
         ktorApplication.routing {
 
@@ -134,7 +134,7 @@ class WebSocketRemotingProvider(
 
     private fun Route.setupWebsocketRouting(
         messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-        delegators: Map<String, RemoteCallHandlerImplementor>,
+        delegators: Map<String, RemoteCallHandlerImplementor<*>>,
         identifyClient: (ApplicationCall) -> MessagingPeerId,
         addConnection: suspend (MessagingPeerId, MessagingConnectionId, BidirectionalMessagingManager) -> Unit,
         removeConnection: suspend (MessagingConnectionId) -> Unit

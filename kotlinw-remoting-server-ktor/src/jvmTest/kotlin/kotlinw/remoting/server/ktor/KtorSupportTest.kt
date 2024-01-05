@@ -54,7 +54,7 @@ class KtorSupportTest {
                 remotingHttpClientImplementor,
                 MutableRemotePeerRegistryImpl(),
                 Url(""),
-                emptyMap()
+                emptySet()
             )
 
         val clientProxy = ExampleService.clientProxy(remotingClient)
@@ -106,7 +106,7 @@ class KtorSupportTest {
                 remotingHttpClientImplementor,
                 MutableRemotePeerRegistryImpl(),
                 Url(""),
-                emptyMap()
+                emptySet()
             )
         val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)
 
