@@ -29,6 +29,6 @@ class ApplicationCoroutineServiceImpl(
     }
 
     override fun close() {
-        applicationCoroutineScope.cancel("Application shutdown is in progress.")
+        applicationCoroutineScope.cancel()
     }
 }
