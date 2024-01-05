@@ -1,5 +1,6 @@
 package xyz.kotlinw.di.api
 
+import arrow.core.nonFatalOrThrow
 import kotlinx.coroutines.delay
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 
@@ -21,11 +22,12 @@ suspend fun <T : ContainerScope> runApplication(
             try {
                 // TODO részletes hibakezelést lépésenként
                 start()
+
                 (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runStartupTasks()
 
                 block()
             } catch (e: Exception) {
-                throw RuntimeException(e) // TODO log
+                throw RuntimeException(e.nonFatalOrThrow()) // TODO log
             } finally {
                 close()
             }

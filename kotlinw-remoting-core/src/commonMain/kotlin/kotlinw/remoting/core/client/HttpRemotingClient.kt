@@ -54,7 +54,7 @@ class HttpRemotingClient<M : RawMessage>(
 
     private val messagingLoopRunningFlag = AtomicBoolean(false)
 
-    private val isReconnectingAutomatically = incomingCallDelegators.isNotEmpty() // TODO add ability to force its value independent of `incomingCallDelegators`
+    private val isReconnectingAutomatically = true // TODO add ability to force its value independent of `incomingCallDelegators`
 
     private suspend fun <T> withMessagingManager(block: suspend BidirectionalMessagingManager.() -> T): T {
         val messagingManager: BidirectionalMessagingManager?
@@ -95,6 +95,7 @@ class HttpRemotingClient<M : RawMessage>(
                     )
                 }/remoting/websocket" // TODO fix string
             )
+            logger.debug { "Remote ws URL: " / wsUrl }
 
             while (true) {
                 if (!isReconnectingAutomatically) {

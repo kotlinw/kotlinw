@@ -46,6 +46,7 @@ internal inline fun <reified T> String.decode(): T? =
     } else {
         try {
             when (T::class) {
+                String::class -> this
                 Boolean::class -> toBooleanStrict()
                 Byte::class -> toByte()
                 Short::class -> toShort()

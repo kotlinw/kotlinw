@@ -862,7 +862,7 @@ class DiSymbolProcessor(
                 .also {
                     if (it == null) {
                         kspLogger.error(
-                            "Lifecycle method '$methodName' not found in component implementation `${componentTypeDeclaration.toClassName()}`.",
+                            "Lifecycle method '$methodName' specified by ${inlineComponentDeclaration.qualifiedName?.asString()} not found in component implementation `${componentTypeDeclaration.toClassName()}`.",
                             inlineComponentDeclaration
                         )
                     }

@@ -43,7 +43,7 @@ class WebSocketRemotingProvider(
         }
 
         if (ktorApplication.pluginOrNull(WebSockets) == null) {
-            logger.warning { "Installing Ktor server plugin ${WebSockets.key.name} with default settings." }
+            logger.warning { "Installing ktor-server plugin '${WebSockets.key.name}' with default settings." }
             ktorApplication.install(WebSockets)
         }
 
@@ -107,6 +107,7 @@ class WebSocketRemotingProvider(
 
         val delegators =
             (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
+        logger.info { "Remote call handlers: " / delegators.mapValues { it.value.serviceId } }
 
         ktorApplication.routing {
 

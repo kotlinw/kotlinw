@@ -2,10 +2,9 @@ package xyz.kotlinw.di.impl
 
 import kotlin.concurrent.Volatile
 import kotlinw.util.stdlib.Priority
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.locks.ReentrantLock
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
+import kotlinx.coroutines.CoroutineScope
 import xyz.kotlinw.di.api.ContainerLifecycleListener
 
 interface ContainerLifecycleCoordinator {
