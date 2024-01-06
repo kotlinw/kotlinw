@@ -38,6 +38,8 @@ interface BidirectionalMessagingManager : CoroutineScope {
 
     val remoteConnectionId: RemoteConnectionId
 
+    val principal: Any?
+
     suspend fun <P : Any, F> requestColdFlowResult(
         serviceLocator: ServiceLocator,
         parameter: P,
@@ -61,7 +63,8 @@ interface BidirectionalMessagingManager : CoroutineScope {
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val bidirectionalConnection: BidirectionalMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>,
-    private val remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>
+    private val remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>,
+    override val principal: Any?
 ) : BidirectionalMessagingManager, CoroutineScope by bidirectionalConnection {
 
     private val logger =
@@ -89,7 +92,6 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     private val activeColdFlows: ConcurrentMutableMap<String, ActiveColdFlowData> = ConcurrentHashMap()
 
     private val supervisorScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
-
 
     override val remoteConnectionId: RemoteConnectionId get() = bidirectionalConnection.remoteConnectionId
 

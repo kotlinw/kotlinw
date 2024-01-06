@@ -1,29 +1,29 @@
 package kotlinw.remoting.server.ktor
 
-import io.ktor.server.testing.*
+import io.ktor.server.testing.testApplication
 import io.ktor.server.websocket.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
-import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
-import kotlinw.remoting.core.codec.JsonMessageCodec
-import kotlinw.remoting.processor.test.ExampleService
-import kotlinw.remoting.processor.test.clientProxy
-import kotlinw.remoting.processor.test.remoteCallHandler
-import kotlinw.util.stdlib.Url
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlinw.logging.platform.PlatformLogging
+import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
+import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl
+import kotlinw.remoting.core.codec.JsonMessageCodec
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
+import kotlinw.remoting.processor.test.ExampleService
 import kotlinw.remoting.processor.test.ExampleServiceWithDownstreamFlows
+import kotlinw.remoting.processor.test.clientProxy
+import kotlinw.remoting.processor.test.remoteCallHandler
+import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
@@ -44,7 +44,9 @@ class KtorSupportTest {
                     "test",
                     WebRequestRemotingProvider(PlatformLogging),
                     listOf(ExampleService.remoteCallHandler(service)),
-                    null
+                    null,
+                    { 1 }, // TODO
+                    { null } // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
                 )
             )
         }
@@ -89,9 +91,11 @@ class KtorSupportTest {
             this.remotingConfigurations = listOf(
                 WebSocketRemotingConfiguration(
                     "test",
-                    WebSocketRemotingProvider(PlatformLogging, { 1 }, null, null),
+                    WebSocketRemotingProvider(PlatformLogging, null, null),
                     listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
-                    null
+                    null,
+                    { 1 }, // TODO
+                    { null }// TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
                 )
             )
         }

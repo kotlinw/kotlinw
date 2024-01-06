@@ -1,9 +1,9 @@
 package kotlinw.remoting.server.ktor
 
 import arrow.core.nonFatalOrThrow
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.application.pluginOrNull
+import io.ktor.server.auth.Principal
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
@@ -12,7 +12,6 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
@@ -28,12 +27,10 @@ import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import xyz.kotlinw.remoting.api.MessagingConnectionId
-import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 class WebSocketRemotingProvider(
     loggerFactory: LoggerFactory,
-    private val identifyClient: (ApplicationCall) -> MessagingPeerId,
     private val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
     private val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null
 ) : RemotingProvider {
@@ -58,6 +55,7 @@ class WebSocketRemotingProvider(
 
         fun addConnection(
             remoteConnectionId: RemoteConnectionId,
+            principal: Principal?,
             messagingManager: BidirectionalMessagingManager
         ) {
             connections.compute(remoteConnectionId.connectionId) { key, previousValue ->
@@ -68,7 +66,7 @@ class WebSocketRemotingProvider(
             if (onConnectionAdded != null || webSocketRemotingConfiguration.onConnectionAdded != null) {
                 val reverseRemotingClient = DelegatingRemotingClient(messagingManager)
                 val newConnectionData =
-                    NewConnectionData(remoteConnectionId, reverseRemotingClient, messagingManager)
+                    NewConnectionData(remoteConnectionId, principal, reverseRemotingClient, messagingManager)
 
                 try {
                     onConnectionAdded?.invoke(newConnectionData)
@@ -90,7 +88,7 @@ class WebSocketRemotingProvider(
             if (messagingManager != null) {
                 if (onConnectionRemoved != null || webSocketRemotingConfiguration.onConnectionRemoved != null) {
                     val removedConnectionData =
-                        RemovedConnectionData(messagingManager.remoteConnectionId)
+                        RemovedConnectionData(messagingManager.remoteConnectionId, messagingManager.principal)
 
                     try {
                         onConnectionRemoved?.invoke(removedConnectionData)
@@ -116,13 +114,43 @@ class WebSocketRemotingProvider(
         ktorApplication.routing {
 
             fun Route.configureRouting() {
-                setupWebsocketRouting(
-                    messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>, // TODO check?
-                    delegators,
-                    identifyClient,
-                    ::addConnection,
-                    ::removeConnection
-                )
+                // TODO fix path
+                webSocket("/websocket") {
+                    val principal = remotingConfiguration.extractPrincipal(call)
+                    val messagingPeerId = remotingConfiguration.identifyClient(call) // TODO hibaell.
+                    val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
+                    val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
+
+                    logger.debug {
+                        "Connected WS client: " /
+                                mapOf("principal" to principal, "remoteConnectionId" to remoteConnectionId)
+                    }
+
+                    try {
+                        val connection =
+                            WebSocketBidirectionalMessagingConnection(
+                                remoteConnectionId,
+                                this,
+                                messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage> // TODO check?
+                            )
+                        val sessionMessagingManager =
+                            BidirectionalMessagingManagerImpl(
+                                connection,
+                                messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
+                                delegators,
+                                principal
+                            )
+                        addConnection(remoteConnectionId, principal, sessionMessagingManager)
+                        sessionMessagingManager.processIncomingMessages()
+                    } catch (e: ClosedReceiveChannelException) {
+                        val closeReason = closeReason.await()
+                        logger.debug { "Connection closed, reason: " / closeReason }
+                    } catch (e: Throwable) {
+                        logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
+                    } finally {
+                        removeConnection(messagingConnectionId)
+                    }
+                }
             }
 
             route("/remoting") {
@@ -133,41 +161,6 @@ class WebSocketRemotingProvider(
                 } else {
                     configureRouting()
                 }
-            }
-        }
-    }
-
-    private fun Route.setupWebsocketRouting(
-        messageCodec: MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-        delegators: Map<String, RemoteCallHandlerImplementor<*>>,
-        identifyClient: (ApplicationCall) -> MessagingPeerId,
-        addConnection: suspend (RemoteConnectionId, BidirectionalMessagingManager) -> Unit,
-        removeConnection: suspend (MessagingConnectionId) -> Unit
-    ) {
-
-        // TODO fix string
-        webSocket("/websocket") {
-            val messagingPeerId = identifyClient(call) // TODO hibaell.
-            val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
-            val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
-
-            try {
-                val connection =
-                    WebSocketBidirectionalMessagingConnection(
-                        remoteConnectionId,
-                        this,
-                        messageCodec
-                    )
-                val sessionMessagingManager = BidirectionalMessagingManagerImpl(connection, messageCodec, delegators)
-                addConnection(remoteConnectionId, sessionMessagingManager)
-                sessionMessagingManager.processIncomingMessages()
-            } catch (e: ClosedReceiveChannelException) {
-                val closeReason = closeReason.await()
-                logger.debug { "Connection closed, reason: " / closeReason }
-            } catch (e: Throwable) {
-                logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
-            } finally {
-                removeConnection(messagingConnectionId)
             }
         }
     }

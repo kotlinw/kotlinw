@@ -41,11 +41,12 @@ inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTyped
         ?: throw ConfigurationException("Required configuration property not found: $key")
 
 @PublishedApi
-internal inline fun <reified T> String.decode(): T? =
+internal inline fun <reified T: Any> String.decode(): T? =
     if (isBlank()) {
         null
     } else {
         try {
+            @Suppress("IMPLICIT_CAST_TO_ANY")
             when (T::class) {
                 String::class -> this
                 Boolean::class -> toBooleanStrict()

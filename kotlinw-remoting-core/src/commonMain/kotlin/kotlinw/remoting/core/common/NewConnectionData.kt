@@ -5,6 +5,7 @@ import xyz.kotlinw.remoting.api.RemotingClient
 
 data class NewConnectionData(
     override val connectionId: RemoteConnectionId,
+    override val principal: Any?,
     val reverseRemotingClient: RemotingClient,
     val coroutineScope: CoroutineScope
 ) : BasicConnectionData

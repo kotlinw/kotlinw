@@ -131,7 +131,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                         val messagingManager = BidirectionalMessagingManagerImpl(
                             this,
                             messageCodec as MessageCodecWithMetadataPrefetchSupport<M>,
-                            (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
+                            (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId },
+                            null
                         )
 
                         val previousStatus = status
