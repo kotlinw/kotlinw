@@ -13,5 +13,6 @@ data class ComponentId(val moduleId: ModuleId, val localComponentId: LocalCompon
     override fun toString() = "$moduleId/$localComponentId"
 }
 
+// TODO ez implementation detail kellene legyen
 fun toComponentId(moduleClass: KClass<*>, inlineComponentFactoryFunction: KFunction<*>): ComponentId =
     ComponentId(moduleClass.debugName, inlineComponentFactoryFunction.name)

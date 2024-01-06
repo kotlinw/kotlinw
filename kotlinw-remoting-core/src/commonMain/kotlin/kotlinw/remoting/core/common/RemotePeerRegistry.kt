@@ -1,6 +1,5 @@
 package kotlinw.remoting.core.common
 
-import kotlinw.remoting.core.client.PersistentRemotingClient
 import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.RemotingClient

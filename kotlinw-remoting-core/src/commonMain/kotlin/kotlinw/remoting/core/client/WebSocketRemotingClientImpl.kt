@@ -3,6 +3,7 @@ package kotlinw.remoting.core.client
 import arrow.atomic.AtomicBoolean
 import arrow.core.nonFatalOrThrow
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -10,6 +11,9 @@ import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.ServiceLocator
+import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.Connected
+import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.Connecting
+import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.NotConnected
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.NotInitialized
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
@@ -24,11 +28,13 @@ import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.collection.ConcurrentHashSet
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
+import xyz.kotlinw.remoting.api.PersistentRemotingClient
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
@@ -60,27 +66,27 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         data class Connected(val messagingManager: BidirectionalMessagingManager) : BidirectionalMessagingStatus
     }
 
-    private var statusHolder: BidirectionalMessagingStatus by atomic(NotInitialized)
+    private var status: BidirectionalMessagingStatus by atomic(NotInitialized)
 
     private val messagingLoopRunningFlag = AtomicBoolean(false)
 
     private suspend fun <T> withMessagingManager(block: suspend BidirectionalMessagingManager.() -> T): T {
         val messagingManager: BidirectionalMessagingManager?
         while (true) {
-            when (val currentStatus = statusHolder) {
-                is BidirectionalMessagingStatus.Connected -> {
+            when (val currentStatus = status) {
+                is Connected -> {
                     messagingManager = currentStatus.messagingManager
                     break
                 }
 
-                is BidirectionalMessagingStatus.Connecting -> {
+                is Connecting -> {
                     logger.debug { "Suspending until WS connection is established..." }
                     suspendCancellableCoroutine {
                         currentStatus.coroutinesAwaitingConnection.add(it)
                     }
                 }
 
-                is BidirectionalMessagingStatus.NotConnected -> {
+                is NotConnected -> {
                     check(!reconnectAutomatically)
                     logger.debug { "Resuming messaging loop (automatic reconnect is disabled)" }
                     currentStatus.messagingLoopContinuation.resume(Unit)
@@ -111,11 +117,11 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                 if (!reconnectAutomatically) {
                     logger.debug { "Suspending messaging loop (automatic reconnect is disabled)" }
                     suspendCancellableCoroutine {
-                        statusHolder = BidirectionalMessagingStatus.NotConnected(it)
+                        status = NotConnected(it)
                     }
                 }
 
-                statusHolder = BidirectionalMessagingStatus.Connecting()
+                status = Connecting()
 
                 var connectionIdForClosing: RemoteConnectionId? = null
                 try {
@@ -128,9 +134,9 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
                         )
 
-                        val previousStatus = statusHolder
-                        check(previousStatus is BidirectionalMessagingStatus.Connecting)
-                        statusHolder = BidirectionalMessagingStatus.Connected(messagingManager)
+                        val previousStatus = status
+                        check(previousStatus is Connecting)
+                        status = Connected(messagingManager)
 
                         logger.debug { "WS connection is established, resuming coroutines awaiting connection." }
                         previousStatus.coroutinesAwaitingConnection.forEach {
@@ -153,8 +159,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                     }
 
                     withContext(NonCancellable) {
-                        val previousStatus = statusHolder
-                        if (previousStatus is BidirectionalMessagingStatus.Connected) {
+                        val previousStatus = status
+                        if (previousStatus is Connected) {
                             try {
                                 previousStatus.messagingManager.close()
                             } catch (e: Throwable) {
