@@ -3,6 +3,7 @@ package kotlinw.configuration.core
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.util.stdlib.HasPriority
+import kotlinw.util.stdlib.Url
 
 typealias EncodedConfigurationPropertyValue = String
 
@@ -55,10 +56,11 @@ internal inline fun <reified T> String.decode(): T? =
                 Float::class -> toFloat()
                 Double::class -> toDouble()
                 Char::class -> if (length == 1) first() else throw IllegalArgumentException("Single character expected but got: '$this'")
+                Url::class -> Url(this)
                 else -> throw IllegalArgumentException("Unsupported type: ${T::class}")
             } as T
         } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to decode value '$this' as target type ${T::class}.")
+            throw IllegalArgumentException("Failed to decode value '$this' as target type ${T::class}.", e)
         }
     }
 

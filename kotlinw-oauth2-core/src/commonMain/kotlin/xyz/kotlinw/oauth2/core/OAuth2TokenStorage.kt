@@ -7,7 +7,7 @@ import kotlinx.atomicfu.update
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import xyz.kotlinw.oauth2.core.MutableOAuth2TokenStorage.RemovalHandle
+import xyz.kotlinw.oauth2.core.MutableOAuth2TokenStorage.ListenerRemovalHandle
 
 interface OAuth2TokenStorage {
 
@@ -20,12 +20,12 @@ interface MutableOAuth2TokenStorage : OAuth2TokenStorage {
 
     fun updateAndGetTokens(block: (OAuth2BearerTokens?) -> OAuth2BearerTokens?): OAuth2BearerTokens?
 
-    fun interface RemovalHandle {
+    fun interface ListenerRemovalHandle {
 
         fun remove()
     }
 
-    fun addTokenChangeListener(block: OAuth2TokenStorageChangeListener): RemovalHandle
+    fun addTokenChangeListener(block: OAuth2TokenStorageChangeListener): ListenerRemovalHandle
 }
 
 class MutableOAuth2TokenStorageImpl : MutableOAuth2TokenStorage {
@@ -45,11 +45,11 @@ class MutableOAuth2TokenStorageImpl : MutableOAuth2TokenStorage {
             }
         }
 
-    override fun addTokenChangeListener(block: OAuth2TokenStorageChangeListener): RemovalHandle {
+    override fun addTokenChangeListener(block: OAuth2TokenStorageChangeListener): ListenerRemovalHandle {
         changeListeners.update {
             it.add(block)
         }
-        return RemovalHandle {
+        return ListenerRemovalHandle {
             changeListeners.update {
                 it.remove(block)
             }

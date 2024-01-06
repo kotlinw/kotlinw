@@ -24,11 +24,6 @@ class Oauth2UtilsIntegrationTest {
 
     private fun createHttpClient(): HttpClient {
         val client = HttpClient {
-            install(ContentNegotiation) {
-                json(Json(DefaultJson) {
-                    ignoreUnknownKeys = true
-                })
-            }
             install(Logging) {
                 level = INFO
             }

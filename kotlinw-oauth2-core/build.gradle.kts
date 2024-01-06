@@ -15,9 +15,9 @@ kotlin {
                 api(libs.kotlinx.datetime)
                 api(libs.ktor.client.core)
 
-                implementation(libs.ktor.client.serialization)
-                implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.ktor.client.content.negotiation)
+                api(libs.ktor.client.serialization)
+                api(libs.ktor.serialization.kotlinx.json)
+                api(libs.ktor.client.content.negotiation)
             }
         }
         commonTest {
