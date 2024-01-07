@@ -96,6 +96,7 @@ include(":kotlinw-util-core-mp")
 include(":kotlinw-util-coroutine-mp")
 include(":kotlinw-util-datetime-mp")
 include(":kotlinw-util-ktor-client")
+include(":kotlinw-util-serialization-json")
 include(":kotlinw-util-stdlib-mp")
 include(":kotlinw-uuid")
 
