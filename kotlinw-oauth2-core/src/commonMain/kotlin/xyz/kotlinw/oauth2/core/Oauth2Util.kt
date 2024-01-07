@@ -21,18 +21,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import xyz.kotlinw.jwt.model.JwtToken.Companion.parseJwtToken
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 private val logger = PlatformLogging.getLogger()
 
 private fun HttpClient.configureHttpClient() = config {
     pluginOrNull(ContentNegotiation) ?: install(ContentNegotiation) {
-        json(
-            Json {
-                ignoreUnknownKeys = true
-            }
-        )
+        json(standardLongTermJson())
     }
 }
 

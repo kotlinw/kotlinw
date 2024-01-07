@@ -17,6 +17,11 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
+        commonTest {
+            dependencies {
+                implementation(projects.kotlinw.kotlinwUtilSerializationJson)
+            }
+        }
         jvmMain {
             dependencies {
                 implementation(files("$buildDir/resources/"))

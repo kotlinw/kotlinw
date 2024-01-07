@@ -22,6 +22,7 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
+                api(projects.kotlinw.kotlinwUtilSerializationJson)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(libs.kotlinx.datetime)

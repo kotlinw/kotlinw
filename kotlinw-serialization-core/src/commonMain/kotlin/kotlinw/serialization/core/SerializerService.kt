@@ -6,8 +6,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.serializer
+import xyz.kotlinw.serialization.json.DefaultLongTermJson
 
 fun interface SerializersModuleContributor {
+
     fun configure(module: SerializersModuleBuilder)
 }
 
@@ -62,17 +64,4 @@ inline fun <reified T : Any> SerializerService.deserialize(serializedValue: Stri
 
 interface HasSerializerService {
     val serializerService: SerializerService
-}
-
-val defaultSerializationJson = Json {
-    encodeDefaults = true
-    ignoreUnknownKeys = true
-    isLenient = false
-    allowStructuredMapKeys = false
-    explicitNulls = false
-    coerceInputValues = false
-    useArrayPolymorphism = false
-    classDiscriminator = "kType"
-    allowSpecialFloatingPointValues = true
-    useAlternativeNames = true
 }

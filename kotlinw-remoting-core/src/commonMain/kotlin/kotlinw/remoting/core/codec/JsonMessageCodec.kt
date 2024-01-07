@@ -5,16 +5,13 @@ import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.RemotingMessageMetadata
 import kotlinw.remoting.core.codec.MessageDecoderMetadataPrefetchSupport.ExtractedMetadata
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 class JsonMessageCodec(
-    private val json: Json = Json {
-        encodeDefaults = false
-        explicitNulls = false
-    }
+    private val json: Json = standardLongTermJson()
 ) : MessageCodecWithMetadataPrefetchSupport<RawMessage.Text> {
 
     companion object {

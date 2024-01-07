@@ -3,16 +3,16 @@ package xyz.kotlinw.pwa.model
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import xyz.kotlinw.pwa.model.WebManifest.Display.Standalone
 import xyz.kotlinw.pwa.model.WebManifest.ImageResource
 import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSize
 import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSizes
 import xyz.kotlinw.pwa.model.WebManifest.ShortcutItem
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 class WebManifestTest {
 
-    private val json = Json(Json) {
+    private val json = standardLongTermJson {
         prettyPrint = true
     }
 

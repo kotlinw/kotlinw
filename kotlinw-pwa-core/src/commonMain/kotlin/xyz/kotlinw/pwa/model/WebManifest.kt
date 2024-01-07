@@ -7,10 +7,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
 import xyz.kotlinw.pwa.model.WebManifest.Display.Browser
 import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSize.Companion.decodeFromString
 import xyz.kotlinw.pwa.model.WebManifest.ImageResourceSize.Companion.encodeToString
@@ -143,8 +141,6 @@ data class WebManifest(
     @SerialName("related_applications")
     val relatedApplications: List<ExternalApplicationResource>? = null
 ) {
-
-    fun serializeToString() = json.encodeToString(this)
 
     @Serializable
     enum class Orientation {
@@ -469,7 +465,5 @@ data class WebManifest(
             "APPLICATION/X-WWW-FORM-URLENCODED",
             "MULTIPART/FORM-DATA"
         )
-
-        private val json by lazy { Json { prettyPrint = true } }
     }
 }

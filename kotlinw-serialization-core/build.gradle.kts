@@ -23,6 +23,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwUtilCoreMp)
                 api(libs.kodein.di.core)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(projects.kotlinw.kotlinwUtilSerializationJson)
             }
         }
         val commonTest by getting {

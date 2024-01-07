@@ -7,8 +7,9 @@ kotlin {
         commonMain {
             dependencies {
                 api(projects.kotlinw.kotlinwJwtCore)
-                api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                api(projects.kotlinw.kotlinwUtilSerializationJson)
+                api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwLoggingPlatform)
 
                 api(libs.kotlinx.serialization.json)
