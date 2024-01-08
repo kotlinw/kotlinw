@@ -31,7 +31,7 @@ interface RemotingClientFactory {
 
     fun createWebSocketRemotingClient(
         remoteServerBaseUrl: Url,
-        coroutineScope: CoroutineScope,
+        parentCoroutineContext: CoroutineContext,
         incomingCallDelegators: Set<RemoteCallHandler<*>> = emptySet(),
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         messageCodec: MessageCodec<*>? = null,
@@ -69,7 +69,7 @@ class RemotingClientFactoryImpl(
 
     override fun createWebSocketRemotingClient(
         remoteServerBaseUrl: Url,
-        coroutineScope: CoroutineScope,
+        parentCoroutineContext: CoroutineContext,
         incomingCallDelegators: Set<RemoteCallHandler<*>>,
         synchronousCallSupportImplementor: SynchronousCallSupport?,
         messageCodec: MessageCodec<*>?,
@@ -85,6 +85,6 @@ class RemotingClientFactoryImpl(
             remoteServerBaseUrl,
             incomingCallDelegators,
             loggerFactory,
-            coroutineScope
+            parentCoroutineContext
         )
 }

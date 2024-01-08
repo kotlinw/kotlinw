@@ -3,6 +3,7 @@ package kotlinw.remoting.core.client
 import arrow.atomic.AtomicBoolean
 import arrow.core.nonFatalOrThrow
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -16,7 +17,6 @@ import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMes
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.Disconnected
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.InactiveMessagingStatus
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.MessageLoopSuspended
-import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.NotInitialized
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
@@ -36,6 +36,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -59,17 +60,15 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     private val remoteServerBaseUrl: Url,
     private val incomingCallDelegators: Set<RemoteCallHandler<*>>,
     loggerFactory: LoggerFactory,
-    private val wsCoroutineScope: CoroutineScope,
+    parentCoroutineContext: CoroutineContext,
     private val reconnectAutomatically: Boolean = true
 ) : RemotingClientCallSupport, RemotingClientFlowSupport, PersistentRemotingClient {
 
     private val logger = loggerFactory.getLogger()
 
-    override val coroutineContext get() = wsCoroutineScope.coroutineContext + SupervisorJob(wsCoroutineScope.coroutineContext.job)
+    override val coroutineContext = parentCoroutineContext + SupervisorJob(parentCoroutineContext.job)
 
     private sealed interface BidirectionalMessagingStatus {
-
-        data object NotInitialized : BidirectionalMessagingStatus
 
         sealed interface InactiveMessagingStatus : BidirectionalMessagingStatus {
 
@@ -93,7 +92,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         data class Connected(val messagingManager: BidirectionalMessagingManager) : BidirectionalMessagingStatus
     }
 
-    private val status = atomic<BidirectionalMessagingStatus>(NotInitialized)
+    private val status = atomic<BidirectionalMessagingStatus>(Disconnected(persistentListOf()))
 
     private val statusLock = Mutex()
 
@@ -103,15 +102,11 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         while (true) {
             statusLock.lock()
             val currentStatus = status.value
-            println(">>> " + currentStatus)
 
             if (currentStatus is Connected) {
                 val messagingManager = currentStatus.messagingManager
                 statusLock.unlock()
                 return messagingManager.block()
-            } else if (currentStatus is NotInitialized) {
-                statusLock.unlock()
-                throw IllegalStateException("${WebSocketRemotingClientImpl<*>::runMessagingLoop.name}() is not running.")
             }
 
             try {

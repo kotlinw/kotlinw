@@ -19,14 +19,13 @@ import kotlinw.remoting.processor.test.ExampleServiceWithDownstreamFlows
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallHandler
 import kotlinw.util.stdlib.Url
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
 class KtorSupportTest {
@@ -102,35 +101,32 @@ class KtorSupportTest {
             )
         }
 
-        coroutineScope {
-            val httpClient = createClient {
-                install(ClientWebSockets)
-            }
-
-            val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(httpClient, PlatformLogging)
-            val remotingClient =
-                WebSocketRemotingClientImpl(
-                    messageCodec,
-                    remotingHttpClientImplementor,
-                    MutableRemotePeerRegistryImpl(PlatformLogging),
-                    Url(""),
-                    emptySet(),
-                    PlatformLogging,
-                    this
-                )
-            val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)
-
-            val loopJob = launch(start = UNDISPATCHED) {
-                remotingClient.runMessagingLoop()
-            }
-
-            assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
-            assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
-            assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
-
-            remotingClient.close()
-            loopJob.cancel()
+        val httpClient = createClient {
+            install(ClientWebSockets)
         }
+
+        val remotingHttpClientImplementor = KtorHttpRemotingClientImplementor(httpClient, PlatformLogging)
+        val remotingClient =
+            WebSocketRemotingClientImpl(
+                messageCodec,
+                remotingHttpClientImplementor,
+                MutableRemotePeerRegistryImpl(PlatformLogging),
+                Url(""),
+                emptySet(),
+                PlatformLogging,
+                currentCoroutineContext()
+            )
+
+        remotingClient.launch(context = CoroutineName("runMessagingLoop"), start = UNDISPATCHED) {
+            remotingClient.runMessagingLoop()
+        }
+
+        val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)
+        assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
+        assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
+        assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+
+        remotingClient.close()
 
         coVerify {
             service.coldFlow()

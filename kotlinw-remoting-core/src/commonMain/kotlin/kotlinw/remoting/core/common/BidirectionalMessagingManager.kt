@@ -91,7 +91,8 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
     private val activeColdFlows: ConcurrentMutableMap<String, ActiveColdFlowData> = ConcurrentHashMap()
 
-    private val flowManagerScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
+    private val flowManagerScope =
+        CoroutineScope(bidirectionalConnection.coroutineContext + SupervisorJob(bidirectionalConnection.coroutineContext.job))
 
     override val remoteConnectionId: RemoteConnectionId get() = bidirectionalConnection.remoteConnectionId
 
