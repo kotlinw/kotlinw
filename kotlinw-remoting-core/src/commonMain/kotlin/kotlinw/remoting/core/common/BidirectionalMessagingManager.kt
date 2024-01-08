@@ -91,7 +91,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
     private val activeColdFlows: ConcurrentMutableMap<String, ActiveColdFlowData> = ConcurrentHashMap()
 
-    private val supervisorScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
+    private val flowManagerScope = CoroutineScope(SupervisorJob(bidirectionalConnection.coroutineContext.job))
 
     override val remoteConnectionId: RemoteConnectionId get() = bidirectionalConnection.remoteConnectionId
 
@@ -190,6 +190,8 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
                 }
             }
         }
+
+        logger.debug { "Incoming message stream ended: " / bidirectionalConnection }
     }
 
     private suspend fun <T> sendReplyMessage(message: RemotingMessage<T>, payloadSerializer: KSerializer<T>) {
@@ -239,7 +241,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
         resultDeserializer: KSerializer<R>
     ): R {
         val callId = randomUuid().toString()
-        logger.trace { "Calling: " / serviceLocator / parameter }
+        logger.debug { "Calling: " / serviceLocator / parameter }
 
         val requestMessage = RemotingMessage(
             parameter,
@@ -357,7 +359,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
     private fun addActiveColdFlow(flowId: String, flow: Flow<Any?>, flowValueSerializer: KSerializer<Any?>) {
         activeColdFlows[flowId] = ActiveColdFlowData(
-            supervisorScope.launch(start = CoroutineStart.LAZY) {
+            flowManagerScope.launch(start = CoroutineStart.LAZY) {
                 try {
                     flow.collect {
                         send(
@@ -416,7 +418,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
         // TODO kellene valami lock, hogy close() közben ne lehessen más metódusokat hívni
 
         try {
-            supervisorScope.cancel()
+            flowManagerScope.cancel()
         } catch (e: Throwable) {
             logger.warning(e.nonFatalOrThrow()) { "Failed to cancel supervisor scope of messaging manager." }
         }

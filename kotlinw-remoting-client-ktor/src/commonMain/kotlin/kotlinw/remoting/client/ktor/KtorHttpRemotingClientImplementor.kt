@@ -4,7 +4,7 @@ import arrow.atomic.AtomicBoolean
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -12,6 +12,9 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
+import io.ktor.websocket.close
+import kotlinw.logging.api.LoggerFactory
+import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
@@ -26,11 +29,18 @@ import kotlinx.datetime.Clock
 
 class KtorHttpRemotingClientImplementor(
     private val httpClient: HttpClient,
+    loggerFactory: LoggerFactory,
     private val httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {}
 ) : SynchronousCallSupport, BidirectionalCommunicationImplementor {
 
-    internal constructor(engine: HttpClientEngine, httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {})
-            : this(HttpClient(engine), httpRequestCustomizer)
+    private val logger = loggerFactory.getLogger()
+
+    internal constructor(
+        engine: HttpClientEngine,
+        loggerFactory: LoggerFactory,
+        httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {}
+    )
+            : this(HttpClient(engine), loggerFactory, httpRequestCustomizer)
 
     override suspend fun <M : RawMessage> call(
         url: String,
@@ -102,25 +112,31 @@ class KtorHttpRemotingClientImplementor(
             try {
                 val messagingPeerId = url.toString()
                 // TODO túl későn, csak itt derül ki, ha a WebSockets plugin nincs install-álva
-                httpClient.webSocket(
-                    url.toString(),
-                    request = {
-                        // TODO
-//                        timeout {
-//                            connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
-//                        }
-                    }
-                ) {
-                    block(
-                        WebSocketBidirectionalMessagingConnection(
-                            RemoteConnectionId(messagingPeerId,messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds()), // TODO
-                            this,
-                            messageCodecDescriptor
+
+                logger.debug { "Connecting to WebSocket server: " / url }
+
+                httpClient.webSocketSession(url.toString()).also { clientWebSocketSession ->
+                    logger.debug { "Connected to WebSocket server: " / url }
+
+                    try {
+                        block(
+                            WebSocketBidirectionalMessagingConnection(
+                                RemoteConnectionId(
+                                    messagingPeerId,
+                                    messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds()
+                                ),
+                                clientWebSocketSession,
+                                messageCodecDescriptor
+                            )
                         )
-                    )
+                    } finally {
+                        clientWebSocketSession.close()
+                        logger.debug { "Disconnected from WebSocket server: " / url }
+                    }
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 // TODO elkapni a websocket specifikus exception-öket, és általánosat dobni helyettük
+                logger.error(e) { "WebSocket connection failed." }
                 throw e
             } finally {
                 runInSessionIsRunning.value = false

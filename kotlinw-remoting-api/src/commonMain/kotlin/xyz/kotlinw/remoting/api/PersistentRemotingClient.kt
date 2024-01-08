@@ -1,6 +1,10 @@
 package xyz.kotlinw.remoting.api
 
-interface PersistentRemotingClient : RemotingClient {
+import kotlinx.coroutines.CoroutineScope
+
+interface PersistentRemotingClient : RemotingClient, CoroutineScope {
 
     suspend fun runMessagingLoop(): Nothing
+
+    suspend fun close()
 }

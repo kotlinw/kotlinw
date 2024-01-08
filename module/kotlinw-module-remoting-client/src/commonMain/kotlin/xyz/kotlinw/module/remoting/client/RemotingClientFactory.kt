@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.pluginOrNull
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.HttpRequestBuilder
+import kotlin.coroutines.CoroutineContext
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
@@ -13,6 +14,7 @@ import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.MutableRemotePeerRegistryImpl
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
+import kotlinx.coroutines.CoroutineScope
 import xyz.kotlinw.remoting.api.PersistentRemotingClient
 import xyz.kotlinw.remoting.api.RemotingClient
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
@@ -29,6 +31,7 @@ interface RemotingClientFactory {
 
     fun createWebSocketRemotingClient(
         remoteServerBaseUrl: Url,
+        coroutineScope: CoroutineScope,
         incomingCallDelegators: Set<RemoteCallHandler<*>> = emptySet(),
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         messageCodec: MessageCodec<*>? = null,
@@ -58,7 +61,7 @@ class RemotingClientFactoryImpl(
             messageCodec
                 ?: defaultMessageCodec
                 ?: JsonMessageCodec.Default,
-            KtorHttpRemotingClientImplementor(httpClient.httpClientCustomizer(), httpRequestCustomizer),
+            KtorHttpRemotingClientImplementor(httpClient.httpClientCustomizer(), loggerFactory, httpRequestCustomizer),
             remoteServerBaseUrl,
             loggerFactory
         )
@@ -66,6 +69,7 @@ class RemotingClientFactoryImpl(
 
     override fun createWebSocketRemotingClient(
         remoteServerBaseUrl: Url,
+        coroutineScope: CoroutineScope,
         incomingCallDelegators: Set<RemoteCallHandler<*>>,
         synchronousCallSupportImplementor: SynchronousCallSupport?,
         messageCodec: MessageCodec<*>?,
@@ -76,10 +80,11 @@ class RemotingClientFactoryImpl(
             messageCodec
                 ?: defaultMessageCodec
                 ?: JsonMessageCodec.Default,
-            KtorHttpRemotingClientImplementor(httpClient.httpClientCustomizer(), httpRequestCustomizer),
+            KtorHttpRemotingClientImplementor(httpClient.httpClientCustomizer(), loggerFactory, httpRequestCustomizer),
             MutableRemotePeerRegistryImpl(loggerFactory),
             remoteServerBaseUrl,
             incomingCallDelegators,
-            loggerFactory
+            loggerFactory,
+            coroutineScope
         )
 }
