@@ -137,7 +137,11 @@ class KtorHttpRemotingClientImplementor(
                 }
             } catch (e: Throwable) {
                 // TODO elkapni a websocket specifikus exception-öket, és általánosat dobni helyettük
-                logger.error(e.nonFatalOrThrow()) { "WebSocket connection failed." }
+                if (logger.isTraceEnabled) {
+                    logger.trace(e.nonFatalOrThrow()) { "WebSocket connection failed." }
+                } else {
+                    logger.debug { "WebSocket connection failed." }
+                }
             } finally {
                 runInSessionIsRunning.value = false
             }
