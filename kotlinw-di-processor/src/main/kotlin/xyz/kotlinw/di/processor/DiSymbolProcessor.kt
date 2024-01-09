@@ -650,7 +650,7 @@ class DiSymbolProcessor(
                             try {
                                 resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName()
                             } catch (e: Exception) {
-                                kspLogger.error("wtf: $componentId")
+                                kspLogger.error("wtf: $componentId") // TODO :D
                                 throw e
                             },
                             LATEINIT
