@@ -1,6 +1,7 @@
 package kotlinw.remoting.client.ktor
 
 import arrow.atomic.AtomicBoolean
+import arrow.core.NonFatal
 import arrow.core.nonFatalOrThrow
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -136,12 +137,15 @@ class KtorHttpRemotingClientImplementor(
                     }
                 }
             } catch (e: Throwable) {
-                // TODO elkapni a websocket specifikus exception-öket, és általánosat dobni helyettük
-                if (logger.isTraceEnabled) {
-                    logger.trace(e.nonFatalOrThrow()) { "WebSocket connection failed." }
-                } else {
-                    logger.debug { "WebSocket connection failed." }
+                if (NonFatal(e)) {
+                    if (logger.isTraceEnabled) {
+                        logger.trace(e) { "WebSocket connection failed." }
+                    } else {
+                        logger.debug { "WebSocket connection failed." }
+                    }
                 }
+
+                throw e
             } finally {
                 runInSessionIsRunning.value = false
             }
