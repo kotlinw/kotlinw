@@ -92,6 +92,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
 
     private val status = atomic<BidirectionalMessagingStatus>(Disconnected(persistentListOf()))
 
+    override val isConnected: Boolean get() = status.value is Connected
+
     private val statusLock = Mutex()
 
     private val messagingLoopRunningFlag = AtomicBoolean(false)
