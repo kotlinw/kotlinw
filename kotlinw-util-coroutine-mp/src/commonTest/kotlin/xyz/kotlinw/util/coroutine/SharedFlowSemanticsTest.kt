@@ -43,11 +43,11 @@ class SharedFlowSemanticsTest {
     @Test
     fun testSlowStateFlowCollectors() = runTest {
         withContext(Dispatchers.Default) {
-            val sharedFlow = MutableStateFlow("x")
+            val stateFlow = MutableStateFlow("x")
 
             val collectors = (1..5).map { collectorId ->
                 launch(start = UNDISPATCHED) {
-                    sharedFlow.collect { value ->
+                    stateFlow.collect { value ->
                         println("#$collectorId start: $value")
                         delay(100.milliseconds * collectorId)
                         println("#$collectorId end: $value")
@@ -56,12 +56,36 @@ class SharedFlowSemanticsTest {
             }
 
             repeat(3) {
-                sharedFlow.emit(Char('a'.code + it).toString())
+                stateFlow.emit(Char('a'.code + it).toString())
             }
 
             delay(350)
 
             collectors.cancelAll()
+        }
+    }
+
+    @Test
+    fun testSlowStateFlowCollectors2() = runTest {
+        withContext(Dispatchers.Default) {
+            val stateFlow = MutableStateFlow("x")
+
+            launch(start = UNDISPATCHED) {
+                stateFlow.collect {
+                    println("start: $it")
+                    delay(100.milliseconds)
+                    println("end: $it")
+                }
+            }
+
+            stateFlow.emit("a")
+            delay(50.milliseconds)
+            stateFlow.emit("b")
+            delay(50.milliseconds)
+            stateFlow.emit("c")
+            delay(50.milliseconds)
+
+            delay(200.milliseconds)
         }
     }
 
