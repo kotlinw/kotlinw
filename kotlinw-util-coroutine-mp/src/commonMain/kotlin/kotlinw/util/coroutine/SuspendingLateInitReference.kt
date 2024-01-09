@@ -4,6 +4,9 @@ import kotlin.concurrent.Volatile
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlinw.util.coroutine.SuspendingLateInitHolderReferenceImpl.Status.Initialized
+import kotlinw.util.coroutine.SuspendingLateInitHolderReferenceImpl.Status.Invalidated
+import kotlinw.util.coroutine.SuspendingLateInitHolderReferenceImpl.Status.Uninitalized
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.persistentListOf
@@ -17,26 +20,34 @@ interface SuspendingLateInitReference<T : Any> {
 
 interface SuspendingLateInitReferenceHolder<T : Any> : SuspendingLateInitReference<T> {
 
-    suspend fun intialize(value: T)
+    suspend fun initialize(value: T)
+
+    suspend fun invalidate()
 }
 
 class SuspendingLateInitHolderReferenceImpl<T : Any> : SuspendingLateInitReferenceHolder<T> {
 
+    enum class Status {
+        Uninitalized, Initialized, Invalidated
+    }
+
     private val lock = Mutex()
 
     @Volatile
-    private var value: T? = null
+    private var status: Status = Uninitalized
 
-    private inline val isInitialized get() = value != null
+    @Volatile
+    private var value: T? = null
 
     private inline val nonNullValue get() = value!!
 
     private val coroutinesAwaitingInitialization = atomic(persistentListOf<Continuation<T>>())
 
-    override suspend fun intialize(value: T) {
+    override suspend fun initialize(value: T) {
         lock.withLock {
-            check(!isInitialized)
+            check(status == Uninitalized)
             this.value = value
+            status = Initialized
 
             coroutinesAwaitingInitialization.value.forEach {
                 it.resume(value)
@@ -46,15 +57,29 @@ class SuspendingLateInitHolderReferenceImpl<T : Any> : SuspendingLateInitReferen
         }
     }
 
-    override suspend fun get(): T =
-        if (isInitialized) {
-            nonNullValue
-        } else {
-            lock.lock()
-            if (isInitialized) {
+    override suspend fun invalidate() {
+        lock.withLock {
+            status = Invalidated
+            value = null
+        }
+    }
+
+    override suspend fun get(): T {
+        lock.lock()
+        val statusSnapshot = status
+        return when (statusSnapshot) {
+            Initialized -> {
+                val value = nonNullValue
                 lock.unlock()
-                nonNullValue
-            } else {
+                value
+            }
+
+            Invalidated -> {
+                lock.unlock()
+                throw IllegalStateException("Reference is invalidated.")
+            }
+
+            Uninitalized -> {
                 suspendCoroutine { continuation ->
                     coroutinesAwaitingInitialization.update {
                         it.add(continuation)
@@ -63,4 +88,5 @@ class SuspendingLateInitHolderReferenceImpl<T : Any> : SuspendingLateInitReferen
                 }
             }
         }
+    }
 }

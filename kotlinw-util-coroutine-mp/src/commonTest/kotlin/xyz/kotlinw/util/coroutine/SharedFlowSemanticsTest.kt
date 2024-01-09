@@ -1,6 +1,7 @@
 package xyz.kotlinw.util.coroutine
 
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinw.util.coroutine.cancelAll
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,7 @@ class SharedFlowSemanticsTest {
                 launch(start = UNDISPATCHED) {
                     sharedFlow.collect { value ->
                         println("#$collectorId start: $value")
-                        delay(100)
+                        delay(100.milliseconds * collectorId)
                         println("#$collectorId end: $value")
                     }
                 }
@@ -33,7 +34,7 @@ class SharedFlowSemanticsTest {
                 sharedFlow.emit(Char('a'.code + it).toString())
             }
 
-            delay(500)
+            delay(350)
 
             collectors.cancelAll()
         }
@@ -48,7 +49,7 @@ class SharedFlowSemanticsTest {
                 launch(start = UNDISPATCHED) {
                     sharedFlow.collect { value ->
                         println("#$collectorId start: $value")
-                        delay(100)
+                        delay(100.milliseconds * collectorId)
                         println("#$collectorId end: $value")
                     }
                 }
@@ -58,7 +59,7 @@ class SharedFlowSemanticsTest {
                 sharedFlow.emit(Char('a'.code + it).toString())
             }
 
-            delay(500)
+            delay(350)
 
             collectors.cancelAll()
         }
