@@ -1,10 +1,10 @@
 package kotlinw.configuration.core
 
-enum class DeploymentMode {
-    Development, Production;
+enum class DeploymentMode(val shortName: String) {
+    Development("dev"), Production("prod");
 
     companion object {
 
-        fun of(value: String) = values().first { it.name.equals(value, true) }
+        fun of(value: String) = entries.first { it.name.equals(value, true) }
     }
 }
