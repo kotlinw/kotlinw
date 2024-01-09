@@ -18,8 +18,8 @@ fun standardLongTermJson(configure: JsonBuilder.() -> Unit = {}) =
         encodeDefaults = true
         ignoreUnknownKeys = true
         isLenient = false
-        allowStructuredMapKeys = true
-        explicitNulls = true
+        allowStructuredMapKeys = false
+        explicitNulls = false
         coerceInputValues = false
         useArrayPolymorphism = false
         allowSpecialFloatingPointValues = true
