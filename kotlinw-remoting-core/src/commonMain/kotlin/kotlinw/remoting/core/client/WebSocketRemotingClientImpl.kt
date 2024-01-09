@@ -137,7 +137,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    override suspend fun runMessagingLoop(): Nothing {
+    override suspend fun connect(): Nothing {
         if (messagingLoopRunningFlag.compareAndSet(false, true)) {
             try {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)

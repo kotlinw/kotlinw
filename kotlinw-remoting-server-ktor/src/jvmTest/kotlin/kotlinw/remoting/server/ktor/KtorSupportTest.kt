@@ -8,7 +8,6 @@ import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
@@ -23,7 +22,6 @@ import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -120,7 +118,7 @@ class KtorSupportTest {
             )
 
         remotingClient.launch(context = CoroutineName("runMessagingLoop"), start = UNDISPATCHED) {
-            remotingClient.runMessagingLoop()
+            remotingClient.connect()
         }
 
         val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)

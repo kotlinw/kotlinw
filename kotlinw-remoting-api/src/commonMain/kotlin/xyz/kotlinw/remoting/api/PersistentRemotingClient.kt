@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 
 interface PersistentRemotingClient : RemotingClient, CoroutineScope {
 
-    suspend fun runMessagingLoop(): Nothing
+    suspend fun connect(): Nothing
 
     suspend fun close()
 }
