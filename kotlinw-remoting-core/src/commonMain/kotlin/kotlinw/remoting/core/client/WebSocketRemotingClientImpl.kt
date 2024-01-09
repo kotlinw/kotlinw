@@ -35,6 +35,7 @@ import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -44,6 +45,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import xyz.kotlinw.remoting.api.PersistentRemotingClient
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
@@ -109,9 +111,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                 return messagingManager.block()
             }
 
-            try {
-                check(currentStatus is InactiveMessagingStatus)
-
+            check(currentStatus is InactiveMessagingStatus)
+            withContext(NonCancellable) {
                 logger.debug { "Suspending until WS connection is established..." }
                 suspendCancellableCoroutine<Unit> { continuation ->
                     status.update {
@@ -132,9 +133,6 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
 
                     statusLock.unlock()
                 }
-            } catch (e: Throwable) {
-                statusLock.unlock() // Should not reach this line
-                throw e
             }
         }
     }
@@ -164,7 +162,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             }
                         }
                     } else {
-                        try {
+                        withContext(NonCancellable) {
                             statusLock.lock()
                             logger.debug { "Suspending messaging loop (automatic reconnect is disabled)" }
                             suspendCancellableCoroutine { continuation ->
@@ -176,9 +174,6 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                                 }
                                 statusLock.unlock()
                             }
-                        } catch (e: Throwable) {
-                            statusLock.unlock() // Should not reach this line
-                            throw e
                         }
                     }
 

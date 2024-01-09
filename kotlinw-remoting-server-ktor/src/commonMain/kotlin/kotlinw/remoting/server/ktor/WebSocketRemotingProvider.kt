@@ -117,7 +117,7 @@ class WebSocketRemotingProvider(
                 // TODO fix path
                 webSocket("/websocket") {
                     val principal = remotingConfiguration.extractPrincipal(call)
-                    val messagingPeerId = remotingConfiguration.identifyClient(call) // TODO hibaell.
+                    val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
                     val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 

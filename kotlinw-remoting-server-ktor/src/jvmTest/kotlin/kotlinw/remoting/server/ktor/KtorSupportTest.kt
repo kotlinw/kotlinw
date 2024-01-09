@@ -46,8 +46,8 @@ class KtorSupportTest {
                     WebRequestRemotingProvider(PlatformLogging),
                     listOf(ExampleService.remoteCallHandler(service)),
                     null,
-                    { 1 }, // TODO
-                    { null } // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    { null }, // TODO
+                    { 1 } // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
                 )
             )
         }
@@ -95,8 +95,8 @@ class KtorSupportTest {
                     WebSocketRemotingProvider(PlatformLogging, null, null),
                     listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
                     null,
-                    { 1 }, // TODO
-                    { null }// TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    { null }, // TODO
+                    { 1 }// TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
                 )
             )
         }

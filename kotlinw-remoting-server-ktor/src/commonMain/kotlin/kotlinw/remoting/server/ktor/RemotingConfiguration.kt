@@ -20,9 +20,9 @@ interface RemotingConfiguration {
 
     val authenticationProviderName: String?
 
-    val identifyClient: (ApplicationCall) -> MessagingPeerId
+    val extractPrincipal: ApplicationCall.() -> Principal?
 
-    val extractPrincipal: (ApplicationCall) -> Principal?
+    val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId
 }
 
 data class WebRequestRemotingConfiguration(
@@ -30,8 +30,8 @@ data class WebRequestRemotingConfiguration(
     override val remotingProvider: WebRequestRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler<*>>,
     override val authenticationProviderName: String?,
-    override val identifyClient: (ApplicationCall) -> MessagingPeerId,
-    override val extractPrincipal: (ApplicationCall) -> Principal?,
+    override val extractPrincipal: ApplicationCall.() -> Principal?,
+    override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration
 
@@ -40,8 +40,8 @@ data class WebSocketRemotingConfiguration(
     override val remotingProvider: WebSocketRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler<*>>,
     override val authenticationProviderName: String?,
-    override val identifyClient: (ApplicationCall) -> MessagingPeerId,
-    override val extractPrincipal: (ApplicationCall) -> Principal?,
+    override val extractPrincipal: ApplicationCall.() -> Principal?,
+    override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
     val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
     val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null,
     override val messageCodec: MessageCodec<*>? = null
