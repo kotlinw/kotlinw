@@ -82,29 +82,15 @@ private constructor(
                 logger.debug { "System property not found: $configurationFilePathSystemPropertyName" }
             }
 
-            when (deploymentMode) {
-                DeploymentMode.Development ->
-                    add(
-                        JavaPropertiesFileConfigurationPropertyResolver(
-                            ClasspathResource(
-                                classpathScanner,
-                                ClasspathLocation(AbsolutePath("kotlinw-dev.properties")),
-                                classLoader
-                            )
-                        )
+            add(
+                JavaPropertiesFileConfigurationPropertyResolver(
+                    ClasspathResource(
+                        classpathScanner,
+                        ClasspathLocation(AbsolutePath("kotlinw-${deploymentMode.shortName}.properties")),
+                        classLoader
                     )
-
-                DeploymentMode.Production ->
-                    add(
-                        JavaPropertiesFileConfigurationPropertyResolver(
-                            ClasspathResource(
-                                classpathScanner,
-                                ClasspathLocation(AbsolutePath("kotlinw-prod.properties")),
-                                classLoader
-                            )
-                        )
-                    )
-            }
+                )
+            )
 
             add(
                 JavaPropertiesFileConfigurationPropertyResolver(
