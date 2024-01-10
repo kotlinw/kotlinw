@@ -11,6 +11,7 @@ import xyz.kotlinw.di.api.ContainerScope
 import xyz.kotlinw.di.api.runApplication
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.module.ktor.server.KtorServerModule
+import xyz.kotlinw.module.ktor.server.KtorServerModule.Companion
 
 @Deprecated(
     level = ERROR,
@@ -34,6 +35,8 @@ fun <T : TestScopeBase> runKtorServerTest(
         runApplication(
             rootScopeFactory = { rootScopeFactory() },
             block = {
+                KtorServerModule.initializeKtorServerApplicationConfigurers(ktorServerApplicationConfigurers())
+
                 this@testApplication.application {
                     KtorServerModule.initializeKtorServerApplication(
                         this,

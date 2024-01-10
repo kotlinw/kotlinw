@@ -8,9 +8,10 @@ import kotlinw.hibernate.core.entity.BaseEntityRepository
 import kotlinw.hibernate.core.entity.BaseEntityRepositoryImpl
 import kotlinw.hibernate.core.entity.pgTextType
 import org.hibernate.envers.Audited
+import xyz.kotlinw.di.api.Component
 
 @Entity
-@Table(name = "ApplicationConfiguration")
+@Table(name = ApplicationConfigurationEntity.TableName)
 @Audited
 class ApplicationConfigurationEntity(
 
@@ -22,6 +23,11 @@ class ApplicationConfigurationEntity(
 
 ) : BaseEntity() {
 
+    companion object {
+
+        const val TableName = "ApplicationConfiguration"
+    }
+
     override fun toString(): String {
         return "ApplicationConfigurationEntity(name='$name', value='$value')"
     }
@@ -29,6 +35,7 @@ class ApplicationConfigurationEntity(
 
 interface ApplicationConfigurationEntityRepository : BaseEntityRepository<ApplicationConfigurationEntity>
 
+@Component
 class ApplicationConfigurationEntityRepositoryImpl :
     BaseEntityRepositoryImpl<ApplicationConfigurationEntity>(ApplicationConfigurationEntity::class),
     ApplicationConfigurationEntityRepository

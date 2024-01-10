@@ -13,8 +13,9 @@ abstract class KtorServerApplicationConfigurer(override val priority: Priority =
         val ktorServerCoroutineScope: CoroutineScope
     )
 
-    // TODO make internal+@PublishedApi after removing koin
-    fun setupKtorModule(context: Context) = context.setup()
+    open suspend fun initialize() {}
+
+    internal fun setupKtorModule(context: Context) = context.setup()
 
     // TODO replace with context(Context)
     abstract fun Context.setup()

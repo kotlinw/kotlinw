@@ -3,7 +3,13 @@ package kotlinw.configuration.core
 import kotlinw.util.stdlib.HasPriority
 import kotlinw.util.stdlib.Priority
 
+// TODO ez egy resolver és egy priority összessége, ne implementálja újra a resolver metódusait
 interface ConfigurationPropertyLookupSource : HasPriority {
+
+    suspend fun initialize(
+        configurationChangeNotifier: ConfigurationChangeNotifier,
+        snapshotConfigurationPropertyLookup: SnapshotConfigurationPropertyLookup
+    )
 
     suspend fun reload()
 
@@ -14,6 +20,13 @@ class ConfigurationPropertyLookupSourceImpl(
     private val resolver: ConfigurationPropertyResolver,
     override val priority: Priority = Priority.Normal
 ) : ConfigurationPropertyLookupSource, HasPriority {
+
+    override suspend fun initialize(
+        configurationChangeNotifier: ConfigurationChangeNotifier,
+        snapshotConfigurationPropertyLookup: SnapshotConfigurationPropertyLookup
+    ) {
+        resolver.initialize(configurationChangeNotifier, snapshotConfigurationPropertyLookup)
+    }
 
     override suspend fun reload() {
         resolver.reload()
@@ -32,6 +45,13 @@ class EnumerableConfigurationPropertyLookupSourceImpl(
     private val resolver: EnumerableConfigurationPropertyResolver,
     override val priority: Priority = Priority.Normal
 ) : EnumerableConfigurationPropertyLookupSource, HasPriority {
+
+    override suspend fun initialize(
+        configurationChangeNotifier: ConfigurationChangeNotifier,
+        snapshotConfigurationPropertyLookup: SnapshotConfigurationPropertyLookup
+    ) {
+        resolver.initialize(configurationChangeNotifier, snapshotConfigurationPropertyLookup)
+    }
 
     override suspend fun reload() {
         resolver.reload()

@@ -1,8 +1,6 @@
 package kotlinw.module.hibernate.core
 
 import kotlinw.configuration.core.ConfigurationPropertyLookup
-import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSource
-import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
@@ -18,9 +16,6 @@ import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
-import xyz.kotlinw.hibernate.configuration.entity.ApplicationConfigurationEntityConfigurationPropertyResolver
-import xyz.kotlinw.hibernate.configuration.entity.ApplicationConfigurationEntityRepository
-import xyz.kotlinw.hibernate.configuration.entity.ApplicationConfigurationEntityRepositoryImpl
 import xyz.kotlinw.module.core.CoreModule
 
 fun interface BootstrapServiceRegistryCustomizer {
@@ -123,21 +118,4 @@ class HibernateModule {
                 customizers.forEach { it.customize() }
             }
             .build()
-
-    @Component
-    fun applicationConfigurationEntityRepository(): ApplicationConfigurationEntityRepository =
-        ApplicationConfigurationEntityRepositoryImpl()
-
-// TODO
-//    @Component
-//    fun databaseConfigurationEntityPropertyResolver(
-//        sessionFactory: SessionFactory,
-//        applicationConfigurationEntityRepository: ApplicationConfigurationEntityRepository
-//    ): EnumerableConfigurationPropertyLookupSource =
-//        EnumerableConfigurationPropertyLookupSourceImpl(
-//            ApplicationConfigurationEntityConfigurationPropertyResolver(
-//                sessionFactory,
-//                applicationConfigurationEntityRepository
-//            )
-//        )
 }

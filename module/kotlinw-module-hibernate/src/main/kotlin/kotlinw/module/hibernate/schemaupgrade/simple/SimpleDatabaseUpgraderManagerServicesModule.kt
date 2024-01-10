@@ -1,5 +1,6 @@
 package kotlinw.module.hibernate.schemaupgrade.simple
 
+import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgraderProvider
 import kotlinw.hibernate.core.schemaupgrade.simple.SimpleDatabaseUpgradeManager
 import kotlinw.logging.api.LoggerFactory
@@ -18,10 +19,18 @@ class SimpleDatabaseUpgraderManagerServicesModule {
         loggerFactory: LoggerFactory,
         sessionFactory: SessionFactory,
         databaseUpgraderProviders: List<DatabaseUpgraderProvider>,
-        lifecycleCoordinator: ContainerLifecycleCoordinator
+        lifecycleCoordinator: ContainerLifecycleCoordinator,
+        configurationPropertyLookup: ConfigurationPropertyLookup
     ) =
         SimpleDatabaseUpgradeManager(loggerFactory, sessionFactory, databaseUpgraderProviders)
             .apply {
-                lifecycleCoordinator.registerListener({ upgradeSchema() }, {}, Priority.Highest.lowerBy(1000))
+                lifecycleCoordinator.registerListener(
+                    {
+                        upgradeSchema()
+                        configurationPropertyLookup.reload()
+                    },
+                    {},
+                    Priority.Highest.lowerBy(1000)
+                )
             }
 }

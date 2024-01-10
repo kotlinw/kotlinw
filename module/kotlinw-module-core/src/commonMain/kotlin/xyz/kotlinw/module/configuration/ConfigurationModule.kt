@@ -12,12 +12,12 @@ import xyz.kotlinw.di.api.Module
 @Module
 class ConfigurationModule {
 
-    @Component
+    @Component(onConstruction = "initialize")
     suspend fun configurationPropertyLookup(
         loggerFactory: LoggerFactory,
         configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>
     ): ConfigurationPropertyLookup =
-        ConfigurationPropertyLookupImpl(loggerFactory, configurationPropertyLookupSources).also { it.reload() }
+        ConfigurationPropertyLookupImpl(loggerFactory, configurationPropertyLookupSources)
 
     @Component
     fun configurationObjectLookup(configurationPropertyLookup: ConfigurationPropertyLookup): ConfigurationObjectLookup =

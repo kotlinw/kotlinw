@@ -4,39 +4,47 @@ import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.util.stdlib.HasPriority
 import kotlinw.util.stdlib.Url
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
+import kotlinx.collections.immutable.persistentHashSetOf
 
 typealias EncodedConfigurationPropertyValue = String
 
-interface ConfigurationPropertyLookup {
-
-    suspend fun reload()
+interface SnapshotConfigurationPropertyLookup {
 
     fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
+}
+
+interface ConfigurationPropertyLookup : SnapshotConfigurationPropertyLookup {
+
+    suspend fun initialize()
+
+    suspend fun reload()
 
     fun filterEnumerableConfigurationProperties(predicate: (key: ConfigurationPropertyKey) -> Boolean): Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>
 }
 
-fun ConfigurationPropertyLookup.getConfigurationPropertyValueOrNull(key: String): EncodedConfigurationPropertyValue? =
+fun SnapshotConfigurationPropertyLookup.getConfigurationPropertyValueOrNull(key: String): EncodedConfigurationPropertyValue? =
     getConfigurationPropertyValueOrNull(ConfigurationPropertyKey(key))
 
-fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue =
+fun SnapshotConfigurationPropertyLookup.getConfigurationPropertyValue(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue =
     getConfigurationPropertyValueOrNull(key)
         ?: throw ConfigurationException("Required configuration property not found: $key")
 
-fun ConfigurationPropertyLookup.getConfigurationPropertyValue(key: String): EncodedConfigurationPropertyValue =
+fun SnapshotConfigurationPropertyLookup.getConfigurationPropertyValue(key: String): EncodedConfigurationPropertyValue =
     getConfigurationPropertyValue(ConfigurationPropertyKey(key))
 
-inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValueOrNull(key: ConfigurationPropertyKey): T? =
+inline fun <reified T> SnapshotConfigurationPropertyLookup.getConfigurationPropertyTypedValueOrNull(key: ConfigurationPropertyKey): T? =
     getConfigurationPropertyValueOrNull(key)?.decode()
 
-inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValueOrNull(key: String): T? =
+inline fun <reified T> SnapshotConfigurationPropertyLookup.getConfigurationPropertyTypedValueOrNull(key: String): T? =
     getConfigurationPropertyTypedValueOrNull(ConfigurationPropertyKey(key))
 
-inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: ConfigurationPropertyKey): T =
+inline fun <reified T> SnapshotConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: ConfigurationPropertyKey): T =
     getConfigurationPropertyTypedValueOrNull<T>(key)
         ?: throw ConfigurationException("Required configuration property not found: $key")
 
-inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: String): T =
+inline fun <reified T> SnapshotConfigurationPropertyLookup.getConfigurationPropertyTypedValue(key: String): T =
     getConfigurationPropertyTypedValueOrNull(key)
         ?: throw ConfigurationException("Required configuration property not found: $key")
 
@@ -84,6 +92,31 @@ fun defaultConfigurationPropertyLoggingFilter(configurationPropertyKey: Configur
         }
     }
 
+private class SnapshotConfigurationPropertyLookupImpl(
+    private val sources: List<ConfigurationPropertyLookupSource>
+) : SnapshotConfigurationPropertyLookup {
+
+    private val _unsafeAccessedProperties = atomic(persistentHashSetOf<ConfigurationPropertyKey>())
+
+    val nonAvailableAccessedProperties by _unsafeAccessedProperties
+
+    // TODO pont ugyanez van kicsit lejjebb
+    override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? {
+        sources.forEach {
+            val value = it.getPropertyValueOrNull(key)
+            if (value != null) {
+                return value
+            }
+        }
+
+        _unsafeAccessedProperties.update {
+            it.add(key)
+        }
+
+        return null
+    }
+}
+
 class ConfigurationPropertyLookupImpl(
     loggerFactory: LoggerFactory,
     configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>,
@@ -101,11 +134,43 @@ class ConfigurationPropertyLookupImpl(
     private val sources: List<ConfigurationPropertyLookupSource> =
         configurationPropertyLookupSources.sortedWith(HasPriority.comparator)
 
+    override suspend fun initialize() {
+        logger.info { "Initializing configuration..." }
+        doReload(true)
+    }
+
     override suspend fun reload() {
+        logger.info { "Reloading configuration..." }
+        doReload(false)
+    }
+
+    private suspend fun doReload(isInitialization: Boolean) {
         logger.info { "Configuration property sources: " / sources.joinToString() }
-        sources.forEach {
-            it.reload()
+
+        sources.forEachIndexed { index, source ->
+            val snapshotConfigurationPropertyLookup = SnapshotConfigurationPropertyLookupImpl(sources.subList(0, index))
+
+            if (isInitialization) {
+                source.initialize(
+                    {
+                        println(">>> TODO possible configuration change") // TODO
+                    },
+                    snapshotConfigurationPropertyLookup
+                )
+
+                val nonAvailableAccessedProperties = snapshotConfigurationPropertyLookup.nonAvailableAccessedProperties
+                if (nonAvailableAccessedProperties.isNotEmpty()) {
+                    if (sources.subList(index + 1, sources.lastIndex)
+                            .any { it !is EnumerableConfigurationPropertyLookupSource }
+                    ) {
+                        logger.warning { "Unsafe configuration: property source " / source / " tried to read the non-available configuration properties $nonAvailableAccessedProperties during initialization and a lower priority non-enumerable property source may provide these properties." }
+                    }
+                }
+            }
+
+            source.reload()
         }
+
         // TODO log changes at info level
         logger.debug {
             "Enumerable configuration properties: " /

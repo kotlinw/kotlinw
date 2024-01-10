@@ -19,3 +19,14 @@ fun <T> Connection.executeSingleResultQuery(sql: String, resultConverter: Result
             }
         }
     }
+
+fun <T> Connection.executeQuery(sql: String, rowMapper: (ResultSet) -> T): List<T> =
+    createStatement().use {
+        it.executeQuery(sql).use {
+            buildList {
+                while (it.next()) {
+                    add(rowMapper(it))
+                }
+            }
+        }
+    }

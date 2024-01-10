@@ -1,29 +1,27 @@
 package xyz.kotlinw.module.logging
 
+import kotlin.concurrent.Volatile
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.logging.spi.LoggingIntegrator
-import kotlinx.atomicfu.AtomicRef
-import kotlinx.atomicfu.atomic
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
-
-private val loggingIntegratorHolder: AtomicRef<LoggingIntegrator> = atomic(PlatformLogging)
-
-val loggerFactory: LoggerFactory by loggingIntegratorHolder
-
-internal fun setLoggingIntegrator(loggingIntegrator: LoggingIntegrator) {
-    loggingIntegratorHolder.value = loggingIntegrator
-}
 
 @Module
 class LoggingModule {
 
+    companion object {
+
+        @Volatile
+        @PublishedApi
+        internal lateinit var loggingIntegrator: LoggingIntegrator
+
+        inline val loggerFactory: LoggerFactory get() = loggingIntegrator
+    }
+
     @Component
     fun loggingIntegrator(loggingIntegratorProvider: LoggingIntegratorProvider?): LoggingIntegrator {
-        if (loggingIntegratorProvider != null) {
-            setLoggingIntegrator(loggingIntegratorProvider.getLoggingIntegrator())
-        }
-        return loggingIntegratorHolder.value
+        loggingIntegrator = loggingIntegratorProvider?.getLoggingIntegrator() ?: PlatformLogging
+        return loggingIntegrator
     }
 }

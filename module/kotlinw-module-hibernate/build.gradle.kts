@@ -33,7 +33,6 @@ kotlin {
 
 dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
-    api(projects.kotlinw.kotlinwHibernateConfiguration)
     api(projects.kotlinw.kotlinwHibernateCore)
     api(projects.kotlinw.module.kotlinwModuleAppbase) // TODO külön Gradle modulba a schema export-ot, és akkor erre itt nincs szükség
     api(projects.kotlinw.module.kotlinwModuleCore)

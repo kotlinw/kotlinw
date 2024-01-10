@@ -2,7 +2,15 @@ package kotlinw.configuration.core
 
 import kotlinw.util.stdlib.Priority
 
+typealias ConfigurationChangeNotifier = () -> Unit
+
 interface ConfigurationPropertyResolver {
+
+    suspend fun initialize(
+        configurationChangeNotifier: ConfigurationChangeNotifier,
+        snapshotConfigurationPropertyLookup: SnapshotConfigurationPropertyLookup
+    ) {
+    }
 
     suspend fun reload()
 

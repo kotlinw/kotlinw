@@ -19,5 +19,5 @@ allOpen {
 
 dependencies {
     api(projects.kotlinw.kotlinwConfigurationCore)
-    api(projects.kotlinw.kotlinwHibernateCore)
+    api(projects.kotlinw.module.kotlinwModuleHibernate)
 }

@@ -24,6 +24,12 @@ class ConfigurationPropertyChangeTest {
 
         val source = object : ConfigurationPropertyLookupSource {
 
+            override suspend fun initialize(
+                configurationChangeNotifier: ConfigurationChangeNotifier,
+                snapshotConfigurationPropertyLookup: SnapshotConfigurationPropertyLookup
+            ) {
+            }
+
             override suspend fun reload() {}
 
             override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
@@ -71,6 +77,12 @@ class ConfigurationPropertyChangeTest {
         val source = object : EnumerableConfigurationPropertyLookupSource {
 
             override val priority = Priority.Normal
+
+            override suspend fun initialize(
+                configurationChangeNotifier: ConfigurationChangeNotifier,
+                snapshotConfigurationPropertyLookup: SnapshotConfigurationPropertyLookup
+            ) {
+            }
 
             override suspend fun reload() {}
 
