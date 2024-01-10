@@ -41,8 +41,8 @@ class JavaPropertiesFileConfigurationPropertyResolver private constructor(
                 )
             )
 
-    override suspend fun initialize() {
-        delegate.initialize()
+    override suspend fun reload() {
+        delegate.reload()
     }
 
     override fun getPropertyKeys() = delegate.getPropertyKeys()

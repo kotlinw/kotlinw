@@ -24,7 +24,7 @@ class ConfigurationPropertyChangeTest {
 
         val source = object : ConfigurationPropertyLookupSource {
 
-            override suspend fun initialize() {}
+            override suspend fun reload() {}
 
             override fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? =
                 if (key.name == propertyName) propertyValueHolder.value else null
@@ -72,7 +72,7 @@ class ConfigurationPropertyChangeTest {
 
             override val priority = Priority.Normal
 
-            override suspend fun initialize() {}
+            override suspend fun reload() {}
 
             override fun getPropertyKeys() = setOf(propertyName)
 

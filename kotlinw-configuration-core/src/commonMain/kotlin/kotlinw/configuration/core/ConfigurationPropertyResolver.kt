@@ -4,7 +4,7 @@ import kotlinw.util.stdlib.Priority
 
 interface ConfigurationPropertyResolver {
 
-    suspend fun initialize()
+    suspend fun reload()
 
     fun getPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 }

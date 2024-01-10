@@ -6,9 +6,9 @@ class AggregatingEnumerableConfigurationPropertyResolver(
 
     private val delegatesByIncreasingPriority = delegatesByDecreasingPriority.asReversed()
 
-    override suspend fun initialize() {
+    override suspend fun reload() {
         delegatesByIncreasingPriority.forEach {
-            it.initialize()
+            it.reload()
         }
     }
 

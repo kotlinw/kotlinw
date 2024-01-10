@@ -17,7 +17,7 @@ class ConfigurationModule {
         loggerFactory: LoggerFactory,
         configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>
     ): ConfigurationPropertyLookup =
-        ConfigurationPropertyLookupImpl(loggerFactory, configurationPropertyLookupSources).also { it.initialize() }
+        ConfigurationPropertyLookupImpl(loggerFactory, configurationPropertyLookupSources).also { it.reload() }
 
     @Component
     fun configurationObjectLookup(configurationPropertyLookup: ConfigurationPropertyLookup): ConfigurationObjectLookup =

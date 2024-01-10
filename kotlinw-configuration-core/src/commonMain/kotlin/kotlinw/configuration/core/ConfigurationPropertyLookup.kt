@@ -9,7 +9,7 @@ typealias EncodedConfigurationPropertyValue = String
 
 interface ConfigurationPropertyLookup {
 
-    suspend fun initialize() // TODO internal API
+    suspend fun reload()
 
     fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue?
 
@@ -41,7 +41,7 @@ inline fun <reified T> ConfigurationPropertyLookup.getConfigurationPropertyTyped
         ?: throw ConfigurationException("Required configuration property not found: $key")
 
 @PublishedApi
-internal inline fun <reified T: Any> String.decode(): T? =
+internal inline fun <reified T : Any> String.decode(): T? =
     if (isBlank()) {
         null
     } else {
@@ -68,9 +68,26 @@ internal inline fun <reified T: Any> String.decode(): T? =
 fun ConfigurationPropertyLookup.getMatchingEnumerableConfigurationProperties(keyRegex: Regex): Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue> =
     filterEnumerableConfigurationProperties { it.name.matches(keyRegex) }
 
+fun defaultConfigurationPropertyLoggingFilter(configurationPropertyKey: ConfigurationPropertyKey): Boolean =
+    configurationPropertyKey.name.let { key ->
+        setOf(
+            "password",
+            "secret",
+            "passkey",
+            "passcode",
+            "pin",
+            "access",
+            "keycode",
+            "passphrase"
+        ).any {
+            key.contains(it)
+        }
+    }
+
 class ConfigurationPropertyLookupImpl(
     loggerFactory: LoggerFactory,
-    configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>
+    configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>,
+    private val loggingFilter: (ConfigurationPropertyKey) -> Boolean = ::defaultConfigurationPropertyLoggingFilter
 ) : ConfigurationPropertyLookup {
 
     private val logger = loggerFactory.getLogger()
@@ -84,12 +101,19 @@ class ConfigurationPropertyLookupImpl(
     private val sources: List<ConfigurationPropertyLookupSource> =
         configurationPropertyLookupSources.sortedWith(HasPriority.comparator)
 
-    override suspend fun initialize() {
+    override suspend fun reload() {
         logger.info { "Configuration property sources: " / sources.joinToString() }
         sources.forEach {
-            it.initialize()
+            it.reload()
         }
-        logger.info { "Enumerable configuration properties: " / filterEnumerableConfigurationProperties { true } } // FIXME a jelszavak ne legyenek logolva
+        // TODO log changes at info level
+        logger.debug {
+            "Enumerable configuration properties: " /
+                    filterEnumerableConfigurationProperties { true }
+                        .mapValues {
+                            if (loggingFilter(it.key)) "***" else it.value
+                        }
+        }
     }
 
     override fun getConfigurationPropertyValueOrNull(key: ConfigurationPropertyKey): EncodedConfigurationPropertyValue? {

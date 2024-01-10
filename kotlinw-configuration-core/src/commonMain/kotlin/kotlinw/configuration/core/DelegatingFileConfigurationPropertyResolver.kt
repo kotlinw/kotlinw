@@ -38,7 +38,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
 
     private val delegate get() = delegateHolder.value
 
-    override suspend fun initialize() {
+    override suspend fun reload() {
         require(watchDelay == null || watchDelay > Duration.ZERO)
 
         val initialProperties = tryReadConfiguration()
