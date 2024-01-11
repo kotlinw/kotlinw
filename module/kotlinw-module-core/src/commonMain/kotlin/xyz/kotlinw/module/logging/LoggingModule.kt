@@ -14,14 +14,16 @@ class LoggingModule {
 
         @Volatile
         @PublishedApi
-        internal lateinit var loggingIntegrator: LoggingIntegrator
+        internal var loggingIntegrator: LoggingIntegrator = PlatformLogging
 
         inline val loggerFactory: LoggerFactory get() = loggingIntegrator
     }
 
     @Component
     fun loggingIntegrator(loggingIntegratorProvider: LoggingIntegratorProvider?): LoggingIntegrator {
-        loggingIntegrator = loggingIntegratorProvider?.getLoggingIntegrator() ?: PlatformLogging
+        if (loggingIntegratorProvider != null) {
+            loggingIntegrator = loggingIntegratorProvider.getLoggingIntegrator()
+        }
         return loggingIntegrator
     }
 }
