@@ -46,6 +46,7 @@ class WebAppMainHttpController(
                     // TODO további meta tag-ek
                     // TODO service worker registration in 'load' event: https://web.dev/articles/service-workers-registration
                     // TODO splash
+                    // TODO workaround using 'originalFetch': https://youtrack.jetbrains.com/issue/KTOR-539/Ability-to-use-browser-cookie-storage
 
                     val serviceWorkerWebPath = "/app/pwa/js/sw.js" // TODO konfigurálható
                     call.respondText(
@@ -60,6 +61,12 @@ class WebAppMainHttpController(
                                     <link rel="manifest" href="/manifest.webmanifest">
                                     <title>$title</title>
                                     <script>
+
+                                        window.originalFetch = window.fetch;
+                                        window.fetch = function (resource, init) {
+                                            return window.originalFetch(resource, Object.assign({ credentials: 'include' }, init || {}));
+                                        };
+                                    
                                         if ('serviceWorker' in navigator) {
                                             navigator.serviceWorker.register('$serviceWorkerWebPath');
                                         }

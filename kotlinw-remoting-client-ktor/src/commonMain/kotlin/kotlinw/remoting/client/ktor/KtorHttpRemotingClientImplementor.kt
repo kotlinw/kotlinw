@@ -2,10 +2,11 @@ package kotlinw.remoting.client.ktor
 
 import arrow.atomic.AtomicBoolean
 import arrow.core.NonFatal
-import arrow.core.nonFatalOrThrow
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.pluginOrNull
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
@@ -112,6 +113,9 @@ class KtorHttpRemotingClientImplementor(
     ) {
         if (runInSessionIsRunning.compareAndSet(false, true)) {
             try {
+                httpClient.pluginOrNull(WebSockets)
+                    ?: throw IllegalStateException("${WebSockets.Plugin.key} plugin is not installed.")
+
                 val messagingPeerId = url.toString()
                 // TODO túl későn, csak itt derül ki, ha a WebSockets plugin nincs install-álva
 

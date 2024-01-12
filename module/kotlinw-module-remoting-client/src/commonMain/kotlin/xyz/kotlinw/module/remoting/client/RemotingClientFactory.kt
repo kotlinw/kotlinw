@@ -31,6 +31,7 @@ interface RemotingClientFactory {
 
     fun createWebSocketRemotingClient(
         remoteServerBaseUrl: Url,
+        webSocketEndpointId: String,
         parentCoroutineContext: CoroutineContext,
         incomingCallDelegators: Set<RemoteCallHandler<*>> = emptySet(),
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
@@ -69,6 +70,7 @@ class RemotingClientFactoryImpl(
 
     override fun createWebSocketRemotingClient(
         remoteServerBaseUrl: Url,
+        webSocketEndpointId: String,
         parentCoroutineContext: CoroutineContext,
         incomingCallDelegators: Set<RemoteCallHandler<*>>,
         synchronousCallSupportImplementor: SynchronousCallSupport?,
@@ -83,6 +85,7 @@ class RemotingClientFactoryImpl(
             KtorHttpRemotingClientImplementor(httpClient.httpClientCustomizer(), loggerFactory, httpRequestCustomizer),
             MutableRemotePeerRegistryImpl(loggerFactory),
             remoteServerBaseUrl,
+            webSocketEndpointId,
             incomingCallDelegators,
             loggerFactory,
             parentCoroutineContext

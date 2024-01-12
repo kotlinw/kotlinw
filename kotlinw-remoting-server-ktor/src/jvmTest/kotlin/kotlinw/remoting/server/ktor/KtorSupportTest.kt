@@ -112,6 +112,7 @@ class KtorSupportTest {
                 remotingHttpClientImplementor,
                 MutableRemotePeerRegistryImpl(PlatformLogging),
                 Url(""),
+                "test",
                 emptySet(),
                 PlatformLogging,
                 currentCoroutineContext()

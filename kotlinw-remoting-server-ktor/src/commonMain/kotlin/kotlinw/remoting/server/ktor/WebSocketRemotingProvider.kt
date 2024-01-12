@@ -109,13 +109,12 @@ class WebSocketRemotingProvider(
 
         val delegators =
             (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
-        logger.info { "Remote call handlers: " / delegators.mapValues { it.value.serviceId } }
 
         ktorApplication.routing {
 
             fun Route.configureRouting() {
                 // TODO fix path
-                webSocket("/websocket") {
+                webSocket("/websocket/${webSocketRemotingConfiguration.id}") {
                     val principal = remotingConfiguration.extractPrincipal(call)
                     val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
                     val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
@@ -155,10 +154,12 @@ class WebSocketRemotingProvider(
 
             route("/remoting") {
                 if (remotingConfiguration.authenticationProviderName != null) {
+                    logger.info { "Remote call handlers (authorization by '${webSocketRemotingConfiguration.authenticationProviderName}'): " / delegators.mapValues { it.value.serviceId } }
                     authenticate(remotingConfiguration.authenticationProviderName) {
                         configureRouting()
                     }
                 } else {
+                    logger.info { "Remote call handlers: " / delegators.mapValues { it.value.serviceId } }
                     configureRouting()
                 }
             }

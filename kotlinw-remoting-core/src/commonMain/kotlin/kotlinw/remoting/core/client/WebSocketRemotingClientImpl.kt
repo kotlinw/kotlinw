@@ -58,6 +58,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     private val httpSupportImplementor: SynchronousCallSupport,
     private val peerRegistry: MutableRemotePeerRegistry,
     private val remoteServerBaseUrl: Url,
+    private val endpointId: String,
     private val incomingCallDelegators: Set<RemoteCallHandler<*>>,
     loggerFactory: LoggerFactory,
     parentCoroutineContext: CoroutineContext,
@@ -148,7 +149,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             "http",
                             "ws"
                         )
-                    }/remoting/websocket" // TODO fix string
+                    }/remoting/websocket/$endpointId" // TODO fix string
                 )
                 logger.debug { "Remote WS URL: " / wsUrl }
 
@@ -214,6 +215,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             }
                         }
                     } catch (e: Throwable) {
+                        // TODO itt a HTTP kliens konfigurációs hibákat ki kell szűrni, pl. ha nincs telepítve a kliens WebSockets plugin
+
                         if (e is CancellationException) {
                             logger.debug { "WebSocket connection terminated." } // TODO melyik fél által?
 
