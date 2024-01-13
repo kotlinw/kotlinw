@@ -122,10 +122,12 @@ class KtorSupportTest {
             remotingClient.connect()
         }
 
-        val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(remotingClient)
-        assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
-        assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
-        assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+        remotingClient.withConnection {
+            val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(it)
+            assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
+            assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
+            assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+        }
 
         remotingClient.close()
 

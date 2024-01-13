@@ -10,6 +10,7 @@ import kotlinw.util.coroutine.SuspendingLateInitHolderReferenceImpl.Status.Unini
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -80,7 +81,7 @@ class SuspendingLateInitHolderReferenceImpl<T : Any> : SuspendingLateInitReferen
             }
 
             Uninitalized -> {
-                suspendCoroutine { continuation ->
+                suspendCancellableCoroutine { continuation ->
                     coroutinesAwaitingInitialization.update {
                         it.add(continuation)
                     }

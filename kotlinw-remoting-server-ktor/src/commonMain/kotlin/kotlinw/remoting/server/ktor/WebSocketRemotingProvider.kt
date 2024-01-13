@@ -24,8 +24,12 @@ import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
+import kotlinw.util.stdlib.infiniteLoop
 import kotlinw.uuid.Uuid
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
@@ -125,13 +129,14 @@ class WebSocketRemotingProvider(
                                 mapOf("principal" to principal, "remoteConnectionId" to remoteConnectionId)
                     }
 
+                    val connection =
+                        WebSocketBidirectionalMessagingConnection(
+                            remoteConnectionId,
+                            this,
+                            messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage> // TODO check?
+                        )
+
                     try {
-                        val connection =
-                            WebSocketBidirectionalMessagingConnection(
-                                remoteConnectionId,
-                                this,
-                                messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage> // TODO check?
-                            )
                         val sessionMessagingManager =
                             BidirectionalMessagingManagerImpl(
                                 connection,
@@ -147,6 +152,7 @@ class WebSocketRemotingProvider(
                     } catch (e: Throwable) {
                         logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
                     } finally {
+                        cancel() // Explicitly cancel the coroutine scope of the WebSocket connection
                         removeConnection(messagingConnectionId)
                     }
                 }

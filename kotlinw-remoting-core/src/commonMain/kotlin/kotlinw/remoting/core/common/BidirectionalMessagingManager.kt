@@ -424,12 +424,6 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
             logger.warning(e.nonFatalOrThrow()) { "Failed to cancel supervisor scope of messaging manager." }
         }
 
-        try {
-            bidirectionalConnection.close()
-        } catch (e: Throwable) {
-            logger.warning(e.nonFatalOrThrow()) { "Failed to close bidirectional connection." }
-        }
-
         initiatedConversations.values.forEach {
             try {
                 it.suspendedCoroutineData.value?.continuation?.resumeWithException(MessagingChannelDisconnectedException())

@@ -5,13 +5,10 @@ import arrow.core.nonFatalOrThrow
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.core.RawMessage
-import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.Connected
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.Connecting
 import kotlinw.remoting.core.client.WebSocketRemotingClientImpl.BidirectionalMessagingStatus.Disconnected
@@ -40,18 +37,16 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.KSerializer
 import xyz.kotlinw.remoting.api.PersistentRemotingClient
+import xyz.kotlinw.remoting.api.PersistentRemotingConnection
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
-import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
-import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 
 class WebSocketRemotingClientImpl<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
@@ -63,7 +58,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     loggerFactory: LoggerFactory,
     parentCoroutineContext: CoroutineContext,
     private val reconnectAutomatically: Boolean = true
-) : RemotingClientCallSupport, RemotingClientFlowSupport, PersistentRemotingClient {
+) : PersistentRemotingClient {
 
     private val logger = loggerFactory.getLogger()
 
@@ -236,6 +231,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             } else {
                                 logger.debug { "Connection failed: " / cause.message }
                             }
+
+                            // TODO biztos, hogy ide csak "connection failed" típusú exception-ök esetén jutunk?
                         }
                     } finally {
                         if (connectionIdForClosing != null) {
@@ -266,45 +263,15 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    override suspend fun <T : Any, P : Any, R> call(
-        serviceKClass: KClass<T>,
-        methodKFunction: KFunction<R>,
-        serviceId: String,
-        methodId: String,
-        parameter: P,
-        parameterSerializer: KSerializer<P>,
-        resultDeserializer: KSerializer<R>
-    ): R =
-        withMessagingManager {
-            call(
-                ServiceLocator(serviceId, methodId),
-                parameter,
-                parameterSerializer,
-                resultDeserializer
-            )
-        }
-
-    override suspend fun <T : Any, P : Any, F> requestIncomingColdFlow(
-        serviceKClass: KClass<T>,
-        methodKFunction: KFunction<Flow<F>>,
-        serviceId: String,
-        methodId: String,
-        parameter: P,
-        parameterSerializer: KSerializer<P>,
-        flowValueDeserializer: KSerializer<F>,
-        callId: String
-    ): Flow<F> =
-        withMessagingManager {
-            requestColdFlowResult(
-                ServiceLocator(serviceId, methodId),
-                parameter,
-                parameterSerializer,
-                flowValueDeserializer,
-                callId
-            )
-        }
-
     override suspend fun close() {
         cancel()
+    }
+
+    override suspend fun withConnection(block: suspend (PersistentRemotingConnection) -> Unit) {
+        withMessagingManager {
+            launch {
+                block(PersistentRemotingConnectionImpl(this@withMessagingManager))
+            }
+        }.join()
     }
 }

@@ -28,6 +28,10 @@ import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
+import kotlinw.util.stdlib.infiniteLoop
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 
 class KtorHttpRemotingClientImplementor(
@@ -124,6 +128,13 @@ class KtorHttpRemotingClientImplementor(
                 httpClient.webSocketSession(url.toString()).also { clientWebSocketSession ->
                     logger.debug { "Connected to WebSocket server: " / url }
 
+                    clientWebSocketSession.launch {
+                        infiniteLoop {
+                            println("<<<< xxx")
+                            delay(1000)
+                        }
+                    }
+
                     try {
                         block(
                             WebSocketBidirectionalMessagingConnection(
@@ -136,7 +147,11 @@ class KtorHttpRemotingClientImplementor(
                             )
                         )
                     } finally {
-                        clientWebSocketSession.close()
+                        logger.trace { "Disconnecting from WebSocket server: " / url }
+                        runCatching {
+                            clientWebSocketSession.close() // TODO különválasztani az exception miatti close()-t és a normál close()-t
+                        }
+                        clientWebSocketSession.cancel()  // Explicitly cancel the coroutine scope of the WebSocket connection
                         logger.debug { "Disconnected from WebSocket server: " / url }
                     }
                 }
