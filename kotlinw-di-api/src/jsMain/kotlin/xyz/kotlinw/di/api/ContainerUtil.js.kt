@@ -6,4 +6,10 @@ suspend fun <T : ContainerScope> runJsApplication(
     rootScopeFactory: () -> T,
     block: suspend T.() -> Unit = { delay(Long.MAX_VALUE) }
 ) =
-    runApplication(rootScopeFactory, block = block)
+    runApplication(
+        rootScopeFactory = rootScopeFactory,
+        block = {
+            block()
+            delay(Long.MAX_VALUE)
+        }
+    )
