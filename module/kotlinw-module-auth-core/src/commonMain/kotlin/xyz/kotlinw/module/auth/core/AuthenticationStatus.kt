@@ -15,7 +15,7 @@ sealed class AuthenticationStatus {
 
     @Serializable
     @SerialName("Authenticated")
-    data class Authenticated(val userId: String, val userName: String, override val permissions: Set<PermissionKey>) :
+    data class Authenticated(val principal: String, val humanReadableName: String?, override val permissions: Set<PermissionKey>) :
         AuthenticationStatus()
 }
 

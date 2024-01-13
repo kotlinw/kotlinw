@@ -15,7 +15,7 @@ import xyz.kotlinw.di.api.Component
 @Audited
 class ApplicationConfigurationEntity(
 
-    @Column(nullable = false, columnDefinition = pgTextType)
+    @Column(nullable = false, columnDefinition = pgTextType, unique = true)
     var name: String,
 
     @Column(nullable = false, columnDefinition = pgTextType)
