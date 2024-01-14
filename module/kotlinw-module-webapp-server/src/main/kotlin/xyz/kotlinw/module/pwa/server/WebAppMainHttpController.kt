@@ -2,6 +2,7 @@ package xyz.kotlinw.module.pwa.server
 
 import io.ktor.http.ContentType.Text
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
@@ -10,47 +11,47 @@ import kotlinw.configuration.core.DeploymentMode
 import kotlinw.configuration.core.DeploymentMode.Development
 import kotlinw.serialization.core.SerializerService
 import kotlinw.serialization.core.serialize
-import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.module.webapp.core.InitialWebAppClientEnvironmentData
 import xyz.kotlinw.module.webapp.core.initialWebAppClientEnvironmentJsDataVariableName
 
-@Component
 class WebAppMainHttpController(
     private val deploymentMode: DeploymentMode,
     private val webAppServerEnvironmentProvider: WebAppServerEnvironmentProvider,
-    private val serializerService: SerializerService
+    private val serializerService: SerializerService,
+    private val authenticationProviderId: String? = null
 ) : KtorServerApplicationConfigurer() {
 
     override fun Context.setup() {
         ktorApplication.routing {
-            route("/") {
-                // TODO további oldalakat is kiszolgálni, ne csak a root-ot
-                // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
-                val title = "PWA" // TODO paraméterként + i18n
-                val applicationFilePath = if (deploymentMode == Development)
-                    "/app.js" // TODO lehetne valami directory is, de eddig nem sikerült úgy bekonfigolni a webapp build-et :\
-                else
-                    "/app/pwa/js/app.js" // TODO konfigurálható
+            authenticate(authenticationProviderId) {
+                route("/") {
+                    // TODO további oldalakat is kiszolgálni, ne csak a root-ot
+                    // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
+                    val title = "PWA" // TODO paraméterként + i18n
+                    val applicationFilePath = if (deploymentMode == Development)
+                        "/app.js" // TODO lehetne valami directory is, de eddig nem sikerült úgy bekonfigolni a webapp build-et :\
+                    else
+                        "/app/pwa/js/app.js" // TODO konfigurálható
 
-                get {
-                    val initialWebAppClientEnvironmentData = with(call) {
-                        InitialWebAppClientEnvironmentData(
-                            webAppServerEnvironmentProvider.localeId,
-                            webAppServerEnvironmentProvider.authenticationStatus
-                        )
-                    }
+                    get {
+                        val initialWebAppClientEnvironmentData = with(call) {
+                            InitialWebAppClientEnvironmentData(
+                                webAppServerEnvironmentProvider.localeId,
+                                webAppServerEnvironmentProvider.authenticationStatus
+                            )
+                        }
 
-                    // TODO html/lang
-                    // TODO theme-color
-                    // TODO további meta tag-ek
-                    // TODO service worker registration in 'load' event: https://web.dev/articles/service-workers-registration
-                    // TODO splash
-                    // TODO workaround using 'originalFetch': https://youtrack.jetbrains.com/issue/KTOR-539/Ability-to-use-browser-cookie-storage
+                        // TODO html/lang
+                        // TODO theme-color
+                        // TODO további meta tag-ek
+                        // TODO service worker registration in 'load' event: https://web.dev/articles/service-workers-registration
+                        // TODO splash
+                        // TODO workaround using 'originalFetch': https://youtrack.jetbrains.com/issue/KTOR-539/Ability-to-use-browser-cookie-storage
 
-                    val serviceWorkerWebPath = "/app/pwa/js/sw.js" // TODO konfigurálható
-                    call.respondText(
-                        """
+                        val serviceWorkerWebPath = "/app/pwa/js/sw.js" // TODO konfigurálható
+                        call.respondText(
+                            """
                             <!doctype html>
                             <html lang="hu">
                                 <head>
@@ -71,10 +72,10 @@ class WebAppMainHttpController(
                                             navigator.serviceWorker.register('$serviceWorkerWebPath');
                                         }
                                         var $initialWebAppClientEnvironmentJsDataVariableName = `${
-                            serializerService.serialize(
-                                initialWebAppClientEnvironmentData
-                            )
-                        }`;
+                                serializerService.serialize(
+                                    initialWebAppClientEnvironmentData
+                                )
+                            }`;
                                     </script>
                                 </head>
                                 <body>
@@ -83,8 +84,9 @@ class WebAppMainHttpController(
                                 </body>
                             </html>
                         """.trimIndent(),
-                        Text.Html
-                    )
+                            Text.Html
+                        )
+                    }
                 }
             }
         }

@@ -20,4 +20,7 @@ class WebAppServerModule {
     @Component // TODO bind only to interface types
     fun webResourceRegistry(webResourceRegistrants: List<WebResourceRegistrant>) =
         WebResourceRegistryImpl(webResourceRegistrants)
+
+    @Component
+    fun webAppMainHttpControllerChecker(webAppMainHttpController: WebAppMainHttpController) = Unit
 }
