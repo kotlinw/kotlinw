@@ -8,7 +8,7 @@ interface PersistentRemotingClient: CoroutineScope {
 
     val isConnected: Boolean
 
-    suspend fun connect(): Nothing
+    suspend fun connectAndRunMessageLoop(): Nothing
 
     suspend fun close()
 

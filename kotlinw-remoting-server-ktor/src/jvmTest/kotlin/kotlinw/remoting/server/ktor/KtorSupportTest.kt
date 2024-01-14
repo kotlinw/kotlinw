@@ -119,7 +119,7 @@ class KtorSupportTest {
             )
 
         remotingClient.launch(context = CoroutineName("runMessagingLoop"), start = UNDISPATCHED) {
-            remotingClient.connect()
+            remotingClient.connectAndRunMessageLoop()
         }
 
         remotingClient.withConnection {

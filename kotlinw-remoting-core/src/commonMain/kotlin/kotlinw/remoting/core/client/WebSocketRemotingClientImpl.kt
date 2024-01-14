@@ -133,7 +133,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    override suspend fun connect(): Nothing {
+    override suspend fun connectAndRunMessageLoop(): Nothing {
         if (messagingLoopRunningFlag.compareAndSet(false, true)) {
             try {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)
@@ -175,7 +175,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
 
                     var connectionIdForClosing: RemoteConnectionId? = null
                     try {
-                        coroutineScope {
+                        coroutineScope { // TODO ez a coroutineScope() hívás miért is kell ide? merthogy enélkül nem működik :\
                             httpSupportImplementor.runInSession(wsUrl, messageCodec) {
                                 connectionIdForClosing = remoteConnectionId
 
@@ -264,6 +264,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     }
 
     override suspend fun close() {
+        // TODO itt nem elég a cancel(), ténylegesen le kellene zárni a kapcsolatot, ha épp van
         cancel()
     }
 
