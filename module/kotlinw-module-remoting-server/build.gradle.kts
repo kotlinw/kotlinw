@@ -27,11 +27,6 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val jvmMain by getting {
-            dependencies {
-                implementation(libs.ktor.server.netty)
-            }
-        }
     }
 }
 

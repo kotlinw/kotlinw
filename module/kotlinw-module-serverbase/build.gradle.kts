@@ -30,7 +30,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(libs.ktor.server.netty)
+                implementation(libs.ktor.server.cio)
             }
         }
     }
