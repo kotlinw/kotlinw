@@ -25,9 +25,6 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                // implementation(libs.ktor.server.test.host)
-                // implementation(libs.ktor.server.core)
-                implementation(libs.ktor.server.cio)
             }
         }
         val jvmMain by getting {
