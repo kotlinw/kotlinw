@@ -28,6 +28,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwDiApi)
                 api(libs.ktor.client.content.negotiation)
+                api(libs.ktor.client.logging)
                 implementation(libs.ktor.serialization.kotlinx.json)
             }
         }

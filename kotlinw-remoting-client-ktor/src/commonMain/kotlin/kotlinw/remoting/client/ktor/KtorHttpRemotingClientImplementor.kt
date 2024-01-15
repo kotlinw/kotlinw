@@ -128,13 +128,6 @@ class KtorHttpRemotingClientImplementor(
                 httpClient.webSocketSession(url.toString()).also { clientWebSocketSession ->
                     logger.debug { "Connected to WebSocket server: " / url }
 
-                    clientWebSocketSession.launch {
-                        infiniteLoop {
-                            println("<<<< xxx")
-                            delay(1000)
-                        }
-                    }
-
                     try {
                         block(
                             WebSocketBidirectionalMessagingConnection(
@@ -151,7 +144,7 @@ class KtorHttpRemotingClientImplementor(
                         runCatching {
                             clientWebSocketSession.close() // TODO különválasztani az exception miatti close()-t és a normál close()-t
                         }
-                        clientWebSocketSession.cancel()  // Explicitly cancel the coroutine scope of the WebSocket connection
+                        clientWebSocketSession.cancel()  // Explicitly cancel the coroutine scope of the WebSocket connection (bug?)
                         logger.debug { "Disconnected from WebSocket server: " / url }
                     }
                 }

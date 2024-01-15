@@ -152,7 +152,7 @@ class WebSocketRemotingProvider(
                     } catch (e: Throwable) {
                         logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
                     } finally {
-                        cancel() // Explicitly cancel the coroutine scope of the WebSocket connection
+                        cancel() // Explicitly cancel the coroutine scope of the WebSocket connection (bug?)
                         removeConnection(messagingConnectionId)
                     }
                 }

@@ -37,9 +37,9 @@ interface RemotingClientFactory {
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         messageCodec: MessageCodec<*>? = null,
         httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {},
-        httpClientCustomizer: HttpClient.() -> HttpClient = {
-            config {
-                pluginOrNull(WebSockets) ?: install(WebSockets) // TODO valami default beállítást, ha itt install()-áljuk?
+        httpClientCustomizer: (HttpClient) -> HttpClient = {
+            it.config {
+                it.pluginOrNull(WebSockets) ?: install(WebSockets) // TODO valami default beállítást, ha itt install()-áljuk?
             }
         }
     ): PersistentRemotingClient
