@@ -12,6 +12,7 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
+import kotlinw.logging.api.withLoggingContext
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
@@ -24,12 +25,9 @@ import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import kotlinw.util.stdlib.infiniteLoop
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
@@ -124,38 +122,37 @@ class WebSocketRemotingProvider(
                     val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
-                    logger.debug {
-                        "Connected WS client: " /
-                                mapOf("principal" to principal, "remoteConnectionId" to remoteConnectionId)
-                    }
+                    logger.withLoggingContext(mapOf("kotlinw.principal" to principal.toString())) {
+                        logger.debug { "Connected WS client: " / mapOf("remoteConnectionId" to remoteConnectionId) }
 
-                    val connection =
-                        WebSocketBidirectionalMessagingConnection(
-                            remoteConnectionId,
-                            this,
-                            messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage> // TODO check?
-                        )
-
-                    try {
-                        val sessionMessagingManager =
-                            BidirectionalMessagingManagerImpl(
-                                connection,
-                                messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-                                delegators,
-                                principal
+                        val connection =
+                            WebSocketBidirectionalMessagingConnection(
+                                remoteConnectionId,
+                                this,
+                                messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage> // TODO check?
                             )
-                        addConnection(remoteConnectionId, principal, sessionMessagingManager)
-                        sessionMessagingManager.processIncomingMessages()
-                    } catch (e: ClosedReceiveChannelException) {
-                        val closeReason = closeReason.await()
-                        logger.debug { "Connection closed, reason: " / closeReason }
-                        throw e
-                    } catch (e: Throwable) {
-                        logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
-                        throw e
-                    } finally {
-                        cancel() // Explicitly cancel the coroutine scope of the WebSocket connection (bug?)
-                        removeConnection(messagingConnectionId)
+
+                        try {
+                            val sessionMessagingManager =
+                                BidirectionalMessagingManagerImpl(
+                                    connection,
+                                    messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
+                                    delegators,
+                                    principal
+                                )
+                            addConnection(remoteConnectionId, principal, sessionMessagingManager)
+                            sessionMessagingManager.processIncomingMessages()
+                        } catch (e: ClosedReceiveChannelException) {
+                            val closeReason = closeReason.await()
+                            logger.debug { "Connection closed, reason: " / closeReason }
+                            throw e
+                        } catch (e: Throwable) {
+                            logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
+                            throw e
+                        } finally {
+                            cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
+                            removeConnection(messagingConnectionId)
+                        }
                     }
                 }
             }

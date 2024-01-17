@@ -21,10 +21,10 @@ object StdoutLoggingIntegrator : LoggingIntegrator {
 
     override fun isLogLevelEnabled(logger: LoggerImplementor, level: LogLevel): Boolean = true
 
-    override fun <T> withLoggingContext(contextChangeMap: Map<String, String?>, block: () -> T): T =
+    override fun <T> withNonSuspendableLoggingContext(contextChangeMap: Map<String, String?>, block: () -> T): T =
         block() // TODO implement
 
-    override suspend fun <T> withCoroutineLoggingContext(
+    override suspend fun <T> withLoggingContext(
         contextChangeMap: Map<String, String?>,
         block: suspend () -> T
     ): T =

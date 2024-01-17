@@ -20,7 +20,7 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
 
     companion object {
 
-        private const val ArgumentPlaceholder = "{}"
+        private const val ARGUMENT_PLACEHOLDER = "{}"
     }
 
     inner class Slf4jLoggerWrapper(val slf4jLogger: Slf4jLogger) : LoggerImplementor {
@@ -84,7 +84,7 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
 
         builder.setMessage(
             message.processPlaceholders(
-                { ArgumentPlaceholder },
+                { ARGUMENT_PLACEHOLDER },
                 { builder.addArgument(it) },
                 { name, value ->
                     builder.addKeyValue(name, value)
@@ -120,10 +120,10 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
         }
     }
 
-    override fun <T> withLoggingContext(contextChangeMap: Map<String, String?>, block: () -> T): T =
+    override fun <T> withNonSuspendableLoggingContext(contextChangeMap: Map<String, String?>, block: () -> T): T =
         setupLoggingContext(contextChangeMap, block)
 
-    override suspend fun <T> withCoroutineLoggingContext(
+    override suspend fun <T> withLoggingContext(
         contextChangeMap: Map<String, String?>,
         block: suspend () -> T
     ): T =

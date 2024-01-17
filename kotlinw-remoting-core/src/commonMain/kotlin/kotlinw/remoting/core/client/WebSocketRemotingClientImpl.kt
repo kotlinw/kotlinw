@@ -38,6 +38,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -263,13 +264,21 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     }
 
     override suspend fun close() {
-        // TODO itt nem elég a cancel(), ténylegesen le kellene zárni a kapcsolatot, ha épp van
-        cancel()
+        cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
     }
 
     override suspend fun withConnection(block: suspend (PersistentRemotingConnection) -> Unit) {
-        withMessagingManager {
-            block(PersistentRemotingConnectionImpl(this@withMessagingManager))
+        val job = withMessagingManager {
+            launch {
+                block(PersistentRemotingConnectionImpl(this@withMessagingManager))
+            }
+        }
+
+        try {
+            job.join()
+        } catch (e: CancellationException) {
+            job.cancel()
+            throw e
         }
     }
 }

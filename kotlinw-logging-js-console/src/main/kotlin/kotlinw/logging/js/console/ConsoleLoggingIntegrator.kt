@@ -29,9 +29,9 @@ object ConsoleLoggingIntegrator: LoggingIntegrator {
     }
 
     @Deprecated("Not supported on JS platform", level = DeprecationLevel.ERROR)
-    override fun <T> withLoggingContext(contextChangeMap: Map<String, String?>, block: () -> T) =
+    override fun <T> withNonSuspendableLoggingContext(contextChangeMap: Map<String, String?>, block: () -> T) =
         throw UnsupportedOperationException()
 
-    override suspend fun <T> withCoroutineLoggingContext(contextChangeMap: Map<String, String?>, block: suspend () -> T): T =
+    override suspend fun <T> withLoggingContext(contextChangeMap: Map<String, String?>, block: suspend () -> T): T =
         block() // TODO implement
 }

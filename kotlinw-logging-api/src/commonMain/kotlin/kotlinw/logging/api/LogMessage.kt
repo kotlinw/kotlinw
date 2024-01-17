@@ -10,7 +10,7 @@ sealed interface LogMessage {
         override fun toString(): String = "<failed: ${exception::class}: ${exception.message}>"
     }
 
-    object Empty: LogMessage
+    data object Empty: LogMessage
 
     @JvmInline
     value class SimpleText(val messageText: String) : LogMessage

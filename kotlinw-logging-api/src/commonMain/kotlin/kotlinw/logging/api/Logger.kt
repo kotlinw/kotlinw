@@ -1,5 +1,7 @@
+@file:JvmName("LoggingContextJvm")
 package kotlinw.logging.api
 
+import kotlin.jvm.JvmName
 import kotlinw.logging.spi.LogMessageProvider
 import kotlinw.logging.spi.LoggerImplementor
 import kotlinw.logging.spi.buildLogMessage
@@ -42,3 +44,14 @@ internal fun Logger.log(
     attributes: Collection<LogEntryAttribute>
 ) =
     (this as LoggerImplementor).loggingIntegrator.log(this, level, cause, message, attributes)
+
+expect fun <T> Logger.withNonSuspendableLoggingContext(
+    contextChangeMap: Map<String, String?>,
+    block: () -> T
+): T
+
+suspend fun <T> Logger.withLoggingContext(
+    contextChangeMap: Map<String, String?>,
+    block: suspend () -> T
+): T =
+    (this as LoggerImplementor).loggingIntegrator.withLoggingContext(contextChangeMap, block)
