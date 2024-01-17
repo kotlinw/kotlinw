@@ -45,7 +45,7 @@ class KtorApplicationEngineManager(
     override val lifecycleListenerPriority: Priority get() = Priority.Normal
 
     override suspend fun onContainerStartup() {
-        // See the `private`: PlatformUtilsJvm.DEVELOPMENT_MODE_KEY
+        // The same value as the `private`: PlatformUtilsJvm.DEVELOPMENT_MODE_KEY
         System.setProperty("io.ktor.development", (deploymentMode == DeploymentMode.Development).toString())
 
         val logger = loggerFactory.getLogger()
