@@ -15,14 +15,15 @@ suspend fun <T : ContainerScope> runJvmApplication(
     println(System.getProperty("java.version")) // TODO remove
 
     runApplication(
-        rootScopeFactory,
-        ::createPidFile,
-        {
+        rootScopeFactory = rootScopeFactory,
+        beforeScopeCreated = ::createPidFile,
+        afterUninitializedScopeCreated = {
             Runtime.getRuntime().addShutdownHook(
                 Thread {
+                    // TODO log
                     try {
                         runBlocking {
-                            it.close()
+                            shutdownApplication(it, it.containerLifecycleCoordinator)
                         }
                     } finally {
                         deletePidFile()
@@ -30,7 +31,7 @@ suspend fun <T : ContainerScope> runJvmApplication(
                 }
             )
         },
-        ::deletePidFile,
-        block
+        shutdown = ::deletePidFile,
+        block = block
     )
 }

@@ -4,6 +4,7 @@ import arrow.atomic.AtomicInt
 import arrow.atomic.value
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.AuthConfig
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
@@ -17,7 +18,7 @@ import xyz.kotlinw.oauth2.core.OAuth2BearerTokens
 import xyz.kotlinw.oauth2.core.OAuth2TokenResponse
 import xyz.kotlinw.oauth2.core.tokens
 
-fun Auth.bearer(
+fun AuthConfig.bearer(
     realm: String? = null,
     tokenStorage: MutableOAuth2TokenStorage = MutableOAuth2TokenStorageImpl(),
     alwaysSendCredentials: (HttpRequestBuilder) -> Boolean = { true },

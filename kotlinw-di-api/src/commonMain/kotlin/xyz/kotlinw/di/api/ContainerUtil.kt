@@ -1,7 +1,9 @@
 package xyz.kotlinw.di.api
 
 import arrow.core.nonFatalOrThrow
+import kotlinw.util.stdlib.DelicateKotlinwApi
 import kotlinx.coroutines.delay
+import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 
 // TODO non-public API
@@ -29,10 +31,19 @@ suspend fun <T : ContainerScope> runApplication(
             } catch (e: Exception) {
                 throw RuntimeException(e.nonFatalOrThrow()) // TODO log
             } finally {
-                close()
+                shutdownApplication(this, containerLifecycleCoordinator)
             }
         }
     } finally {
         shutdown()
     }
+}
+
+@DelicateKotlinwApi
+suspend fun shutdownApplication(
+    containerScope: ContainerScope,
+    containerLifecycleCoordinator: ContainerLifecycleCoordinator?
+) {
+    (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runShutdownTasks()
+    containerScope.close()
 }

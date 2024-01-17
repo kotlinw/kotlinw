@@ -124,6 +124,13 @@ class WebSocketRemotingProvider(
                     val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
+                    launch {
+                        while (true) {
+                            println(">>> from WS: $this")
+                            delay(1000)
+                        }
+                    }
+
                     logger.debug {
                         "Connected WS client: " /
                                 mapOf("principal" to principal, "remoteConnectionId" to remoteConnectionId)
@@ -149,8 +156,10 @@ class WebSocketRemotingProvider(
                     } catch (e: ClosedReceiveChannelException) {
                         val closeReason = closeReason.await()
                         logger.debug { "Connection closed, reason: " / closeReason }
+                        throw e
                     } catch (e: Throwable) {
                         logger.error(e.nonFatalOrThrow()) { "Disconnected: " / remoteConnectionId }
+                        throw e
                     } finally {
                         cancel() // Explicitly cancel the coroutine scope of the WebSocket connection (bug?)
                         removeConnection(messagingConnectionId)
