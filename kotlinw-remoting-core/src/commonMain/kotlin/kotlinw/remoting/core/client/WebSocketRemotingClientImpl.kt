@@ -38,7 +38,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -270,9 +269,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
 
     override suspend fun withConnection(block: suspend (PersistentRemotingConnection) -> Unit) {
         withMessagingManager {
-            launch {
-                block(PersistentRemotingConnectionImpl(this@withMessagingManager))
-            }
-        }.join()
+            block(PersistentRemotingConnectionImpl(this@withMessagingManager))
+        }
     }
 }
