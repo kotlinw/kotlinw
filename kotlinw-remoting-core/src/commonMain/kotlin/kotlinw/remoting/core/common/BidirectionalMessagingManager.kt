@@ -116,6 +116,8 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
                     val targetMethodDescriptor = targetServiceDescriptor.methodDescriptors[methodId]
                         ?: throw IllegalStateException("Unexpected remote method ID: $methodId")
 
+                    logger.debug { "Incoming RPC call: " / serviceId / "." / methodId }
+
                     when (targetMethodDescriptor) {
                         is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {
                             val resultFlow = targetServiceDescriptor.processCall(

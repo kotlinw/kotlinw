@@ -17,9 +17,7 @@ interface PersistentRemotingClient: CoroutineScope {
     )
 }
 
-interface PersistentRemotingConnection: RemotingClient, RemotingClientCallSupport, RemotingClientFlowSupport {
-
-    val coroutineScope: CoroutineScope
+interface PersistentRemotingConnection: RemotingClient, RemotingClientCallSupport, RemotingClientFlowSupport, CoroutineScope {
 
     suspend fun close()
 }

@@ -11,9 +11,7 @@ import xyz.kotlinw.remoting.api.PersistentRemotingConnection
 
 class PersistentRemotingConnectionImpl(
     private val messagingManager: BidirectionalMessagingManager
-) : PersistentRemotingConnection {
-
-    override val coroutineScope: CoroutineScope get() = messagingManager
+) : PersistentRemotingConnection, CoroutineScope by messagingManager {
 
     override suspend fun <T : Any, P : Any, R> call(
         serviceKClass: KClass<T>,

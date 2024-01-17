@@ -124,13 +124,6 @@ class WebSocketRemotingProvider(
                     val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
-                    launch {
-                        while (true) {
-                            println(">>> from WS: $this")
-                            delay(1000)
-                        }
-                    }
-
                     logger.debug {
                         "Connected WS client: " /
                                 mapOf("principal" to principal, "remoteConnectionId" to remoteConnectionId)
