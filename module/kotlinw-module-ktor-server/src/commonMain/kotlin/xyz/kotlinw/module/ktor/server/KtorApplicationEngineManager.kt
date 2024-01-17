@@ -9,8 +9,6 @@ import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.applicationEnvironment
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinw.configuration.core.ConfigurationException
 import kotlinw.configuration.core.ConfigurationPropertyLookup
@@ -22,11 +20,10 @@ import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.util.coroutine.createNestedSupervisorScope
 import kotlinw.util.stdlib.Priority
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ContainerLifecycleListener
-import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
+import xyz.kotlinw.di.api.OnTerminate
 import xyz.kotlinw.module.core.ApplicationCoroutineService
 
 @Component
@@ -100,6 +97,16 @@ class KtorApplicationEngineManager(
     }
 
     override suspend fun onContainerShutdown() {
+        stopServer()
+    }
+
+    @OnTerminate
+    fun close() {
+        stopServer()
+    }
+
+    private fun stopServer() {
         embeddedServerHolder?.stop()
+        embeddedServerHolder = null
     }
 }
