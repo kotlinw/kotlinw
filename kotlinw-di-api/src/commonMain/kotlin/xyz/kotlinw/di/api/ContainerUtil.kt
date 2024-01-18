@@ -34,6 +34,8 @@ suspend fun <T : ContainerScope> runApplication(
                 shutdownApplication(this, containerLifecycleCoordinator)
             }
         }
+    } catch (e: Throwable) {
+        e.nonFatalOrThrow().printStackTrace() // TODO
     } finally {
         shutdown()
     }

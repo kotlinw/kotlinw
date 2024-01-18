@@ -3,7 +3,6 @@ package xyz.kotlinw.oauth2.ktor.client
 import arrow.atomic.AtomicInt
 import arrow.atomic.value
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.AuthConfig
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -19,11 +18,12 @@ import xyz.kotlinw.oauth2.core.OAuth2TokenResponse
 import xyz.kotlinw.oauth2.core.tokens
 
 fun AuthConfig.bearer(
+    httpClient: HttpClient,
     realm: String? = null,
     tokenStorage: MutableOAuth2TokenStorage = MutableOAuth2TokenStorageImpl(),
     alwaysSendCredentials: (HttpRequestBuilder) -> Boolean = { true },
     loadInitialTokens: suspend () -> OAuth2BearerTokens? = { null },
-    renewTokens: suspend (httpClient: HttpClient, httpResponse: HttpResponse, oldTokens: OAuth2BearerTokens?) -> OAuth2TokenResponse,
+    renewTokens: suspend (httpClient: HttpClient, unauthorizedHttpResponse: HttpResponse?, oldTokens: OAuth2BearerTokens?) -> OAuth2TokenResponse,
 ) {
     val tokensRevisionHolder = AtomicInt(0)
     val refreshTokensLock = Mutex()
@@ -37,11 +37,14 @@ fun AuthConfig.bearer(
         fun BearerTokens.convertTokens() = OAuth2BearerTokens(accessToken, refreshToken.ifEmpty { null })
 
         loadTokens {
+            // TODO exception-öket kezelni
             val initialTokens = loadInitialTokens()
+                ?: renewTokens(httpClient, null, null).tokens
             tokenStorage.updateAndGetTokens { initialTokens }
-            initialTokens?.convertTokens()
+            initialTokens.convertTokens()
         }
         refreshTokens {
+            // TODO exception-öket kezelni
             val revisionBeforeLock = tokensRevisionHolder.value
             refreshTokensLock.withLock {
                 if (tokensRevisionHolder.value == revisionBeforeLock) {
