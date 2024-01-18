@@ -35,6 +35,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
@@ -277,7 +278,9 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         try {
             job.join()
         } catch (e: CancellationException) {
-            job.cancel()
+            withContext(NonCancellable) {
+                job.cancelAndJoin()
+            }
             throw e
         }
     }

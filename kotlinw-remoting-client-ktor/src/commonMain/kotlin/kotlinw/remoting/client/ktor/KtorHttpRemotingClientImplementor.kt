@@ -96,9 +96,7 @@ class KtorHttpRemotingClientImplementor(
 
                 logger.debug { "Connecting to WebSocket server: " / url }
 
-                httpClient.webSocketSession(url.toString()) {
-
-                }.also { clientWebSocketSession ->
+                httpClient.webSocketSession(url.toString()).also { clientWebSocketSession ->
                     logger.debug { "Connected to WebSocket server: " / url }
 
                     try {

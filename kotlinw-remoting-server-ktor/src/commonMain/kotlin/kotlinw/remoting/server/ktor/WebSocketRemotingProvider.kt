@@ -46,7 +46,7 @@ class WebSocketRemotingProvider(
 
         if (ktorApplication.pluginOrNull(WebSockets) == null) {
             logger.warning { "Installing ktor-server plugin '${WebSockets.key.name}' with default settings." }
-            ktorApplication.install(WebSockets)
+            ktorApplication.install(WebSockets)// TODO add ping config
         }
 
         val webSocketRemotingConfiguration =
