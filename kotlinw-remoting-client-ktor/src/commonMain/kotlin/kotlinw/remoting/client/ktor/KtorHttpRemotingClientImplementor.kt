@@ -21,10 +21,10 @@ import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
-import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.SingleSessionBidirectionalMessagingConnection
 import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.SynchronousCallSupport
-import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
+import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
@@ -84,7 +84,7 @@ class KtorHttpRemotingClientImplementor(
     override suspend fun runInSession(
         url: Url,
         messageCodecDescriptor: MessageCodecDescriptor,
-        block: suspend BidirectionalMessagingConnection.() -> Unit
+        block: suspend SingleSessionBidirectionalMessagingConnection.() -> Unit
     ) {
         if (runInSessionIsRunning.compareAndSet(false, true)) {
             try {
@@ -101,7 +101,7 @@ class KtorHttpRemotingClientImplementor(
 
                     try {
                         block(
-                            WebSocketBidirectionalMessagingConnection(
+                            SingleSessionBidirectionalWebSocketConnection(
                                 RemoteConnectionId(
                                     messagingPeerId,
                                     messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds()

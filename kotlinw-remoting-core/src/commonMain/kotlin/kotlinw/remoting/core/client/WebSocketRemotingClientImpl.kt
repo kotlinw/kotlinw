@@ -32,8 +32,10 @@ import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
@@ -268,20 +270,28 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
     }
 
-    override suspend fun withConnection(block: suspend (PersistentRemotingConnection) -> Unit) {
-        val job = withMessagingManager {
-            launch {
+    @OptIn(InternalCoroutinesApi::class)
+    override suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> {
+        val deferred = withMessagingManager {
+            async {
                 block(PersistentRemotingConnectionImpl(this@withMessagingManager))
             }
         }
 
-        try {
-            job.join()
+        return try {
+            deferred.join()
+            if (deferred.isCancelled) {
+                Result.failure(deferred.getCancellationException())
+            } else {
+                Result.success(deferred.getCompleted())
+            }
         } catch (e: CancellationException) {
             withContext(NonCancellable) {
-                job.cancelAndJoin()
+                deferred.cancelAndJoin()
             }
             throw e
+        } catch (e: Throwable) {
+            Result.failure(e.nonFatalOrThrow())
         }
     }
 }

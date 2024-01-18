@@ -3,21 +3,19 @@ package kotlinw.remoting.core.ktor
 import io.ktor.websocket.*
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
-import kotlinw.remoting.core.common.BidirectionalMessagingConnection
+import kotlinw.remoting.core.common.SingleSessionBidirectionalMessagingConnection
 import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingConnectionId
 
-class WebSocketBidirectionalMessagingConnection(
+class SingleSessionBidirectionalWebSocketConnection(
     override val remoteConnectionId: RemoteConnectionId,
     private val webSocketSession: DefaultWebSocketSession,
     private val messageCodecDescriptor: MessageCodecDescriptor
-) : BidirectionalMessagingConnection, CoroutineScope by webSocketSession {
+) : SingleSessionBidirectionalMessagingConnection, CoroutineScope by webSocketSession {
 
     override suspend fun incomingRawMessages(): Flow<RawMessage> =
         flow {

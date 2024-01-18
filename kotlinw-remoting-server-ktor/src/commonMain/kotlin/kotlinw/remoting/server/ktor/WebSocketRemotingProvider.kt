@@ -1,7 +1,6 @@
 package kotlinw.remoting.server.ktor
 
 import arrow.core.nonFatalOrThrow
-import io.ktor.server.application.install
 import io.ktor.server.application.pluginOrNull
 import io.ktor.server.auth.Principal
 import io.ktor.server.auth.authenticate
@@ -21,7 +20,7 @@ import kotlinw.remoting.core.common.DelegatingRemotingClient
 import kotlinw.remoting.core.common.NewConnectionData
 import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.RemovedConnectionData
-import kotlinw.remoting.core.ktor.WebSocketBidirectionalMessagingConnection
+import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
@@ -45,8 +44,8 @@ class WebSocketRemotingProvider(
         }
 
         if (ktorApplication.pluginOrNull(WebSockets) == null) {
-            logger.warning { "Installing ktor-server plugin '${WebSockets.key.name}' with default settings." }
-            ktorApplication.install(WebSockets)// TODO add ping config
+            logger.info { "Installing Ktor server plugin '${WebSockets.key.name}' with default settings." }
+            ktorApplication.installServerWebSockets()
         }
 
         val webSocketRemotingConfiguration =
@@ -126,7 +125,7 @@ class WebSocketRemotingProvider(
                         logger.debug { "Connected WS client: " / mapOf("remoteConnectionId" to remoteConnectionId) }
 
                         val connection =
-                            WebSocketBidirectionalMessagingConnection(
+                            SingleSessionBidirectionalWebSocketConnection(
                                 remoteConnectionId,
                                 this,
                                 messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage> // TODO check?

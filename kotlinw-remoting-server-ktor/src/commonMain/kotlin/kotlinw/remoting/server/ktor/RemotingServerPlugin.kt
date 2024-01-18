@@ -1,6 +1,13 @@
 package kotlinw.remoting.server.ktor
 
+import io.ktor.server.application.Application
 import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.install
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.remoting.core.RawMessage
@@ -46,3 +53,9 @@ val RemotingServerPlugin =
             logger.warning { "Ktor RemotingServerPlugin is installed but no remoting configuration is defined." }
         }
     }
+
+fun Application.installServerWebSockets(pingPeriod: Duration = 30.seconds) {
+    install(WebSockets) {
+        this.pingPeriod = pingPeriod.toJavaDuration()
+    }
+}

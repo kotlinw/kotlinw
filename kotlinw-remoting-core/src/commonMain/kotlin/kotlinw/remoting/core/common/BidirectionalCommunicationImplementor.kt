@@ -8,6 +8,6 @@ interface BidirectionalCommunicationImplementor {
     suspend fun runInSession(
         url: Url,
         messageCodecDescriptor: MessageCodecDescriptor,
-        block: suspend BidirectionalMessagingConnection.() -> Unit
+        block: suspend SingleSessionBidirectionalMessagingConnection.() -> Unit
     )
 }

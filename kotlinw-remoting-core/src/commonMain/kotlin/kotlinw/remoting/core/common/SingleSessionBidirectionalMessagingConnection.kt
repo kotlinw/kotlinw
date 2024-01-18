@@ -3,12 +3,10 @@ package kotlinw.remoting.core.common
 import kotlinw.remoting.core.RawMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import xyz.kotlinw.remoting.api.MessagingPeerId
-import xyz.kotlinw.remoting.api.MessagingConnectionId
 
 class MessagingChannelDisconnectedException(): RuntimeException()
 
-interface BidirectionalMessagingConnection : CoroutineScope {
+interface SingleSessionBidirectionalMessagingConnection : CoroutineScope {
 
     val remoteConnectionId: RemoteConnectionId
 

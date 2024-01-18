@@ -7,7 +7,6 @@ import io.ktor.client.plugins.pluginOrNull
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.HttpRequestBuilder
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
@@ -22,15 +21,6 @@ import xyz.kotlinw.remoting.api.RemotingClient
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 
 interface RemotingClientFactory {
-
-    companion object {
-
-        fun <T : HttpClientEngineConfig> HttpClientConfig<T>.installClientWebSockets() {
-            install(WebSockets) {
-                // TODO elég a szerveren? pingInterval = 30.seconds.inWholeMilliseconds
-            }
-        }
-    }
 
     fun createWebRequestRemotingClient(
         remoteServerBaseUrl: Url,
@@ -101,4 +91,8 @@ class RemotingClientFactoryImpl(
             loggerFactory,
             parentCoroutineContext
         )
+}
+
+fun <T : HttpClientEngineConfig> HttpClientConfig<T>.installClientWebSockets() {
+    install(WebSockets)
 }

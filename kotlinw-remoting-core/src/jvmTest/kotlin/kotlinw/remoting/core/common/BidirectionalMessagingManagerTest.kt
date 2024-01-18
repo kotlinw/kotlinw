@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.serializer
-import xyz.kotlinw.remoting.api.MessagingConnectionId
-import xyz.kotlinw.remoting.api.MessagingPeerId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 
@@ -37,7 +35,7 @@ class BidirectionalMessagingManagerTest {
 
         private val peer2IncomingMessagesFlow = MutableSharedFlow<RawMessage>()
 
-        val peer1 = object : BidirectionalMessagingConnection {
+        val peer1 = object : SingleSessionBidirectionalMessagingConnection {
 
             override val remoteConnectionId get() = RemoteConnectionId("peer1", messagingSessionId)
 
@@ -52,7 +50,7 @@ class BidirectionalMessagingManagerTest {
             override val coroutineContext: CoroutineContext get() = coroutineScope.coroutineContext
         }
 
-        val peer2 = object : BidirectionalMessagingConnection {
+        val peer2 = object : SingleSessionBidirectionalMessagingConnection {
 
             override val remoteConnectionId get() = RemoteConnectionId("peer2", messagingSessionId)
 

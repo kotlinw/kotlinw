@@ -61,7 +61,7 @@ interface BidirectionalMessagingManager : CoroutineScope {
 }
 
 class BidirectionalMessagingManagerImpl<M : RawMessage>(
-    private val bidirectionalConnection: BidirectionalMessagingConnection,
+    private val bidirectionalConnection: SingleSessionBidirectionalMessagingConnection,
     private val messageCodec: MessageCodecWithMetadataPrefetchSupport<M>,
     private val remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>,
     override val principal: Any?
