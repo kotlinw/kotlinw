@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.9.21"
+kotlin = "1.9.22"
 
 # https://github.com/spring-projects/spring-boot/releases
 springBoot = "3.2.0"
@@ -76,7 +76,7 @@ flowredux = "1.0.2"
 
 mina = "2.9.2"
 
-ksp = "1.9.21-1.0.16"
+ksp = "1.9.22-1.0.17"
 
 kotlinpoet = "1.15.3"
 

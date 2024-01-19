@@ -13,11 +13,11 @@ buildscript {
 }
 
 plugins {
-//    kotlin("multiplatform") version "1.9.21" apply false
-//    kotlin("plugin.jpa") version "1.9.21" apply false
-//    id("com.google.devtools.ksp") version "1.9.21-1.0.16" apply false
-//    kotlin("plugin.serialization") version "1.9.21" apply false
-//    kotlin("plugin.spring") version "1.9.21" apply false
+//    kotlin("multiplatform") version "1.9.22" apply false
+//    kotlin("plugin.jpa") version "1.9.22" apply false
+//    id("com.google.devtools.ksp") version "1.9.22-1.0.17" apply false
+//    kotlin("plugin.serialization") version "1.9.22" apply false
+//    kotlin("plugin.spring") version "1.9.22" apply false
     id("org.jetbrains.compose") version "1.5.11" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
