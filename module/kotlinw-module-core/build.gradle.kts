@@ -42,7 +42,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(projects.kotlinw.kotlinwLoggingJvmLogback)
-                implementation(libs.ktor.client.cio)
+                implementation(libs.ktor.client.java)
             }
         }
         val jvmTest by getting {
