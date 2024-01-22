@@ -5,6 +5,7 @@ package kotlinw.util.stdlib
  *
  * Note: the byte array must not be modified while there are [ByteArrayView] instances referencing it.
  */
+@DelicateKotlinwApi
 class ByteArrayView private constructor(
     internal val source: ByteArray,
     internal val startIndex: Int = 0,

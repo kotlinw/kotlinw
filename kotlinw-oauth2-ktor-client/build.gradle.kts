@@ -1,15 +1,8 @@
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    `kotlinw-multiplatform-library`
 }
 
 kotlin {
-    targetHierarchy.default()
-    jvm { }
-    if (isNativeTargetEnabled()) {
-        linuxX64()
-    }
-
     sourceSets {
         commonMain {
             dependencies {

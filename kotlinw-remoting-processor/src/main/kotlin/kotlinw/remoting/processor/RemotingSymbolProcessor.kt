@@ -6,10 +6,12 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
+import com.google.devtools.ksp.symbol.ClassKind.ENUM_CLASS
 import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSTypeAlias
 import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
@@ -498,9 +500,10 @@ context(Resolver, KSPLogger)
 private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int, maxDepth: AtomicInteger): Boolean {
     maxDepth.set(max(depth, maxDepth.get()))
 
-    val ksType = resolve()
+    val ksType = resolve().let { if (it is KSTypeAlias) it.type.resolve() else it }
     val notNullKsType = ksType.makeNotNullable()
     val ksDeclaration = notNullKsType.declaration
+    val typeName = notNullKsType.toTypeName()
     val result =
         notNullKsType == builtIns.booleanType
                 ||
@@ -520,7 +523,26 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
                 ||
                 notNullKsType == builtIns.stringType
                 ||
-                ksDeclaration.modifiers.contains(Modifier.ENUM)
+                typeName == typeNameOf<BooleanArray>()
+                ||
+                typeName == typeNameOf<ByteArray>()
+                ||
+                typeName == typeNameOf<ShortArray>()
+                ||
+                typeName == typeNameOf<IntArray>()
+                ||
+                typeName == typeNameOf<LongArray>()
+                ||
+                typeName == typeNameOf<FloatArray>()
+                ||
+                typeName == typeNameOf<DoubleArray>()
+                ||
+                typeName == typeNameOf<CharArray>()
+                ||
+                (ksDeclaration is KSClassDeclaration &&ksDeclaration.classKind == ENUM_CLASS)
+                ||
+                (ksDeclaration == getClassDeclarationByName<Array<*>>()
+                        && notNullKsType.arguments[0].isSerializable("Array element", depth, maxDepth))
                 ||
                 (ksDeclaration == getClassDeclarationByName<Pair<*, *>>()
                         && notNullKsType.arguments[0].isSerializable("Pair's first element", depth, maxDepth)
@@ -542,7 +564,7 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
                 ||
                 (ksDeclaration as? KSClassDeclaration)?.classKind == ClassKind.OBJECT
                 ||
-                ksDeclaration == getClassDeclarationByName<Duration>()
+                ksDeclaration == getClassDeclarationByName<Duration>() // TODO only if annotated explicitly by @Serializable(with = ...)
                 ||
                 notNullKsType == builtIns.nothingType
                 ||
