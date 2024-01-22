@@ -7,7 +7,7 @@ plugins {
 dependencies {
     implementation(projects.kotlinw.module.kotlinwModuleServerbase)
 
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
 
     kspTest(projects.kotlinw.kotlinwDiProcessor)

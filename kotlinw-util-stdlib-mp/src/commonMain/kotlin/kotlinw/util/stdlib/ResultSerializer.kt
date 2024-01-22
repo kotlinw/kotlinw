@@ -20,3 +20,9 @@ data class SerializableResult<out V, out E>(
             throw IllegalStateException()
         }
 }
+
+fun <V, E> Result<V, E>.toSerializableResult() =
+    when (this) {
+        is Ok -> SerializableResult(value, null)
+        is Err -> SerializableResult(null, error)
+    }
