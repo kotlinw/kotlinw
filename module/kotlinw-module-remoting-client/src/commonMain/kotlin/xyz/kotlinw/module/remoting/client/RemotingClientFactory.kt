@@ -7,6 +7,8 @@ import io.ktor.client.plugins.pluginOrNull
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.HttpRequestBuilder
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.remoting.client.ktor.KtorHttpRemotingClientImplementor
 import kotlinw.remoting.core.client.WebRequestRemotingClientImpl
@@ -93,6 +95,8 @@ class RemotingClientFactoryImpl(
         )
 }
 
-fun <T : HttpClientEngineConfig> HttpClientConfig<T>.installClientWebSockets() {
-    install(WebSockets)
+fun <T : HttpClientEngineConfig> HttpClientConfig<T>.installClientWebSockets(pingPeriod: Duration = 30.seconds) {
+    install(WebSockets) {
+        this.pingInterval = pingPeriod.inWholeMilliseconds
+    }
 }
