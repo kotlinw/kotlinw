@@ -4,7 +4,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.application.pluginOrNull
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
@@ -20,17 +19,24 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import kotlinw.logging.platform.PlatformLogging
-import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.DownstreamColdFlow
-import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.SynchronousCall
 import kotlinw.remoting.core.RawMessage
+import kotlinw.remoting.core.RawMessage.Binary
+import kotlinw.remoting.core.RawMessage.Text
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
+import kotlinw.uuid.Uuid
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
+import xyz.kotlinw.remoting.api.MessagingConnectionId
+import xyz.kotlinw.remoting.api.RemoteCallContext
+import xyz.kotlinw.remoting.api.RemoteCallContextElement
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.DownstreamColdFlow
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor.SynchronousCall
 
 class WebRequestRemotingProvider(
     loggerFactory: LoggerFactory
@@ -41,7 +47,8 @@ class WebRequestRemotingProvider(
     override fun InstallationContext.install() {
         val messageCodec = requireNotNull(messageCodec) { "Message codec is undefined." }
 
-        val delegators = (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
+        val delegators =
+            (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
         if (
             delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
         ) {
@@ -57,7 +64,7 @@ class WebRequestRemotingProvider(
             route("/remoting") {
 
                 fun Route.configureRouting() {
-                    setupRouting(messageCodec, delegators)
+                    setupRouting(messageCodec, delegators, remotingConfiguration as WebRequestRemotingConfiguration)
                 }
 
                 if (remotingConfiguration.authenticationProviderName != null) {
@@ -75,7 +82,8 @@ class WebRequestRemotingProvider(
 
     private fun Route.setupRouting(
         messageCodec: MessageCodec<out RawMessage>,
-        remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>
+        remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>,
+        remotingConfiguration: WebRequestRemotingConfiguration
     ) {
         val contentType = ContentType.parse(messageCodec.contentType)
 
@@ -89,7 +97,13 @@ class WebRequestRemotingProvider(
 
                             when (methodDescriptor) {
                                 is SynchronousCall<*, *> ->
-                                    handleSynchronousCall(call, messageCodec, methodDescriptor, handler)
+                                    handleSynchronousCall(
+                                        call,
+                                        messageCodec,
+                                        methodDescriptor,
+                                        handler,
+                                        remotingConfiguration
+                                    )
 
                                 is DownstreamColdFlow<*, *> ->
                                     throw AssertionError() // Validated in WebRequestRemotingProvider.install()
@@ -106,7 +120,8 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     call: ApplicationCall,
     messageCodec: MessageCodec<M>,
     callDescriptor: SynchronousCall<*, *>,
-    delegator: RemoteCallHandlerImplementor<*>
+    delegator: RemoteCallHandlerImplementor<*>,
+    remotingConfiguration: WebRequestRemotingConfiguration
 ) {
     val isBinaryCodec = messageCodec.isBinary
 
@@ -122,7 +137,23 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
         callDescriptor.parameterSerializer
     ).payload
 
-    val result = delegator.processCall(callDescriptor.memberId, parameter)
+    val principal = remotingConfiguration.extractPrincipal(call)
+    val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
+    val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
+
+    val result =
+        withContext(
+            RemoteCallContextElement(
+                RemoteCallContext(
+                    RemoteConnectionId(
+                        messagingPeerId,
+                        messagingConnectionId
+                    )
+                )
+            )
+        ) {
+            delegator.processCall(callDescriptor.memberId, parameter)
+        }
 
     val responseMessage = RemotingMessage(result, null) // TODO metadata
     val rawResponseMessage = messageCodec.encodeMessage(
@@ -134,11 +165,10 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     call.response.header(HttpHeaders.ContentType, messageCodec.contentType)
 
     if (isBinaryCodec) {
-        check(rawResponseMessage is RawMessage.Binary)
+        check(rawResponseMessage is Binary)
         call.respondBytes(rawResponseMessage.byteArrayView.toReadOnlyByteArray())
     } else {
-        check(rawResponseMessage is RawMessage.Text)
+        check(rawResponseMessage is Text)
         call.respondText(rawResponseMessage.text)
     }
 }
-

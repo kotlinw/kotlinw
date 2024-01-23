@@ -22,7 +22,6 @@ import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.DelegatingRemotingClient
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemoteConnectionData
-import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.infiniteLoop
@@ -41,13 +40,13 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import xyz.kotlinw.remoting.api.PersistentRemotingClient
 import xyz.kotlinw.remoting.api.PersistentRemotingConnection
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
@@ -185,8 +184,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                                 val messagingManager = BidirectionalMessagingManagerImpl(
                                     this,
                                     messageCodec as MessageCodecWithMetadataPrefetchSupport<M>,
-                                    (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId },
-                                    null
+                                    (incomingCallDelegators as Set<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
                                 )
 
                                 val previousStatus =

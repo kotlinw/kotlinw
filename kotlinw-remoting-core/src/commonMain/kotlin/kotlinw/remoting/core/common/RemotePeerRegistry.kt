@@ -1,13 +1,7 @@
 package kotlinw.remoting.core.common
 
-import xyz.kotlinw.remoting.api.MessagingConnectionId
-import xyz.kotlinw.remoting.api.MessagingPeerId
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.RemotingClient
-
-data class RemoteConnectionId(
-    val remotePeerId: MessagingPeerId,
-    val connectionId: MessagingConnectionId
-)
 
 data class RemoteConnectionData(
     val remoteConnectionId: RemoteConnectionId,

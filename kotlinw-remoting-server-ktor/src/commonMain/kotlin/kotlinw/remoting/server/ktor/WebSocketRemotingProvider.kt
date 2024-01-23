@@ -18,7 +18,6 @@ import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.DelegatingRemotingClient
 import kotlinw.remoting.core.common.NewConnectionData
-import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.RemovedConnectionData
 import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
@@ -28,12 +27,14 @@ import kotlinw.uuid.Uuid
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import xyz.kotlinw.remoting.api.MessagingConnectionId
+import xyz.kotlinw.remoting.api.RemoteCallContext
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 class WebSocketRemotingProvider(
     loggerFactory: LoggerFactory,
-    private val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
-    private val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null
+    private val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,
+    private val onConnectionRemoved: (suspend (RemovedConnectionData) -> Unit)? = null
 ) : RemotingProvider {
 
     private val logger = loggerFactory.getLogger()
@@ -54,9 +55,8 @@ class WebSocketRemotingProvider(
         val connections: ConcurrentMutableMap<MessagingConnectionId, BidirectionalMessagingManager> =
             ConcurrentHashMap()
 
-        fun addConnection(
+        suspend fun addConnection(
             remoteConnectionId: RemoteConnectionId,
-            principal: Principal?,
             messagingManager: BidirectionalMessagingManager
         ) {
             connections.compute(remoteConnectionId.connectionId) { key, previousValue ->
@@ -67,7 +67,7 @@ class WebSocketRemotingProvider(
             if (onConnectionAdded != null || webSocketRemotingConfiguration.onConnectionAdded != null) {
                 val reverseRemotingClient = DelegatingRemotingClient(messagingManager)
                 val newConnectionData =
-                    NewConnectionData(remoteConnectionId, principal, reverseRemotingClient, messagingManager)
+                    NewConnectionData(remoteConnectionId, reverseRemotingClient, messagingManager)
 
                 try {
                     onConnectionAdded?.invoke(newConnectionData)
@@ -83,13 +83,13 @@ class WebSocketRemotingProvider(
             }
         }
 
-        fun removeConnection(sessionId: MessagingConnectionId) {
+        suspend fun removeConnection(sessionId: MessagingConnectionId) {
             val messagingManager = connections.remove(sessionId)
 
             if (messagingManager != null) {
                 if (onConnectionRemoved != null || webSocketRemotingConfiguration.onConnectionRemoved != null) {
                     val removedConnectionData =
-                        RemovedConnectionData(messagingManager.remoteConnectionId, messagingManager.principal)
+                        RemovedConnectionData(messagingManager.remoteConnectionId)
 
                     try {
                         onConnectionRemoved?.invoke(removedConnectionData)
@@ -136,10 +136,9 @@ class WebSocketRemotingProvider(
                                 BidirectionalMessagingManagerImpl(
                                     connection,
                                     messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
-                                    delegators,
-                                    principal
+                                    delegators
                                 )
-                            addConnection(remoteConnectionId, principal, sessionMessagingManager)
+                            addConnection(remoteConnectionId, sessionMessagingManager)
                             sessionMessagingManager.processIncomingMessages()
                         } catch (e: ClosedReceiveChannelException) {
                             val closeReason = closeReason.await()

@@ -5,6 +5,7 @@ import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 
 class MutableRemotePeerRegistryImpl(
     loggerFactory: LoggerFactory

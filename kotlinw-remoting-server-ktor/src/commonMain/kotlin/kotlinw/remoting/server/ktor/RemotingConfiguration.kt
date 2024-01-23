@@ -42,7 +42,7 @@ data class WebSocketRemotingConfiguration(
     override val authenticationProviderName: String?,
     override val extractPrincipal: ApplicationCall.() -> Principal?,
     override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
-    val onConnectionAdded: ((NewConnectionData) -> Unit)? = null,
-    val onConnectionRemoved: ((RemovedConnectionData) -> Unit)? = null,
+    val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,
+    val onConnectionRemoved: (suspend (RemovedConnectionData) -> Unit)? = null,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration

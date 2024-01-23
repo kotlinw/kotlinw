@@ -1,16 +1,4 @@
-@file:JvmName("ThreadLocalJvm")
 package kotlinw.util.stdlib
-
-import kotlin.jvm.JvmName
-
-@Deprecated("Deprecated because of incorrect semantics on single-threaded platforms.")
-expect class ThreadLocal<T>() {
-    fun get(): T?
-
-    fun set(value: T?)
-
-    fun remove()
-}
 
 inline var <T> ThreadLocal<T>.value: T?
     get() = get()

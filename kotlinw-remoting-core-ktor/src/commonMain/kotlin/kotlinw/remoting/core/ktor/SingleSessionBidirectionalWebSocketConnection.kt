@@ -1,15 +1,20 @@
 package kotlinw.remoting.core.ktor
 
-import io.ktor.websocket.*
+import io.ktor.websocket.DefaultWebSocketSession
+import io.ktor.websocket.Frame
+import io.ktor.websocket.close
+import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
+import io.ktor.websocket.send
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.SingleSessionBidirectionalMessagingConnection
-import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 
 class SingleSessionBidirectionalWebSocketConnection(
     override val remoteConnectionId: RemoteConnectionId,

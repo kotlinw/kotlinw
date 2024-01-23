@@ -1,8 +1,6 @@
 package kotlinw.remoting.core.common
 
-import kotlinw.remoting.core.common.RemoteConnectionData
-import kotlinw.remoting.core.common.RemoteConnectionId
-import kotlinw.remoting.core.common.RemotePeerRegistry
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 
 interface MutableRemotePeerRegistry : RemotePeerRegistry {
 

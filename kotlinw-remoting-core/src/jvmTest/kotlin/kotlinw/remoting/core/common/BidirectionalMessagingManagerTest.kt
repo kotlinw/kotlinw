@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.serializer
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 
@@ -106,12 +107,11 @@ class BidirectionalMessagingManagerTest {
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
         val messageCodec = JsonMessageCodec.Default
-        val peer1Manager = BidirectionalMessagingManagerImpl(pipe.peer1, messageCodec, emptyMap(), null)
+        val peer1Manager = BidirectionalMessagingManagerImpl(pipe.peer1, messageCodec, emptyMap())
         val peer2Manager = BidirectionalMessagingManagerImpl(
             pipe.peer2,
             messageCodec,
-            setOf(peer2RemoteCallHandler).associateBy { it.serviceId },
-            null
+            setOf(peer2RemoteCallHandler).associateBy { it.serviceId }
         )
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -149,10 +149,9 @@ class BidirectionalMessagingManagerTest {
         val peer1Manager = BidirectionalMessagingManagerImpl(
             pipe.peer1,
             messageCodec,
-            setOf(peer1RemoteCallHandler).associateBy { it.serviceId },
-            null
+            setOf(peer1RemoteCallHandler).associateBy { it.serviceId }
         )
-        val peer2Manager = BidirectionalMessagingManagerImpl(pipe.peer2, messageCodec, emptyMap(), null)
+        val peer2Manager = BidirectionalMessagingManagerImpl(pipe.peer2, messageCodec, emptyMap())
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
             peer1Manager.processIncomingMessages()
@@ -196,12 +195,11 @@ class BidirectionalMessagingManagerTest {
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
         val messageCodec = JsonMessageCodec.Default
-        val peer1Manager = BidirectionalMessagingManagerImpl(pipe.peer1, messageCodec, emptyMap(), null)
+        val peer1Manager = BidirectionalMessagingManagerImpl(pipe.peer1, messageCodec, emptyMap())
         val peer2Manager = BidirectionalMessagingManagerImpl(
             pipe.peer2,
             messageCodec,
-            setOf(peer2RemoteCallHandler).associateBy { it.serviceId },
-            null
+            setOf(peer2RemoteCallHandler).associateBy { it.serviceId }
         )
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {

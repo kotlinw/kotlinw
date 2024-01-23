@@ -22,7 +22,6 @@ import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
 import kotlinw.remoting.core.common.SingleSessionBidirectionalMessagingConnection
-import kotlinw.remoting.core.common.RemoteConnectionId
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
@@ -30,6 +29,8 @@ import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.cancel
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock.System
+import xyz.kotlinw.remoting.api.RemoteConnectionId
 
 class KtorHttpRemotingClientImplementor(
     private val httpClient: HttpClient,
@@ -104,7 +105,7 @@ class KtorHttpRemotingClientImplementor(
                             SingleSessionBidirectionalWebSocketConnection(
                                 RemoteConnectionId(
                                     messagingPeerId,
-                                    messagingPeerId + "@" + Clock.System.now().toEpochMilliseconds()
+                                    messagingPeerId + "@" + System.now().toEpochMilliseconds()
                                 ),
                                 clientWebSocketSession,
                                 messageCodecDescriptor
