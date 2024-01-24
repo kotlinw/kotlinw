@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.pluginOrNull
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.HttpRequestBuilder
@@ -28,7 +29,6 @@ import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.cancel
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Clock.System
 import xyz.kotlinw.remoting.api.RemoteConnectionId
 
@@ -96,40 +96,44 @@ class KtorHttpRemotingClientImplementor(
                 // TODO túl későn, csak itt derül ki, ha a WebSockets plugin nincs install-álva
 
                 logger.debug { "Connecting to WebSocket server: " / url }
-
-                httpClient.webSocketSession(url.toString()).also { clientWebSocketSession ->
+                lateinit var clientWebSocketSession: DefaultClientWebSocketSession
+                try {
+                    clientWebSocketSession = httpClient.webSocketSession(url.toString())
                     logger.debug { "Connected to WebSocket server: " / url }
 
-                    try {
-                        block(
-                            SingleSessionBidirectionalWebSocketConnection(
-                                RemoteConnectionId(
-                                    messagingPeerId,
-                                    messagingPeerId + "@" + System.now().toEpochMilliseconds()
-                                ),
-                                clientWebSocketSession,
-                                messageCodecDescriptor
-                            )
+                    block(
+                        SingleSessionBidirectionalWebSocketConnection(
+                            RemoteConnectionId(
+                                messagingPeerId,
+                                messagingPeerId + "@" + System.now().toEpochMilliseconds()
+                            ),
+                            clientWebSocketSession,
+                            messageCodecDescriptor
                         )
-                    } finally {
-                        logger.trace { "Disconnecting from WebSocket server: " / url }
-                        runCatching {
-                            clientWebSocketSession.close() // TODO különválasztani az exception miatti close()-t és a normál close()-t
-                        }
-                        clientWebSocketSession.cancel()  // Explicitly cancel the coroutine scope of the WebSocket connection (bug?)
-                        logger.debug { "Disconnected from WebSocket server: " / url }
-                    }
-                }
-            } catch (e: Throwable) {
-                if (NonFatal(e)) {
-                    if (logger.isTraceEnabled) {
-                        logger.trace(e) { "WebSocket connection failed." }
-                    } else {
-                        logger.debug { "WebSocket connection failed." }
-                    }
-                }
+                    )
 
-                throw e
+                    logger.debug { "Closing WebSocket connection normally: " / url }
+                    runCatching {
+                        clientWebSocketSession.close()
+                    }
+                } catch (e: Exception) {
+                    if (NonFatal(e)) {
+                        if (logger.isDebugEnabled) {
+                            logger.debug(e) { "WebSocket connection failed: " / url }
+                        } else {
+                            logger.info { "WebSocket connection failed: " / url }
+                        }
+                    }
+
+                    runCatching {
+                        clientWebSocketSession.close()
+                    }
+
+                    throw e
+                } finally {
+                    clientWebSocketSession.cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
+                    logger.debug { "Disconnected from WebSocket server: " / url }
+                }
             } finally {
                 runInSessionIsRunning.value = false
             }
