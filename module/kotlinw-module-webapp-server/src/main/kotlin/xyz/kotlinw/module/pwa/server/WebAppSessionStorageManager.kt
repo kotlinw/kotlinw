@@ -15,7 +15,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.yield
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock.System
 import kotlinx.datetime.Instant
+import net.openhft.hashing.LongHashFunction
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
@@ -24,8 +26,6 @@ import xyz.kotlinw.module.logging.LoggingModule
 interface WebAppSessionStorageManager : SessionStorage {
 
     val activeSessionIds: Set<String>
-
-    suspend fun touch(id: String)
 }
 
 @Component
@@ -37,15 +37,15 @@ class WebAppSessionStorageManagerImpl(
 
     private lateinit var sessionStorageBackend: SessionStorage
 
-    private data class SessionActivityData(val lastActivityTimestamp: Instant, val lock: Mutex)
+    private data class SessionMetadata(val lastActivityTimestamp: Instant, val sessionDataHash: Long, val lock: Mutex)
 
-    private val sessionActivityTimestampsHolder = atomic(persistentMapOf<String, SessionActivityData>())
+    private val sessionMetadataMapHolder = atomic(persistentMapOf<String, SessionMetadata>())
 
-    private val sessionActivityTimestamps by sessionActivityTimestampsHolder
+    private val sessionMetadataMap by sessionMetadataMapHolder
 
     private val sessionTimeout = 30.minutes // FIXME config
 
-    override val activeSessionIds: Set<String> get() = sessionActivityTimestamps.keys
+    override val activeSessionIds: Set<String> get() = sessionMetadataMap.keys
 
     @OnConstruction
     fun onConstruction() {
@@ -59,13 +59,13 @@ class WebAppSessionStorageManagerImpl(
 
                 logger.trace { "Checking session expiration..." }
                 try {
-                    val iterator = sessionActivityTimestamps.iterator()
+                    val iterator = sessionMetadataMap.iterator()
                     while (iterator.hasNext()) {
-                        val (sessionId, activityData) = iterator.next()
+                        val (sessionId, sessionMetadata) = iterator.next()
 
-                        val isFirstActiveReached = activityData.lock.withLock {
-                            if (sessionActivityTimestamps.containsKey(sessionId)) {
-                                if (activityData.lastActivityTimestamp < Clock.System.now() - sessionTimeout) {
+                        val isFirstActiveReached = sessionMetadata.lock.withLock {
+                            if (sessionMetadataMap.containsKey(sessionId)) {
+                                if (sessionMetadata.lastActivityTimestamp < Clock.System.now() - sessionTimeout) {
                                     logger.debug {
                                         "Session invalidation (expired): " / named("sessionId", sessionId)
                                     }
@@ -99,21 +99,10 @@ class WebAppSessionStorageManagerImpl(
         }
     }
 
-    override suspend fun touch(id: String) {
-        sessionActivityTimestampsHolder.update {
-            val previousData = it[id]
-            if (previousData != null) {
-                it.put(id, previousData.copy(lastActivityTimestamp = Clock.System.now()))
-            } else {
-                it
-            }
-        }
-    }
-
     override suspend fun invalidate(id: String) {
-        sessionActivityTimestamps[id]?.run {
+        sessionMetadataMap[id]?.run {
             lock.withLock {
-                if (sessionActivityTimestamps.containsKey(id)) {
+                if (sessionMetadataMap.containsKey(id)) {
                     logger.debug { "Session invalidation (explicit): " / named("sessionId", id) }
                     invalidateSession(id)
                 }
@@ -125,21 +114,21 @@ class WebAppSessionStorageManagerImpl(
         try {
             sessionStorageBackend.invalidate(id)
         } finally {
-            sessionActivityTimestampsHolder.update {
+            sessionMetadataMapHolder.update {
                 it.remove(id)
             }
         }
     }
 
     override suspend fun read(id: String): String {
-        val sessionActivityData = sessionActivityTimestamps[id]
-        return if (sessionActivityData != null) {
-            sessionActivityData.lock.withLock {
-                if (sessionActivityTimestamps.containsKey(id)) {
+        val sessionMetadata = sessionMetadataMap[id]
+        return if (sessionMetadata != null) {
+            sessionMetadata.lock.withLock {
+                if (sessionMetadataMap.containsKey(id)) {
                     val value = sessionStorageBackend.read(id)
                     logger.trace { "Read session: " / mapOf("sessionId" to id, "sessionValue" to value) }
 
-                    sessionActivityTimestampsHolder.update {
+                    sessionMetadataMapHolder.update {
                         it.put(id, it.getValue(id).copy(lastActivityTimestamp = Clock.System.now()))
                     }
 
@@ -150,16 +139,14 @@ class WebAppSessionStorageManagerImpl(
             }
         } else {
             val value = sessionStorageBackend.read(id)
-            logger.debug { "Read session (initialize from backend): " / mapOf("sessionId" to id, "sessionValue" to value) }
-
-            sessionActivityTimestampsHolder.update {
-                val previousData = it[id]
-                if (previousData != null) {
-                    it.put(id, previousData.copy(lastActivityTimestamp = Clock.System.now()))
-                } else {
-                    it.put(id, SessionActivityData(Clock.System.now(), Mutex()))
-                }
+            logger.debug {
+                "Read session (initialize from backend): " / mapOf(
+                    "sessionId" to id,
+                    "sessionValue" to value
+                )
             }
+
+            updateSessionMetadata(id, value)
 
             value
         }
@@ -172,21 +159,27 @@ class WebAppSessionStorageManagerImpl(
             logger.debug { "Write session: " / named("sessionId", id) }
         }
 
-        sessionActivityTimestampsHolder.update {
-            val previousData = it[id]
-            if (previousData != null) {
-                it.put(id, previousData.copy(lastActivityTimestamp = Clock.System.now()))
-            } else {
-                it.put(id, SessionActivityData(Clock.System.now(), Mutex()))
-            }
-        }
+        updateSessionMetadata(id, value)
 
-        sessionActivityTimestamps[id]?.run {
-            lock.withLock {
-                if (sessionActivityTimestamps.containsKey(id)) {
+        sessionMetadataMap[id]?.also {
+            it.lock.withLock {
+                if (sessionMetadataMap[id]?.sessionDataHash != value.hash()) {
                     sessionStorageBackend.write(id, value)
                 }
             }
         }
     }
+
+    private fun updateSessionMetadata(id: String, value: String) {
+        sessionMetadataMapHolder.update {
+            val previousData = it[id]
+            if (previousData != null) {
+                it.put(id, previousData.copy(lastActivityTimestamp = System.now()))
+            } else {
+                it.put(id, SessionMetadata(System.now(), value.hash(), Mutex()))
+            }
+        }
+    }
+
+    private fun String.hash() = LongHashFunction.xx3().hashChars(this)
 }

@@ -10,4 +10,5 @@ dependencies {
     implementation(projects.kotlinw.kotlinwUtilSerializationJson)
 
     implementation(libs.kotlin.bom)
+    implementation(libs.net.openhft.zeroAllocationHashing)
 }

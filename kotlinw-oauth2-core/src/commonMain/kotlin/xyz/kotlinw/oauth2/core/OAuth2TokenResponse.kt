@@ -38,7 +38,7 @@ data class OAuth2TokenResponse(
     val deviceSecret: String? = null,
 
     @SerialName("session_state")
-    val sessionState: String? = null
+    val sessionState: String? = null,
 )
 
 val OAuth2TokenResponse.tokens get() = OAuth2BearerTokens(accessToken, refreshToken)

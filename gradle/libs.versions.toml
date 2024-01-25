@@ -385,6 +385,8 @@ kobwebx-markdown = { module = "com.varabyte.kobwebx:kobwebx-markdown", version.r
 
 classgraph = { module = "io.github.classgraph:classgraph", version = "4.8.163" }
 
+net-openhft-zeroAllocationHashing = { module = "net.openhft:zero-allocation-hashing", version = "0.16" }
+
 [plugins]
 
 arrowGradleConfig-jvm = { id = "io.arrow-kt.arrow-gradle-config-jvm", version.ref = "arrowGradleConfig" }
