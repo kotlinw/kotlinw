@@ -253,3 +253,5 @@ suspend fun HttpClient.authorizeDevice(
 }
 
 fun OAuth2TokenResponse.decodeJwtAccessToken() = accessToken.parseJwtToken()
+
+fun OAuth2TokenResponse.decodeJwtIdToken() = idToken?.parseJwtToken()

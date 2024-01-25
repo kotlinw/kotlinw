@@ -23,7 +23,7 @@ class KtorServerModule {
         suspend fun initializeKtorServerApplicationConfigurers(configurers: List<KtorServerApplicationConfigurer>) {
             configurers.forEach {
                 try {
-                    it.initialize()
+                    it.initializeKtorServerApplicationConfigurer()
                 } catch (e: Exception) {
                     throw RuntimeException("Failed to initialize Ktor server configurer: " + it, e)
                 }

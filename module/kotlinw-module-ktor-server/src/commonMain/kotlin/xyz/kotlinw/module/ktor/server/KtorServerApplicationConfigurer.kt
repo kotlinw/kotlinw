@@ -13,7 +13,7 @@ abstract class KtorServerApplicationConfigurer(override val priority: Priority =
         val ktorServerCoroutineScope: CoroutineScope
     )
 
-    open suspend fun initialize() {}
+    open suspend fun initializeKtorServerApplicationConfigurer() {}
 
     internal fun setupKtorModule(context: Context) = context.setup()
 
