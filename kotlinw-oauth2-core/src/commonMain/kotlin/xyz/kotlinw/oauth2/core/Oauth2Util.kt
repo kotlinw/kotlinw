@@ -11,6 +11,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.core.use
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -26,19 +27,24 @@ import xyz.kotlinw.serialization.json.standardLongTermJson
 
 private val logger = PlatformLogging.getLogger()
 
-private fun HttpClient.configureHttpClient() = config {
-    pluginOrNull(ContentNegotiation) ?: install(ContentNegotiation) {
-        json(standardLongTermJson())
+private suspend fun <T> HttpClient.withConfiguredHttpClient(block: suspend (HttpClient) -> T): T =
+    config {
+        pluginOrNull(ContentNegotiation) ?: install(ContentNegotiation) {
+            json(standardLongTermJson())
+        }
+    }.use {
+        block(it)
     }
-}
 
 suspend fun HttpClient.fetchOpenidConnectProviderMetadata(authorizationServerUrl: Url) =
-    configureHttpClient().get(
-        URLBuilder(authorizationServerUrl.value)
-            .appendPathSegments(".well-known", "openid-configuration")
-            .build()
-    )
-        .body<OpenidConnectProviderMetadata>()
+    withConfiguredHttpClient {
+        it.get(
+            URLBuilder(authorizationServerUrl.value)
+                .appendPathSegments(".well-known", "openid-configuration")
+                .build()
+        )
+            .body<OpenidConnectProviderMetadata>()
+    }
 
 internal fun buildGenericAuthorizationUrl(
     authorizationEndpoint: Url,
@@ -124,14 +130,16 @@ object ClientCredentialsGrant {
         clientId: String,
         clientSecret: String
     ): OAuth2TokenResponse =
-        httpClient.configureHttpClient().submitForm(
-            tokenEndpointUrl.value,
-            Parameters.build {
-                append("client_id", clientId)
-                append("client_secret", clientSecret)
-                append("grant_type", "client_credentials")
-            }
-        ).body<OAuth2TokenResponse>() // TODO 401 és további hibák kezelése
+        httpClient.withConfiguredHttpClient {
+            it.submitForm(
+                tokenEndpointUrl.value,
+                Parameters.build {
+                    append("client_id", clientId)
+                    append("client_secret", clientSecret)
+                    append("grant_type", "client_credentials")
+                }
+            ).body<OAuth2TokenResponse>()
+        } // TODO 401 és további hibák kezelése
 }
 
 /**
@@ -182,65 +190,65 @@ suspend fun HttpClient.authorizeDevice(
     authorizationResponseCallback: suspend (DeviceAuthorizationResponse) -> Unit
 ): OAuth2TokenResponse {
     logger.debug { "Initiating device authorization flow..." }
-
-    val httpClient = configureHttpClient()
-
-    val authorizationResponse = httpClient.submitForm(
-        deviceAuthorizationEndpoint.value,
-        Parameters.build {
-            append("client_id", clientId)
-            if (!scopes.isNullOrEmpty()) {
-                append("scope", encodeScopes(scopes))
-            }
-        }
-    )
-
-    if (!authorizationResponse.status.isSuccess()) {
-        throw RuntimeException() // TODO handle error, like: 401 Unauthorized, {"error":"invalid_client","error_description":"Invalid client or Invalid client credentials"}
-    }
-
-    val deviceAuthorizationResponse = authorizationResponse.body<DeviceAuthorizationResponse>()
-
-    authorizationResponseCallback(deviceAuthorizationResponse)
-
-    return withTimeout(deviceAuthorizationResponse.expiresInSeconds?.seconds ?: defaultAuthorizationTimeout) {
-        var pollingDelay = deviceAuthorizationResponse.minimumPollingIntervalSeconds.seconds
-        while (true) {
-            logger.debug { "Waiting for " / pollingDelay / " before checking the result..." }
-            delay(pollingDelay)
-
-            val tokenResponse = httpClient.submitForm(
-                tokenEndpoint.value,
-                Parameters.build {
-                    append("client_id", clientId)
-                    append("device_code", deviceAuthorizationResponse.deviceCode)
-                    append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
-                }
-            )
-
-            if (tokenResponse.status.isSuccess()) {
-                return@withTimeout tokenResponse.body<OAuth2TokenResponse>()
-            } else {
-                when (val error = tokenResponse.body<Oauth2TokenErrorResponse>().error) {
-                    "invalid_request", "invalid_client", "invalid_grant", "unauthorized_client", "unsupported_grant_type", "error_description", "error_uri" -> {
-                        throw RuntimeException("OAuth2 token response error: $error") // TODO specifikus hibát
-                    }
-
-                    "authorization_pending" -> {
-                        logger.trace { "Authorization pending." }
-                    }
-
-                    "slow_down" -> {
-                        logger.trace { "Increasing polling delay." }
-                        pollingDelay += 5.seconds
-                    }
-
-                    "access_denied", "expired_token" -> throw RuntimeException("OAuth2 token response error: $error") // TODO specifikus hibát
+    return withConfiguredHttpClient { httpClient ->
+        val authorizationResponse = httpClient.submitForm(
+            deviceAuthorizationEndpoint.value,
+            Parameters.build {
+                append("client_id", clientId)
+                if (!scopes.isNullOrEmpty()) {
+                    append("scope", encodeScopes(scopes))
                 }
             }
+        )
+
+        if (!authorizationResponse.status.isSuccess()) {
+            throw RuntimeException() // TODO handle error, like: 401 Unauthorized, {"error":"invalid_client","error_description":"Invalid client or Invalid client credentials"}
         }
 
-        throw IllegalStateException() // Should not be reached
+        val deviceAuthorizationResponse = authorizationResponse.body<DeviceAuthorizationResponse>()
+
+        authorizationResponseCallback(deviceAuthorizationResponse)
+
+        withTimeout(deviceAuthorizationResponse.expiresInSeconds?.seconds ?: defaultAuthorizationTimeout) {
+            var pollingDelay = deviceAuthorizationResponse.minimumPollingIntervalSeconds.seconds
+            while (true) {
+                logger.debug { "Waiting for " / pollingDelay / " before checking the result..." }
+                delay(pollingDelay)
+
+                val tokenResponse = httpClient.submitForm(
+                    tokenEndpoint.value,
+                    Parameters.build {
+                        append("client_id", clientId)
+                        append("device_code", deviceAuthorizationResponse.deviceCode)
+                        append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+                    }
+                )
+
+                if (tokenResponse.status.isSuccess()) {
+                    return@withTimeout tokenResponse.body<OAuth2TokenResponse>()
+                } else {
+                    when (val error = tokenResponse.body<Oauth2TokenErrorResponse>().error) {
+                        "invalid_request", "invalid_client", "invalid_grant", "unauthorized_client", "unsupported_grant_type", "error_description", "error_uri" -> {
+                            throw RuntimeException("OAuth2 token response error: $error") // TODO specifikus hibát
+                        }
+
+                        "authorization_pending" -> {
+                            logger.trace { "Authorization pending." }
+                        }
+
+                        "slow_down" -> {
+                            logger.trace { "Increasing polling delay." }
+                            pollingDelay += 5.seconds
+                        }
+
+                        "access_denied", "expired_token" -> throw RuntimeException("OAuth2 token response error: $error") // TODO specifikus hibát
+                    }
+                }
+            }
+
+            @Suppress("UNREACHABLE_CODE")
+            throw IllegalStateException()
+        }
     }
 }
 

@@ -96,7 +96,7 @@ class KtorHttpRemotingClientImplementor(
                 // TODO túl későn, csak itt derül ki, ha a WebSockets plugin nincs install-álva
 
                 logger.debug { "Connecting to WebSocket server: " / url }
-                lateinit var clientWebSocketSession: DefaultClientWebSocketSession
+                var clientWebSocketSession: DefaultClientWebSocketSession? = null
                 try {
                     clientWebSocketSession = httpClient.webSocketSession(url.toString())
                     logger.debug { "Connected to WebSocket server: " / url }
@@ -126,12 +126,12 @@ class KtorHttpRemotingClientImplementor(
                     }
 
                     runCatching {
-                        clientWebSocketSession.close()
+                        clientWebSocketSession?.close()
                     }
 
                     throw e
                 } finally {
-                    clientWebSocketSession.cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
+                    clientWebSocketSession?.cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
                     logger.debug { "Disconnected from WebSocket server: " / url }
                 }
             } finally {

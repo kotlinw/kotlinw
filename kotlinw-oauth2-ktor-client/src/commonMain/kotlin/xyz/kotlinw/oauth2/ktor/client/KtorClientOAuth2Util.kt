@@ -3,11 +3,13 @@ package xyz.kotlinw.oauth2.ktor.client
 import arrow.atomic.AtomicInt
 import arrow.atomic.value
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.auth.AuthConfig
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
 import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
