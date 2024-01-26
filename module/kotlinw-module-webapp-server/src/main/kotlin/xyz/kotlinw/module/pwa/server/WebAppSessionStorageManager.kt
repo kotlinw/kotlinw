@@ -7,22 +7,15 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.util.stdlib.infiniteLoop
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.yield
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Clock.System
 import kotlinx.datetime.Instant
-import net.openhft.hashing.LongHashFunction
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.module.logging.LoggingModule
+import java.util.concurrent.ConcurrentHashMap
 
 interface WebAppSessionStorageManager : SessionStorage {
 
@@ -38,24 +31,21 @@ class WebAppSessionStorageManagerImpl(
 
     private lateinit var sessionStorageBackend: SessionStorage
 
-    private data class SessionMetadata(val lastActivityTimestamp: Instant, val sessionDataHash: Long, val lock: Mutex)
-
-    private val sessionMetadataMapHolder = atomic(persistentMapOf<String, SessionMetadata>())
-
-    private val sessionMetadataMap by sessionMetadataMapHolder
+    private val sessionLastActivityMap = ConcurrentHashMap<String, Instant>()
 
     private val sessionTimeout = 30.minutes // FIXME config
 
-    override val activeSessionIds: Set<String> get() = sessionMetadataMap.keys
+    override val activeSessionIds: Set<String> get() = sessionLastActivityMap.keys
 
     @OnConstruction
     fun onConstruction() {
-        sessionStorageBackend = if (sessionStorageBackendProvider != null) {
-            sessionStorageBackendProvider.createSessionStorageBackend()
-        } else {
-            logger.warning { "Using default session storage: " / SessionStorageMemory::class.simpleName }
-            SessionStorageMemory()
-        }
+        sessionStorageBackend =
+            if (sessionStorageBackendProvider != null) {
+                sessionStorageBackendProvider.createSessionStorageBackend()
+            } else {
+                logger.warning { "Using default session storage: " / SessionStorageMemory::class.simpleName }
+                SessionStorageMemory()
+            }
     }
 
     override fun Context.setup() {
@@ -65,38 +55,20 @@ class WebAppSessionStorageManagerImpl(
 
                 logger.trace { "Checking session expiration..." }
                 try {
-                    val iterator = sessionMetadataMap.iterator()
+                    val iterator = sessionLastActivityMap.iterator()
                     while (iterator.hasNext()) {
-                        val (sessionId, sessionMetadata) = iterator.next()
+                        val (sessionId, lastActivityTimestamp) = iterator.next()
+                        if (lastActivityTimestamp + sessionTimeout < System.now()) {
+                            iterator.remove()
 
-                        val isFirstActiveReached = sessionMetadata.lock.withLock {
-                            if (sessionMetadataMap.containsKey(sessionId)) {
-                                if (sessionMetadata.lastActivityTimestamp < Clock.System.now() - sessionTimeout) {
-                                    logger.debug {
-                                        "Session invalidation (expired): " / named("sessionId", sessionId)
-                                    }
-                                    try {
-                                        invalidateSession(sessionId)
-                                    } catch (e: Exception) {
-                                        logger.warning(e.nonFatalOrThrow()) {
-                                            "Session invalidation failed: " /
-                                                    named("sessionId", sessionId)
-                                        }
-                                    }
-                                    false
-                                } else {
-                                    true
+                            try {
+                                sessionStorageBackend.invalidate(sessionId)
+                            } catch (e: Exception) {
+                                logger.warning(e.nonFatalOrThrow()) {
+                                    "Session invalidation failed: " / named("sessionId", sessionId)
                                 }
-                            } else {
-                                false
                             }
                         }
-
-                        if (isFirstActiveReached) {
-                            break
-                        }
-
-                        yield()
                     }
                 } catch (e: Exception) {
                     logger.warning(e.nonFatalOrThrow()) { "Session expiration loop failed." }
@@ -106,56 +78,19 @@ class WebAppSessionStorageManagerImpl(
     }
 
     override suspend fun invalidate(id: String) {
-        sessionMetadataMap[id]?.run {
-            lock.withLock {
-                if (sessionMetadataMap.containsKey(id)) {
-                    logger.debug { "Session invalidation (explicit): " / named("sessionId", id) }
-                    invalidateSession(id)
-                }
-            }
-        }
-    }
-
-    private suspend fun invalidateSession(id: String) {
-        try {
-            sessionStorageBackend.invalidate(id)
-        } finally {
-            sessionMetadataMapHolder.update {
-                it.remove(id)
-            }
-        }
+        sessionLastActivityMap.remove(id)
+        sessionStorageBackend.invalidate(id)
     }
 
     override suspend fun read(id: String): String {
-        val sessionMetadata = sessionMetadataMap[id]
-        return if (sessionMetadata != null) {
-            sessionMetadata.lock.withLock {
-                if (sessionMetadataMap.containsKey(id)) {
-                    val value = sessionStorageBackend.read(id)
-                    logger.trace { "Read session: " / mapOf("sessionId" to id, "sessionValue" to value) }
-
-                    sessionMetadataMapHolder.update {
-                        it.put(id, it.getValue(id).copy(lastActivityTimestamp = Clock.System.now()))
-                    }
-
-                    value
-                } else {
-                    throw NoSuchElementException("Session $id not found")
-                }
-            }
-        } else {
-            val value = sessionStorageBackend.read(id)
-            logger.debug {
-                "Read session (initialize from backend): " / mapOf(
-                    "sessionId" to id,
-                    "sessionValue" to value
-                )
-            }
-
-            updateSessionMetadata(id, value)
-
-            value
+        val value = sessionStorageBackend.read(id)
+        logger.trace {
+            "Read session: " / mapOf("sessionId" to id, "sessionValue" to value)
         }
+
+        sessionLastActivityMap[id] = System.now()
+
+        return value
     }
 
     override suspend fun write(id: String, value: String) {
@@ -165,27 +100,8 @@ class WebAppSessionStorageManagerImpl(
             logger.debug { "Write session: " / named("sessionId", id) }
         }
 
-        updateSessionMetadata(id, value)
+        sessionStorageBackend.write(id, value)
 
-        sessionMetadataMap[id]?.also {
-            it.lock.withLock {
-                if (sessionMetadataMap[id]?.sessionDataHash != value.hash()) {
-                    sessionStorageBackend.write(id, value)
-                }
-            }
-        }
+        sessionLastActivityMap[id] = System.now()
     }
-
-    private fun updateSessionMetadata(id: String, value: String) {
-        sessionMetadataMapHolder.update {
-            val previousData = it[id]
-            if (previousData != null) {
-                it.put(id, previousData.copy(lastActivityTimestamp = System.now()))
-            } else {
-                it.put(id, SessionMetadata(System.now(), value.hash(), Mutex()))
-            }
-        }
-    }
-
-    private fun String.hash() = LongHashFunction.xx3().hashChars(this)
 }
