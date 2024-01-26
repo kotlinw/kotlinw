@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 
-interface PersistentRemotingClient : CoroutineScope {
+interface PersistentRemotingClient {
 
     val isConnected: Boolean
 
@@ -12,13 +12,6 @@ interface PersistentRemotingClient : CoroutineScope {
      * Connects to the remote server and runs the message loop processing incoming messages.
      */
     suspend fun connectAndRunMessageLoop(): Nothing
-
-
-    /**
-     * Close the connection to the remote server.
-     * Coroutines using the connection with [withConnection] are cancelled.
-     */
-    suspend fun close()
 
     /**
      * Runs the given `block` of code in the context of a remote connection.

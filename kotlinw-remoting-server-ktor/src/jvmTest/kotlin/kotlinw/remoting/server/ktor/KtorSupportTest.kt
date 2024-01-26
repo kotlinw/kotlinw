@@ -21,6 +21,8 @@ import kotlinw.remoting.processor.test.remoteCallHandler
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -114,22 +116,23 @@ class KtorSupportTest {
                 Url(""),
                 "test",
                 emptySet(),
-                PlatformLogging,
-                currentCoroutineContext()
+                PlatformLogging
             )
 
-        remotingClient.launch(context = CoroutineName("runMessagingLoop"), start = UNDISPATCHED) {
-            remotingClient.connectAndRunMessageLoop()
-        }
+        coroutineScope {
+            val job = launch(context = CoroutineName("runMessagingLoop"), start = UNDISPATCHED) {
+                remotingClient.connectAndRunMessageLoop()
+            }
 
-        remotingClient.withConnection {
-            val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(it)
-            assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
-            assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
-            assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
-        }
+            remotingClient.withConnection {
+                val clientProxy = ExampleServiceWithDownstreamFlows.clientProxy(it)
+                assertEquals(listOf(1.0, 2.0, 3.0), clientProxy.coldFlow().toList())
+                assertEquals(listOf(5, 6, 7, 8, 9), clientProxy.numberFlow(4).toList())
+                assertEquals(listOf("a", null, "b", null), clientProxy.nullableFlow().toList())
+            }
 
-        remotingClient.close()
+            job.cancel()
+        }
 
         coVerify {
             service.coldFlow()

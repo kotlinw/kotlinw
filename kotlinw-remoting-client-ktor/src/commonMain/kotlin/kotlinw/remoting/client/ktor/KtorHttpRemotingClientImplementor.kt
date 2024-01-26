@@ -118,10 +118,10 @@ class KtorHttpRemotingClientImplementor(
                     }
                 } catch (e: Exception) {
                     if (NonFatal(e)) {
-                        if (logger.isDebugEnabled) {
-                            logger.debug(e) { "WebSocket connection failed: " / url }
+                        if (logger.isTraceEnabled) {
+                            logger.trace(e) { "WebSocket connection failed: " / url }
                         } else {
-                            logger.info { "WebSocket connection failed: " / url }
+                            logger.debug { "WebSocket connection failed: " / url }
                         }
                     }
 

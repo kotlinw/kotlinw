@@ -58,13 +58,10 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     private val endpointId: String,
     private val incomingCallDelegators: Set<RemoteCallHandler<*>>,
     loggerFactory: LoggerFactory,
-    parentCoroutineContext: CoroutineContext,
     private val reconnectAutomatically: Boolean = true
 ) : PersistentRemotingClient {
 
     private val logger = loggerFactory.getLogger()
-
-    override val coroutineContext = parentCoroutineContext + SupervisorJob(parentCoroutineContext.job)
 
     private sealed interface BidirectionalMessagingStatus {
 
@@ -262,10 +259,6 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         } else {
             throw IllegalStateException("Messaging loop is already running.")
         }
-    }
-
-    override suspend fun close() {
-        cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
     }
 
     @OptIn(InternalCoroutinesApi::class)
