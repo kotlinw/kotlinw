@@ -1,0 +1,3 @@
+package kotlinw.configuration.core
+
+interface ExplicitConfigurationObject

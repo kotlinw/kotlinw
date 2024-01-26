@@ -38,8 +38,14 @@ class ConfigurationObjectLookupTest {
         val configurationPropertyLookup = ConfigurationPropertyLookupImpl(PlatformLogging, emptyList())
         val configurationObjectLookup: ConfigurationObjectLookup =
             ConfigurationObjectLookupImpl(configurationPropertyLookup)
-        assertNull(configurationObjectLookup.getConfigurationObjectOrNull(serializer<TestConfig>()))
-        assertNull(configurationObjectLookup.getConfigurationObjectOrNull(serializer<TestConfig>(), "testConfig"))
+        assertNull(configurationObjectLookup.getConfigurationObjectOrNull(TestConfig::class, serializer<TestConfig>()))
+        assertNull(
+            configurationObjectLookup.getConfigurationObjectOrNull(
+                TestConfig::class,
+                serializer<TestConfig>(),
+                "testConfig"
+            )
+        )
     }
 
     @Test
@@ -54,7 +60,7 @@ class ConfigurationObjectLookupTest {
 
         assertEquals(
             TestConfig(13, "abc", emptyList()),
-            configurationObjectLookup.getConfigurationObjectOrNull(serializer<TestConfig>())
+            configurationObjectLookup.getConfigurationObjectOrNull(TestConfig::class, serializer<TestConfig>())
         )
     }
 }

@@ -1,5 +1,6 @@
 package kotlinw.configuration.core
 
+import kotlin.reflect.KClass
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.serializer
@@ -7,42 +8,58 @@ import kotlinx.serialization.serializer
 sealed interface ConfigurationObjectLookup {
 
     fun <T : Any> getConfigurationObjectOrNull(
+        configurationObjectType: KClass<out Any>,
         deserializer: DeserializationStrategy<T>,
         prefix: ConfigurationPropertyKey? = null
     ): T?
 }
 
 fun <T : Any> ConfigurationObjectLookup.getConfigurationObjectOrNull(
+    configurationObjectType: KClass<out Any>,
     deserializer: DeserializationStrategy<T>,
     prefix: String? = null
 ): T? =
-    getConfigurationObjectOrNull(deserializer, prefix?.let { ConfigurationPropertyKey(it) })
+    getConfigurationObjectOrNull(configurationObjectType, deserializer, prefix?.let { ConfigurationPropertyKey(it) })
 
 fun <T : Any> ConfigurationObjectLookup.getConfigurationObject(
+    configurationObjectType: KClass<out Any>,
     configurationType: DeserializationStrategy<T>,
     prefix: ConfigurationPropertyKey? = null
 ): T =
-    getConfigurationObjectOrNull(configurationType, prefix)
+    getConfigurationObjectOrNull(configurationObjectType, configurationType, prefix)
         ?: throw ConfigurationException("Required configuration object of type '$configurationType' not found (corresponding configuration key prefix: $prefix).")
 
 fun <T : Any> ConfigurationObjectLookup.getConfigurationObject(
+    configurationObjectType: KClass<out Any>,
     configurationType: DeserializationStrategy<T>,
     prefix: String? = null
 ): T =
-    getConfigurationObject(configurationType, prefix?.let { ConfigurationPropertyKey(it) })
+    getConfigurationObject(configurationObjectType, configurationType, prefix?.let { ConfigurationPropertyKey(it) })
 
 inline fun <reified T : Any> ConfigurationObjectLookup.getConfigurationObject(prefix: String? = null): T =
-    getConfigurationObject(serializer<T>(), prefix?.let { ConfigurationPropertyKey(it) })
+    getConfigurationObject(T::class, serializer<T>(), prefix?.let { ConfigurationPropertyKey(it) })
 
 class ConfigurationObjectLookupImpl(
     private val configurationPropertyLookup: ConfigurationPropertyLookup,
+    private val explicitConfigurationObjects: List<ExplicitConfigurationObject> = emptyList(),
     private val serialFormat: Properties = Properties.Default
 ) : ConfigurationObjectLookup {
 
+    init {
+        val conflicts = explicitConfigurationObjects.map { it::class }.toSet()
+            .associateWith { kClass -> explicitConfigurationObjects.count { it::class == kClass } }
+            .filter { it.value > 1 }
+        if (conflicts.isNotEmpty()) {
+            throw RuntimeException("Conflicting explicit configuration objects: $conflicts")
+        }
+    }
+
     override fun <T : Any> getConfigurationObjectOrNull(
+        configurationObjectType: KClass<out Any>,
         deserializer: DeserializationStrategy<T>,
         prefix: ConfigurationPropertyKey?
     ): T? =
+
         if (prefix == null) {
             configurationPropertyLookup
                 .filterEnumerableConfigurationProperties { true }
@@ -59,9 +76,19 @@ class ConfigurationObjectLookupImpl(
                         .mapKeys { it.key.name }
 
                 if (it.isNotEmpty()) {
-                    serialFormat.decodeFromStringMap(deserializer, propertiesMap)
+                    explicitConfigurationObjects.firstOrNull { it::class == configurationObjectType }?.also {
+                        println("Explicit configuration object $it has been overridden by configuration properties: $propertiesMap") // TODO log
+                    }
+
+                    try {
+                        serialFormat.decodeFromStringMap(deserializer, propertiesMap)
+                    } catch (e: Exception) {
+                        throw RuntimeException(
+                            "Failed to decode configuration object from properties: $propertiesMap", e
+                        )
+                    }
                 } else {
-                    null
+                    explicitConfigurationObjects.firstOrNull { it::class == configurationObjectType } as T?
                 }
             }
 }

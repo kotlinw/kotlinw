@@ -2,6 +2,7 @@ package xyz.kotlinw.module.pwa.server
 
 import arrow.core.nonFatalOrThrow
 import io.ktor.server.sessions.SessionStorage
+import io.ktor.server.sessions.SessionStorageMemory
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
@@ -30,7 +31,7 @@ interface WebAppSessionStorageManager : SessionStorage {
 
 @Component
 class WebAppSessionStorageManagerImpl(
-    private val sessionStorageBackendProvider: SessionStorageBackendProvider
+    private val sessionStorageBackendProvider: SessionStorageBackendProvider?
 ) : KtorServerApplicationConfigurer(), WebAppSessionStorageManager {
 
     private val logger = LoggingModule.loggerFactory.getLogger()
@@ -49,7 +50,12 @@ class WebAppSessionStorageManagerImpl(
 
     @OnConstruction
     fun onConstruction() {
-        sessionStorageBackend = sessionStorageBackendProvider.createSessionStorageBackend()
+        sessionStorageBackend = if (sessionStorageBackendProvider != null) {
+            sessionStorageBackendProvider.createSessionStorageBackend()
+        } else {
+            logger.warning { "Using default session storage: " / SessionStorageMemory::class.simpleName }
+            SessionStorageMemory()
+        }
     }
 
     override fun Context.setup() {

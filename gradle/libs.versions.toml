@@ -43,10 +43,10 @@ huxiSulky = "8.3.0"
 keycloak = "20.0.0"
 
 # https://github.com/JetBrains/skiko/releases
-skiko = "0.7.79"
+skiko = "0.7.90"
 
 # https://github.com/mipt-npm/kmath/releases
-kmath = "0.3.0"
+kmath = "0.3.1"
 
 jaxb = "2.3.2"
 
@@ -86,7 +86,7 @@ ktoml = "0.5.0"
 
 kotlinresult = "1.1.18"
 
-hibernate = "6.3.1.Final"
+hibernate = "6.4.2.Final"
 
 agp = "8.1.0"
 
