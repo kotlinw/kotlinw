@@ -1,6 +1,9 @@
 package xyz.kotlinw.util.coroutine
 
+import app.cash.turbine.test
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinw.util.coroutine.cancelAll
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
@@ -9,6 +12,9 @@ import kotlinx.coroutines.channels.BufferOverflow.SUSPEND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -109,6 +115,19 @@ class SharedFlowSemanticsTest {
                 }
                 job.cancel()
             }
+        }
+    }
+
+    @Test
+    fun testMap() = runTest {
+        val stateFlow = MutableStateFlow(1)
+        stateFlow.test {
+            assertEquals(1, awaitItem())
+            cancel()
+        }
+        stateFlow.map { it * 2 }.test {
+            assertEquals(2, awaitItem())
+            cancel()
         }
     }
 }
