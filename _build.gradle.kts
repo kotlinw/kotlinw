@@ -18,7 +18,7 @@ plugins {
 //    id("com.google.devtools.ksp") version "1.9.22-1.0.17" apply false
 //    kotlin("plugin.serialization") version "1.9.22" apply false
 //    kotlin("plugin.spring") version "1.9.22" apply false
-    id("org.jetbrains.compose") version "1.5.11" apply false
+    id("org.jetbrains.compose") version "1.5.12" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing

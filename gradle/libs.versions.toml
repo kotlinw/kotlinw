@@ -34,7 +34,7 @@ arrowGradleConfig = "0.12.0-rc.1"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-compose = "1.5.11"
+compose = "1.5.12"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -92,7 +92,7 @@ agp = "8.1.0"
 
 androidx-appcompat = "1.6.1"
 androidx-activityCompose = "1.7.2"
-compose-uitooling = "1.5.11"
+compose-uitooling = "1.5.12"
 
 libres = "1.1.8"
 voyager = "1.0.0-rc07"

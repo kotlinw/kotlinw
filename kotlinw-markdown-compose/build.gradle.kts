@@ -38,7 +38,7 @@ kotlin {
     }
 }
 
-compose {
-    kotlinCompilerPlugin.set(dependencies.compiler.forKotlin("1.9.21"))
-    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.9.22")
-}
+//compose {
+//    kotlinCompilerPlugin.set(dependencies.compiler.forKotlin("1.9.21"))
+//    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.9.22")
+//}
