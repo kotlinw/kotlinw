@@ -1,9 +1,9 @@
 package kotlinw.remoting.client.processor
 
+import kotlin.test.Test
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.checkCompilationResult
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
-import kotlin.test.Test
 
 class Test {
 

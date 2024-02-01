@@ -11,11 +11,14 @@ import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeAlias
 import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
+import com.google.devtools.ksp.symbol.Variance
+import com.google.devtools.ksp.symbol.impl.kotlin.KSFunctionDeclarationImpl
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -34,20 +37,27 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
+import kotlin.math.max
+import kotlin.time.Duration
 import kotlinw.ksp.util.hasCompanionObject
-import xyz.kotlinw.remoting.api.SupportsRemoting
-import xyz.kotlinw.remoting.api.RemotingClient
-import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
-import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
-import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.max
-import kotlin.time.Duration
+import org.jetbrains.kotlin.psi.KtContextReceiver
+import org.jetbrains.kotlin.psi.KtProjectionKind
+import org.jetbrains.kotlin.psi.KtProjectionKind.IN
+import org.jetbrains.kotlin.psi.KtProjectionKind.NONE
+import org.jetbrains.kotlin.psi.KtProjectionKind.OUT
+import org.jetbrains.kotlin.psi.KtProjectionKind.STAR
+import org.jetbrains.kotlin.psi.KtUserType
+import xyz.kotlinw.remoting.api.RemotingClient
+import xyz.kotlinw.remoting.api.SupportsRemoting
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
+import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
+import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
+import java.util.concurrent.atomic.AtomicInteger
 
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -183,6 +193,7 @@ class RemotingSymbolProcessor(
                 val hasParameters = parameters.isNotEmpty()
                 val parameterClassName = function.parameterClassName(nestedClassClassifier)
                 val resultClassName = function.returnTypeName()
+                val contextReceivers = with(resolver) { function.getContextReceivers() }
 
                 builder.addType(buildPayloadClass(parameterClassName, function.parameters))
 
@@ -261,7 +272,9 @@ class RemotingSymbolProcessor(
             val builder = TypeSpec.classBuilder(definitionInterfaceName.remoteCallHandlerClassName)
                 .addOriginatingKSFile(definitionInterfaceDeclaration.containingFile!!)
                 .addModifiers(KModifier.PRIVATE)
-                .addSuperinterface(RemoteCallHandlerImplementor::class.asTypeName().parameterizedBy(definitionInterfaceName))
+                .addSuperinterface(
+                    RemoteCallHandlerImplementor::class.asTypeName().parameterizedBy(definitionInterfaceName)
+                )
                 .primaryConstructor(
                     FunSpec.constructorBuilder()
                         .addParameter("target", definitionInterfaceName)
@@ -539,7 +552,7 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
                 ||
                 typeName == typeNameOf<CharArray>()
                 ||
-                (ksDeclaration is KSClassDeclaration &&ksDeclaration.classKind == ENUM_CLASS)
+                (ksDeclaration is KSClassDeclaration && ksDeclaration.classKind == ENUM_CLASS)
                 ||
                 (ksDeclaration == getClassDeclarationByName<Array<*>>()
                         && notNullKsType.arguments[0].isSerializable("Array element", depth, maxDepth))
@@ -575,4 +588,45 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
     }
 
     return result
+}
+
+//
+// Ugly hack to work with context receivers until official support is provided by KSP
+//
+
+context(Resolver)
+private fun KSFunctionDeclaration.getContextReceivers() =
+    (this as KSFunctionDeclarationImpl).ktFunction.contextReceivers
+        .map { it.toTypeName() }
+
+context(Resolver)
+private fun KtContextReceiver.toTypeName() = try {
+    (typeReference()!!.typeElement as KtUserType).toKSType().toTypeName()
+} catch (e: Exception) {
+    throw IllegalStateException("Failed to resolve context receiver: $text", e)
+}
+
+private fun KtProjectionKind.toVariance() =
+    when (this) {
+        IN -> Variance.CONTRAVARIANT
+        OUT -> Variance.COVARIANT
+        STAR -> Variance.STAR
+        NONE -> Variance.INVARIANT
+    }
+
+context(Resolver)
+private fun KtUserType.toKSType(): KSType {
+    val qualifiedName = qualifier!!.text + "." + referencedName
+    return getClassDeclarationByName(qualifiedName)
+        ?.asType(
+            typeArguments.map {
+                getTypeArgument(
+                    createKSTypeReferenceFromKSType(
+                        (it.typeReference!!.typeElement as KtUserType).toKSType()
+                    ),
+                    it.projectionKind.toVariance()
+                )
+            }
+        )
+        ?: throw IllegalStateException("Unknown type: $qualifiedName")
 }

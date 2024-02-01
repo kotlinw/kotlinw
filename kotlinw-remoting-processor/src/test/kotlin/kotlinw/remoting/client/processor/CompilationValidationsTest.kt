@@ -123,4 +123,25 @@ class CompilationValidationsTest {
             assertCompilationFailed()
         }
     }
+
+    @Test
+    fun testContextReceiver() {
+        checkCompilationResult(
+            """
+                import ${SupportsRemoting::class.qualifiedName}
+                
+                @SupportsRemoting
+                interface ContextReceiverExample {
+                
+                    companion object;
+                
+                    context(arrow.core.raise.Raise<kotlin.collections.List<kotlin.String>>)
+                    suspend fun method1()
+                }
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
+        ) {
+            assertCompilationSucceeded()
+        }
+    }
 }
