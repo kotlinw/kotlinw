@@ -58,7 +58,7 @@ jaxws = "4.0.2"
 mockk = "1.12.7"
 
 # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinWrappers = "1.0.0-pre.625"
+kotlinWrappers = "1.0.0-pre.693"
 
 # https://github.com/kosi-libs/Kodein/releases
 kodein = "7.20.1"
