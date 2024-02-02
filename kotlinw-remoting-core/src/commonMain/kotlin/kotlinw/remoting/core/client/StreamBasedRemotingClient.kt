@@ -24,9 +24,7 @@ class StreamBasedSynchronousRemotingClient(
 
     private val mutex = Mutex()
 
-    override suspend fun <T : Any, P : Any, R> call(
-        serviceKClass: KClass<T>,
-        methodKFunction: KFunction<R>,
+    override suspend fun <P : Any, R> call(
         serviceId: String,
         methodId: String,
         parameter: P,

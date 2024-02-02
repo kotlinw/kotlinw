@@ -26,6 +26,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwUuid)
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.coroutines.core)
+                api(libs.arrow.core)
             }
         }
         val commonTest by getting {

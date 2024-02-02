@@ -1,5 +1,6 @@
 package kotlinw.remoting.processor
 
+import arrow.core.raise.Raise
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
@@ -7,6 +8,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.ClassKind.ENUM_CLASS
+import com.google.devtools.ksp.symbol.ClassKind.INTERFACE
 import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -22,13 +24,16 @@ import com.google.devtools.ksp.symbol.impl.kotlin.KSFunctionDeclarationImpl
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.ExperimentalKotlinPoetApi
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
@@ -38,7 +43,7 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
 import kotlin.math.max
-import kotlin.time.Duration
+import kotlinw.ksp.util.filterAnnotations
 import kotlinw.ksp.util.hasCompanionObject
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
@@ -59,12 +64,24 @@ import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
 import java.util.concurrent.atomic.AtomicInteger
 
+// TODO ne generáljunk paraméter osztályt, ha 0 paramétere van a metódusnak
+// TODO a @Serializable annotation-ök nem mennek át a metódus paraméterből a generált paraméter class property-jeibe
+// TODO Raise<T> esetén T-nek is szerializálhatónak kell lenni
+// TODO @Contextual-t is fogadjuk el isSerializable()-ben
+
+private class StopProcessingException : RuntimeException()
+
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) :
     SymbolProcessor {
+
+    companion object {
+
+        private val ClassNameOfRaise = Raise::class.asClassName()
+    }
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols =
@@ -81,7 +98,11 @@ class RemotingSymbolProcessor(
             }
         }
         validSymbolsWithoutErrors.forEach {
-            generateProxyClass(it, resolver)
+            try {
+                generateProxyClass(it, resolver)
+            } catch (e: StopProcessingException) {
+                // Ignore
+            }
         }
 
         return (symbols - validSymbols).toList()
@@ -106,6 +127,7 @@ class RemotingSymbolProcessor(
 
     private val KSTypeReference?.isUnit get() = this?.toTypeName() == Unit::class.asTypeName()
 
+    @OptIn(ExperimentalKotlinPoetApi::class)
     private fun generateClientProxyClass(
         definitionInterfaceDeclaration: KSClassDeclaration,
         generatedFile: FileSpec.Builder,
@@ -126,12 +148,86 @@ class RemotingSymbolProcessor(
         fun KSFunctionDeclaration.parameterClassName(nestedClassClassifier: Int) =
             clientProxyClassName.nestedClass("Parameter_" + simpleName.asString() + "_cid" + nestedClassClassifier)
 
-        fun KSFunctionDeclaration.returnTypeName() = returnType?.toTypeName() ?: Nothing::class.asClassName()
+        fun KSFunctionDeclaration.resultClassName(nestedClassClassifier: Int) =
+            clientProxyClassName.nestedClass("Result_" + simpleName.asString() + "_cid" + nestedClassClassifier)
 
         fun KSFunctionDeclaration.remotingMethodPath(nestedClassClassifier: Int) =
             simpleName.asString() + "_" + nestedClassClassifier // TODO customizable
 
         val serviceId = definitionInterfaceName.simpleName // TODO customizable
+
+        fun buildResultClass(className: ClassName, normalResultType: TypeName, raisedErrors: List<TypeName>): TypeSpec {
+            require(raisedErrors.isNotEmpty())
+            val builder =
+                TypeSpec.classBuilder(className)
+                    .primaryConstructor(
+                        FunSpec.constructorBuilder()
+                            .addParameter(
+                                ParameterSpec.builder("result", normalResultType.copy(nullable = true))
+                                    .defaultValue("null").build()
+                            )
+                            .addParameter(
+                                ParameterSpec.builder("errorIndex", typeNameOf<Int>().copy(nullable = true))
+                                    .defaultValue("null").build()
+                            )
+                            .addParameters(
+                                raisedErrors.mapIndexed { index, typeName ->
+                                    ParameterSpec.builder("error$index", typeName.copy(nullable = true))
+                                        .defaultValue("null").build()
+                                }
+                            )
+                            .build()
+                    )
+                    .addProperty(
+                        PropertySpec.builder("result", normalResultType.copy(nullable = true))
+                            .initializer("result")
+                            .build()
+                    )
+                    .addProperty(
+                        PropertySpec.builder("errorIndex", typeNameOf<Int>().copy(nullable = true))
+                            .initializer("errorIndex")
+                            .build()
+                    )
+                    .addProperties(
+                        raisedErrors.mapIndexed { index, typeName ->
+                            PropertySpec.builder("error$index", typeName.copy(nullable = true))
+                                .initializer("error$index")
+                                .build()
+                        }
+                    )
+                    .also {
+                        it.addModifiers(KModifier.DATA)
+                    }
+
+            return builder
+                .addModifiers(KModifier.INTERNAL) // TODO PRIVATE, but it makes unit testing impossible
+                .addAnnotation(Serializable::class)
+                .build()
+        }
+
+        fun KSFunctionDeclaration.raisedErrors() =
+            with(resolver) {
+                try {
+                    getContextReceivers()
+                } catch (e: Exception) {
+                    logger.error(
+                        e.message ?: "Context receiver processing failed: ${e::class.qualifiedName}",
+                        this@raisedErrors
+                    )
+                    throw StopProcessingException()
+                }
+            }
+                .also {
+                    if (it.isNotEmpty()) {
+                        logger.warn("Context receiver support is partial and highly experimental.")
+                    }
+
+                    if (it.any { !(it is ParameterizedTypeName && it.rawType == ClassNameOfRaise) }) {
+                        logger.error("Only `$ClassNameOfRaise` is supported in context receiver.", this@raisedErrors)
+                        throw StopProcessingException()
+                    }
+                }
+                .map { it as ParameterizedTypeName }.map { it.typeArguments.first() }
 
         fun generateClientProxyClass(): TypeSpec {
             val builder = TypeSpec.classBuilder(clientProxyClassName)
@@ -186,19 +282,24 @@ class RemotingSymbolProcessor(
 
             processedMemberFunctions.forEachIndexed { nestedClassClassifier, function ->
                 val functionName = function.simpleName.asString()
-                val returnType = function.returnType
+                val returnType = function.returnType?.resolve()
                 val returnsFlow =
-                    (returnType?.resolve()?.declaration as? KSClassDeclaration)?.toClassName() == Flow::class.asClassName()
+                    (returnType?.declaration as? KSClassDeclaration)?.toClassName() == Flow::class.asClassName()
                 val parameters = function.parameters
                 val hasParameters = parameters.isNotEmpty()
                 val parameterClassName = function.parameterClassName(nestedClassClassifier)
-                val resultClassName = function.returnTypeName()
-                val contextReceivers = with(resolver) { function.getContextReceivers() }
+                val raisedErrors = function.raisedErrors()
 
-                builder.addType(buildPayloadClass(parameterClassName, function.parameters))
+                builder.addType(
+                    buildPayloadClass(
+                        parameterClassName,
+                        function.parameters
+                    )
+                ) // TODO ezt csináljuk meg előre, de a client proxy generálása közben
 
                 val funBuilder = FunSpec.builder(functionName)
                     .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
+                    .contextReceivers(raisedErrors.map { Raise::class.asClassName().parameterizedBy(it) })
                     .addParameters(
                         function.parameters.map {
                             ParameterSpec.builder(it.name!!.asString(), it.type.toTypeName()).build()
@@ -206,6 +307,21 @@ class RemotingSymbolProcessor(
                     )
 
                 if (returnType != null) {
+                    val resultClassName =
+                        if (raisedErrors.isEmpty()) {
+                            returnType.toTypeName()
+                        } else {
+                            val resultClassName = function.resultClassName(nestedClassClassifier)
+                            builder.addType(
+                                buildResultClass(
+                                    resultClassName,
+                                    returnType.toTypeName(),
+                                    raisedErrors
+                                )
+                            ) // TODO ezt csináljuk meg előre, de a client proxy generálása közben
+                            resultClassName
+                        }
+
                     val methodPath = function.remotingMethodPath(nestedClassClassifier)
 
                     if (returnsFlow) {
@@ -236,33 +352,47 @@ class RemotingSymbolProcessor(
                     } else {
                         funBuilder.addStatement(
                             """
-                                ${if (returnType.isUnit) "" else "return "}$remotingClientCallSupportPropertyName.call<%T, %T, %T>(
-                                    %T::class, 
-                                    %T::%N,
+                                ${if (returnType == typeNameOf<Unit>()) "" else "return·"}$remotingClientCallSupportPropertyName.call<%T, %T>(
                                     $serviceIdPropertyName,
                                     "$methodPath",
                                     %T${if (hasParameters) "(${parameters.joinToString { it.name!!.asString() }})" else ""},
                                     %M<%T>(),
                                     %M<%T>()
                                 )
+                                ${
+                                if (raisedErrors.isNotEmpty()) {
+                                    """
+                                        .run {
+                                            if (errorIndex == null) {
+                                                result${if (returnType.isMarkedNullable) "" else "!!"}
+                                            } else { 
+                                                when (errorIndex) {
+                                                     ${
+                                        raisedErrors.mapIndexed { index: Int, typeName: TypeName -> "$index -> raise(error$index" + (if (typeName.isNullable) "" else "!!") + ")" }
+                                            .joinToString("\n")
+                                    }
+                                                    else -> throw IllegalStateException()
+                                                }
+                                            }
+                                        }
+                                    """.trimIndent()
+                                } else {
+                                    ""
+                                }
+                            }
                             """.trimIndent(),
-                            definitionInterfaceName, parameterClassName, resultClassName,
-                            definitionInterfaceName,
-                            definitionInterfaceName, functionName,
+                            parameterClassName, resultClassName,
                             parameterClassName,
                             serializerFunctionName, parameterClassName,
                             serializerFunctionName, resultClassName
                         )
                     }
-                } else {
-                    funBuilder.addStatement("return TODO(\"Cannot be implemented until other errors are resolved.\")")
-                }
 
-                if (returnType != null) {
                     funBuilder.returns(returnType.toTypeName())
+                    builder.addFunction(funBuilder.build())
+                } else {
+                    throw StopProcessingException()
                 }
-
-                builder.addFunction(funBuilder.build())
             }
 
             return builder.build()
@@ -305,6 +435,7 @@ class RemotingSymbolProcessor(
                             processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
                                 val returnsFlow =
                                     (function.returnType?.resolve()?.declaration as? KSClassDeclaration)?.toClassName() == Flow::class.asClassName()
+                                val raisedErrors = function.raisedErrors()
 
                                 if (returnsFlow) {
                                     add(
@@ -325,7 +456,10 @@ class RemotingSymbolProcessor(
                                         serializerFunctionName,
                                         function.parameterClassName(nestedClassIdentifier),
                                         serializerFunctionName,
-                                        function.returnTypeName()
+                                        if (raisedErrors.isEmpty())
+                                            function.returnType?.toTypeName()
+                                        else
+                                            function.resultClassName(nestedClassIdentifier)
                                     )
                                 }
                             }
@@ -344,6 +478,14 @@ class RemotingSymbolProcessor(
 
             processedMemberFunctions.forEachIndexed { nestedClassIdentifier, function ->
                 val functionName = function.simpleName.asString()
+                val raisedErrors = function.raisedErrors()
+                val returnType = function.returnType?.resolve()
+                val resultClassName =
+                    if (raisedErrors.isEmpty()) {
+                        returnType?.toTypeName()
+                    } else {
+                        function.resultClassName(nestedClassIdentifier)
+                    }
 
                 processCallFunctionBuilder.beginControlFlow(
                     "%S ->",
@@ -357,7 +499,33 @@ class RemotingSymbolProcessor(
                 fun buildTargetFunctionCall() =
                     "target.%N(${function.parameters.joinToString { "p." + it.name!!.asString() }})"
 
-                processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
+                if (raisedErrors.isEmpty()) {
+                    processCallFunctionBuilder.addStatement(buildTargetFunctionCall(), functionName)
+                } else {
+                    processCallFunctionBuilder.addCode(
+                        """
+                        %M<%T, %T>({
+                            ${buildTargetFunctionCall()}
+                                .let { %T(it) }
+                        }, {
+                            when (it) {
+                                ${
+                            List(raisedErrors.size) { "is %T -> { %T(errorIndex = $it, error$it = it) }" }.joinToString(
+                                "\n"
+                            )
+                        }
+                                else -> throw IllegalStateException()
+                            }
+                        })
+                        """.trimIndent(),
+                        MemberName("arrow.core.raise", "recover"),
+                        resolver.builtIns.anyType.makeNullable().toTypeName(),
+                        resultClassName, // recover() type arguments
+                        functionName,
+                        resultClassName,
+                        *(sequence { raisedErrors.map { yield(it); yield(resultClassName) } }.toList().toTypedArray())
+                    )
+                }
 
                 processCallFunctionBuilder.endControlFlow()
             }
@@ -554,6 +722,10 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
                 ||
                 (ksDeclaration is KSClassDeclaration && ksDeclaration.classKind == ENUM_CLASS)
                 ||
+                (ksDeclaration is KSClassDeclaration && ksDeclaration.classKind == INTERFACE)
+                ||
+                ksType.annotations.filterAnnotations<Serializable>().toList().isNotEmpty()
+                ||
                 (ksDeclaration == getClassDeclarationByName<Array<*>>()
                         && notNullKsType.arguments[0].isSerializable("Array element", depth, maxDepth))
                 ||
@@ -577,11 +749,9 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
                 ||
                 (ksDeclaration as? KSClassDeclaration)?.classKind == ClassKind.OBJECT
                 ||
-                ksDeclaration == getClassDeclarationByName<Duration>() // TODO only if annotated explicitly by @Serializable(with = ...)
-                ||
                 notNullKsType == builtIns.nothingType
                 ||
-                ksDeclaration.annotations.any { it.annotationType.resolve().declaration == getClassDeclarationByName<Serializable>() } // TODO support generic
+                ksDeclaration.annotations.any { it.annotationType.resolve().declaration == getClassDeclarationByName<Serializable>() }
 
     if (!result && (depth == 0 || depth == maxDepth.get())) {
         error("$ksNodeDescription $ksType should be serializable to support remoting.")
@@ -594,6 +764,8 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
 // Ugly hack to work with context receivers until official support is provided by KSP
 //
 
+private class ContextReceiverException(message: String) : RuntimeException(message)
+
 context(Resolver)
 private fun KSFunctionDeclaration.getContextReceivers() =
     (this as KSFunctionDeclarationImpl).ktFunction.contextReceivers
@@ -602,8 +774,10 @@ private fun KSFunctionDeclaration.getContextReceivers() =
 context(Resolver)
 private fun KtContextReceiver.toTypeName() = try {
     (typeReference()!!.typeElement as KtUserType).toKSType().toTypeName()
+} catch (e: ContextReceiverException) {
+    throw ContextReceiverException("Failed to resolve context receiver type: $text (${e.message})")
 } catch (e: Exception) {
-    throw IllegalStateException("Failed to resolve context receiver: $text", e)
+    throw ContextReceiverException("Failed to resolve context receiver type: $text")
 }
 
 private fun KtProjectionKind.toVariance() =
@@ -616,7 +790,10 @@ private fun KtProjectionKind.toVariance() =
 
 context(Resolver)
 private fun KtUserType.toKSType(): KSType {
-    val qualifiedName = qualifier!!.text + "." + referencedName
+    val qualifiedName =
+        (qualifier?.text
+            ?: throw ContextReceiverException("Currently all type names must be fully qualified in the context receivers.")
+                ) + "." + referencedName
     return getClassDeclarationByName(qualifiedName)
         ?.asType(
             typeArguments.map {
@@ -628,5 +805,5 @@ private fun KtUserType.toKSType(): KSType {
                 )
             }
         )
-        ?: throw IllegalStateException("Unknown type: $qualifiedName")
+        ?: throw ContextReceiverException("Unknown type: $qualifiedName")
 }

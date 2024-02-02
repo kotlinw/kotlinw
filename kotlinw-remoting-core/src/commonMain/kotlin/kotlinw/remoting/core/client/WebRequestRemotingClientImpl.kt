@@ -25,9 +25,7 @@ class WebRequestRemotingClientImpl<M : RawMessage>(
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
         "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO konfigurálható path-t
 
-    override suspend fun <T : Any, P : Any, R> call(
-        serviceKClass: KClass<T>,
-        methodKFunction: KFunction<R>,
+    override suspend fun <P : Any, R> call(
         serviceId: String,
         methodId: String,
         parameter: P,

@@ -7,9 +7,7 @@ import kotlin.reflect.KFunction
 
 interface RemotingClientCallSupport : RemotingClient {
 
-    suspend fun <T : Any, P: Any, R> call(
-        serviceKClass: KClass<T>,
-        methodKFunction: KFunction<R>,
+    suspend fun <P: Any, R> call(
         serviceId: String,
         methodId: String,
         parameter: P,

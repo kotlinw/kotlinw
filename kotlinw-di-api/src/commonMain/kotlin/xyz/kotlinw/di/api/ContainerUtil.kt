@@ -23,12 +23,17 @@ suspend fun <T : ContainerScope> runApplication(
         with(rootScope) {
             try {
                 // TODO részletes hibakezelést lépésenként
-                start()
+try {
+    start()
+} catch (e: Throwable) {
+    e.printStackTrace()
+}
 
                 (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runStartupTasks()
 
                 block()
             } catch (e: Exception) {
+                e.printStackTrace()
                 throw RuntimeException(e.nonFatalOrThrow()) // TODO log
             } finally {
                 try {

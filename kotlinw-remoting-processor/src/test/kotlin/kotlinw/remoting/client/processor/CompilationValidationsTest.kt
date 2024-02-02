@@ -1,13 +1,13 @@
 package kotlinw.remoting.client.processor
 
+import kotlin.test.Test
 import kotlinw.ksp.testutil.assertCompilationFailed
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
-import xyz.kotlinw.remoting.api.SupportsRemoting
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlinx.serialization.Serializable
-import kotlin.test.Test
+import xyz.kotlinw.remoting.api.SupportsRemoting
 
 class CompilationValidationsTest {
 
@@ -131,7 +131,7 @@ class CompilationValidationsTest {
                 import ${SupportsRemoting::class.qualifiedName}
                 
                 @SupportsRemoting
-                interface ContextReceiverExample {
+                interface Example {
                 
                     companion object;
                 
@@ -142,6 +142,72 @@ class CompilationValidationsTest {
             listOf(RemotingSymbolProcessorProvider())
         ) {
             assertCompilationSucceeded()
+        }
+    }
+
+    @Test
+    fun testContextReceiverNonQualifiedTypeName() {
+        checkCompilationResult(
+            """
+                import ${SupportsRemoting::class.qualifiedName}
+                
+                @SupportsRemoting
+                interface Example {
+                
+                    companion object;
+                
+                    context(Raise<List<String>>)
+                    suspend fun method1()
+                }
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
+        ) {
+            assertCompilationFailed()
+            assertHasKspError("Failed to resolve context receiver type: Raise<List<String>> (Currently all type names must be fully qualified in the context receivers.)")
+        }
+    }
+
+    @Test
+    fun testContextReceiverInvalidTypeName() {
+        checkCompilationResult(
+            """
+                import ${SupportsRemoting::class.qualifiedName}
+                
+                @SupportsRemoting
+                interface Example {
+                
+                    companion object;
+                
+                    context(some.unknown.Type)
+                    suspend fun method1()
+                }
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
+        ) {
+            assertCompilationFailed()
+            assertHasKspError("Failed to resolve context receiver type: some.unknown.Type (Unknown type: some.unknown.Type)")
+        }
+    }
+
+    @Test
+    fun testInvalidContextReceiverOnlyRaiseSupported() {
+        checkCompilationResult(
+            """
+                import ${SupportsRemoting::class.qualifiedName}
+                
+                @SupportsRemoting
+                interface Example {
+                
+                    companion object;
+                
+                    context(kotlin.String)
+                    suspend fun method1()
+                }
+            """.trimIndent(),
+            listOf(RemotingSymbolProcessorProvider())
+        ) {
+            assertCompilationFailed()
+            assertHasKspError("Only `arrow.core.raise.Raise` is supported in context receiver.", "Test.kt:9")
         }
     }
 }

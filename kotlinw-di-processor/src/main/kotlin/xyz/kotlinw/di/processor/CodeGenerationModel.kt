@@ -36,4 +36,4 @@ private fun ScopeCodeGenerationModel.generateComponentAccessor(
     }
 
 fun ScopeCodeGenerationModel.generateComponentAccessor(componentId: ComponentId): String =
-    generateComponentAccessor(componentId, "")
+    generateComponentAccessor(componentId, "") + " ?: throw IllegalStateException()"

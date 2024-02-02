@@ -66,8 +66,6 @@ class KtorHttpRemotingClientTest {
             assertEquals(
                 TestResult(123),
                 remotingClient.call(
-                    FakeService::class,
-                    FakeService::fakeMethod,
                     FakeService::class.simpleName!!,
                     FakeService::fakeMethod.name,
                     TestParameter("abc"),

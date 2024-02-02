@@ -23,7 +23,11 @@ suspend fun <T : ContainerScope> runJvmApplication(
                     // TODO log
                     try {
                         runBlocking {
-                            shutdownApplication(it, it.containerLifecycleCoordinator)
+                            try {
+                                shutdownApplication(it, it.containerLifecycleCoordinator)
+                            } catch (e: Throwable) {
+                                e.printStackTrace()
+                            }
                         }
                     } finally {
                         deletePidFile()

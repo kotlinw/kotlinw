@@ -75,7 +75,7 @@ class BasicTest {
                 class Module1
                 
                 @Container(Module1::class)
-                class SampleContainer {
+                interface SampleContainer {
                     companion object
                 }
             """.trimIndent(),
