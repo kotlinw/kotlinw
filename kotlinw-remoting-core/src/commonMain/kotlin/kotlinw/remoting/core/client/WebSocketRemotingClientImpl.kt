@@ -261,6 +261,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
+    // TODO ezt átnézni, hogy tényleg jól működik-e
     @OptIn(InternalCoroutinesApi::class)
     override suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> {
         val deferred = withMessagingManager {
