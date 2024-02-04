@@ -31,6 +31,7 @@ import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
@@ -39,6 +40,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.disposeOnCancellation
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -118,6 +120,21 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             is Connecting -> Connecting(newCoroutinesAwaitingConnection)
                             is Disconnected -> Disconnected(newCoroutinesAwaitingConnection)
                             is MessageLoopSuspended -> Connecting(newCoroutinesAwaitingConnection)
+                        }
+                    }
+
+                    continuation.invokeOnCancellation {
+                        status.update {
+                            if (it is InactiveMessagingStatus) {
+                                val newCoroutinesAwaitingConnection = it.coroutinesAwaitingConnection.remove(continuation)
+                                when (it) {
+                                    is Connecting -> it.copy(coroutinesAwaitingConnection = newCoroutinesAwaitingConnection)
+                                    is Disconnected -> it.copy(coroutinesAwaitingConnection = newCoroutinesAwaitingConnection)
+                                    is MessageLoopSuspended -> it.copy(coroutinesAwaitingConnection = newCoroutinesAwaitingConnection)
+                                }
+                            } else {
+                                it
+                            }
                         }
                     }
 
@@ -265,7 +282,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     @OptIn(InternalCoroutinesApi::class)
     override suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> {
         val deferred = withMessagingManager {
-            async {
+            async(start = UNDISPATCHED) {
                 block(PersistentRemotingConnectionImpl(this@withMessagingManager))
             }
         }
