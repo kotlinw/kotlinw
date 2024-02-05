@@ -21,7 +21,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.kotlinwUtilCoreMp)
-                api(libs.kodein.di.core)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(projects.kotlinw.kotlinwUtilSerializationJson)
             }

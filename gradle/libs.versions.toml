@@ -60,9 +60,6 @@ mockk = "1.12.7"
 # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinWrappers = "1.0.0-pre.693"
 
-# https://github.com/kosi-libs/Kodein/releases
-kodein = "7.20.1"
-
 # https://github.com/testcontainers/testcontainers-java/releases
 testcontainers = "1.19.0"
 
@@ -273,9 +270,6 @@ ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = 
 ktor-websockets = { module = "io.ktor:ktor-websockets", version.ref = "ktor" }
 
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
-
-kodein-di-core = { module = "org.kodein.di:kodein-di", version.ref = "kodein" }
-kodein-di-framework-compose = { module = "org.kodein.di:kodein-di-framework-compose", version.ref = "kodein" }
 
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 hibernate-envers = { module = "org.hibernate.orm:hibernate-envers", version.ref = "hibernate" }
