@@ -32,3 +32,7 @@ value class FloatProportion(val value: Float) {
         require(value in range)
     }
 }
+
+fun DoubleProportion.toFloatProportion() = FloatProportion(value.toFloat())
+
+fun FloatProportion.toDoubleProportion() = DoubleProportion(value.toDouble())
