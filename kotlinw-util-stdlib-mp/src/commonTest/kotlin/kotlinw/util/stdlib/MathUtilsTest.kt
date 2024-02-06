@@ -18,4 +18,25 @@ class MathUtilsTest {
         assertEquals(35.5, 35.5.round(3))
         assertEquals(35.873, 35.87334.round(3))
     }
+
+    private fun average(values: DoubleArray) = values.sum() / values.size
+
+    private fun incrementalAverage(values: DoubleArray) =
+        values.toList()
+            .fold(IncrementalAverageHolder.Empty) { incrementalAverageHolder, value ->
+                incrementalAverageHolder.addValue(value)
+            }
+            .average
+
+    private fun assertAverageResult(vararg values: Double) {
+        assertEquals(average(values), incrementalAverage(values))
+    }
+
+    @Test
+    fun testIncrementalAverage() {
+        assertAverageResult(0.0)
+        assertAverageResult(10.0)
+        assertAverageResult(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0)
+        assertAverageResult(10.0, 20.0, 20.0, 10.0)
+    }
 }
