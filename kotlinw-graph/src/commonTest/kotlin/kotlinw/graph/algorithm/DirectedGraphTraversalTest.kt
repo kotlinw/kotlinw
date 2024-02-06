@@ -39,7 +39,8 @@ class DirectedGraphTraversalTest {
             val v2 = vertex("2")
             edge(v2, v1)
         }.apply {
-            assertEquals(listOf("2", "1"), recursiveDfs(graph.vertices.first()).toList().map { it.data })
+            assertEquals(listOf("1"), recursiveDfs(graph.vertices.first()).toList().map { it.data })
+            assertEquals(listOf("2", "1"), recursiveDfs(graph.vertices.toList()[1]).toList().map { it.data })
         }
     }
 
@@ -47,7 +48,7 @@ class DirectedGraphTraversalTest {
     fun testDfs() {
         val graph = createGraph()
         assertEquals(
-            listOf("1", "2", "5", "9", "10", "6", "3", "4", "7", "11", "12", "8"),
+            listOf("1", "4", "8", "7", "12", "11", "3", "2", "6", "5", "10", "9"),
             graph.dfs(graph.vertices.first()).toList().map { it.data }
         )
     }

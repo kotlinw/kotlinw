@@ -9,7 +9,11 @@ interface ContainerScope {
 
     suspend fun close()
 
-    // TODO this should not be here (it is here only because it made the implementation easy)
+    // TODO this should not be here (it is here only because it made the implementation easy, it should be refactored)
     @ComponentQuery
     val containerLifecycleCoordinator: ContainerLifecycleCoordinator?
+
+    // TODO this should not be here (it is here only because it made the implementation easy, it should be refactored)
+    @ComponentQuery
+    val containerLifecycleStaticListeners: List<ContainerLifecycleListener>
 }

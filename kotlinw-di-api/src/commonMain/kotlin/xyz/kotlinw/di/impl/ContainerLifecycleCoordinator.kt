@@ -21,11 +21,9 @@ interface ContainerLifecycleCoordinator {
     )
 }
 
-class ContainerLifecycleCoordinatorImpl(
-    private val staticListeners: List<ContainerLifecycleListener>
-) : ContainerLifecycleCoordinator {
+class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
 
-    private val additionalListeners = mutableListOf<ContainerLifecycleListener>()
+    private val listeners = mutableListOf<ContainerLifecycleListener>()
 
     private var runStartupTasksInvoked by atomic(false)
 
@@ -42,7 +40,7 @@ class ContainerLifecycleCoordinatorImpl(
     ) {
         listenersLock.withLock {
             check(!runStartupTasksInvoked)
-            additionalListeners.add(
+            listeners.add(
                 object : ContainerLifecycleListener {
 
                     override val lifecycleListenerPriority get() = priority
@@ -69,8 +67,7 @@ class ContainerLifecycleCoordinatorImpl(
 
         val shutdownTasks = mutableListOf<ContainerLifecycleListener>()
 
-        var failed = false
-        (staticListeners + additionalListeners).sortedBy { it.lifecycleListenerPriority }.forEach { listener ->
+        listeners.sortedBy { it.lifecycleListenerPriority }.forEach { listener ->
             try {
                 listener.onContainerStartup()
                 shutdownTasks.add(listener)

@@ -26,7 +26,7 @@ suspend fun <T : ContainerScope> runJvmApplication(
                             try {
                                 shutdownApplication(it, it.containerLifecycleCoordinator)
                             } catch (e: Throwable) {
-                                e.printStackTrace()
+                                e.printStackTrace() // TODO log
                             }
                         }
                     } finally {

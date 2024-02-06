@@ -10,12 +10,12 @@ import kotlinw.util.stdlib.MutableBloomFilter
 import kotlinw.util.stdlib.newMutableBloomFilter
 import kotlin.jvm.JvmInline
 
-fun <D : Any, V : Vertex<D>> Graph<D, V>.bfs(from: V, onRevisitAttempt: (V) -> Unit = {}): Sequence<Vertex<D>> {
-    return traverse(from, BfsRemainingVerticesHolder(), { neighborsOf(it).asIterable() }, onRevisitAttempt)
+fun <D : Any, V : Vertex<D>> Graph<D, V>.bfs(from: V): Sequence<Vertex<D>> {
+    return traverse(from, BfsRemainingVerticesHolder(), { neighborsOf(it) })
 }
 
-fun <D : Any, V : Vertex<D>> Graph<D, V>.dfs(from: V, onRevisitAttempt: (V) -> Unit = {}): Sequence<Vertex<D>> {
-    return traverse(from, DfsRemainingVerticesHolder(), { neighborsOf(it).asIterable().reversed() }, onRevisitAttempt)
+fun <D : Any, V : Vertex<D>> Graph<D, V>.dfs(from: V): Sequence<Vertex<D>> {
+    return traverse(from, DfsRemainingVerticesHolder(), { neighborsOf(it) })
 }
 
 private sealed interface RemainingVerticesHolder<D : Any, V : Vertex<D>> {
@@ -52,8 +52,7 @@ private value class DfsRemainingVerticesHolder<D : Any, V : Vertex<D>>(private v
 private fun <D : Any, V : Vertex<D>> Graph<D, V>.traverse(
     from: V,
     remainingVerticesHolder: RemainingVerticesHolder<D, V>,
-    inNeighbors: (V) -> Iterable<V>,
-    onRevisitAttempt: (V) -> Unit = {}
+    outNeighbors: (V) -> Sequence<V>
 ): Sequence<V> {
     return sequence {
         val graph = this@traverse
@@ -74,10 +73,8 @@ private fun <D : Any, V : Vertex<D>> Graph<D, V>.traverse(
             current.markAsVisited()
             yield(current)
 
-            inNeighbors(current).forEach {
-                if (it.isVisited()) {
-                    onRevisitAttempt(current)
-                } else {
+            outNeighbors(current).forEach {
+                if (!it.isVisited()) {
                     remainingVerticesHolder.add(it)
                 }
             }

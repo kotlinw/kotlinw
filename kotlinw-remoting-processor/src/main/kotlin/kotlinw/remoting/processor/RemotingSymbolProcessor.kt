@@ -69,7 +69,7 @@ import java.util.concurrent.atomic.AtomicInteger
 // TODO Raise<T> esetén T-nek is szerializálhatónak kell lenni
 // TODO @Contextual-t is fogadjuk el isSerializable()-ben
 
-private class StopProcessingException : RuntimeException()
+private class StopKspProcessingException : RuntimeException()
 
 class RemotingSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -100,7 +100,7 @@ class RemotingSymbolProcessor(
         validSymbolsWithoutErrors.forEach {
             try {
                 generateProxyClass(it, resolver)
-            } catch (e: StopProcessingException) {
+            } catch (e: StopKspProcessingException) {
                 // Ignore
             }
         }
@@ -214,7 +214,7 @@ class RemotingSymbolProcessor(
                         e.message ?: "Context receiver processing failed: ${e::class.qualifiedName}",
                         this@raisedErrors
                     )
-                    throw StopProcessingException()
+                    throw StopKspProcessingException()
                 }
             }
                 .also {
@@ -224,7 +224,7 @@ class RemotingSymbolProcessor(
 
                     if (it.any { !(it is ParameterizedTypeName && it.rawType == ClassNameOfRaise) }) {
                         logger.error("Only `$ClassNameOfRaise` is supported in context receiver.", this@raisedErrors)
-                        throw StopProcessingException()
+                        throw StopKspProcessingException()
                     }
                 }
                 .map { it as ParameterizedTypeName }.map { it.typeArguments.first() }
@@ -391,7 +391,7 @@ class RemotingSymbolProcessor(
                     funBuilder.returns(returnType.toTypeName())
                     builder.addFunction(funBuilder.build())
                 } else {
-                    throw StopProcessingException()
+                    throw StopKspProcessingException()
                 }
             }
 

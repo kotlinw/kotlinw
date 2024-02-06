@@ -23,13 +23,26 @@ suspend fun <T : ContainerScope> runApplication(
         with(rootScope) {
             try {
                 // TODO részletes hibakezelést lépésenként
-try {
-    start()
-} catch (e: Throwable) {
-    e.printStackTrace()
-}
+                try {
+                    start()
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
 
-                (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runStartupTasks()
+                containerLifecycleCoordinator?.apply {
+                    check(this is ContainerLifecycleCoordinatorImpl)
+
+                    containerLifecycleStaticListeners.forEach { listener ->
+                        registerListener(
+                            listener::onContainerStartup,
+                            { listener.onContainerShutdown() },
+                            listener.lifecycleListenerPriority
+                        )
+                    }
+
+                    // TODO nem szép, hogy az implementációtól függünk
+                    (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runStartupTasks()
+                }
 
                 block()
             } catch (e: Exception) {

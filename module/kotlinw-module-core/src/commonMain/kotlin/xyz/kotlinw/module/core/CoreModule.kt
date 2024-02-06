@@ -14,8 +14,7 @@ import xyz.kotlinw.module.serializer.SerializerModule
 class CoreModule {
 
     @Component(type = ContainerLifecycleCoordinator::class)
-    fun containerLifecycleCoordinator(listeners: List<ContainerLifecycleListener>) =
-        ContainerLifecycleCoordinatorImpl(listeners)
+    fun containerLifecycleCoordinator() = ContainerLifecycleCoordinatorImpl()
 
     @Component(type = ApplicationCoroutineService::class, onTerminate = "close")
     fun applicationCoroutineService() = ApplicationCoroutineServiceImpl()
