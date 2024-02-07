@@ -421,7 +421,6 @@ class DiSymbolProcessor(
         val scopes = mutableMapOf<ScopeId, ScopeCodeGenerationModel>()
         resolvedContainerModel.scopes.forEach { (scopeId, resolvedScopeModel) ->
             val componentGraph = buildComponentGraph(resolvedScopeModel)
-            File("/home/norbi/kuka/graph-$scopeId-${Clock.System.now().epochSeconds}-orig.txt").writeText(componentGraph.toString())
 
             componentGraph.checkAcyclic().also {
                 if (it is Cyclic) {
@@ -431,11 +430,6 @@ class DiSymbolProcessor(
             }
 
             val reverseTopologicalSort = componentGraph.reverseTopologicalSort().toList()
-            File("/home/norbi/kuka/graph-$scopeId-${Clock.System.now().epochSeconds}-topo.txt").writeText(
-                reverseTopologicalSort.joinToString("\n") { it.data.toString() })
-
-            val a = alternativeTopologicalSort(componentGraph)
-            File("/home/norbi/kuka/graph-$scopeId-${Clock.System.now().epochSeconds}-alt.txt").writeText(a)
 
             scopes[scopeId] = ScopeCodeGenerationModel(
                 resolvedScopeModel,
@@ -464,69 +458,6 @@ class DiSymbolProcessor(
             containerImplementationName(containerInterfaceName),
             scopes
         )
-    }
-
-    private fun alternativeTopologicalSort(componentGraph: DirectedGraph<ComponentId, Vertex<ComponentId>>): String {
-        val g = Graph(componentGraph.vertexCount)
-        val v1 = mutableMapOf<ComponentId, Int>()
-        val v2 = mutableListOf<ComponentId>()
-        componentGraph.vertices.forEachIndexed { index, vertex ->
-            v1[vertex.data] = index
-            v2.add(vertex.data)
-        }
-
-        componentGraph.vertices.forEach { vertex1 ->
-            componentGraph.neighborsOf(vertex1).forEach { vertex2 ->
-                g.addEdge(v1.getValue(vertex1.data), v1.getValue(vertex2.data))
-            }
-        }
-
-        return g.topologicalSort().toList().reversed().joinToString("\n") { v2[it].toString() }
-    }
-
-    class Graph(private val vertices: Int) {
-        private val adj: MutableList<MutableList<Int>> = ArrayList()
-
-        init {
-            for (i in 0 until vertices) {
-                adj.add(ArrayList())
-            }
-        }
-
-        fun addEdge(v: Int, w: Int) {
-            adj[v].add(w)
-        }
-
-        fun topologicalSort(): Sequence<Int> = sequence {
-            val stack = Stack<Int>()
-
-            val visited = BooleanArray(vertices)
-            for (i in 0 until vertices) visited[i] = false
-
-            for (i in 0 until vertices) {
-                if (!visited[i]) {
-                    topologicalSortUtil(i, visited, stack)
-                }
-            }
-
-            while (stack.isNotEmpty()) {
-                yield(stack.pop())
-            }
-        }
-
-        private fun topologicalSortUtil(v: Int, visited: BooleanArray, stack: Stack<Int>) {
-            visited[v] = true
-            var i: Int
-
-            val iterator = adj[v].listIterator()
-            while (iterator.hasNext()) {
-                i = iterator.next()
-                if (!visited[i]) {
-                    topologicalSortUtil(i, visited, stack)
-                }
-            }
-            stack.push(v)
-        }
     }
 
     private fun containerImplementationName(
