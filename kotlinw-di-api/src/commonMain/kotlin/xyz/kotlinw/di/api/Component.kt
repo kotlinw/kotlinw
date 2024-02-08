@@ -16,7 +16,8 @@ import kotlin.reflect.KClass
 @Target(CLASS, FUNCTION, VALUE_PARAMETER)
 @MustBeDocumented
 annotation class Component(
-    val type: KClass<out Any> = Any::class, // TODO ez tömb legyen, hogy több interfészt is lehessen megadni
+    val type: KClass<out Any> = Any::class,
+    // TODO val types: Array<KClass<out Any>> = [],
     val onConstruction: String = "",
     val onTerminate: String = ""
 )

@@ -2,6 +2,7 @@ package kotlinw.util.stdlib
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinw.util.stdlib.IncrementalAverageHolder.ImmutableIncrementalAverageHolder
 
 class MathUtilsTest {
 
@@ -23,7 +24,7 @@ class MathUtilsTest {
 
     private fun incrementalAverage(values: DoubleArray) =
         values.toList()
-            .fold(IncrementalAverageHolder.Empty) { incrementalAverageHolder, value ->
+            .fold(ImmutableIncrementalAverageHolder.Empty) { incrementalAverageHolder, value ->
                 incrementalAverageHolder.addValue(value)
             }
             .average

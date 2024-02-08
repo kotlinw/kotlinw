@@ -16,16 +16,37 @@ fun Float.round(decimalPlaces: Int): Float {
 fun incrementalAverage(previousAverage: Double, previousSampleCount: Int, currentValue: Double) =
     previousAverage + ((currentValue - previousAverage) / (previousSampleCount + 1F))
 
-data class IncrementalAverageHolder(val average: Double, val sampleCount: Int) {
+sealed interface IncrementalAverageHolder {
 
-    companion object {
+    val average: Double
 
-        val Empty = IncrementalAverageHolder(0.0, 0)
+    val sampleCount: Int
+
+    data class ImmutableIncrementalAverageHolder(override val average: Double, override val sampleCount: Int) :
+        IncrementalAverageHolder {
+
+        companion object {
+
+            val Empty = ImmutableIncrementalAverageHolder(0.0, 0)
+        }
+
+        fun addValue(value: Double) =
+            ImmutableIncrementalAverageHolder(
+                incrementalAverage(average, sampleCount, value),
+                sampleCount + 1
+            )
     }
 
-    fun addValue(value: Double) =
-        IncrementalAverageHolder(
-            incrementalAverage(average, sampleCount, value),
-            sampleCount + 1
-        )
+    @NonThreadSafe
+    class MutableIncrementalAverageHolder private constructor(
+        override var average: Double,
+        override var sampleCount: Int
+    ) : IncrementalAverageHolder {
+
+        constructor() : this(0.0, 0)
+
+        fun addValue(value: Double) {
+            average = incrementalAverage(average, sampleCount++, value)
+        }
+    }
 }
