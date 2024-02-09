@@ -6,11 +6,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.serializer
-import xyz.kotlinw.serialization.json.DefaultLongTermJson
 
+// TODO esetleg lehetne inkább ezt használni: val format = Json { serializersModule = projectModule + responseModule }
 fun interface SerializersModuleContributor {
 
-    fun configure(module: SerializersModuleBuilder)
+    context(SerializersModuleBuilder)
+    fun configure()
 }
 
 @MustBeDocumented

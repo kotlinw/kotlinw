@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 class JsonMessageCodecTest {
 
@@ -25,7 +26,7 @@ class JsonMessageCodecTest {
         )
         val message = RemotingMessage(payload, metadata)
 
-        val codec = JsonMessageCodec()
+        val codec = JsonMessageCodec(standardLongTermJson())
         val rawMessage = codec.encodeMessage(message, serializer())
 
         val extractedMetadata = codec.extractMetadata(rawMessage)

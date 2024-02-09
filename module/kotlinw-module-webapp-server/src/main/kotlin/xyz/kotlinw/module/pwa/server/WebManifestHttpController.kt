@@ -1,7 +1,6 @@
 package xyz.kotlinw.module.pwa.server
 
 import io.ktor.http.ContentType
-import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -9,7 +8,7 @@ import kotlinx.serialization.encodeToString
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.pwa.core.WebManifestFactory
-import xyz.kotlinw.serialization.json.DefaultLongTermJson
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 @Component
 class WebManifestHttpController(
@@ -26,7 +25,7 @@ class WebManifestHttpController(
         ktorApplication.routing {
             get("/manifest.webmanifest") {
                 call.respondText(
-                    DefaultLongTermJson.encodeToString(
+                    standardLongTermJson().encodeToString(
                         webManifestFactory.createWebManifest(
                             with(call) { webAppServerEnvironmentProvider.localeId }
                         )

@@ -23,6 +23,7 @@ import kotlinx.serialization.serializer
 import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 class BidirectionalMessagingManagerTest {
 
@@ -106,7 +107,7 @@ class BidirectionalMessagingManagerTest {
         coEvery { peer2RemoteCallHandler.processCall("peer2Method", Unit) } coAnswers { Unit }
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
-        val messageCodec = JsonMessageCodec.Default
+        val messageCodec = JsonMessageCodec(standardLongTermJson())
         val peer1Manager = BidirectionalMessagingManagerImpl(pipe.peer1, messageCodec, emptyMap())
         val peer2Manager = BidirectionalMessagingManagerImpl(
             pipe.peer2,
@@ -145,7 +146,7 @@ class BidirectionalMessagingManagerTest {
         coEvery { peer1RemoteCallHandler.processCall("peer1Method", Unit) } coAnswers { Unit }
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
-        val messageCodec = JsonMessageCodec.Default
+        val messageCodec = JsonMessageCodec(standardLongTermJson())
         val peer1Manager = BidirectionalMessagingManagerImpl(
             pipe.peer1,
             messageCodec,
@@ -194,7 +195,7 @@ class BidirectionalMessagingManagerTest {
         }
 
         val pipe = BidirectionalMessagingPipe(backgroundScope)
-        val messageCodec = JsonMessageCodec.Default
+        val messageCodec = JsonMessageCodec(standardLongTermJson())
         val peer1Manager = BidirectionalMessagingManagerImpl(pipe.peer1, messageCodec, emptyMap())
         val peer2Manager = BidirectionalMessagingManagerImpl(
             pipe.peer2,

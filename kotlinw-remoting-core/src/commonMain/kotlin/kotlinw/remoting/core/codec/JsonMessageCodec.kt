@@ -8,15 +8,12 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import xyz.kotlinw.serialization.json.standardLongTermJson
 
 class JsonMessageCodec(
-    private val json: Json = standardLongTermJson()
+    private val json: Json
 ) : MessageCodecWithMetadataPrefetchSupport<RawMessage.Text> {
 
     companion object {
-
-        val Default = JsonMessageCodec()
 
         private val metadataPropertyName = RemotingMessage<*>::metadata.name
 

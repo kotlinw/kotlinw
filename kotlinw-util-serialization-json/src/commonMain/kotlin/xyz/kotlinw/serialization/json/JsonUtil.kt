@@ -25,5 +25,3 @@ fun standardLongTermJson(configure: JsonBuilder.() -> Unit = {}) =
         allowSpecialFloatingPointValues = true
         useAlternativeNames = true
     }
-
-val DefaultLongTermJson = standardLongTermJson()

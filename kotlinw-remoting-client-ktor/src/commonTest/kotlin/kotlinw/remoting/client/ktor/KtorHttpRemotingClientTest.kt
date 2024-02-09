@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import xyz.kotlinw.serialization.json.standardLongTermJson
 
 class KtorHttpRemotingClientTest {
 
@@ -56,7 +57,7 @@ class KtorHttpRemotingClientTest {
         }
 
         val remotingClient = WebRequestRemotingClientImpl(
-            JsonMessageCodec.Default,
+            JsonMessageCodec(standardLongTermJson()),
             KtorHttpRemotingClientImplementor(mockEngine, PlatformLogging),
             Url(""),
             PlatformLogging

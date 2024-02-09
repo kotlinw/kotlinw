@@ -17,6 +17,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleKtorServer)
+                api(projects.kotlinw.module.kotlinwModuleRemotingShared)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwRemotingServerKtor)

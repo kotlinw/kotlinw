@@ -21,13 +21,12 @@ import kotlinw.remoting.processor.test.remoteCallHandler
 import kotlinw.util.stdlib.Url
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import xyz.kotlinw.serialization.json.standardLongTermJson
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
 class KtorSupportTest {
@@ -38,7 +37,7 @@ class KtorSupportTest {
         coEvery { service.p1IntReturnsString(any()) } returns "abc"
         coEvery { service.noParameterReturnsNullableString() } returns null
 
-        val messageCodec = JsonMessageCodec.Default
+        val messageCodec = JsonMessageCodec(standardLongTermJson())
 
         install(WebSockets)
         install(RemotingServerPlugin) {
@@ -87,7 +86,7 @@ class KtorSupportTest {
         }
         coEvery { service.nullableFlow() } returns flowOf("a", null, "b", null)
 
-        val messageCodec = JsonMessageCodec.Default
+        val messageCodec = JsonMessageCodec(standardLongTermJson())
 
         install(WebSockets)
         install(RemotingServerPlugin) {

@@ -11,7 +11,7 @@ class SerializerServiceImpl(
     override val json = standardLongTermJson {
         prettyPrint = prettyPrintJson
         serializersModule = SerializersModule {
-            serializersModuleContributors.forEach { it.configure(this) }
+            serializersModuleContributors.forEach { it.configure() }
         }
     }
 }

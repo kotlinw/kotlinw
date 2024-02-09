@@ -19,10 +19,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleCore)
-                api(projects.kotlinw.module.kotlinwModuleRemotingShared)
                 api(projects.kotlinw.kotlinwRemotingClientKtor)
-                api(libs.ktor.client.content.negotiation)
-                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
         val commonTest by getting {

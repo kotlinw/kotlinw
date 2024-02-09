@@ -30,7 +30,7 @@ private val logger = PlatformLogging.getLogger()
 private suspend fun <T> HttpClient.withConfiguredHttpClient(block: suspend (HttpClient) -> T): T =
     config {
         pluginOrNull(ContentNegotiation) ?: install(ContentNegotiation) {
-            json(standardLongTermJson())
+            json(standardLongTermJson()) // TODO serializerservice
         }
     }.use {
         block(it)

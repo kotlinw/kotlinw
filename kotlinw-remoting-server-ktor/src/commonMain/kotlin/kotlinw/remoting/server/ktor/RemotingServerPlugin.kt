@@ -21,7 +21,7 @@ class RemotingPluginConfiguration {
 
     var ktorServerCoroutineScope: CoroutineScope? = null
 
-    var defaultMessageCodec: MessageCodec<out RawMessage>? = JsonMessageCodec.Default
+    var defaultMessageCodec: MessageCodec<out RawMessage>? = null
 }
 
 private val logger by lazy { PlatformLogging.getLogger() }

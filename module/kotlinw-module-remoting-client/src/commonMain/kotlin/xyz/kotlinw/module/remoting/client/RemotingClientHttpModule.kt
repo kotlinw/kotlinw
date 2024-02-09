@@ -6,13 +6,14 @@ import kotlinw.remoting.core.codec.MessageCodec
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.module.httpclient.HttpClientModule
+import xyz.kotlinw.module.remoting.shared.RemotingSharedModule
 
-@Module(includeModules = [HttpClientModule::class])
+@Module(includeModules = [RemotingSharedModule::class, HttpClientModule::class])
 class RemotingClientHttpModule {
 
     @Component
     fun remotingClientFactory(
-        defaultMessageCodec: MessageCodec<*>?,
+        defaultMessageCodec: MessageCodec<*>,
         httpClient: HttpClient,
         loggerFactory: LoggerFactory
     ): RemotingClientFactory =
