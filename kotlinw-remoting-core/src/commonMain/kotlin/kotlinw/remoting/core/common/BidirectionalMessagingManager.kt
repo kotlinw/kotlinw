@@ -103,105 +103,110 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
         val remoteConnectionId = bidirectionalConnection.remoteConnectionId
 
         bidirectionalConnection.incomingRawMessages().collect { rawMessage ->
-            logger.trace { "Received raw message: " / rawMessage }
+            try {
+                logger.trace { "Received raw message: " / rawMessage }
 
-            val extractedMetadata = messageCodec.extractMetadata(rawMessage as M)
-            val metadata = checkNotNull(extractedMetadata.metadata)
-            val messageKind = checkNotNull(metadata.messageKind)
-            val callId = messageKind.callId
+                val extractedMetadata = messageCodec.extractMetadata(rawMessage as M)
+                val metadata = checkNotNull(extractedMetadata.metadata)
+                val messageKind = checkNotNull(metadata.messageKind)
+                val callId = messageKind.callId
 
-            when (messageKind) {
-                is RemotingMessageKind.CallRequest -> {
-                    val serviceId = messageKind.serviceLocator.serviceId
-                    val targetServiceDescriptor =
-                        remoteCallHandlers[serviceId]
-                            ?: throw IllegalStateException("Unexpected remote service ID: $serviceId")
-                    val methodId = messageKind.serviceLocator.methodId
-                    val targetMethodDescriptor = targetServiceDescriptor.methodDescriptors[methodId]
-                        ?: throw IllegalStateException("Unexpected remote method ID: $methodId")
+                when (messageKind) {
+                    is RemotingMessageKind.CallRequest -> {
+                        val serviceId = messageKind.serviceLocator.serviceId
+                        val targetServiceDescriptor =
+                            remoteCallHandlers[serviceId]
+                                ?: throw IllegalStateException("Unexpected remote service ID: $serviceId")
+                        val methodId = messageKind.serviceLocator.methodId
+                        val targetMethodDescriptor = targetServiceDescriptor.methodDescriptors[methodId]
+                            ?: throw IllegalStateException("Unexpected remote method ID: $methodId")
 
-                    logger.debug { "Incoming RPC call: " / serviceId / "." / methodId }
+                        logger.debug { "Incoming RPC call: " / serviceId / "." / methodId }
 
-                    when (targetMethodDescriptor) {
-                        is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {
-                            val resultFlow =
-                                withContext(RemoteCallContextElement(RemoteCallContext(remoteConnectionId))) {
-                                    targetServiceDescriptor.processCall(
-                                        methodId,
-                                        extractedMetadata.decodePayload(targetMethodDescriptor.parameterSerializer)
-                                    ) as Flow<Any?>
-                                }
+                        when (targetMethodDescriptor) {
+                            is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {
+                                val resultFlow =
+                                    withContext(RemoteCallContextElement(RemoteCallContext(remoteConnectionId))) {
+                                        targetServiceDescriptor.processCall(
+                                            methodId,
+                                            extractedMetadata.decodePayload(targetMethodDescriptor.parameterSerializer)
+                                        ) as Flow<Any?>
+                                    }
 
-                            addActiveColdFlow(
-                                callId,
-                                resultFlow,
-                                targetMethodDescriptor.flowValueSerializer as KSerializer<Any?>
-                            )
+                                addActiveColdFlow(
+                                    callId,
+                                    resultFlow,
+                                    targetMethodDescriptor.flowValueSerializer as KSerializer<Any?>
+                                )
 
-                            sendReplyMessage(
-                                RemotingMessage(
-                                    Unit,
-                                    RemotingMessageMetadata(messageKind = RemotingMessageKind.CallResponse(callId))
-                                ),
-                                serializer()
-                            )
-                        }
+                                sendReplyMessage(
+                                    RemotingMessage(
+                                        Unit,
+                                        RemotingMessageMetadata(messageKind = RemotingMessageKind.CallResponse(callId))
+                                    ),
+                                    serializer()
+                                )
+                            }
 
-                        is RemotingMethodDescriptor.SynchronousCall<*, *> -> {
-                            val result =
-                                withContext(RemoteCallContextElement(RemoteCallContext(remoteConnectionId))) {
-                                    targetServiceDescriptor.processCall(
-                                        methodId,
-                                        extractedMetadata.decodePayload(targetMethodDescriptor.parameterSerializer)
-                                    )
-                                }
+                            is RemotingMethodDescriptor.SynchronousCall<*, *> -> {
+                                val result =
+                                    withContext(RemoteCallContextElement(RemoteCallContext(remoteConnectionId))) {
+                                        targetServiceDescriptor.processCall(
+                                            methodId,
+                                            extractedMetadata.decodePayload(targetMethodDescriptor.parameterSerializer)
+                                        )
+                                    }
 
-                            sendReplyMessage(
-                                RemotingMessage(
-                                    result,
-                                    RemotingMessageMetadata(messageKind = RemotingMessageKind.CallResponse(callId))
-                                ),
-                                targetMethodDescriptor.resultSerializer as KSerializer<Any?>
-                            )
+                                sendReplyMessage(
+                                    RemotingMessage(
+                                        result,
+                                        RemotingMessageMetadata(messageKind = RemotingMessageKind.CallResponse(callId))
+                                    ),
+                                    targetMethodDescriptor.resultSerializer as KSerializer<Any?>
+                                )
+                            }
                         }
                     }
-                }
 
-                is RemotingMessageKind.ColdFlowCollectKind, is RemotingMessageKind.CallResponse -> {
-                    val conversationData = initiatedConversations[callId]
-                        ?: throw IllegalStateException("The requested conversation does not exist: peerId=${remoteConnectionId.peerId}, callMetadata=$metadata")
+                    is RemotingMessageKind.ColdFlowCollectKind, is RemotingMessageKind.CallResponse -> {
+                        val conversationData = initiatedConversations[callId]
+                            ?: throw IllegalStateException("The requested conversation does not exist: peerId=${remoteConnectionId.peerId}, callMetadata=$metadata")
 
-                    val suspendedCoroutineData =
-                        conversationData.suspendedCoroutineData.value ?: throw IllegalStateException()
+                        val suspendedCoroutineData =
+                            conversationData.suspendedCoroutineData.value ?: throw IllegalStateException()
 
-                    when (messageKind) {
-                        is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
-                            val message =
-                                extractedMetadata.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
-                            suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
+                        when (messageKind) {
+                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowCompleted -> {
+                                val message =
+                                    extractedMetadata.decodeMessage(serializer<Unit>()) //TODO unit helyett null kellene legyen
+                                suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
+                            }
+
+                            is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
+                                val message =
+                                    extractedMetadata.decodeMessage(suspendedCoroutineData.payloadDeserializer)
+                                suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
+                            }
+
+                            is RemotingMessageKind.CallResponse -> {
+                                val message =
+                                    extractedMetadata.decodeMessage(suspendedCoroutineData.payloadDeserializer)
+                                suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
+                            }
+
+                            else -> throw IllegalStateException()
                         }
+                    }
 
-                        is RemotingMessageKind.ColdFlowCollectKind.ColdFlowValue -> {
-                            val message =
-                                extractedMetadata.decodeMessage(suspendedCoroutineData.payloadDeserializer)
-                            suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
-                        }
+                    is RemotingMessageKind.ColdFlowValueCollected -> onColdFlowValueCollected(callId)
 
-                        is RemotingMessageKind.CallResponse -> {
-                            val message =
-                                extractedMetadata.decodeMessage(suspendedCoroutineData.payloadDeserializer)
-                            suspendedCoroutineData.continuation.resume(message as RemotingMessage<Nothing>)
-                        }
-
-                        else -> throw IllegalStateException()
+                    is RemotingMessageKind.CollectColdFlow -> {
+                        onCollectColdFlow(callId)
                     }
                 }
-
-                is RemotingMessageKind.ColdFlowValueCollected -> onColdFlowValueCollected(callId)
-
-                is RemotingMessageKind.CollectColdFlow -> {
-                    onCollectColdFlow(callId)
-                }
+            } catch (e: Throwable) {
+                logger.error(e.nonFatalOrThrow()) { "Processing of incoming message has failed." }
+                // TODO hibakezelés, flow törlése, stb. emiatt valszeg finomabb szinten érdemes kezelni a hibát
             }
         }
 

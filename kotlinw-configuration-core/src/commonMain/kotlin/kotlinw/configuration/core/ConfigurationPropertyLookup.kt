@@ -4,6 +4,7 @@ import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.util.stdlib.HasPriority
 import kotlinw.util.stdlib.Url
+import kotlinw.util.stdlib.sortedByPriority
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.persistentHashSetOf
@@ -147,7 +148,7 @@ class ConfigurationPropertyLookupImpl(
     private suspend fun doReload(isInitialization: Boolean) {
         logger.info { "Configuration property sources: " / sources.joinToString() }
 
-        sources.forEachIndexed { index, source ->
+        sources.sortedByPriority().forEachIndexed { index, source ->
             val snapshotConfigurationPropertyLookup = SnapshotConfigurationPropertyLookupImpl(sources.subList(0, index))
 
             if (isInitialization) {

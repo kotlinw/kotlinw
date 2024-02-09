@@ -51,7 +51,6 @@ import kotlinw.ksp.util.companionObjectOrNull
 import kotlinw.ksp.util.getAnnotationsOfType
 import kotlinw.ksp.util.getArgumentValueOrNull
 import kotlinw.ksp.util.hasCompanionObject
-import kotlinx.datetime.Clock
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.ComponentScan
@@ -68,10 +67,8 @@ import xyz.kotlinw.di.api.internal.ComponentDependencyKind.SINGLE_OPTIONAL
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind.SINGLE_REQUIRED
 import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
-import java.io.File
-import java.util.*
 
-private class StopKspProcessingException : RuntimeException()
+private class StopKspProcessingException(override val message: String) : RuntimeException()
 
 // TODO ha egy nem többértékű függőségből 1+ példány elérhető, akkor adjon hibát
 
@@ -156,7 +153,7 @@ class DiSymbolProcessor(
                 processContainerDeclaration(it, resolver)
             }
         } catch (e: StopKspProcessingException) {
-            // Ignore
+            kspLogger.warn(e.message)
         }
 
         return containerDeclarations - validContainerDeclarations.toSet()
@@ -403,13 +400,13 @@ class DiSymbolProcessor(
         return componentQueryFunctions
             .map {
                 val type = it.returnType!!.resolve()
-                ComponentQueryModel(it, type, createComponentLookup(type, it))
+                ComponentQueryModel(it, type, createComponentLookup(type, it, null))
             }
             .toList() +
                 componentQueryProperties
                     .map {
                         val type = it.type.resolve()
-                        ComponentQueryModel(it, type, createComponentLookup(type, it))
+                        ComponentQueryModel(it, type, createComponentLookup(type, it, null))
                     }
                     .toList()
     }
@@ -424,8 +421,7 @@ class DiSymbolProcessor(
 
             componentGraph.checkAcyclic().also {
                 if (it is Cyclic) {
-                    kspLogger.error("Dependency cycle detected: ${it.path.joinToString(" -> ") { it.data.toString() }}")
-                    throw StopKspProcessingException()
+                    throw StopKspProcessingException("Dependency cycle detected: ${it.path.joinToString(" -> ") { it.data.toString() }}")
                 }
             }
 
@@ -797,7 +793,7 @@ class DiSymbolProcessor(
 //                                .getArgumentValueOrNull("type") as? KSType ?:
                             componentClassDeclaration.asType(emptyList()),
                             componentClassDeclaration.primaryConstructor!!.parameters.associate {
-                                it.name!!.asString() to createComponentLookup(it.type.resolve(), it)
+                                it.name!!.asString() to createComponentLookup(it.type.resolve(), it, ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString()))
                             },
                             componentClassDeclaration,
                             ComponentLifecycleModel(
@@ -846,7 +842,7 @@ class DiSymbolProcessor(
                 ComponentId(moduleId, inlineComponentDeclaration.simpleName.asString()),
                 componentType,
                 inlineComponentDeclaration.parameters.associate {
-                    it.name!!.asString() to createComponentLookup(it.type.resolve(), it)
+                    it.name!!.asString() to createComponentLookup(it.type.resolve(), it, componentTypeDeclaration)
                 },
                 inlineComponentDeclaration,
                 ComponentLifecycleModel( // TODO ezt csak inline-nál lehessen megadni
@@ -976,7 +972,9 @@ class DiSymbolProcessor(
             (moduleType.getAnnotationsOfType<Module>().first()
                 .getArgumentValueOrNull("includeModules") as? List<KSType>)
                 ?.forEach {
-                    collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
+                    if (it != null) { // FIXME hack
+                        collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
+                    }
                 }
         }
     }
@@ -992,10 +990,18 @@ class DiSymbolProcessor(
             .filterIsInstance<KSClassDeclaration>()
             .filter { it.isAnnotationPresent(Component::class) }
 
-    private fun createComponentLookup(ksType: KSType, kspMessageTarget: KSNode): ComponentLookup {
+    private fun createComponentLookup(
+        ksType: KSType,
+        kspMessageTarget: KSNode,
+        debugInfo: Any?
+    ): ComponentLookup {
         val parameterDeclaration = ksType.declaration as KSClassDeclaration
         return if (parameterDeclaration.qualifiedName == null) {
-            throw IllegalStateException("" + this) // TODO erre nem itt kellene rádöbbenni; pl. akkor van ilyen, ha module osztály @Component metódusának return type hibás, vagy scope factory metódus @Component paraméter osztályának típusa hibás
+            // FIXME erre nem itt kellene rádöbbenni; pl. akkor van ilyen, ha
+            // - a module osztály @Component metódusának return type hibás
+            // - a scope factory metódus @Component paraméter osztályának típusa hibás
+            // - de olyan is volt, hogy a más Gradle modulban definiált komponens függősége egy implementation()-ként szerepelt a Gradle szkriptben, nem api()-ként
+            throw IllegalStateException("" + ksType + ", " + parameterDeclaration + ", " + kspMessageTarget + ", " + debugInfo)
         } else if (parameterDeclaration.qualifiedName!!.asString() == List::class.qualifiedName) {
             ComponentLookup(
                 ksType.arguments[0].type!!.resolve(),
