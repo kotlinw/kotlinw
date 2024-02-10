@@ -3,7 +3,6 @@ package kotlinw.remoting.core.client
 import arrow.atomic.AtomicBoolean
 import arrow.core.nonFatalOrThrow
 import kotlin.coroutines.Continuation
-import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory
@@ -34,14 +33,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.disposeOnCancellation
-import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -126,7 +121,8 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                     continuation.invokeOnCancellation {
                         status.update {
                             if (it is InactiveMessagingStatus) {
-                                val newCoroutinesAwaitingConnection = it.coroutinesAwaitingConnection.remove(continuation)
+                                val newCoroutinesAwaitingConnection =
+                                    it.coroutinesAwaitingConnection.remove(continuation)
                                 when (it) {
                                     is Connecting -> it.copy(coroutinesAwaitingConnection = newCoroutinesAwaitingConnection)
                                     is Disconnected -> it.copy(coroutinesAwaitingConnection = newCoroutinesAwaitingConnection)
@@ -225,6 +221,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             }
                         }
                     } catch (e: Throwable) {
+                        // TODO mi van, ha pl. 401 vagy 403 miatt nem sikerül kapcsolódni? hiba esetén nem érdemes újra próbálkozni, mert valszeg úgysem fog sikerülni...
                         // TODO itt a HTTP kliens konfigurációs hibákat ki kell szűrni, pl. ha nincs telepítve a kliens WebSockets plugin
 
                         if (e is CancellationException) {
