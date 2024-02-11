@@ -4,14 +4,12 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.modules.SerializersModuleBuilder
+import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 
-// TODO esetleg lehetne inkább ezt használni: val format = Json { serializersModule = projectModule + responseModule }
 fun interface SerializersModuleContributor {
 
-    context(SerializersModuleBuilder)
-    fun configure()
+    fun buildSerializersModule(): SerializersModule
 }
 
 @MustBeDocumented
