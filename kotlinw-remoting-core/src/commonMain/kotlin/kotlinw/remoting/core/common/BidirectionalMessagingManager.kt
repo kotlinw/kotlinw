@@ -102,6 +102,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
         val remoteConnectionId = bidirectionalConnection.remoteConnectionId
 
+        // TODO parallelize processing
         bidirectionalConnection.incomingRawMessages().collect { rawMessage ->
             try {
                 logger.trace { "Received raw message: " / rawMessage }
