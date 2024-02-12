@@ -6,6 +6,7 @@ import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.NewConnectionData
 import kotlinw.remoting.core.common.RemovedConnectionData
+import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.MessagingPeerId
 
 interface RemotingConfiguration {
@@ -23,6 +24,8 @@ interface RemotingConfiguration {
     val extractPrincipal: ApplicationCall.() -> Principal?
 
     val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId
+
+    val identifyConnection: ApplicationCall.() -> MessagingConnectionId
 }
 
 data class WebRequestRemotingConfiguration(
@@ -32,6 +35,7 @@ data class WebRequestRemotingConfiguration(
     override val authenticationProviderName: String?,
     override val extractPrincipal: ApplicationCall.() -> Principal?,
     override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
+    override val identifyConnection: ApplicationCall.() -> MessagingConnectionId,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration
 
@@ -42,6 +46,8 @@ data class WebSocketRemotingConfiguration(
     override val authenticationProviderName: String?,
     override val extractPrincipal: ApplicationCall.() -> Principal?,
     override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
+    override val identifyConnection: ApplicationCall.() -> MessagingConnectionId,
+    val wsEndpointName: String = id,
     val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,
     val onConnectionRemoved: (suspend (RemovedConnectionData) -> Unit)? = null,
     override val messageCodec: MessageCodec<*>? = null

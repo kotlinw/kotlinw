@@ -1,3 +1,3 @@
-package kotlinw.xyz.kotlinw.stdlib.internal
+package xyz.kotlinw.stdlib.internal
 
 annotation class ReplaceWithContextReceiver

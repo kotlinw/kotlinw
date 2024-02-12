@@ -22,9 +22,11 @@ import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.core.RawMessage
 import kotlinw.remoting.core.codec.MessageCodecDescriptor
 import kotlinw.remoting.core.common.BidirectionalCommunicationImplementor
+import kotlinw.remoting.core.common.RemoteCallException
 import kotlinw.remoting.core.common.SingleSessionBidirectionalMessagingConnection
 import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
+import kotlinw.util.coroutine.runCatchingNonCancellableCleanup
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinw.util.stdlib.Url
@@ -76,7 +78,7 @@ class KtorHttpRemotingClientImplementor(
             else
                 RawMessage.Text(response.bodyAsText()) as M
         } else {
-            throw RuntimeException("Response status: ${response.status}") // TODO more info, specific result
+            throw RemoteCallException(url, rawParameter, messageCodecDescriptor, response.status.value, response)
         }
     }
 
@@ -113,10 +115,12 @@ class KtorHttpRemotingClientImplementor(
                     )
 
                     logger.debug { "Closing WebSocket connection normally: " / url }
-                    runCatching {
+                    runCatchingNonCancellableCleanup {
                         clientWebSocketSession.close()
                     }
-                } catch (e: Exception) {
+
+                    logger.debug { "Disconnected from WebSocket server: " / url }
+                } catch (e: Throwable) {
                     if (NonFatal(e)) {
                         if (logger.isTraceEnabled) {
                             logger.trace(e) { "WebSocket connection failed: " / url }
@@ -125,14 +129,13 @@ class KtorHttpRemotingClientImplementor(
                         }
                     }
 
-                    runCatching {
+                    runCatchingNonCancellableCleanup {
                         clientWebSocketSession?.close()
                     }
 
                     throw e
                 } finally {
                     clientWebSocketSession?.cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
-                    logger.debug { "Disconnected from WebSocket server: " / url }
                 }
             } finally {
                 runInSessionIsRunning.value = false

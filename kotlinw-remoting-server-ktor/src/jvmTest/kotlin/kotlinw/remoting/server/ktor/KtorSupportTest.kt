@@ -19,6 +19,7 @@ import kotlinw.remoting.processor.test.ExampleServiceWithDownstreamFlows
 import kotlinw.remoting.processor.test.clientProxy
 import kotlinw.remoting.processor.test.remoteCallHandler
 import kotlinw.util.stdlib.Url
+import kotlinw.uuid.Uuid
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.coroutineScope
@@ -41,6 +42,7 @@ class KtorSupportTest {
 
         install(WebSockets)
         install(RemotingServerPlugin) {
+            this.defaultMessageCodec = JsonMessageCodec(standardLongTermJson())
             this.remotingConfigurations = listOf(
                 WebRequestRemotingConfiguration(
                     "test",
@@ -48,7 +50,8 @@ class KtorSupportTest {
                     listOf(ExampleService.remoteCallHandler(service)),
                     null,
                     { null }, // TODO
-                    { 1 } // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    { Uuid.randomUuid() }
                 )
             )
         }
@@ -59,6 +62,7 @@ class KtorSupportTest {
                 messageCodec,
                 remotingHttpClientImplementor,
                 Url(""),
+                "test",
                 PlatformLogging
             )
 
@@ -90,6 +94,7 @@ class KtorSupportTest {
 
         install(WebSockets)
         install(RemotingServerPlugin) {
+            this.defaultMessageCodec = JsonMessageCodec(standardLongTermJson())
             this.remotingConfigurations = listOf(
                 WebSocketRemotingConfiguration(
                     "test",
@@ -97,7 +102,8 @@ class KtorSupportTest {
                     listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
                     null,
                     { null }, // TODO
-                    { 1 }// TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    { Uuid.randomUuid() }
                 )
             )
         }

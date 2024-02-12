@@ -1,5 +1,6 @@
 package xyz.kotlinw.oauth2.core
 
+import arrow.core.raise.Raise
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -24,6 +25,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import xyz.kotlinw.jwt.model.JwtToken.Companion.parseJwtToken
 import xyz.kotlinw.serialization.json.standardLongTermJson
+import xyz.kotlinw.util.ktor.client.process
 
 private val logger = PlatformLogging.getLogger()
 
@@ -124,6 +126,7 @@ object AuthorizationCodeGrant {
 object ClientCredentialsGrant {
 
     // TODO context(HttpClient)
+    context(Raise<Oauth2TokenErrorResponse>)
     suspend fun requestToken(
         httpClient: HttpClient,
         tokenEndpointUrl: Url,
@@ -138,7 +141,12 @@ object ClientCredentialsGrant {
                     append("client_secret", clientSecret)
                     append("grant_type", "client_credentials")
                 }
-            ).body<OAuth2TokenResponse>()
+            )
+                .process({
+                    it.body<OAuth2TokenResponse>()
+                }, {
+                    raise(it.body<Oauth2TokenErrorResponse>())
+                })
         } // TODO 401 és további hibák kezelése
 }
 

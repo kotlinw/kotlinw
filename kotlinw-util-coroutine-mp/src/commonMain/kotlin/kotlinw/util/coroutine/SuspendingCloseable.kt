@@ -9,5 +9,7 @@ suspend inline fun <T, C : SuspendingCloseable> C.use(block: (C) -> T) =
     try {
         block(this)
     } finally {
-        runCatching { close() }
+        runCatchingNonCancellableCleanup {
+            close()
+        }
     }

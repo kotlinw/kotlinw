@@ -793,7 +793,11 @@ class DiSymbolProcessor(
 //                                .getArgumentValueOrNull("type") as? KSType ?:
                             componentClassDeclaration.asType(emptyList()),
                             componentClassDeclaration.primaryConstructor!!.parameters.associate {
-                                it.name!!.asString() to createComponentLookup(it.type.resolve(), it, ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString()))
+                                it.name!!.asString() to createComponentLookup(
+                                    it.type.resolve(),
+                                    it,
+                                    ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString())
+                                )
                             },
                             componentClassDeclaration,
                             ComponentLifecycleModel(
@@ -972,9 +976,7 @@ class DiSymbolProcessor(
             (moduleType.getAnnotationsOfType<Module>().first()
                 .getArgumentValueOrNull("includeModules") as? List<KSType>)
                 ?.forEach {
-                    if (it != null) { // FIXME hack
-                        collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
-                    }
+                    collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
                 }
         }
     }

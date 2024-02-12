@@ -13,9 +13,24 @@ import kotlinx.datetime.Clock.System
 import kotlinx.datetime.Instant
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.OnConstruction
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.LocalEvent
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.module.logging.LoggingModule
+import xyz.kotlinw.module.pwa.server.WebAppSessionInvalidationReason.EXPLICIT
+import xyz.kotlinw.module.pwa.server.WebAppSessionInvalidationReason.TIMEOUT
 import java.util.concurrent.ConcurrentHashMap
+
+enum class WebAppSessionInvalidationReason {
+    TIMEOUT,
+    EXPLICIT
+}
+
+data class BeforeWebAppSessionInvalidatedEvent(val sessionId: String, val sessionEncodedValue: String, val reason: WebAppSessionInvalidationReason) :
+    LocalEvent()
+
+data class WebAppSessionInvalidatedEvent(val sessionId: String, val reason: WebAppSessionInvalidationReason) :
+    LocalEvent()
 
 interface WebAppSessionStorageManager : SessionStorage {
 
@@ -24,6 +39,7 @@ interface WebAppSessionStorageManager : SessionStorage {
 
 @Component
 class WebAppSessionStorageManagerImpl(
+    private val eventBus: InProcessEventBus,
     private val sessionStorageBackendProvider: SessionStorageBackendProvider?
 ) : KtorServerApplicationConfigurer(), WebAppSessionStorageManager {
 
@@ -31,6 +47,7 @@ class WebAppSessionStorageManagerImpl(
 
     private lateinit var sessionStorageBackend: SessionStorage
 
+    // TODO ez így tök hibás, mert szerver újraindulás esetén reset-elődik az aktivitási időpont, azaz a szerver leállása és újraindása között lejárt session-ök aktívak maradnak (ráadásul a maximális, sessionTimeout érvényességgel)
     private val sessionLastActivityMap = ConcurrentHashMap<String, Instant>()
 
     private val sessionTimeout = 30.minutes // FIXME config
@@ -59,15 +76,8 @@ class WebAppSessionStorageManagerImpl(
                     while (iterator.hasNext()) {
                         val (sessionId, lastActivityTimestamp) = iterator.next()
                         if (lastActivityTimestamp + sessionTimeout < System.now()) {
+                            invalidateSessionStorageBackend(sessionId, TIMEOUT)
                             iterator.remove()
-
-                            try {
-                                sessionStorageBackend.invalidate(sessionId)
-                            } catch (e: Exception) {
-                                logger.warning(e.nonFatalOrThrow()) {
-                                    "Session invalidation failed: " / named("sessionId", sessionId)
-                                }
-                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -77,9 +87,23 @@ class WebAppSessionStorageManagerImpl(
         }
     }
 
+    private suspend fun invalidateSessionStorageBackend(sessionId: String, reason: WebAppSessionInvalidationReason) {
+        try {
+            logger.debug { "Invalidating session: " / listOf(named("sessionId", sessionId), named("reason", reason)) }
+            eventBus.publish(BeforeWebAppSessionInvalidatedEvent(sessionId, sessionStorageBackend.read(sessionId), reason))
+            sessionStorageBackend.invalidate(sessionId)
+        } catch (e: Exception) {
+            logger.warning(e.nonFatalOrThrow()) {
+                "Session invalidation failed: " / named("sessionId", sessionId)
+            }
+        }
+
+        eventBus.publish(WebAppSessionInvalidatedEvent(sessionId, reason))
+    }
+
     override suspend fun invalidate(id: String) {
+        invalidateSessionStorageBackend(id, EXPLICIT)
         sessionLastActivityMap.remove(id)
-        sessionStorageBackend.invalidate(id)
     }
 
     override suspend fun read(id: String): String {

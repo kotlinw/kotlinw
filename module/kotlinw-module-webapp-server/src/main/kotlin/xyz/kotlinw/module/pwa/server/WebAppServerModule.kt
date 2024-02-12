@@ -13,6 +13,7 @@ import xyz.kotlinw.pwa.core.WebResourceRegistryImpl
 @ComponentScan
 class WebAppServerModule {
 
+    // TODO ez PWA specifikus
     @Component
     fun webManifestFactory(webManifestAttributeProvider: WebManifestAttributeProvider): WebManifestFactory =
         WebManifestFactoryImpl(webManifestAttributeProvider)
@@ -21,6 +22,7 @@ class WebAppServerModule {
     fun webResourceRegistry(webResourceRegistrants: List<WebResourceRegistrant>) =
         WebResourceRegistryImpl(webResourceRegistrants)
 
+    // TODO ez PWA specifikus
     @Component
     fun webAppMainHttpControllerChecker(webAppMainHttpController: WebAppMainHttpController) = Unit
 }

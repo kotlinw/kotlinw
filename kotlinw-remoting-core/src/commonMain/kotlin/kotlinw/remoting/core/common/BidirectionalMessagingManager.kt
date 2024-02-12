@@ -32,7 +32,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import xyz.kotlinw.remoting.api.RemoteCallContext
+import xyz.kotlinw.remoting.api.PersistentConnectionRemoteCallContext
 import xyz.kotlinw.remoting.api.RemoteCallContextElement
 import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
@@ -126,7 +126,11 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
                         when (targetMethodDescriptor) {
                             is RemotingMethodDescriptor.DownstreamColdFlow<*, *> -> {
                                 val resultFlow =
-                                    withContext(RemoteCallContextElement(RemoteCallContext(remoteConnectionId))) {
+                                    withContext(
+                                        RemoteCallContextElement(
+                                            PersistentConnectionRemoteCallContext(remoteConnectionId)
+                                        )
+                                    ) {
                                         targetServiceDescriptor.processCall(
                                             methodId,
                                             extractedMetadata.decodePayload(targetMethodDescriptor.parameterSerializer)
@@ -150,7 +154,11 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
                             is RemotingMethodDescriptor.SynchronousCall<*, *> -> {
                                 val result =
-                                    withContext(RemoteCallContextElement(RemoteCallContext(remoteConnectionId))) {
+                                    withContext(
+                                        RemoteCallContextElement(
+                                            PersistentConnectionRemoteCallContext(remoteConnectionId)
+                                        )
+                                    ) {
                                         targetServiceDescriptor.processCall(
                                             methodId,
                                             extractedMetadata.decodePayload(targetMethodDescriptor.parameterSerializer)

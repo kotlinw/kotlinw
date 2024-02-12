@@ -1,10 +1,8 @@
 package kotlinw.remoting.core.client
 
-import arrow.atomic.AtomicBoolean
 import arrow.core.nonFatalOrThrow
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
-import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.remoting.core.RawMessage
@@ -25,8 +23,6 @@ import kotlinw.remoting.core.common.SynchronousCallSupport
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.infiniteLoop
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
-import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CancellationException
@@ -36,7 +32,12 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -84,18 +85,20 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         data class Connected(val messagingManager: BidirectionalMessagingManager) : BidirectionalMessagingStatus
     }
 
-    private val status = atomic<BidirectionalMessagingStatus>(Disconnected(persistentListOf()))
+    private val _status = MutableStateFlow<BidirectionalMessagingStatus>(Disconnected(persistentListOf()))
 
-    override val isConnected: Boolean get() = status.value is Connected
+    override val isConnected: Boolean get() = _status.value is Connected
 
     private val statusLock = Mutex()
 
-    private val messagingLoopRunningFlag = AtomicBoolean(false)
+    private val messagingLoopRunningFlag = atomic(false)
+
+    override val isConnectedStateFlow = _status.map { it is Connected }
 
     private suspend fun <T> withMessagingManager(block: suspend BidirectionalMessagingManager.() -> T): T {
         while (true) {
             statusLock.lock()
-            val currentStatus = status.value
+            val currentStatus = _status.value
 
             if (currentStatus is Connected) {
                 val messagingManager = currentStatus.messagingManager
@@ -107,7 +110,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
             withContext(NonCancellable) {
                 logger.debug { "Suspending until WS connection is established..." }
                 suspendCancellableCoroutine<Unit> { continuation ->
-                    status.update {
+                    _status.update {
                         check(it == currentStatus && it is InactiveMessagingStatus)
                         val newCoroutinesAwaitingConnection = it.coroutinesAwaitingConnection.add(continuation)
                         logger.debug { "Coroutines awaiting connection: " / newCoroutinesAwaitingConnection.size }
@@ -119,7 +122,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                     }
 
                     continuation.invokeOnCancellation {
-                        status.update {
+                        _status.update {
                             if (it is InactiveMessagingStatus) {
                                 val newCoroutinesAwaitingConnection =
                                     it.coroutinesAwaitingConnection.remove(continuation)
@@ -145,7 +148,11 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    override suspend fun connectAndRunMessageLoop(): Nothing {
+    override suspend fun connectAndRunMessageLoop(
+        handleException: suspend (Throwable) -> Unit,
+        beforeAutomaticReconnect: suspend () -> Unit,
+        globalNetworkStatusFlow: Flow<Boolean>?
+    ): Nothing {
         if (messagingLoopRunningFlag.compareAndSet(false, true)) {
             try {
                 check(httpSupportImplementor is BidirectionalCommunicationImplementor)
@@ -161,9 +168,11 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                 logger.debug { "Remote WS URL: " / wsUrl }
 
                 infiniteLoop {
+                    globalNetworkStatusFlow?.first { it }
+
                     if (reconnectAutomatically) {
                         statusLock.withLock {
-                            status.update {
+                            _status.update {
                                 Connecting(
                                     if (it is InactiveMessagingStatus) it.coroutinesAwaitingConnection else persistentListOf()
                                 )
@@ -174,7 +183,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             statusLock.lock()
                             logger.debug { "Suspending messaging loop (automatic reconnect is disabled)" }
                             suspendCancellableCoroutine { continuation ->
-                                status.update {
+                                _status.update {
                                     MessageLoopSuspended(
                                         continuation,
                                         if (it is InactiveMessagingStatus) it.coroutinesAwaitingConnection else persistentListOf()
@@ -199,7 +208,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
 
                                 val previousStatus =
                                     statusLock.withLock {
-                                        status.getAndUpdate {
+                                        _status.getAndUpdate {
                                             check(it is Connecting)
                                             Connected(messagingManager)
                                         }
@@ -207,7 +216,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
 
                                 val coroutinesAwaitingConnection =
                                     (previousStatus as Connecting).coroutinesAwaitingConnection
-                                logger.debug { "WS connection is established, resuming " / coroutinesAwaitingConnection.size / " coroutines awaiting connection." }
+                                logger.debug { "Remoting WS connection is established, resuming " / coroutinesAwaitingConnection.size / " coroutines awaiting connection." }
                                 coroutinesAwaitingConnection.forEach {
                                     it.resume(Unit)
                                 }
@@ -221,14 +230,13 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             }
                         }
                     } catch (e: Throwable) {
-                        // TODO mi van, ha pl. 401 vagy 403 miatt nem sikerül kapcsolódni? hiba esetén nem érdemes újra próbálkozni, mert valszeg úgysem fog sikerülni...
                         // TODO itt a HTTP kliens konfigurációs hibákat ki kell szűrni, pl. ha nincs telepítve a kliens WebSockets plugin
 
                         if (e is CancellationException) {
-                            logger.debug { "WebSocket connection terminated." } // TODO melyik fél által?
+                            logger.debug { "Remoting WS connection scope cancelled." } // TODO melyik fél általi megszakításkor jutunk ide?
 
                             statusLock.withLock {
-                                status.update {
+                                _status.update {
                                     Disconnected(persistentListOf())
                                 }
                             }
@@ -239,12 +247,15 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             // TODO specifikus exception-ök külön elkapása runInSession()-ben
 
                             if (logger.isTraceEnabled) {
-                                logger.trace(cause) { "Connection failed." }
+                                logger.trace(cause) { "Remoting WS connection failed." }
                             } else {
-                                logger.debug { "Connection failed: " / cause.message }
+                                logger.debug {
+                                    "Remoting WS connection failed: " / named("cause", cause::class.simpleName) /
+                                            (if (cause.message != null) ": " / named("message", cause.message) else "")
+                                }
                             }
 
-                            // TODO biztos, hogy ide csak "connection failed" típusú exception-ök esetén jutunk?
+                            handleException(e)
                         }
                     } finally {
                         if (connectionIdForClosing != null) {
@@ -254,7 +265,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                     }
 
                     statusLock.withLock {
-                        status.update {
+                        _status.update {
                             Disconnected(
                                 if (it is InactiveMessagingStatus) it.coroutinesAwaitingConnection else persistentListOf()
                             )
@@ -262,9 +273,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                     }
 
                     if (reconnectAutomatically) {
-                        val waitDuration = 1.seconds // TODO config
-                        logger.debug { "Waiting " / waitDuration / " before reconnecting automatically..." }
-                        delay(waitDuration)
+                        beforeAutomaticReconnect()
                     }
                 }
             } finally {
@@ -275,7 +284,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    // TODO ezt átnézni, hogy tényleg jól működik-e
+    // FIXME ezt átnézni, hogy tényleg jól működik-e, és util-ba kitenni
     @OptIn(InternalCoroutinesApi::class)
     override suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> {
         val deferred = withMessagingManager {

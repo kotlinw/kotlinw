@@ -31,7 +31,6 @@ import kotlinw.uuid.Uuid
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import xyz.kotlinw.remoting.api.MessagingConnectionId
-import xyz.kotlinw.remoting.api.RemoteCallContext
 import xyz.kotlinw.remoting.api.RemoteCallContextElement
 import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
@@ -61,7 +60,7 @@ class WebRequestRemotingProvider(
         }
 
         ktorApplication.routing {
-            route("/remoting") {
+            route("/remoting/${remotingConfiguration.id}") {// TODO lehessen testre szabni
 
                 fun Route.configureRouting() {
                     setupRouting(messageCodec, delegators, remotingConfiguration as WebRequestRemotingConfiguration)
@@ -144,11 +143,12 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
     val result =
         withContext(
             RemoteCallContextElement(
-                RemoteCallContext(
+                WebRequestRemoteCallContext(
                     RemoteConnectionId(
                         messagingPeerId,
                         messagingConnectionId
-                    )
+                    ),
+                    call
                 )
             )
         ) {

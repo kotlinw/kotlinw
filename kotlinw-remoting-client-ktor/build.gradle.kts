@@ -21,6 +21,7 @@ kotlin {
                 api(projects.kotlinw.kotlinwRemotingApi)
                 implementation(projects.kotlinw.kotlinwRemotingCore)
                 api(projects.kotlinw.kotlinwRemotingCoreKtor)
+                implementation(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(libs.ktor.client.core)
                 api(libs.ktor.client.websockets)
             }

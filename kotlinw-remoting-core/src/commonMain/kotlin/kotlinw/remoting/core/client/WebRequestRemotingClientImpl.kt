@@ -17,13 +17,14 @@ class WebRequestRemotingClientImpl<M : RawMessage>(
     private val messageCodec: MessageCodec<M>,
     private val httpSupportImplementor: SynchronousCallSupport,
     private val remoteServerBaseUrl: Url,
+    private val remotingEndpointId: String, // TODO konfigurálható path-t
     loggerFactory: LoggerFactory
 ) : RemotingClientCallSupport {
 
     private val logger = loggerFactory.getLogger()
 
     private fun buildServiceUrl(serviceName: String, methodName: String): String =
-        "$remoteServerBaseUrl/remoting/call/$serviceName/$methodName" // TODO konfigurálható path-t
+        "$remoteServerBaseUrl/remoting/$remotingEndpointId/call/$serviceName/$methodName"
 
     override suspend fun <P : Any, R> call(
         serviceId: String,

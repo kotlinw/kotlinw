@@ -39,7 +39,7 @@ class KtorHttpRemotingClientTest {
         val serializer = Json.Default
 
         val mockEngine = MockEngine { request ->
-            assertEquals("http://localhost/remoting/call/FakeService/fakeMethod", request.url.toString())
+            assertEquals("http://localhost/remoting/test/call/FakeService/fakeMethod", request.url.toString())
             assertEquals(ContentType.Application.Json, request.body.contentType)
 
             val requestPayload = serializer.decodeFromString(
@@ -60,6 +60,7 @@ class KtorHttpRemotingClientTest {
             JsonMessageCodec(standardLongTermJson()),
             KtorHttpRemotingClientImplementor(mockEngine, PlatformLogging),
             Url(""),
+            "test",
             PlatformLogging
         )
 

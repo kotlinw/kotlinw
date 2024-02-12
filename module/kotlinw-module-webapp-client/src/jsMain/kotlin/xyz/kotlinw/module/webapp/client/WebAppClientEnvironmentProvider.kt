@@ -8,5 +8,9 @@ interface WebAppClientEnvironmentProvider {
 
     val localeId: StateFlow<LocaleId>
 
-    val authenticationStatus: StateFlow<AuthenticationStatus>
+    val authenticationState: StateFlow<AuthenticationStatus>
+
+    val networkConnectionState: StateFlow<NetworkConnectionStatus>
+
+    suspend fun collectClientEnvironmentStatus()
 }

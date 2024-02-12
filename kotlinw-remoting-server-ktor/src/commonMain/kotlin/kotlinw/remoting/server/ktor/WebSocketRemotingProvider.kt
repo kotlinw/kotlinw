@@ -2,11 +2,11 @@ package kotlinw.remoting.server.ktor
 
 import arrow.core.nonFatalOrThrow
 import io.ktor.server.application.pluginOrNull
-import io.ktor.server.auth.Principal
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.ktor.server.sessions.sessionId
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
 import kotlinw.logging.api.LoggerFactory
@@ -27,7 +27,6 @@ import kotlinw.uuid.Uuid
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import xyz.kotlinw.remoting.api.MessagingConnectionId
-import xyz.kotlinw.remoting.api.RemoteCallContext
 import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
@@ -118,9 +117,10 @@ class WebSocketRemotingProvider(
                 webSocket("/websocket/${webSocketRemotingConfiguration.id}") {
                     val principal = remotingConfiguration.extractPrincipal(call)
                     val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
-                    val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
+                    val messagingConnectionId: MessagingConnectionId = remotingConfiguration.identifyConnection(call) // TODO hibaell.
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
+                    // TODO ezt a WebRequestRemotingProvider-be is
                     logger.withLoggingContext(mapOf("kotlinw.principal" to principal.toString())) {
                         logger.debug { "Connected WS client: " / mapOf("remoteConnectionId" to remoteConnectionId) }
 
@@ -132,14 +132,14 @@ class WebSocketRemotingProvider(
                             )
 
                         try {
-                            val sessionMessagingManager =
+                            val messagingManager =
                                 BidirectionalMessagingManagerImpl(
                                     connection,
                                     messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
                                     delegators
                                 )
-                            addConnection(remoteConnectionId, sessionMessagingManager)
-                            sessionMessagingManager.processIncomingMessages()
+                            addConnection(remoteConnectionId, messagingManager)
+                            messagingManager.processIncomingMessages()
                         } catch (e: ClosedReceiveChannelException) {
                             val closeReason = closeReason.await()
                             logger.debug { "Connection closed, reason: " / closeReason }

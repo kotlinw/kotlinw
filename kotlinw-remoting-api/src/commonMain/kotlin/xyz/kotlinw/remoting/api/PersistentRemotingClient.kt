@@ -1,17 +1,27 @@
 package xyz.kotlinw.remoting.api
 
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 
 interface PersistentRemotingClient {
+
+    val isConnectedStateFlow: Flow<Boolean>
 
     val isConnected: Boolean
 
     /**
      * Connects to the remote server and runs the message loop processing incoming messages.
      */
-    suspend fun connectAndRunMessageLoop(): Nothing
+    suspend fun connectAndRunMessageLoop(
+        handleException: suspend (Throwable) -> Unit = {},
+        beforeAutomaticReconnect: suspend () -> Unit = { delay(5.seconds) },
+        globalNetworkStatusFlow: Flow<Boolean>? = null
+    ): Nothing
 
     /**
      * Runs the given `block` of code in the context of a remote connection in a separate coroutine.
@@ -21,8 +31,8 @@ interface PersistentRemotingClient {
     suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T>
 }
 
-interface PersistentRemotingConnection : RemotingClient, RemotingClientCallSupport, RemotingClientFlowSupport,
-    CoroutineScope {
+interface PersistentRemotingConnection :
+    RemotingClient, RemotingClientCallSupport, RemotingClientFlowSupport, CoroutineScope {
 
     suspend fun close()
 }

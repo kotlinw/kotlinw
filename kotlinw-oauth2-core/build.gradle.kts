@@ -3,11 +3,16 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.set(freeCompilerArgs.get() + "-Xcontext-receivers") // TODO why is this necessary? theoretically this is in the root build file as well...
+    }
+
     sourceSets {
         commonMain {
             dependencies {
                 api(projects.kotlinw.kotlinwJwtCore)
                 api(projects.kotlinw.kotlinwUtilCoroutineMp)
+                api(projects.kotlinw.kotlinwUtilKtorClient)
                 api(projects.kotlinw.kotlinwUtilSerializationJson)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwLoggingPlatform)

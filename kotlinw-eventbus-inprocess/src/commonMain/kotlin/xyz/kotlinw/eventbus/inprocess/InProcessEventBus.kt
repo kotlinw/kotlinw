@@ -1,6 +1,6 @@
 package xyz.kotlinw.eventbus.inprocess
 
-import kotlinw.xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
+import xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED

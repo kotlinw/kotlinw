@@ -1,12 +1,15 @@
 package xyz.kotlinw.remoting.api
 
 import kotlin.coroutines.CoroutineContext
-import kotlin.jvm.JvmInline
 
-@JvmInline
-value class RemoteCallContext(
+// TODO internal API
+interface RemoteCallContext {
+
     val remoteConnectionId: RemoteConnectionId
-)
+}
+
+data class PersistentConnectionRemoteCallContext(override val remoteConnectionId: RemoteConnectionId) :
+    RemoteCallContext
 
 expect class RemoteCallContextElement(context: RemoteCallContext) : CoroutineContext.Element {
 

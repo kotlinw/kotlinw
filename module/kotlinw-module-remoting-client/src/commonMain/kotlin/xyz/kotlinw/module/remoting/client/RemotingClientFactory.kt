@@ -24,6 +24,7 @@ interface RemotingClientFactory {
 
     fun createWebRequestRemotingClient(
         remoteServerBaseUrl: Url,
+        endpointId: String,
         synchronousCallSupportImplementor: SynchronousCallSupport? = null,
         httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {},
         httpClientCustomizer: HttpClient.() -> HttpClient = { this }
@@ -51,6 +52,7 @@ class RemotingClientFactoryImpl(
 
     override fun createWebRequestRemotingClient(
         remoteServerBaseUrl: Url,
+        endpointId: String,
         synchronousCallSupportImplementor: SynchronousCallSupport?,
         httpRequestCustomizer: HttpRequestBuilder.() -> Unit,
         httpClientCustomizer: HttpClient.() -> HttpClient
@@ -59,6 +61,7 @@ class RemotingClientFactoryImpl(
             defaultMessageCodec,
             KtorHttpRemotingClientImplementor(httpClient.httpClientCustomizer(), loggerFactory, httpRequestCustomizer),
             remoteServerBaseUrl,
+            endpointId,
             loggerFactory
         )
 

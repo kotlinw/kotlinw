@@ -1,5 +1,6 @@
 package xyz.kotlinw.oauth2.core
 
+import arrow.core.raise.recover
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -85,12 +86,17 @@ class Oauth2UtilsIntegrationTest {
     @Test
     fun testClientCredentialsGrant() = runTest {
         val httpClient = createHttpClient()
-        val response = ClientCredentialsGrant.requestToken(
-            httpClient,
-            Url("https://sso.erinors.com/realms/erinors/protocol/openid-connect/token"),
-            "appman-agent-server-dev",
-            "yS319OP2C5DC2AolZuRMC41Qp3b6y1Kq" // FIXME ne legyen benne
-        )
+        val response =
+            recover({
+                ClientCredentialsGrant.requestToken(
+                    httpClient,
+                    Url("https://sso.erinors.com/realms/erinors/protocol/openid-connect/token"),
+                    "",
+                    ""
+                )
+            },{
+                fail(it.toString())
+            })
         println(response.decodeJwtAccessToken())
     }
 }
