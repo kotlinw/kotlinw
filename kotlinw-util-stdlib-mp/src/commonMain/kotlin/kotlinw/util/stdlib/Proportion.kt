@@ -36,3 +36,7 @@ value class FloatProportion(val value: Float) {
 fun DoubleProportion.toFloatProportion() = FloatProportion(value.toFloat())
 
 fun FloatProportion.toDoubleProportion() = DoubleProportion(value.toDouble())
+
+fun DoubleProportion.toPercentValue(decimalPlaces: Int = 0) = (value * 100.0).round(decimalPlaces)
+
+fun FloatProportion.toPercentValue(decimalPlaces: Int = 0) = (value * 100.0F).round(decimalPlaces)
