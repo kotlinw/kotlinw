@@ -284,7 +284,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    // FIXME ezt átnézni, hogy tényleg jól működik-e, és util-ba kitenni
+    // FIXME ezt átnézni, hogy tényleg jól működik-e, és util-ba kitenni a "corutine scope crossing" részt
     @OptIn(InternalCoroutinesApi::class)
     override suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> {
         val deferred = withMessagingManager {

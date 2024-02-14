@@ -25,6 +25,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSTypeAlias
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -70,6 +71,8 @@ import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.internal.ScopeInternal
 
 private class StopKspProcessingException(override val message: String) : RuntimeException()
+
+private class DelayKspProcessingException() : RuntimeException()
 
 // TODO ha egy nem többértékű függőségből 1+ példány elérhető, akkor adjon hibát
 
@@ -141,6 +144,9 @@ class DiSymbolProcessor(
                                 containerDeclaration
                             )
                         }
+                    } else {
+                        // create() extension function has been generated in a previous round
+                        processableContainerDeclarations.add(containerDeclaration)
                     }
                 } else {
                     kspLogger.error("Container declaration should be an `interface`.", containerDeclaration)
@@ -149,15 +155,20 @@ class DiSymbolProcessor(
 
         val validContainerDeclarations = processableContainerDeclarations.filter { it.validate() }
 
+        val failedProcessings = mutableListOf<KSAnnotated>()
         try {
             validContainerDeclarations.forEach {
-                processContainerDeclaration(it, resolver)
+                try {
+                    processContainerDeclaration(it, resolver)
+                } catch (e: DelayKspProcessingException) {
+                    failedProcessings.add(it)
+                }
             }
         } catch (e: StopKspProcessingException) {
-            kspLogger.warn(e.message)
+            kspLogger.error(e.message)
         }
 
-        return containerDeclarations - validContainerDeclarations.toSet()
+        return containerDeclarations - validContainerDeclarations + failedProcessings
     }
 
     private fun generateContainerCreateFunction(containerDeclaration: KSClassDeclaration) {
@@ -368,14 +379,6 @@ class DiSymbolProcessor(
                         )
                         .build()
                 )
-//                .addFunction(
-//                    FunSpec
-//                        .builder("create")
-//                        .receiver(codeGenerationModel.interfaceName.companionClassName())
-//                        .returns(codeGenerationModel.interfaceName)
-//                        .addStatement("return %T()", codeGenerationModel.implementationName)
-//                        .build()
-//                )
                 .build()
                 .writeTo(codeGenerator, true)
         }
@@ -679,8 +682,8 @@ class DiSymbolProcessor(
                             try {
                                 resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName()
                             } catch (e: Exception) {
-                                kspLogger.error("wtf: $componentId") // TODO :D
-                                throw e
+                                kspLogger.warn("wtf: $componentId") // TODO :D
+                                throw DelayKspProcessingException()
                             },
                             LATEINIT
                         )
@@ -856,7 +859,7 @@ class DiSymbolProcessor(
             val componentAnnotation = inlineComponentDeclaration.getAnnotationsOfType<Component>().first()
             val componentType = inlineComponentDeclaration.returnType!!.resolve()
             val componentTypeDeclaration =
-                componentType.declaration as KSClassDeclaration // TODO ezt valahol ellenőrizni
+                componentType.declaration.asClassDeclaration() // TODO ezt valahol ellenőrizni
             InlineComponentModel(
                 ComponentId(moduleId, inlineComponentDeclaration.simpleName.asString()),
                 componentType,
@@ -1019,7 +1022,7 @@ class DiSymbolProcessor(
         kspMessageTarget: KSNode,
         debugInfo: Any?
     ): ComponentLookup {
-        val parameterDeclaration = ksType.declaration as KSClassDeclaration
+        val parameterDeclaration = ksType.declaration.asClassDeclaration()
         return if (parameterDeclaration.qualifiedName == null) {
             // FIXME erre nem itt kellene rádöbbenni; pl. akkor van ilyen, ha
             // - a module osztály @Component metódusának return type hibás
@@ -1173,6 +1176,13 @@ class DiSymbolProcessor(
     private fun KSType.getModuleId() = (declaration as? KSClassDeclaration)?.getModuleId()
         ?: throw IllegalStateException() // TODO rendes KSP hibát adni
 }
+
+private fun KSDeclaration.asClassDeclaration(): KSClassDeclaration =
+    when (this) {
+        is KSClassDeclaration -> this
+        is KSTypeAlias -> type.resolve().declaration.asClassDeclaration()
+        else -> throw IllegalStateException("$this is not a class declaration.")
+    }
 
 private fun ResolvedComponentDependencyModel.format(): String =
     if (componentLookup.qualifier != null)
