@@ -14,6 +14,7 @@ kotlin {
                 api(compose.runtime)
                 api(libs.kobweb.compose.core)
                 api(libs.kobweb.compose.html.ext)
+                api(libs.softwork.routing)
             }
         }
     }

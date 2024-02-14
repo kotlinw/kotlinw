@@ -151,7 +151,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     override suspend fun connectAndRunMessageLoop(
         handleException: suspend (Throwable) -> Unit,
         beforeAutomaticReconnect: suspend () -> Unit,
-        globalNetworkStatusFlow: Flow<Boolean>?
+        communicationCircuitBreaker: Flow<Boolean>?
     ): Nothing {
         if (messagingLoopRunningFlag.compareAndSet(false, true)) {
             try {
@@ -168,7 +168,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                 logger.debug { "Remote WS URL: " / wsUrl }
 
                 infiniteLoop {
-                    globalNetworkStatusFlow?.first { it }
+                    communicationCircuitBreaker?.first { it }
 
                     if (reconnectAutomatically) {
                         statusLock.withLock {

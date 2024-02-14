@@ -6,16 +6,13 @@ import kotlinw.serialization.core.SerializerService
 import kotlinw.serialization.core.deserialize
 import kotlinx.atomicfu.atomic
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import web.navigator.Navigator
 import web.navigator.navigator
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.module.auth.core.AuthenticationStatus
-import xyz.kotlinw.module.auth.core.AuthenticationStatus.NotAuthenticated
 import xyz.kotlinw.module.core.ApplicationCoroutineService
 import xyz.kotlinw.module.webapp.client.NetworkConnectionStatus.Connected
 import xyz.kotlinw.module.webapp.client.NetworkConnectionStatus.NotConnected
@@ -33,7 +30,7 @@ class WebAppClientEnvironmentProviderImpl(
     private val localeIdFlow: MutableStateFlow<LocaleId>
 
     private val _networkConnectionStateFlow =
-        MutableStateFlow(navigator.networkConnectionState)
+        MutableStateFlow(NetworkConnectionStatus.of(navigator.onLine))
 
     private val _authenticationStateFlow: MutableStateFlow<AuthenticationStatus>
 
@@ -66,25 +63,34 @@ class WebAppClientEnvironmentProviderImpl(
         }
     }
 
-    override suspend fun collectClientEnvironmentStatus() {
+    override suspend fun collectClientEnvironmentStatus(afterCommunicationError: Boolean) {
         if (authenticationStatusRefresherJob == null) {
-            _networkConnectionStateFlow.value = UpdatingStatus
-            authenticationStatusRefresherJob =
-                applicationCoroutineService.applicationCoroutineScope.launch(start = UNDISPATCHED) {
-                    _authenticationStateFlow.value =
+            if (navigator.onLine) {
+                if (afterCommunicationError) {
+                    _networkConnectionStateFlow.value = UpdatingStatus
+                }
+
+                authenticationStatusRefresherJob =
+                    applicationCoroutineService.applicationCoroutineScope.launch {
+                        val lastAuthenticationStatus = _authenticationStateFlow.value
                         try {
-                            authenticationStatusProvider.getAuthenticationStatus()
+                            _authenticationStateFlow.value =
+                                authenticationStatusProvider.getAuthenticationStatus(lastAuthenticationStatus)
+                            _networkConnectionStateFlow.value = Connected
                         } catch (e: Throwable) {
                             e.nonFatalOrThrow()
-                            NotAuthenticated(emptySet()) // TODO jó ez? gyanús, hogy nem minden esetben, pl. ha nem fut a szerver, attól még authentikált marad az emberünk
-                        } finally {
-                            _networkConnectionStateFlow.value = navigator.networkConnectionState
+                            _networkConnectionStateFlow.value = NotConnected
                         }
-                }
+                    }.also {
+                        it.invokeOnCompletion {
+                            authenticationStatusRefresherJob = null
+                        }
+                    }
+            } else {
+                _networkConnectionStateFlow.value = NotConnected
+            }
         }
 
-        authenticationStatusRefresherJob!!.join()
+        authenticationStatusRefresherJob?.join()
     }
 }
-
-private val Navigator.networkConnectionState get() = if (onLine) Connected else NotConnected

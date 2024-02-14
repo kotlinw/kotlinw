@@ -3,6 +3,7 @@ package kotlinw.logging.js.console
 import kotlinw.logging.api.LogEntryAttribute
 import kotlinw.logging.api.LogLevel
 import kotlinw.logging.api.LogLevel.Debug
+import kotlinw.logging.api.LogLevel.Info
 import kotlinw.logging.api.LogMessage
 import kotlinw.logging.api.Logger
 import kotlinw.logging.spi.LoggerImplementor
@@ -17,7 +18,7 @@ object ConsoleLoggingIntegrator: LoggingIntegrator {
 
     override fun getLogger(loggerName: String): Logger = ConsoleLogger(loggerName)
 
-    override fun isLogLevelEnabled(logger: LoggerImplementor, level: LogLevel): Boolean = level >= Debug // TODO konfig
+    override fun isLogLevelEnabled(logger: LoggerImplementor, level: LogLevel): Boolean = level >= Info // TODO konfig
 
     override fun log(
         logger: LoggerImplementor,

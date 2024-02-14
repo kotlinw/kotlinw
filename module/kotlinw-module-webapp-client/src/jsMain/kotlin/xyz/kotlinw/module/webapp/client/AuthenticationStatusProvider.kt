@@ -4,5 +4,5 @@ import xyz.kotlinw.module.auth.core.AuthenticationStatus
 
 fun interface AuthenticationStatusProvider {
 
-    suspend fun getAuthenticationStatus(): AuthenticationStatus
+    suspend fun getAuthenticationStatus(lastAuthenticationStatus: AuthenticationStatus): AuthenticationStatus
 }

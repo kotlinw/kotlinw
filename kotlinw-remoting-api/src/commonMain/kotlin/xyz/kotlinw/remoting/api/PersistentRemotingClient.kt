@@ -4,7 +4,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 
@@ -16,11 +15,13 @@ interface PersistentRemotingClient {
 
     /**
      * Connects to the remote server and runs the message loop processing incoming messages.
+     *
+     * @param communicationCircuitBreaker if specified, then the given flow should emit `false` to pause the message loop, and `true` to resume it again
      */
     suspend fun connectAndRunMessageLoop(
         handleException: suspend (Throwable) -> Unit = {},
         beforeAutomaticReconnect: suspend () -> Unit = { delay(5.seconds) },
-        globalNetworkStatusFlow: Flow<Boolean>? = null
+        communicationCircuitBreaker: Flow<Boolean>? = null
     ): Nothing
 
     /**
