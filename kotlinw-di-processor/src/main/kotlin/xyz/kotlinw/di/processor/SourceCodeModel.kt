@@ -6,10 +6,10 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import xyz.kotlinw.di.api.internal.ComponentDependencyKind
-import xyz.kotlinw.di.api.internal.ComponentId
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
+import xyz.kotlinw.di.api.internal.ComponentDependencyKind
+import xyz.kotlinw.di.api.internal.ComponentId
 
 data class ContainerModel(
     val id: String,
@@ -27,6 +27,7 @@ data class ModuleModel(
 sealed interface ComponentModel {
     val id: ComponentId
     val componentType: KSType
+    val qualifier: String?
     val dependencyDefinitions: Map<String, ComponentLookup>
     val lifecycleModel: ComponentLifecycleModel
 }
@@ -47,6 +48,7 @@ data class ComponentLifecycleModel(
 data class InlineComponentModel(
     override val id: ComponentId,
     override val componentType: KSType,
+    override val qualifier: String?,
     override val dependencyDefinitions: Map<String, ComponentLookup>,
     val factoryMethod: KSFunctionDeclaration,
     override val lifecycleModel: ComponentLifecycleModel
@@ -58,6 +60,7 @@ data class InlineComponentModel(
 data class ComponentClassModel(
     override val id: ComponentId,
     override val componentType: KSType,
+    override val qualifier: String?,
     override val dependencyDefinitions: Map<String, ComponentLookup>,
     val componentClassDeclaration: KSClassDeclaration,
     override val lifecycleModel: ComponentLifecycleModel
@@ -67,7 +70,8 @@ private const val EXTERNAL_MODULE_ID = "<external>"
 
 data class ExternalComponentModel(
     val name: String,
-    override val componentType: KSType
+    override val componentType: KSType,
+    override val qualifier: String?
 ) : ComponentModel {
 
     override val id: ComponentId get() = ComponentId(EXTERNAL_MODULE_ID, name)
@@ -77,7 +81,12 @@ data class ExternalComponentModel(
     override val lifecycleModel: ComponentLifecycleModel get() = ComponentLifecycleModel(null, null)
 }
 
-data class ComponentLookup(val type: KSType, val dependencyKind: ComponentDependencyKind, val kspMessageTarget: KSNode)
+data class ComponentLookup(
+    val type: KSType,
+    val qualifier: String?,
+    val dependencyKind: ComponentDependencyKind,
+    val kspMessageTarget: KSNode
+)
 
 data class ModuleReference(val moduleDeclaration: KSClassDeclaration, val moduleId: String)
 

@@ -59,6 +59,7 @@ import xyz.kotlinw.di.api.ContainerScope
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
+import xyz.kotlinw.di.api.Qualifier
 import xyz.kotlinw.di.api.Scope
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind
 import xyz.kotlinw.di.api.internal.ComponentDependencyKind.MULTIPLE_OPTIONAL
@@ -272,7 +273,11 @@ class DiSymbolProcessor(
                                                     .parameters
                                                     .drop(if (parentScopeName != null) 1 else 0)
                                                     .map {
-                                                        ExternalComponentModel(it.name!!.asString(), it.type.resolve())
+                                                        ExternalComponentModel(
+                                                            it.name!!.asString(),
+                                                            it.type.resolve(),
+                                                            it.type.extractQualifierOrNull()
+                                                        )
                                                     },
                                                 ignoredComponents
                                             )
@@ -400,13 +405,21 @@ class DiSymbolProcessor(
         return componentQueryFunctions
             .map {
                 val type = it.returnType!!.resolve()
-                ComponentQueryModel(it, type, createComponentLookup(type, it, null))
+                ComponentQueryModel(
+                    it,
+                    type,
+                    createComponentLookup(type, it.returnType!!.extractQualifierOrNull(), it, null)
+                )
             }
             .toList() +
                 componentQueryProperties
                     .map {
                         val type = it.type.resolve()
-                        ComponentQueryModel(it, type, createComponentLookup(type, it, null))
+                        ComponentQueryModel(
+                            it,
+                            type,
+                            createComponentLookup(type, it.type.extractQualifierOrNull(), it, null)
+                        )
                     }
                     .toList()
     }
@@ -792,9 +805,11 @@ class DiSymbolProcessor(
 //                            componentClassDeclaration.getAnnotationsOfType<Component>().first()
 //                                .getArgumentValueOrNull("type") as? KSType ?:
                             componentClassDeclaration.asType(emptyList()),
+                            componentClassDeclaration.extractQualifierOrNull(),
                             componentClassDeclaration.primaryConstructor!!.parameters.associate {
                                 it.name!!.asString() to createComponentLookup(
                                     it.type.resolve(),
+                                    it.type.extractQualifierOrNull(),
                                     it,
                                     ComponentId(moduleId, componentClassDeclaration.qualifiedName!!.asString())
                                 )
@@ -845,8 +860,14 @@ class DiSymbolProcessor(
             InlineComponentModel(
                 ComponentId(moduleId, inlineComponentDeclaration.simpleName.asString()),
                 componentType,
+                inlineComponentDeclaration.extractQualifierOrNull(),
                 inlineComponentDeclaration.parameters.associate {
-                    it.name!!.asString() to createComponentLookup(it.type.resolve(), it, componentTypeDeclaration)
+                    it.name!!.asString() to createComponentLookup(
+                        it.type.resolve(),
+                        it.type.extractQualifierOrNull(),
+                        it,
+                        componentTypeDeclaration
+                    )
                 },
                 inlineComponentDeclaration,
                 ComponentLifecycleModel( // TODO ezt csak inline-nál lehessen megadni
@@ -994,6 +1015,7 @@ class DiSymbolProcessor(
 
     private fun createComponentLookup(
         ksType: KSType,
+        qualifier: String?,
         kspMessageTarget: KSNode,
         debugInfo: Any?
     ): ComponentLookup {
@@ -1007,13 +1029,14 @@ class DiSymbolProcessor(
         } else if (parameterDeclaration.qualifiedName!!.asString() == List::class.qualifiedName) {
             ComponentLookup(
                 ksType.arguments[0].type!!.resolve(),
+                qualifier,
                 MULTIPLE_OPTIONAL,
                 kspMessageTarget
             ) // TODO handle MULITPLE_REQUIRED
         } else if (ksType.isMarkedNullable) {
-            ComponentLookup(ksType, SINGLE_OPTIONAL, kspMessageTarget)
+            ComponentLookup(ksType, qualifier, SINGLE_OPTIONAL, kspMessageTarget)
         } else {
-            ComponentLookup(ksType, SINGLE_REQUIRED, kspMessageTarget)
+            ComponentLookup(ksType, qualifier, SINGLE_REQUIRED, kspMessageTarget)
         }
     }
 
@@ -1081,7 +1104,7 @@ class DiSymbolProcessor(
                                                 SINGLE_OPTIONAL ->
                                                     if (resolvedComponentDependencyModel.candidates.size > 1) {
                                                         kspLogger.error(
-                                                            "0 or 1 component instance of type ${resolvedComponentDependencyModel.dependencyType} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            "0 or 1 component instance of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
                                                             resolvedComponentDependencyModel.componentLookup.kspMessageTarget
                                                         )
                                                     }
@@ -1089,7 +1112,7 @@ class DiSymbolProcessor(
                                                 SINGLE_REQUIRED ->
                                                     if (resolvedComponentDependencyModel.candidates.size != 1) {
                                                         kspLogger.error(
-                                                            "Exactly 1 component instance of type ${resolvedComponentDependencyModel.dependencyType} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            "Exactly 1 component instance of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
                                                             resolvedComponentDependencyModel.componentLookup.kspMessageTarget
                                                         )
                                                     }
@@ -1099,7 +1122,7 @@ class DiSymbolProcessor(
                                                 MULTIPLE_REQUIRED ->
                                                     if (resolvedComponentDependencyModel.candidates.isEmpty()) {
                                                         kspLogger.error(
-                                                            "1 or more component instances of type ${resolvedComponentDependencyModel.dependencyType} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            "1 or more component instances of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
                                                             resolvedComponentDependencyModel.componentLookup.kspMessageTarget
                                                         )
                                                     }
@@ -1129,9 +1152,11 @@ class DiSymbolProcessor(
         componentDependencyCandidates: List<ComponentDependencyCandidate>,
         componentLookup: ComponentLookup
     ): List<ComponentDependencyCandidate> = // TODO sokkal hatékonyabbra
-        componentDependencyCandidates.filter {
-            componentLookup.type.isAssignableFrom(it.component.componentType)
-        }
+        componentDependencyCandidates
+            .filter {
+                componentLookup.type.isAssignableFrom(it.component.componentType) &&
+                        if (componentLookup.qualifier != null) it.component.qualifier == componentLookup.qualifier else true
+            }
 
     private fun ClassKind.toDisplayName(): String =
         when (this) {
@@ -1148,6 +1173,15 @@ class DiSymbolProcessor(
     private fun KSType.getModuleId() = (declaration as? KSClassDeclaration)?.getModuleId()
         ?: throw IllegalStateException() // TODO rendes KSP hibát adni
 }
+
+private fun ResolvedComponentDependencyModel.format(): String =
+    if (componentLookup.qualifier != null)
+        "`${dependencyType.toTypeName()}` with qualifier \"${componentLookup.qualifier}\""
+    else
+        "`${dependencyType.toTypeName()}`"
+
+private fun KSAnnotated.extractQualifierOrNull(): String? =
+    getAnnotationsOfType<Qualifier>().toList().firstOrNull()?.getArgumentValueOrNull(Qualifier::value.name)
 
 private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =
     components + (parentScopeModel?.collectComponents() ?: emptyMap())
