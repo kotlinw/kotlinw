@@ -2,11 +2,11 @@ package kotlinw.logging.api
 
 enum class LogLevel {
 
-    Error,
-    Warning,
-    Info,
+    Trace,
     Debug,
-    Trace;
+    Info,
+    Warning,
+    Error;
 
     val conventionalName get() = name.uppercase()
 }

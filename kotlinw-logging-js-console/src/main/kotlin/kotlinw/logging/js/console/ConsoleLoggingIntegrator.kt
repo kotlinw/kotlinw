@@ -18,7 +18,10 @@ object ConsoleLoggingIntegrator: LoggingIntegrator {
 
     override fun getLogger(loggerName: String): Logger = ConsoleLogger(loggerName)
 
-    override fun isLogLevelEnabled(logger: LoggerImplementor, level: LogLevel): Boolean = level >= Info // TODO konfig
+    override fun isLogLevelEnabled(logger: LoggerImplementor, level: LogLevel): Boolean {
+        val loggerLogLevel = Info // TODO konfig
+        return level >= loggerLogLevel
+    }
 
     override fun log(
         logger: LoggerImplementor,
