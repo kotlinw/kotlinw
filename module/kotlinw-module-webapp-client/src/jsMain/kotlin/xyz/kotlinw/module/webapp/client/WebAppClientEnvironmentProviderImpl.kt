@@ -63,7 +63,7 @@ class WebAppClientEnvironmentProviderImpl(
         }
     }
 
-    override suspend fun collectClientEnvironmentStatus(afterCommunicationError: Boolean) {
+    override suspend fun getClientEnvironmentStatus(afterCommunicationError: Boolean) {
         if (authenticationStatusRefresherJob == null) {
             if (navigator.onLine) {
                 if (afterCommunicationError) {
