@@ -8,7 +8,7 @@ data class ByteSize(val size: Int, val unit: ByteSizeUnit) {
 
     companion object {
 
-        fun formatByteSize(size: Int, unit: ByteSizeUnit) = "${size.formatWithDecimalGrouping()} $unit"
+        fun formatByteSize(size: Int, unit: ByteSizeUnit) = "${size.format()} $unit"
     }
 
     fun format(): String = formatByteSize(size, unit)
@@ -31,9 +31,11 @@ fun Long.formatByteSize(unit: ByteSizeUnit? = null): String = roundToByteSize(un
 
 fun Number.formatByteSize(unit: ByteSizeUnit? = null): String = toLong().formatByteSize(unit)
 
-fun Double.format(fractionDigits: Int) = format(fractionDigits, fractionDigits)
-
-fun Double.format(maxFractionDigits: Int, minFractionDigits: Int): String {
+fun Double.format(
+    maxFractionDigits: Int,
+    minFractionDigits: Int = maxFractionDigits,
+    useDecimalGrouping: Boolean = true
+): String {
     require(maxFractionDigits >= 0)
     require(minFractionDigits <= maxFractionDigits)
 
@@ -43,27 +45,37 @@ fun Double.format(maxFractionDigits: Int, minFractionDigits: Int): String {
                 it[0] to (if (it.size > 1 && it[1].any { it != '0' }) it[1].dropLastWhile { it == '0' } else null)
             }
     return buildString {
-        append(integerPart)
+        append(formatInt(integerPart, useDecimalGrouping))
 
         if (fractionalPart == null || minFractionDigits == 0) {
             if (minFractionDigits > 0) {
                 append('.')
-                repeat(minFractionDigits) { append('0') }
+                repeat(minFractionDigits) {
+                    if (useDecimalGrouping && it > 0 && it % 3 == 0) {
+                        append(' ')
+                    }
+                    append('0')
+                }
             }
         } else {
             append('.')
 
             val fractionalDigitCount = fractionalPart.length
-            if (fractionalDigitCount in minFractionDigits..maxFractionDigits) {
-                append(fractionalPart)
+            val fractionalDigits = if (fractionalDigitCount in minFractionDigits..maxFractionDigits) {
+                fractionalPart
             } else if (fractionalDigitCount < minFractionDigits) {
-                append(fractionalPart)
-                repeat(minFractionDigits - fractionalDigitCount) { append('0') }
+                fractionalPart + "0".repeat(minFractionDigits - fractionalDigitCount)
             } else {
-                append(
-                    fractionalPart.dropLast(fractionalDigitCount - maxFractionDigits)
-                )
+                fractionalPart.dropLast(fractionalDigitCount - maxFractionDigits)
             }
+
+            append(
+                if (useDecimalGrouping) {
+                    fractionalDigits.chunked(3).joinToString(" ")
+                } else {
+                    fractionalDigits
+                }
+            )
         }
     }
 }
@@ -73,5 +85,11 @@ fun Float.format(fractionDigits: Int) = format(fractionDigits, fractionDigits)
 fun Float.format(maxFractionDigits: Int, minFractionDigits: Int): String =
     toDouble().format(maxFractionDigits, minFractionDigits)
 
-fun Int.formatWithDecimalGrouping() =
-    this@formatWithDecimalGrouping.toString().reversed().chunked(3).joinToString(" ").reversed()
+fun Int.format(useDecimalGrouping: Boolean = true) =
+    formatInt(this@format.toString(), useDecimalGrouping)
+
+private fun formatInt(intAsString: String, useDecimalGrouping: Boolean) =
+    if (useDecimalGrouping)
+        intAsString.reversed().chunked(3).joinToString(" ").reversed()
+    else
+        intAsString
