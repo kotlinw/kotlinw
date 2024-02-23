@@ -4,43 +4,63 @@ enum class ByteSizeUnit {
     B, KB, MB, GB, TB, PB, EB, ZB
 }
 
-data class ByteSize(val size: Int, val unit: ByteSizeUnit) {
+data class ByteSize(val size: Double, val unit: ByteSizeUnit) {
 
     companion object {
 
-        fun formatByteSize(size: Int, unit: ByteSizeUnit) = "${size.format()} $unit"
+        fun formatByteSize(
+            size: Double,
+            unit: ByteSizeUnit,
+            maxFractionalDigits: Int = 0
+        ) =
+            "${size.format(maxFractionalDigits)} $unit"
     }
 
-    fun format(): String = formatByteSize(size, unit)
+    fun format(maxFractionalDigits: Int = 0): String =
+        formatByteSize(size, unit, maxFractionalDigits)
 }
 
-fun Long.roundToByteSize(unit: ByteSizeUnit? = null): ByteSize {
+fun Double.roundToByteSize(unit: ByteSizeUnit? = null): ByteSize {
     var unitIndex = 0
     var size = this@roundToByteSize
 
-    while (size >= 1024L && unitIndex <= ByteSizeUnit.entries.lastIndex && (unit == null || ByteSizeUnit.entries[unitIndex] < unit)) {
-        size = size.shr(10)
-        unitIndex++
+    if (unit != null) {
+        while (unitIndex <= ByteSizeUnit.entries.lastIndex && ByteSizeUnit.entries[unitIndex] < unit) {
+            size /= 1024.0
+            unitIndex++
+        }
+    } else {
+        while (size >= 1024.0 && unitIndex < ByteSizeUnit.entries.lastIndex) {
+            size /= 1024.0
+            unitIndex++
+        }
     }
-    return ByteSize(size.toInt(), ByteSizeUnit.entries[unitIndex])
+    return ByteSize(size, ByteSizeUnit.entries[unitIndex])
 }
 
-fun Number.roundToByteSize(unit: ByteSizeUnit? = null): ByteSize = toLong().roundToByteSize(unit)
+fun Number.roundToByteSize(unit: ByteSizeUnit? = null): ByteSize = toDouble().roundToByteSize(unit)
 
-fun Long.formatByteSize(unit: ByteSizeUnit? = null): String = roundToByteSize(unit).format()
+fun Double.formatByteSize(
+    unit: ByteSizeUnit? = null,
+    maxFractionalDigits: Int = 0
+): String = roundToByteSize(unit).format(maxFractionalDigits)
 
-fun Number.formatByteSize(unit: ByteSizeUnit? = null): String = toLong().formatByteSize(unit)
+fun Number.formatByteSize(
+    unit: ByteSizeUnit? = null,
+    maxFractionalDigits: Int = 0
+): String =
+    toDouble().formatByteSize(unit, maxFractionalDigits)
 
 fun Double.format(
-    maxFractionDigits: Int,
-    minFractionDigits: Int = maxFractionDigits,
+    maxFractionalDigits: Int,
+    minFractionDigits: Int = maxFractionalDigits,
     useDecimalGrouping: Boolean = true
 ): String {
-    require(maxFractionDigits >= 0)
-    require(minFractionDigits <= maxFractionDigits)
+    require(maxFractionalDigits >= 0)
+    require(minFractionDigits <= maxFractionalDigits)
 
     val (integerPart, fractionalPart) =
-        round(maxFractionDigits).toString() // TODO handle scientific notation
+        round(maxFractionalDigits).toString() // TODO handle scientific notation
             .split('.').let {
                 it[0] to (if (it.size > 1 && it[1].any { it != '0' }) it[1].dropLastWhile { it == '0' } else null)
             }
@@ -61,12 +81,12 @@ fun Double.format(
             append('.')
 
             val fractionalDigitCount = fractionalPart.length
-            val fractionalDigits = if (fractionalDigitCount in minFractionDigits..maxFractionDigits) {
+            val fractionalDigits = if (fractionalDigitCount in minFractionDigits..maxFractionalDigits) {
                 fractionalPart
             } else if (fractionalDigitCount < minFractionDigits) {
                 fractionalPart + "0".repeat(minFractionDigits - fractionalDigitCount)
             } else {
-                fractionalPart.dropLast(fractionalDigitCount - maxFractionDigits)
+                fractionalPart.dropLast(fractionalDigitCount - maxFractionalDigits)
             }
 
             append(
@@ -82,8 +102,8 @@ fun Double.format(
 
 fun Float.format(fractionDigits: Int) = format(fractionDigits, fractionDigits)
 
-fun Float.format(maxFractionDigits: Int, minFractionDigits: Int): String =
-    toDouble().format(maxFractionDigits, minFractionDigits)
+fun Float.format(maxFractionalDigits: Int, minFractionDigits: Int): String =
+    toDouble().format(maxFractionalDigits, minFractionDigits)
 
 fun Int.format(useDecimalGrouping: Boolean = true) =
     formatInt(this@format.toString(), useDecimalGrouping)
