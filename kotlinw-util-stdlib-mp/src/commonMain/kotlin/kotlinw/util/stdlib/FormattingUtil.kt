@@ -1,7 +1,17 @@
 package kotlinw.util.stdlib
 
-enum class ByteSizeUnit {
-    B, KB, MB, GB, TB, PB, EB, ZB
+enum class ByteSizeUnit(val degree: Int) {
+    B(0),
+    KB(3),
+    MB(6),
+    GB(9),
+    TB(12),
+    PB(15),
+    EB(18),
+    ZB(21),
+    YB(24),
+    RB(27),
+    QB(30)
 }
 
 data class ByteSize(val size: Double, val unit: ByteSizeUnit) {
