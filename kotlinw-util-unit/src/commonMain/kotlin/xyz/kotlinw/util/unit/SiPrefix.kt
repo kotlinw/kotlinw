@@ -89,7 +89,7 @@ sealed class SiMeasurementFactor<N : Number>(val prefix: SiPrefixName) : Measure
     }
 }
 
-infix fun <U : MeasurementUnit> Int.kilo(unit: U) =
+infix fun <U : CoreUnit> Int.kilo(unit: U) =
     ScaledValueWithUnit(this, SiMeasurementFactorInt(SiPrefixLongName.kilo), unit)
 
 val Int.kilo

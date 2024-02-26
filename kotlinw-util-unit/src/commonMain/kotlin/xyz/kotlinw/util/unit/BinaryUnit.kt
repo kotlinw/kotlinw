@@ -4,7 +4,7 @@ import xyz.kotlinw.util.unit.ScaledValue.ScaledValueWithUnit
 import xyz.kotlinw.util.unit.ScaledValue.UnitlessScaledValue
 import xyz.kotlinw.util.unit.ScaledValue.ValueWithUnit
 
-sealed interface BinaryUnit : MeasurementUnit {
+sealed interface BinaryUnit : CoreUnit {
 
     data object Bit : BinaryUnit {
 

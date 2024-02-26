@@ -41,7 +41,7 @@ sealed class ScaledValue<N : Number> : Number() {
         override fun toString() = scaledValue.toString()
     }
 
-    class ValueWithUnit<N : Number, U : MeasurementUnit>(
+    class ValueWithUnit<N : Number, U : CoreUnit>(
         override val value: N,
         val unit: U
     ) : ScaledValue<N>() {
@@ -51,7 +51,7 @@ sealed class ScaledValue<N : Number> : Number() {
         override fun toString(): String = "$value ${unit.symbol}"
     }
 
-    class ScaledValueWithUnit<N : Number, U : MeasurementUnit>(
+    class ScaledValueWithUnit<N : Number, U : CoreUnit>(
         override val value: N,
         override val scale: MeasurementFactor<N>,
         val unit: U
