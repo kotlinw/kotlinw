@@ -12,10 +12,10 @@ class SiUnitTest {
 
     @Test
     fun testMeter() {
-        val a = 1.0.meter
+        val a = 1000.0.meter
         val b = 1.0 kilo meter
         val c = 10.0.second
-        val d = a  / c
+        // val d = a / c
     }
 }
 
@@ -25,7 +25,7 @@ typealias KiloMeter<N> = ValueWithUnit<N, ScaledSiUnit<kilo, meter, Length>, Len
 
 private fun <
         U : SiUnit<Q>,
-        Q : SiQuantity<*, *, *, *, *, *, *>
+        Q : SiQuantity<*, *, *, *, *>
         >
         Double.toDoubleValueWithUnit(unit: U): DoubleValueWithUnit<U, Q> =
     DoubleValueWithUnit(this, unit)
@@ -38,7 +38,7 @@ val Double.second: Second<Double> get() = toDoubleValueWithUnit(SiBaseUnit.secon
 
 infix fun <
         U : SiUnit<Q>,
-        Q : SiQuantity<*, *, *, *, *, *, *>
+        Q : SiQuantity<*, *, *, *, *>
         >
         Double.kilo(unit: U): ValueWithUnit<Double, ScaledSiUnit<kilo, U, Q>, Q> =
     toDoubleValueWithUnit(unit.scale(kilo))

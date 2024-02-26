@@ -7,18 +7,18 @@ sealed class SiUnitFactor(val factorExponent: Int) {
     data object kilo : SiUnitFactor(3)
 }
 
-sealed interface SiUnit<Q : SiQuantity<*, *, *, *, *, *, *>> {
+sealed interface SiUnit<Q : SiQuantity<*, *, *, *, *>> {
 
     val quantity: Q
 }
 
-fun <F: SiUnitFactor, U: SiUnit<Q>, Q : SiQuantity<*, *, *, *, *, *, *>> U.scale(factor: F) : ScaledSiUnit<F, U, Q> =
+fun <F: SiUnitFactor, U: SiUnit<Q>, Q : SiQuantity<*, *, *, *, *>> U.scale(factor: F) : ScaledSiUnit<F, U, Q> =
     ScaledSiUnitImpl(quantity, factor)
 
 sealed interface ScaledSiUnit<
         Factor : SiUnitFactor,
         ScaledUnit : SiUnit<Q>,
-        Q : SiQuantity<*, *, *, *, *, *, *>,
+        Q : SiQuantity<*, *, *, *, *>,
         > :
     SiUnit<Q> {
 
@@ -29,7 +29,7 @@ sealed interface ScaledSiUnit<
 internal class ScaledSiUnitImpl<
         Factor : SiUnitFactor,
         ScaledUnit : SiUnit<Q>,
-        Q : SiQuantity<*, *, *, *, *, *, *>,
+        Q : SiQuantity<*, *, *, *, *>,
         >(
     override val quantity: Q, override val factor: Factor
 ) :
@@ -37,7 +37,7 @@ internal class ScaledSiUnitImpl<
 
 @PublishedApi
 internal class SiUnitImpl<
-        Q : SiQuantity<*, *, *, *, *, *, *>
+        Q : SiQuantity<*, *, *, *, *>
         >(
     override val quantity: Q
 ) :

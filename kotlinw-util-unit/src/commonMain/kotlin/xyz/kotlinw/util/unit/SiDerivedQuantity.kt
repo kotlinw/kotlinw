@@ -1,9 +1,7 @@
 package xyz.kotlinw.util.unit
 
-import xyz.kotlinw.util.unit.SiBaseQuantity.AmountOfSubstance
 import xyz.kotlinw.util.unit.SiBaseQuantity.ElectricCurrent
 import xyz.kotlinw.util.unit.SiBaseQuantity.Length
-import xyz.kotlinw.util.unit.SiBaseQuantity.LuminousIntensity
 import xyz.kotlinw.util.unit.SiBaseQuantity.Mass
 import xyz.kotlinw.util.unit.SiBaseQuantity.Time
 
@@ -50,12 +48,12 @@ object SiDerivedQuantity {
     val MagneticFieldStrength =
         ElectricCurrent / Length
 
-    val AmountOfSubstanceConcentration =
-        AmountOfSubstance / Volume
+//    val AmountOfSubstanceConcentration =
+//        AmountOfSubstance / Volume
 
     val MassConcentration =
         Mass / Volume
 
-    val Luminance =
-        LuminousIntensity / Area
+//    val Luminance =
+//        LuminousIntensity / Area
 }

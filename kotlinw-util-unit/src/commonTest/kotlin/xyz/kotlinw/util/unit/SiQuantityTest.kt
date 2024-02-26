@@ -19,7 +19,7 @@ class SiQuantityTest {
     fun testEquals() {
         assertEquals<Any>(
             Acceleration,
-            SiQuantity<M2, P1, Excluded, Excluded, Excluded, Excluded, Excluded>()
+            SiQuantity<M2, P1, Excluded, Excluded, Excluded, /* Excluded, Excluded */>()
         )
 
         assertEquals(
@@ -32,7 +32,7 @@ class SiQuantityTest {
         )
         assertEquals<Any>(
             SiBaseQuantity.Length * SiBaseQuantity.Length * SiBaseQuantity.Length,
-            SiQuantity<Excluded, P3, Excluded, Excluded, Excluded, Excluded, Excluded>()
+            SiQuantity<Excluded, P3, Excluded, Excluded, Excluded, /* Excluded, Excluded */>()
         )
 
         assertEquals<Any>(
@@ -48,7 +48,7 @@ class SiQuantityTest {
         assertEquals(null, Velocity.massExponent)
         assertEquals(null, Velocity.electricCurrentExponent)
         assertEquals(null, Velocity.thermodynamicTemperatureExponent)
-        assertEquals(null, Velocity.amountOfSubstanceExponent)
+//        assertEquals(null, Velocity.amountOfSubstanceExponent)
     }
 
     @Test
@@ -58,7 +58,7 @@ class SiQuantityTest {
         assertEquals(null, Acceleration.massExponent)
         assertEquals(null, Acceleration.electricCurrentExponent)
         assertEquals(null, Acceleration.thermodynamicTemperatureExponent)
-        assertEquals(null, Acceleration.amountOfSubstanceExponent)
+//        assertEquals(null, Acceleration.amountOfSubstanceExponent)
     }
 
     @Test
@@ -68,7 +68,7 @@ class SiQuantityTest {
         assertEquals(null, Area.massExponent)
         assertEquals(null, Area.electricCurrentExponent)
         assertEquals(null, Area.thermodynamicTemperatureExponent)
-        assertEquals(null, Area.amountOfSubstanceExponent)
+//        assertEquals(null, Area.amountOfSubstanceExponent)
     }
 
     @Test
@@ -78,7 +78,7 @@ class SiQuantityTest {
         assertEquals(null, Volume.massExponent)
         assertEquals(null, Volume.electricCurrentExponent)
         assertEquals(null, Volume.thermodynamicTemperatureExponent)
-        assertEquals(null, Volume.amountOfSubstanceExponent)
+//        assertEquals(null, Volume.amountOfSubstanceExponent)
     }
 
     @Test
@@ -88,7 +88,7 @@ class SiQuantityTest {
         assertEquals(1, Force.massExponent)
         assertEquals(null, Force.electricCurrentExponent)
         assertEquals(null, Force.thermodynamicTemperatureExponent)
-        assertEquals(null, Force.amountOfSubstanceExponent)
+//        assertEquals(null, Force.amountOfSubstanceExponent)
     }
 
     @Test
@@ -98,6 +98,6 @@ class SiQuantityTest {
         assertEquals(null, Frequency.massExponent)
         assertEquals(null, Frequency.electricCurrentExponent)
         assertEquals(null, Frequency.thermodynamicTemperatureExponent)
-        assertEquals(null, Frequency.amountOfSubstanceExponent)
+//        assertEquals(null, Frequency.amountOfSubstanceExponent)
     }
 }
