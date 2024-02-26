@@ -99,7 +99,7 @@ include(":kotlinw-util-datetime-mp")
 include(":kotlinw-util-ktor-client")
 include(":kotlinw-util-serialization-json")
 include(":kotlinw-util-stdlib-mp")
-include(":kotlinw-util-unit")
+//include(":kotlinw-util-unit")
 include(":kotlinw-uuid")
 
 include(":module:kotlinw-module-api")
