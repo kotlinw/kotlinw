@@ -1,79 +1,86 @@
 package xyz.kotlinw.oauth2.ktor.client
 
-import arrow.atomic.AtomicInt
-import arrow.atomic.value
+import arrow.core.continuations.AtomicRef
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.plugins.HttpTimeoutCapability
 import io.ktor.client.plugins.api.createClientPlugin
-import io.ktor.client.plugins.auth.AuthConfig
-import io.ktor.client.plugins.auth.providers.BearerAuthProvider
-import io.ktor.client.plugins.auth.providers.BearerTokens
-import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.headers
-import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpHeaders
+import io.ktor.utils.io.core.use
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinw.logging.api.Logger
+import kotlinw.util.stdlib.Url
+import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import xyz.kotlinw.oauth2.core.MutableOAuth2TokenStorage
-import xyz.kotlinw.oauth2.core.MutableOAuth2TokenStorageImpl
-import xyz.kotlinw.oauth2.core.OAuth2BearerTokens
-import xyz.kotlinw.oauth2.core.OAuth2TokenResponse
-import xyz.kotlinw.oauth2.core.tokens
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock.System
+import kotlinx.datetime.Instant
+import xyz.kotlinw.oauth2.core.ClientCredentialsGrant
+import xyz.kotlinw.oauth2.core.OAuth2AccessToken
+import xyz.kotlinw.oauth2.core.Oauth2TokenErrorResponse
 
-fun AuthConfig.bearer(
-    httpClient: HttpClient,
-    realm: String? = null,
-    tokenStorage: MutableOAuth2TokenStorage = MutableOAuth2TokenStorageImpl(),
-    alwaysSendCredentials: (HttpRequestBuilder) -> Boolean = { true },
-    loadInitialTokens: suspend () -> OAuth2BearerTokens? = { null },
-    renewTokens: suspend (httpClient: HttpClient, unauthorizedHttpResponse: HttpResponse?, oldTokens: OAuth2BearerTokens?) -> OAuth2TokenResponse,
+private data class OAuth2AccessTokenData(val accessToken: OAuth2AccessToken, val expiryTimestamp: Instant) {
+
+    companion object {
+
+        val Expired = OAuth2AccessTokenData("", Instant.DISTANT_PAST)
+    }
+
+    val isExpired get() = expiryTimestamp < Clock.System.now()
+}
+
+class TokenRequestFailedException(val tokenErrorResponse: Oauth2TokenErrorResponse) :
+    RuntimeException("Token request failed: $tokenErrorResponse")
+
+fun HttpClientConfig<*>.configureTokenAuth(
+    tokenEndpointUrl: Url,
+    clientId: String,
+    clientSecret: String,
+    logger: Logger
 ) {
-    val tokensRevisionHolder = AtomicInt(0)
-    val refreshTokensLock = Mutex()
+    val token = AtomicRef(OAuth2AccessTokenData.Expired)
+    val fetchTokenLock = Mutex()
 
-    bearer {
-        this.realm = realm
-        this.sendWithoutRequest(alwaysSendCredentials)
-
-        fun OAuth2BearerTokens.convertTokens() = BearerTokens(accessToken, refreshToken ?: "")
-
-        fun BearerTokens.convertTokens() = OAuth2BearerTokens(accessToken, refreshToken.ifEmpty { null })
-
-        loadTokens {
-            // TODO exception-öket kezelni
-            val initialTokens = loadInitialTokens()
-                ?: renewTokens(httpClient, null, null).tokens
-            tokenStorage.updateAndGetTokens { initialTokens }
-            initialTokens.convertTokens()
-        }
-        refreshTokens {
-            // TODO exception-öket kezelni
-            val revisionBeforeLock = tokensRevisionHolder.value
-            refreshTokensLock.withLock {
-                if (tokensRevisionHolder.value == revisionBeforeLock) {
-                    val revisionBeforeRefresh = tokensRevisionHolder.value
-                    renewTokens(client, response, oldTokens?.convertTokens()).tokens.let { renewedTokens ->
-                        tokenStorage.updateAndGetTokens { storedTokens ->
-                            if (tokensRevisionHolder.value == revisionBeforeRefresh) {
-                                renewedTokens
-                            } else {
-                                storedTokens
-                            }
+    install(
+        createClientPlugin("OAuth2AuthorizationHeaderPlugin") {
+            onRequest { request, _ ->
+                val tokenExpiryThreshold = (
+                        request.getCapabilityOrNull(HttpTimeoutCapability)
+                            ?.let {
+                                (it.connectTimeoutMillis ?: 0L) + (it.requestTimeoutMillis ?: 0L)
+                            } ?: 0L
+                        ).milliseconds
+                if (token.value.isExpired) {
+                    fetchTokenLock.withLock {
+                        if (token.value.isExpired) {
+                            logger.debug { "Requesting access token: " / named("clientId", clientId) }
+                            val tokenResponse =
+                                arrow.core.raise.recover({
+                                    HttpClient(this@createClientPlugin.client.engine).use {
+                                        ClientCredentialsGrant.requestToken(
+                                            it,
+                                            tokenEndpointUrl,
+                                            clientId,
+                                            clientSecret
+                                        ) // TODO handle errors
+                                    }
+                                }, {
+                                    throw TokenRequestFailedException(it)
+                                })
+                            token.value = OAuth2AccessTokenData(
+                                tokenResponse.accessToken,
+                                System.now()
+                                        - tokenExpiryThreshold
+                                        + (tokenResponse.accessTokenExpirySeconds ?: 0).seconds
+                            )
                         }
                     }
-                } else {
-                    tokenStorage.tokens
                 }
+
+                request.headers.append(HttpHeaders.Authorization, "Bearer ${token.value.accessToken}")
             }
-                ?.convertTokens()
         }
-    }
-
-    val provider = providers.last() as BearerAuthProvider
-    tokenStorage.addTokenChangeListener {
-        tokensRevisionHolder.incrementAndGet()
-
-        if (it == null) {
-            provider.clearToken() // Force the provider to request fresh tokens next time
-        }
-    }
+    )
 }

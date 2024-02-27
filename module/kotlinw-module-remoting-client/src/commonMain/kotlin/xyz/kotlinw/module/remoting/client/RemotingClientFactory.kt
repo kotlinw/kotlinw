@@ -22,6 +22,13 @@ import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 
 interface RemotingClientFactory {
 
+    companion object {
+
+        fun HttpClientConfig<*>.applyDefaultWebSocketRemotingClientConfig(httpClient: HttpClient) {
+            httpClient.pluginOrNull(WebSockets) ?: installClientWebSockets()
+        }
+    }
+
     fun createWebRequestRemotingClient(
         remoteServerBaseUrl: Url,
         endpointId: String,
@@ -38,7 +45,7 @@ interface RemotingClientFactory {
         httpRequestCustomizer: HttpRequestBuilder.() -> Unit = {},
         httpClientCustomizer: (HttpClient) -> HttpClient = {
             it.config {
-                it.pluginOrNull(WebSockets) ?: installClientWebSockets()
+                applyDefaultWebSocketRemotingClientConfig(it)
             }
         }
     ): PersistentRemotingClient

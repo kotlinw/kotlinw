@@ -20,7 +20,9 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.module.kotlinwModuleCore)
                 api(projects.kotlinw.module.kotlinwModuleRemotingShared)
+                api(projects.kotlinw.kotlinwOauth2Core)
                 api(projects.kotlinw.kotlinwRemotingClientKtor)
+                api(projects.kotlinw.kotlinwOauth2KtorClient)
                 api(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
             }
