@@ -2,12 +2,13 @@ package kotlinw.remoting.server.ktor
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.Principal
-import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 import kotlinw.remoting.core.codec.MessageCodec
 import kotlinw.remoting.core.common.NewConnectionData
 import kotlinw.remoting.core.common.RemovedConnectionData
+import kotlinw.uuid.Uuid
 import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.MessagingPeerId
+import xyz.kotlinw.remoting.api.internal.RemoteCallHandler
 
 interface RemotingConfiguration {
 
@@ -46,7 +47,7 @@ data class WebSocketRemotingConfiguration(
     override val authenticationProviderName: String?,
     override val extractPrincipal: ApplicationCall.() -> Principal?,
     override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
-    override val identifyConnection: ApplicationCall.() -> MessagingConnectionId,
+    override val identifyConnection: ApplicationCall.() -> MessagingConnectionId = { Uuid.randomUuid() },
     val wsEndpointName: String = id,
     val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,
     val onConnectionRemoved: (suspend (RemovedConnectionData) -> Unit)? = null,
