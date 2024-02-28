@@ -11,7 +11,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinw.configuration.core.ConstantConfigurationPropertyResolver
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
-import kotlinw.remoting.server.ktor.RemotingClientAuthenticator
 import kotlinw.uuid.Uuid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -59,12 +58,6 @@ class ServerBaseModuleIntegrationTest {
                         }
                     }
                 }
-
-            @Component
-            fun remotingClientAuthenticator() = object : RemotingClientAuthenticator {
-
-                override fun authenticateClient(call: ApplicationCall): MessagingPeerId = Uuid.randomUuid()
-            }
         }
     }
 
