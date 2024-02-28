@@ -6,7 +6,6 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import io.ktor.server.sessions.sessionId
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
 import kotlinw.logging.api.LoggerFactory
@@ -23,9 +22,11 @@ import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import kotlinw.uuid.Uuid
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import xyz.kotlinw.remoting.api.MessagingConnectionId
 import xyz.kotlinw.remoting.api.RemoteConnectionId
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
@@ -117,7 +118,8 @@ class WebSocketRemotingProvider(
                 webSocket("/websocket/${webSocketRemotingConfiguration.id}") {
                     val principal = remotingConfiguration.extractPrincipal(call)
                     val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
-                    val messagingConnectionId: MessagingConnectionId = remotingConfiguration.identifyConnection(call) // TODO hibaell.
+                    val messagingConnectionId: MessagingConnectionId =
+                        remotingConfiguration.identifyConnection(call) // TODO hibaell.
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
                     // TODO ezt a WebRequestRemotingProvider-be is
@@ -138,8 +140,16 @@ class WebSocketRemotingProvider(
                                     messageCodec as MessageCodecWithMetadataPrefetchSupport<RawMessage>,
                                     delegators
                                 )
-                            addConnection(remoteConnectionId, messagingManager)
-                            messagingManager.processIncomingMessages()
+
+                            coroutineScope {
+                                // Start incoming message processing before calling "onConnect" handlers
+                                // to allow the usage of the reverse remoting client in those handlers
+                                launch(start = UNDISPATCHED) {
+                                    messagingManager.processIncomingMessages()
+                                }
+
+                                addConnection(remoteConnectionId, messagingManager)
+                            }
                         } catch (e: ClosedReceiveChannelException) {
                             val closeReason = closeReason.await()
                             logger.debug { "Connection closed, reason: " / closeReason }

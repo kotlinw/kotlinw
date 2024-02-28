@@ -247,7 +247,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                             // TODO specifikus exception-ök külön elkapása runInSession()-ben
 
                             if (logger.isTraceEnabled) {
-                                logger.trace(cause) { "Remoting WS connection failed." }
+                                logger.trace(cause) { "Remoting WS connection failed: " / cause.message / " (" / cause::class.simpleName / ")" }
                             } else {
                                 logger.debug {
                                     "Remoting WS connection failed: " / named("cause", cause::class.simpleName) /
