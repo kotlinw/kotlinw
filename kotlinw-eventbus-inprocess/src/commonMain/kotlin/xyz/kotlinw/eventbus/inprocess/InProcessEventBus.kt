@@ -1,14 +1,17 @@
 package xyz.kotlinw.eventbus.inprocess
 
-import xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
+import xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
 
 typealias LocalEvent = Any
 
@@ -18,6 +21,7 @@ typealias LocalEvent = Any
  * It allows registering event handlers and publishing events to all registered handlers.
  */
 sealed interface InProcessEventBus {
+    // FIXME make generic E: LocalEvent
 
     /**
      * Publishes a [LocalEvent] to the event bus, suspending if the event handlers are too slow and are still handling previously published events.
@@ -26,19 +30,19 @@ sealed interface InProcessEventBus {
      */
     suspend fun publish(event: LocalEvent)
 
-    /**
-     * Registers an event handler with the given predicate on the event bus.
-     *
-     * This function never completes normally, it will collect events until cancelled, see [SharedFlow.collect] for more details.
-     *
-     * @param filter The predicate to filter events. By default, it accepts all events.
-     * @param handler The event handler function that will be executed when an event is matched by the predicate.
-     */
-    suspend fun on(
-        filter: (LocalEvent) -> Boolean = { true },
-        handler: suspend (LocalEvent) -> Unit
-    ): Nothing
+    suspend fun events(): Flow<LocalEvent>
 }
+
+context(CoroutineScope)
+fun InProcessEventBus.launchPublish(event: LocalEvent) =
+    launch(start = UNDISPATCHED) {
+        publish(event)
+    }
+
+suspend inline fun <reified E : LocalEvent> InProcessEventBus.events(
+    noinline filter: (E) -> Boolean = { true }
+): Flow<E> =
+    events().filterIsInstance<E>().filter(filter)
 
 /**
  * Registers an event handler for events of type [E] with the given predicate on the event bus.
@@ -52,12 +56,14 @@ sealed interface InProcessEventBus {
 suspend inline fun <reified E : LocalEvent> InProcessEventBus.on(
     noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> Unit
-): Nothing =
-    @Suppress("UNCHECKED_CAST")
-    on(
-        filter = { it is E && filter(it) },
-        handler as suspend (LocalEvent) -> Unit
-    )
+): Nothing {
+    events<E>(filter).collect {
+        handler(it)
+    }
+
+    // The implementation is based on SharedFlow, and SharedFlow.collect() never completes normally
+    throw IllegalStateException()
+}
 
 /**
  * Registers an asynchronously running event handler on the event bus for handling events of type [E] matching the given predicate.

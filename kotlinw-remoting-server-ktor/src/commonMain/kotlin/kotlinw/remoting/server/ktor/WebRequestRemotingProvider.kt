@@ -48,11 +48,13 @@ class WebRequestRemotingProvider(
 
         val delegators =
             (remotingConfiguration.remoteCallHandlers as Iterable<RemoteCallHandlerImplementor<*>>).associateBy { it.serviceId }
-        if (
-            delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>().any()
-        ) {
-            throw IllegalStateException("Downstream communication is not supported by ${WebRequestRemotingProvider::class}.")
-        }
+        delegators.values.flatMap { it.methodDescriptors.values }.filterIsInstance<DownstreamColdFlow<*, *>>()
+            .also {
+                if (it.any()) {
+                    // TODO a serviceId-t is írjuk ki
+                    throw IllegalStateException("Downstream communication is not supported by ${WebRequestRemotingProvider::class}: ${it.first().memberId}")
+                }
+            }
 
         if (remotingConfiguration.authenticationProviderName != null && ktorApplication.pluginOrNull(Authentication) == null) {
             // TODO install automatically instead of the error message

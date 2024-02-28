@@ -1,9 +1,13 @@
 package xyz.kotlinw.eventbus.inprocess
 
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
 import xyz.kotlinw.eventbus.inprocess.EventBusBufferOverflowStrategy.DROP_LATEST
 import xyz.kotlinw.eventbus.inprocess.EventBusBufferOverflowStrategy.DROP_OLDEST
 import xyz.kotlinw.eventbus.inprocess.EventBusBufferOverflowStrategy.REJECT
@@ -76,15 +80,7 @@ internal class InProcessEventBusImpl(
         }
     }
 
-    override suspend fun on(
-        filter: (LocalEvent) -> Boolean,
-        handler: suspend (LocalEvent) -> Unit
-    ): Nothing =
-        events.collect {
-            if (filter(it)) {
-                handler(it)
-            }
-        }
+    override suspend fun events(): Flow<LocalEvent> = events
 }
 
 /**

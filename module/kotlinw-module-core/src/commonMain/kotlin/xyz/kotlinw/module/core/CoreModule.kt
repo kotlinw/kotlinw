@@ -1,7 +1,6 @@
 package xyz.kotlinw.module.core
 
 import xyz.kotlinw.di.api.Component
-import xyz.kotlinw.di.api.ContainerLifecycleListener
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
@@ -20,5 +19,5 @@ class CoreModule {
     fun applicationCoroutineService() = ApplicationCoroutineServiceImpl()
 
     @Component
-    fun localEventBus(): InProcessEventBus = InProcessEventBus()
+    fun applicationEventBus(): InProcessEventBus = InProcessEventBus()
 }
