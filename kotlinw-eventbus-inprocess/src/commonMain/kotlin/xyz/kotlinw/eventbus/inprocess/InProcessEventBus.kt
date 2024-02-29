@@ -37,6 +37,7 @@ interface InProcessEventBus<E : LocalEvent> {
 
 inline fun <reified E : B, B : LocalEvent> InProcessEventBus<B>.constrain() =
     object : InProcessEventBus<E> {
+
         override suspend fun events(): Flow<E> = this@constrain.events().filterIsInstance<E>()
 
         override suspend fun publish(event: E) = this@constrain.publish(event)

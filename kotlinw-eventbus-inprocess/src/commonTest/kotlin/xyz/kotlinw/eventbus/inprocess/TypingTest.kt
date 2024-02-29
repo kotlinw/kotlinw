@@ -75,6 +75,54 @@ class TypingTest {
         assertEquals(1, customEventCCount)
     }
 
+    @Test
+    fun testTypingAndConstrain() = runTest {
+        var customBaseEventCount = 0
+        var customEventACount = 0
+        var customEventBCount = 0
+        var customSpecialEventCount = 0
+        var customEventCCount = 0
+
+        val globalEventBus = InProcessEventBus<LocalEvent>()
+        val eventBus = globalEventBus.constrain<CustomBaseEvent, _>()
+
+        val job = launch(start = UNDISPATCHED) {
+            with(eventBus) {
+                launch(start = UNDISPATCHED) {
+                    on<CustomBaseEvent> { customBaseEventCount++ }
+                }
+                launch(start = UNDISPATCHED) {
+                    on<CustomEventA> { customEventACount++ }
+                }
+                launch(start = UNDISPATCHED) {
+                    on<CustomEventB> { customEventBCount++ }
+                }
+                launch(start = UNDISPATCHED) {
+                    on<CustomSpecialEvent> { customSpecialEventCount++ }
+                }
+                launch(start = UNDISPATCHED) {
+                    on<CustomEventC> { customEventCCount++ }
+                }
+            }
+        }
+
+        // There are no listeners for this event, we only check that the existing listeners do not crash
+        globalEventBus.publish(object : Any() {})
+
+        eventBus.publish(CustomEventA)
+        eventBus.publish(CustomEventB)
+        eventBus.publish(CustomEventC)
+
+        delay(100)
+        job.cancel()
+
+        assertEquals(3, customBaseEventCount)
+        assertEquals(1, customEventACount)
+        assertEquals(1, customEventBCount)
+        assertEquals(1, customSpecialEventCount)
+        assertEquals(1, customEventCCount)
+    }
+
     @Suppress("UNREACHABLE_CODE")
     fun testTypingCompilationOnly1() = runTest {
         val eventBus = InProcessEventBus<CustomBaseEvent>()
