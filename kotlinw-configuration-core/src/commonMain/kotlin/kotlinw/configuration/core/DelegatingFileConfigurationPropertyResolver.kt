@@ -14,7 +14,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
     private val resource: Resource,
     private val delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
     private val watcherCoroutineScope: CoroutineScope?,
-    private val eventBus: InProcessEventBus?,
+    private val eventBus: InProcessEventBus<in ConfigurationEvent>?,
     private val watchDelay: Duration?,
     @Suppress("UNUSED_PARAMETER") primaryConstructorMarker: Unit
 ) : EnumerableConfigurationPropertyResolver {
@@ -29,7 +29,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
         resource: Resource,
         delegateFactory: (String) -> EnumerableConfigurationPropertyResolver,
         watcherCoroutineScope: CoroutineScope,
-        eventBus: InProcessEventBus,
+        eventBus: InProcessEventBus<in ConfigurationEvent>,
         watchDelay: Duration = Duration.INFINITE
     ) :
             this(resource, delegateFactory, watcherCoroutineScope, eventBus, watchDelay, Unit)

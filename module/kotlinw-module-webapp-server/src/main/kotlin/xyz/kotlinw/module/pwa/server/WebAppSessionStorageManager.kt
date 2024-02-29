@@ -26,11 +26,13 @@ enum class WebAppSessionInvalidationReason {
     EXPLICIT
 }
 
+sealed interface WebAppSessionEvent
+
 data class BeforeWebAppSessionInvalidatedEvent(val sessionId: String, val sessionEncodedValue: String, val reason: WebAppSessionInvalidationReason) :
-    LocalEvent()
+    LocalEvent(), WebAppSessionEvent
 
 data class WebAppSessionInvalidatedEvent(val sessionId: String, val reason: WebAppSessionInvalidationReason) :
-    LocalEvent()
+    LocalEvent(), WebAppSessionEvent
 
 interface WebAppSessionStorageManager : SessionStorage {
 
@@ -39,7 +41,7 @@ interface WebAppSessionStorageManager : SessionStorage {
 
 @Component
 class WebAppSessionStorageManagerImpl(
-    private val eventBus: InProcessEventBus,
+    private val eventBus: InProcessEventBus<LocalEvent>,
     private val sessionStorageBackendProvider: SessionStorageBackendProvider?
 ) : KtorServerApplicationConfigurer(), WebAppSessionStorageManager {
 

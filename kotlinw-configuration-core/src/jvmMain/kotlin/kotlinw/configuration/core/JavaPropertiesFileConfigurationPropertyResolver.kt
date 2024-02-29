@@ -28,7 +28,7 @@ class JavaPropertiesFileConfigurationPropertyResolver private constructor(
     constructor(
         resource: Resource,
         watcherCoroutineScope: CoroutineScope,
-        eventBus: InProcessEventBus,
+        eventBus: InProcessEventBus<in ConfigurationEvent>,
         watchDelay: Duration
     ) :
             this(

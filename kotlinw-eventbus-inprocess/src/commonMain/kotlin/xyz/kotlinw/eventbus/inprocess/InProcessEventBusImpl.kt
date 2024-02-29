@@ -46,17 +46,17 @@ class EventBusBufferOverflowException : RuntimeException()
  *
  * @throws IllegalArgumentException if [bufferCapacity] is negative.
  */
-internal class InProcessEventBusImpl(
+internal class InProcessEventBusImpl<E: LocalEvent>(
     bufferCapacity: Int = 1000,
     bufferOverflowStrategy: EventBusBufferOverflowStrategy = SUSPEND
-) : InProcessEventBus {
+) : InProcessEventBus<E> {
 
     init {
         require(bufferCapacity >= 0)
     }
 
     private val _events =
-        MutableSharedFlow<LocalEvent>(
+        MutableSharedFlow<E>(
             extraBufferCapacity = bufferCapacity,
             onBufferOverflow = when (bufferOverflowStrategy) {
                 SUSPEND -> BufferOverflow.SUSPEND
@@ -70,7 +70,7 @@ internal class InProcessEventBusImpl(
 
     private val events = _events.asSharedFlow()
 
-    override suspend fun publish(event: LocalEvent) {
+    override suspend fun publish(event: E) {
         if (!_events.tryEmit(event)) {
             if (isRejectOnBufferOverflow) {
                 throw EventBusBufferOverflowException()
@@ -80,7 +80,7 @@ internal class InProcessEventBusImpl(
         }
     }
 
-    override suspend fun events(): Flow<LocalEvent> = events
+    override suspend fun events(): Flow<E> = events
 }
 
 /**
@@ -89,8 +89,8 @@ internal class InProcessEventBusImpl(
  * @param bufferCapacity The capacity of the dispatch buffer used for buffering events. Defaults to 1000.
  * @throws IllegalArgumentException if [bufferCapacity] is negative.
  */
-fun InProcessEventBus(
+fun <E: LocalEvent> InProcessEventBus(
     bufferCapacity: Int = 1000,
     bufferOverflowStrategy: EventBusBufferOverflowStrategy = SUSPEND
-): InProcessEventBus =
+): InProcessEventBus<E> =
     InProcessEventBusImpl(bufferCapacity, bufferOverflowStrategy)

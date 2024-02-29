@@ -43,7 +43,7 @@ class ConfigurationPropertyChangeTest {
                 source,
                 ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
             )
-        val eventBus = InProcessEventBus()
+        val eventBus = InProcessEventBus<ConfigurationEvent>()
 
         coroutineScope {
             val pollingDelayMillis = 100L
@@ -97,7 +97,7 @@ class ConfigurationPropertyChangeTest {
                 source,
                 ConstantConfigurationPropertyResolver.of(mapOf("b" to "x")).asConfigurationPropertySource()
             )
-        val eventBus = InProcessEventBus()
+        val eventBus = InProcessEventBus<ConfigurationEvent>()
 
         coroutineScope {
             lookup.watchConfigurationProperties(

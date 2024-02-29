@@ -24,7 +24,7 @@ class InProcessEventBusTest {
         class Event1
         class Event2
 
-        val eventBus = InProcessEventBusImpl()
+        val eventBus = InProcessEventBusImpl<LocalEvent>()
 
         var event1Count = 0
         val job1 = eventBus.asyncOn<Event1>(this) { event1Count++ }
@@ -70,7 +70,7 @@ class InProcessEventBusTest {
 
     @Test
     fun testOnce() = runTest {
-        val eventBus: InProcessEventBus = InProcessEventBusImpl()
+        val eventBus: InProcessEventBus<LocalEvent> = InProcessEventBusImpl()
 
         val deferredResult = async {
             eventBus.once<OneTimeEvent, _> { it.id }
@@ -81,7 +81,7 @@ class InProcessEventBusTest {
 
     @Test
     fun testAsyncOnce() = runTest {
-        val eventBus: InProcessEventBus = InProcessEventBusImpl()
+        val eventBus: InProcessEventBus<LocalEvent> = InProcessEventBusImpl()
 
         val deferredResult = eventBus.asyncOnce<OneTimeEvent, _>(this) {
             it.id
@@ -92,7 +92,7 @@ class InProcessEventBusTest {
 
     private suspend fun executeTestOnce(
         deferredResult: Deferred<Int>,
-        eventBus: InProcessEventBus
+        eventBus: InProcessEventBus<LocalEvent>
     ) {
         yield()
 
@@ -115,7 +115,7 @@ class InProcessEventBusTest {
     fun testEventHandlerExecutionModel() = runTest {
         class Event
 
-        val eventBus = InProcessEventBusImpl()
+        val eventBus = InProcessEventBusImpl<LocalEvent>()
 
         withContext(Dispatchers.Default) {
             val eventCount = AtomicInt(0)

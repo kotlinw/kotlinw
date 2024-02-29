@@ -21,7 +21,7 @@ private constructor(
     private val classLoader: ClassLoader,
     watchLocalFiles: Boolean,
     watcherCoroutineScope: CoroutineScope?,
-    eventBus: InProcessEventBus?,
+    eventBus: InProcessEventBus<in ConfigurationEvent>?,
     watchDelay: Duration?
 ) : EnumerableConfigurationPropertyResolver {
 
@@ -46,7 +46,7 @@ private constructor(
         deploymentMode: DeploymentMode,
         classLoader: ClassLoader,
         watcherCoroutineScope: CoroutineScope,
-        eventBus: InProcessEventBus,
+        eventBus: InProcessEventBus<in ConfigurationEvent>,
         watchDelay: Duration
     ) : this(
         loggerFactory,

@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.LocalEvent
 import xyz.kotlinw.eventbus.inprocess.asyncOn
 
 data class MessageEvent(val message: String)
@@ -16,8 +17,7 @@ class ExampleHost {
 
     @Test
     fun dealingWithSlowEventHandlers() = runTest {
-        withContext(Dispatchers.Default) {
-            val eventBus = InProcessEventBus(5)
+            val eventBus = InProcessEventBus<LocalEvent>(5)
 
             val verySlowEventHandlerJob = eventBus.asyncOn<MessageEvent>(this) {
                 println("> verySlowEventHandler: ${it.message}")
@@ -39,6 +39,5 @@ class ExampleHost {
             delay(5000)
             verySlowEventHandlerJob.cancel()
             veryFastEventHandlerJob.cancel()
-        }
     }
 }

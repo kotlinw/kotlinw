@@ -1026,9 +1026,10 @@ class DiSymbolProcessor(
         return if (parameterDeclaration.qualifiedName == null) {
             // FIXME erre nem itt kellene rádöbbenni; pl. akkor van ilyen, ha
             // - a module osztály @Component metódusának return type hibás
+            // - a module osztály @Component metódusának parameter type-ja hibás, pl. nincs megadva a type argument
             // - a scope factory metódus @Component paraméter osztályának típusa hibás
             // - de olyan is volt, hogy a más Gradle modulban definiált komponens függősége egy implementation()-ként szerepelt a Gradle szkriptben, nem api()-ként
-            throw IllegalStateException("" + ksType + ", " + parameterDeclaration + ", " + kspMessageTarget + ", " + debugInfo)
+            throw StopKspProcessingException("" + ksType + ", " + parameterDeclaration + ", " + kspMessageTarget + ", " + debugInfo)
         } else if (parameterDeclaration.qualifiedName!!.asString() == List::class.qualifiedName) {
             ComponentLookup(
                 ksType.arguments[0].type!!.resolve(),

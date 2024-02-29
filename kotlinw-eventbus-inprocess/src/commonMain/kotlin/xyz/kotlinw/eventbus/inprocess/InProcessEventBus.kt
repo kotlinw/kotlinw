@@ -20,26 +20,28 @@ typealias LocalEvent = Any
  *
  * It allows registering event handlers and publishing events to all registered handlers.
  */
-sealed interface InProcessEventBus {
-    // FIXME make generic E: LocalEvent
+sealed interface InProcessEventBus<E: LocalEvent> {
+
+    suspend fun events(): Flow<E>
 
     /**
-     * Publishes a [LocalEvent] to the event bus, suspending if the event handlers are too slow and are still handling previously published events.
+     * Publishes an [E] event to the event bus, suspending if the event handlers are too slow and are still handling previously published events.
      *
      * @param event The event to be published.
      */
-    suspend fun publish(event: LocalEvent)
-
-    suspend fun events(): Flow<LocalEvent>
+    suspend fun publish(event: E)
 }
 
+@Suppress("UNCHECKED_CAST")
+fun <E: B, B: LocalEvent> InProcessEventBus<B>.constrain(): InProcessEventBus<E> = this as InProcessEventBus<E>
+
 context(CoroutineScope)
-fun InProcessEventBus.launchPublish(event: LocalEvent) =
+fun <E: LocalEvent> InProcessEventBus<E>.launchPublish(event: E) =
     launch(start = UNDISPATCHED) {
         publish(event)
     }
 
-suspend inline fun <reified E : LocalEvent> InProcessEventBus.events(
+suspend inline fun <reified E : LocalEvent> InProcessEventBus<in E>.events(
     noinline filter: (E) -> Boolean = { true }
 ): Flow<E> =
     events().filterIsInstance<E>().filter(filter)
@@ -53,7 +55,7 @@ suspend inline fun <reified E : LocalEvent> InProcessEventBus.events(
  * @param filter The predicate to filter events. By default, it accepts all events of type [E].
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  */
-suspend inline fun <reified E : LocalEvent> InProcessEventBus.on(
+suspend inline fun <reified E : LocalEvent> InProcessEventBus<in E>.on(
     noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> Unit
 ): Nothing {
@@ -76,7 +78,7 @@ suspend inline fun <reified E : LocalEvent> InProcessEventBus.on(
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  * @return The [Job] representing the execution of the event handler.
  */
-suspend inline fun <reified E : LocalEvent> InProcessEventBus.asyncOn(
+suspend inline fun <reified E : LocalEvent> InProcessEventBus<in E>.asyncOn(
     @ReplaceWithContextReceiver handlerCoroutineScope: CoroutineScope,
     noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> Unit
@@ -96,7 +98,7 @@ suspend inline fun <reified E : LocalEvent> InProcessEventBus.asyncOn(
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  * @return The result of the event handler function execution.
  */
-suspend inline fun <reified E : LocalEvent, T> InProcessEventBus.once(
+suspend inline fun <reified E : LocalEvent, T> InProcessEventBus<in E>.once(
     noinline filter: (LocalEvent) -> Boolean = { true },
     noinline handler: suspend (E) -> T
 ): T {
@@ -128,7 +130,7 @@ internal class ControlledEventCollectingStop(val result: Any?) : CancellationExc
  * @param handler The event handler function that will be executed when an event is matched by the predicate.
  * @return The [Deferred] representing the execution of the event handler.
  */
-inline fun <reified E : LocalEvent, T> InProcessEventBus.asyncOnce(
+inline fun <reified E : LocalEvent, T> InProcessEventBus<in E>.asyncOnce(
     @ReplaceWithContextReceiver handlerCoroutineScope: CoroutineScope,
     noinline filter: (E) -> Boolean = { true },
     noinline handler: suspend (E) -> T

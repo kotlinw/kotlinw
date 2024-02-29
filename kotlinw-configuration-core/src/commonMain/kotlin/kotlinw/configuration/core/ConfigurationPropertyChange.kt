@@ -45,7 +45,7 @@ private fun ConfigurationPropertyLookup.resolveConfigurationPropertiesByName(pro
 private suspend fun pollConfigurationPropertiesImpl(
     pollingDelay: Duration,
     eventListenerCoroutineScope: CoroutineScope? = null,
-    eventBus: InProcessEventBus? = null,
+    eventBus: InProcessEventBus<in ConfigurationEvent>? = null,
     resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>,
 ) =
     flow {
@@ -84,16 +84,9 @@ private suspend fun pollConfigurationPropertiesImpl(
     }
         .distinctUntilChanged()
 
-object ConfigurationPropertySourceChangeEvent
-
-data class ConfigurationPropertyChangeEvent(
-    val name: ConfigurationPropertyKey,
-    val newValue: EncodedConfigurationPropertyValue
-)
-
 suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
     eventListenerCoroutineScope: CoroutineScope,
-    eventBus: InProcessEventBus,
+    eventBus: InProcessEventBus<ConfigurationEvent>,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean
 ) =
@@ -108,7 +101,7 @@ suspend fun ConfigurationPropertyLookup.watchEnumerableConfigurationProperties(
 
 suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
     eventListenerCoroutineScope: CoroutineScope,
-    eventBus: InProcessEventBus,
+    eventBus: InProcessEventBus<ConfigurationEvent>,
     pollingDelay: Duration,
     propertyNames: Set<ConfigurationPropertyKey>
 ) =
@@ -122,7 +115,7 @@ suspend fun ConfigurationPropertyLookup.watchConfigurationProperties(
 
 private suspend fun watchConfigurationPropertiesImpl(
     eventListenerCoroutineScope: CoroutineScope,
-    eventBus: InProcessEventBus,
+    eventBus: InProcessEventBus<ConfigurationEvent>,
     pollingDelay: Duration,
     configurationPropertyNamePredicate: (key: ConfigurationPropertyKey) -> Boolean,
     resolveConfigurationProperties: suspend () -> Map<ConfigurationPropertyKey, EncodedConfigurationPropertyValue>
@@ -151,3 +144,12 @@ private suspend fun watchConfigurationPropertiesImpl(
         pollerMap.toMutableMap().apply { putAll(watcherMap) }
     }
 }
+
+sealed interface ConfigurationEvent
+
+object ConfigurationPropertySourceChangeEvent: ConfigurationEvent
+
+data class ConfigurationPropertyChangeEvent(
+    val name: ConfigurationPropertyKey,
+    val newValue: EncodedConfigurationPropertyValue
+): ConfigurationEvent

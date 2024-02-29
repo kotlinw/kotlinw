@@ -5,6 +5,7 @@ import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
+import xyz.kotlinw.eventbus.inprocess.LocalEvent
 import xyz.kotlinw.module.configuration.ConfigurationModule
 import xyz.kotlinw.module.logging.LoggingModule
 import xyz.kotlinw.module.serializer.SerializerModule
@@ -19,5 +20,5 @@ class CoreModule {
     fun applicationCoroutineService() = ApplicationCoroutineServiceImpl()
 
     @Component
-    fun applicationEventBus(): InProcessEventBus = InProcessEventBus()
+    fun applicationEventBus(): InProcessEventBus<LocalEvent> = InProcessEventBus()
 }
