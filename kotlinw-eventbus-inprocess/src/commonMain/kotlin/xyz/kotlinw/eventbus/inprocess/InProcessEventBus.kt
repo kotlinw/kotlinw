@@ -20,7 +20,7 @@ typealias LocalEvent = Any
  *
  * It allows registering event handlers and publishing events to all registered handlers.
  */
-sealed interface InProcessEventBus<E: LocalEvent> {
+interface InProcessEventBus<E : LocalEvent> {
 
     /**
      * Returns a flow of events published to this event bus.
@@ -35,11 +35,15 @@ sealed interface InProcessEventBus<E: LocalEvent> {
     suspend fun publish(event: E)
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <E: B, B: LocalEvent> InProcessEventBus<B>.constrain(): InProcessEventBus<E> = this as InProcessEventBus<E>
+inline fun <reified E : B, B : LocalEvent> InProcessEventBus<B>.constrain() =
+    object : InProcessEventBus<E> {
+        override suspend fun events(): Flow<E> = this@constrain.events().filterIsInstance<E>()
+
+        override suspend fun publish(event: E) = this@constrain.publish(event)
+    }
 
 context(CoroutineScope)
-fun <E: LocalEvent> InProcessEventBus<E>.launchPublish(event: E) =
+fun <E : LocalEvent> InProcessEventBus<E>.launchPublish(event: E) =
     launch(start = UNDISPATCHED) {
         publish(event)
     }
