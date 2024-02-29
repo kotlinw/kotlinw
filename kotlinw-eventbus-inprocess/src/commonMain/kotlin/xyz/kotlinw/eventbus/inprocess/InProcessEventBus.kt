@@ -16,12 +16,15 @@ import xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
 typealias LocalEvent = Any
 
 /**
- * `InProcessEventBus` represents an in-process event bus.
+ * Represents an in-process event bus.
  *
  * It allows registering event handlers and publishing events to all registered handlers.
  */
 sealed interface InProcessEventBus<E: LocalEvent> {
 
+    /**
+     * Returns a flow of events published to this event bus.
+     */
     suspend fun events(): Flow<E>
 
     /**
