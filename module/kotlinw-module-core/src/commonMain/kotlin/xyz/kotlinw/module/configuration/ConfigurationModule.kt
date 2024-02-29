@@ -14,7 +14,7 @@ import xyz.kotlinw.di.api.Module
 class ConfigurationModule {
 
     @Component(onConstruction = "initialize")
-    suspend fun configurationPropertyLookup(
+    fun configurationPropertyLookup(
         loggerFactory: LoggerFactory,
         configurationPropertyLookupSources: List<ConfigurationPropertyLookupSource>
     ): ConfigurationPropertyLookup =
