@@ -372,7 +372,7 @@ kobweb-api = { module = "com.varabyte.kobweb:kobweb-api", version.ref = "kobweb"
 kobweb-compose-core = { module = "com.varabyte.kobweb:kobweb-compose", version.ref = "kobweb" }
 kobweb-compose-html-ext = { module = "com.varabyte.kobweb:compose-html-ext", version.ref = "kobweb" }
 kobweb-silk-foundation = { module = "com.varabyte.kobweb:silk-foundation", version.ref = "kobweb" }
-kobweb-silk-icons-fa = { module = "com.varabyte.kobweb:kobweb-silk-icons-fa", version.ref = "kobweb" }
+kobweb-silk-icons-fa = { module = "com.varabyte.kobwebx:silk-icons-fa", version.ref = "kobweb" }
 
 classgraph = { module = "io.github.classgraph:classgraph", version = "4.8.163" }
 
