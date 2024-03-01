@@ -34,7 +34,7 @@ arrowGradleConfig = "0.12.0-rc.5"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-compose = "1.5.12"
+compose = "1.6.0"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -58,7 +58,7 @@ jaxws = "4.0.2"
 mockk = "1.12.7"
 
 # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinWrappers = "1.0.0-pre.700"
+kotlinWrappers = "1.0.0-pre.706"
 
 # https://github.com/testcontainers/testcontainers-java/releases
 testcontainers = "1.19.0"
@@ -89,7 +89,7 @@ agp = "8.1.0"
 
 androidx-appcompat = "1.6.1"
 androidx-activityCompose = "1.7.2"
-compose-uitooling = "1.5.12"
+compose-uitooling = "1.6.0"
 
 libres = "1.1.8"
 voyager = "1.0.0-rc07"
@@ -97,7 +97,7 @@ composeImageLoader = "1.6.6"
 napier = "2.6.1"
 buildConfig = "4.1.1"
 
-kobweb = "0.16.2"
+kobweb = "0.17.0"
 
 pdvrieze-xmlutil = "0.86.2"
 
