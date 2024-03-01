@@ -1029,7 +1029,8 @@ class DiSymbolProcessor(
             // - a module osztály @Component metódusának parameter type-ja hibás, pl. nincs megadva a type argument
             // - a scope factory metódus @Component paraméter osztályának típusa hibás
             // - de olyan is volt, hogy a más Gradle modulban definiált komponens függősége egy implementation()-ként szerepelt a Gradle szkriptben, nem api()-ként
-            throw StopKspProcessingException("" + ksType + ", " + parameterDeclaration + ", " + kspMessageTarget + ", " + debugInfo)
+            // log: "" + ksType + ", " + parameterDeclaration + ", " + kspMessageTarget + ", " + debugInfo
+            throw DelayKspProcessingException()
         } else if (parameterDeclaration.qualifiedName!!.asString() == List::class.qualifiedName) {
             ComponentLookup(
                 ksType.arguments[0].type!!.resolve(),
