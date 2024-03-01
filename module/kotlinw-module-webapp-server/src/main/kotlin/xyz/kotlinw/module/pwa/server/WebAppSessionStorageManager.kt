@@ -57,7 +57,7 @@ class WebAppSessionStorageManagerImpl(
     override val activeSessionIds: Set<String> get() = sessionLastActivityMap.keys
 
     @OnConstruction
-    fun onConstruction() {
+    suspend fun onConstruction() {
         sessionStorageBackend =
             if (sessionStorageBackendProvider != null) {
                 sessionStorageBackendProvider.createSessionStorageBackend()

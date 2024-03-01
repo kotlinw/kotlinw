@@ -2,6 +2,7 @@ package kotlinw.configuration.core
 
 import kotlin.reflect.KClass
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.serializer
 
@@ -36,8 +37,11 @@ fun <T : Any> ConfigurationObjectLookup.getConfigurationObject(
 ): T =
     getConfigurationObject(configurationObjectType, configurationType, prefix?.let { ConfigurationPropertyKey(it) })
 
-inline fun <reified T : Any> ConfigurationObjectLookup.getConfigurationObject(prefix: String? = null): T =
+inline fun <reified T : Any> ConfigurationObjectLookup.getConfigurationObject(prefix: String? = null) =
     getConfigurationObject(T::class, serializer<T>(), prefix?.let { ConfigurationPropertyKey(it) })
+
+inline fun <reified T : Any> ConfigurationObjectLookup.getConfigurationObjectOrNull(prefix: String? = null) =
+    getConfigurationObjectOrNull(T::class, serializer<T>(), prefix?.let { ConfigurationPropertyKey(it) })
 
 class ConfigurationObjectLookupImpl(
     private val configurationPropertyLookup: ConfigurationPropertyLookup,
@@ -83,8 +87,8 @@ class ConfigurationObjectLookupImpl(
                     try {
                         serialFormat.decodeFromStringMap(deserializer, propertiesMap)
                     } catch (e: Exception) {
-                        throw RuntimeException(
-                            "Failed to decode configuration object from properties: $propertiesMap", e
+                        throw SerializationException(
+                            "Failed to decode object of type $configurationObjectType from properties: $propertiesMap", e
                         )
                     }
                 } else {

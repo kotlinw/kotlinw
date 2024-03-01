@@ -137,6 +137,9 @@ class ConfigurationPropertyKey(
     constructor(name: String, sourceInfo: String? = null) :
             this(parseConfigurationPropertyKey(name), sourceInfo)
 
+    constructor(prefix: String, name: String, sourceInfo: String? = null) :
+            this(parseConfigurationPropertyKey("$prefix.$name"), sourceInfo)
+
     val name =
         buildString {
             segments.forEachIndexed { index, segment ->

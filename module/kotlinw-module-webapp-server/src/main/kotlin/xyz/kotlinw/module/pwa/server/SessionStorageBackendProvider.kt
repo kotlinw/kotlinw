@@ -4,5 +4,5 @@ import io.ktor.server.sessions.SessionStorage
 
 fun interface SessionStorageBackendProvider {
 
-    fun createSessionStorageBackend(): SessionStorage
+    suspend fun createSessionStorageBackend(): SessionStorage
 }

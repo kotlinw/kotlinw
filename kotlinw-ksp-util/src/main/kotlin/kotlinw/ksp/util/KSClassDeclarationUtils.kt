@@ -20,4 +20,7 @@ inline fun <reified T : Annotation> KSAnnotated.getAnnotationsOfType() = filterA
 inline fun <reified T : Annotation> KSAnnotated.filterAnnotations() = annotations.filterAnnotations<T>()
 
 inline fun <reified T : Annotation> Sequence<KSAnnotation>.filterAnnotations() =
-    filter { it.annotationType.toTypeName() == typeNameOf<T>() }
+    filter {
+        !it.annotationType.resolve().isError // TODO enélkül a StabilityInferred annotation-re elszállt, mert azt a következő feltételben szereplő toTypeName() error type-nak azonosította (valszeg nincs a classpath-on az annotation-t tartalmazó JAR?)
+                && it.annotationType.toTypeName() == typeNameOf<T>()
+    }
