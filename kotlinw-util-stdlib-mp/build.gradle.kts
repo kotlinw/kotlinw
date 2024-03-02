@@ -24,6 +24,7 @@ kotlin {
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.atomicfu)
+                api(libs.semver) // TODO kicsit túlzás, hogy ez ebben a projektben van...
             }
         }
         val commonTest by getting {

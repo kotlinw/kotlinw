@@ -380,6 +380,8 @@ net-openhft-zeroAllocationHashing = { module = "net.openhft:zero-allocation-hash
 
 kotunil = { module = "eu.sirotin.kotunil:kotunil", version = "4.2.1" }
 
+semver = { module = "net.swiftzer.semver:semver", version = "2.0.0" }
+
 [plugins]
 
 arrowGradleConfig-jvm = { id = "io.arrow-kt.arrow-gradle-config-jvm", version.ref = "arrowGradleConfig" }
