@@ -682,11 +682,12 @@ class DiSymbolProcessor(
                             try {
                                 resolvedScopeModel.components.getValue(componentId).componentModel.componentType.toTypeName()
                             } catch (e: Exception) {
-                                kspLogger.warn("wtf: $componentId") // TODO :D
+                                kspLogger.warn("wtf: $componentId") // TODO úgy tűnik, hogy a toTypeName() hívásokat kell try-catch-be tenni, mert azok elszállnak, ha bármi miatt "hibás" a type
                                 throw DelayKspProcessingException()
                             },
                             LATEINIT
                         )
+                            .addKdoc("$componentId")
                             .mutable(true)
                             .build()
                     }
@@ -1193,7 +1194,19 @@ private fun ResolvedComponentDependencyModel.format(): String =
         "`${dependencyType.toTypeName()}`"
 
 private fun KSAnnotated.extractQualifierOrNull(): String? =
-    getAnnotationsOfType<Qualifier>().toList().firstOrNull()?.getArgumentValueOrNull(Qualifier::value.name)
+    buildList {
+        getQualifierOrNull()?.also { add(it) }
+        addAll(annotations.mapNotNull { it.annotationType.resolve().declaration.getQualifierOrNull() })
+    }
+        .also {
+            if (it.size > 1) {
+                throw RuntimeException("Single qualifier expected but found multiple ones: $it") // TODO annotated
+            }
+        }
+        .firstOrNull()
+
+
+private fun KSAnnotated.getQualifierOrNull(): String? = getAnnotationsOfType<Qualifier>().toList().firstOrNull()?.getArgumentValueOrNull(Qualifier::value.name)
 
 private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =
     components + (parentScopeModel?.collectComponents() ?: emptyMap())

@@ -1,5 +1,6 @@
 package xyz.kotlinw.oauth2.core
 
+import arrow.core.memoize
 import arrow.core.raise.Raise
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -38,6 +39,7 @@ private suspend fun <T> HttpClient.withConfiguredHttpClient(block: suspend (Http
         block(it)
     }
 
+// TODO context(HttpClient)
 suspend fun HttpClient.fetchOpenidConnectProviderMetadata(authorizationServerUrl: Url) =
     withConfiguredHttpClient {
         it.get(
