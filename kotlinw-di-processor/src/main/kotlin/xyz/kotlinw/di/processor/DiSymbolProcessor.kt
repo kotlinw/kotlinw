@@ -998,7 +998,7 @@ class DiSymbolProcessor(
         if (!allModules.contains(moduleType)) {
             allModules.add(moduleType)
 
-            (moduleType.getAnnotationsOfType<Module>().first()
+            (moduleType.getAnnotationsOfType<Module>().first() // TODO a first() dobott NoSuchElementException-t amikor az egyik tranzitív modul nem volt elérhető, mert hiányzott a hozzá tartozó Gradle dependency
                 .getArgumentValueOrNull("includeModules") as? List<KSType>)
                 ?.forEach {
                     collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
