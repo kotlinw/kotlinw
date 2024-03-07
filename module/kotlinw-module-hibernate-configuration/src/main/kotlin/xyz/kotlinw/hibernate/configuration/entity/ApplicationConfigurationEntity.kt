@@ -6,6 +6,7 @@ import jakarta.persistence.Table
 import kotlinw.hibernate.core.entity.BaseEntity
 import kotlinw.hibernate.core.entity.BaseEntityRepository
 import kotlinw.hibernate.core.entity.BaseEntityRepositoryImpl
+import kotlinw.hibernate.core.entity.JpaSessionContext
 import kotlinw.hibernate.core.entity.pgTextType
 import org.hibernate.envers.Audited
 import xyz.kotlinw.di.api.Component
@@ -33,9 +34,18 @@ class ApplicationConfigurationEntity(
     }
 }
 
-interface ApplicationConfigurationEntityRepository : BaseEntityRepository<ApplicationConfigurationEntity>
+interface ApplicationConfigurationEntityRepository : BaseEntityRepository<ApplicationConfigurationEntity> {
+
+    context(JpaSessionContext)
+    fun findByName(name: String): ApplicationConfigurationEntity?
+}
 
 @Component
 class ApplicationConfigurationEntityRepositoryImpl :
     BaseEntityRepositoryImpl<ApplicationConfigurationEntity>(ApplicationConfigurationEntity::class),
-    ApplicationConfigurationEntityRepository
+    ApplicationConfigurationEntityRepository {
+
+    context(JpaSessionContext)
+    override fun findByName(name: String): ApplicationConfigurationEntity? =
+        singleOrNull("FROM ${ApplicationConfigurationEntity.TableName} WHERE name=?1", name)
+}
