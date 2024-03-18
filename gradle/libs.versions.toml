@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "1.9.22"
+kotlin = "1.9.23"
 
 # https://github.com/spring-projects/spring-boot/releases
 springBoot = "3.2.0"
@@ -19,7 +19,7 @@ serialization = "1.6.3"
 coroutines = "1.8.0"
 
 # https://github.com/Kotlin/kotlinx-io/releases
-kotlinx-io = "0.3.1"
+kotlinx-io = "0.3.2"
 
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.3"
@@ -34,7 +34,7 @@ arrowGradleConfig = "0.12.0-rc.5"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-compose = "1.6.0"
+compose = "1.6.1"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -73,7 +73,7 @@ flowredux = "1.0.2"
 
 mina = "2.9.2"
 
-ksp = "1.9.22-1.0.17"
+ksp = "1.9.23-1.0.19"
 
 kotlinpoet = "1.15.3"
 
@@ -81,7 +81,7 @@ okio = "3.5.0"
 
 ktoml = "0.5.0"
 
-kotlinresult = "1.1.18"
+kotlinresult = "1.1.21"
 
 hibernate = "6.4.3.Final"
 
@@ -89,7 +89,7 @@ agp = "8.1.0"
 
 androidx-appcompat = "1.6.1"
 androidx-activityCompose = "1.7.2"
-compose-uitooling = "1.6.0"
+compose-uitooling = "1.6.1"
 
 libres = "1.1.8"
 voyager = "1.0.0-rc07"
@@ -97,7 +97,7 @@ composeImageLoader = "1.6.6"
 napier = "2.6.1"
 buildConfig = "4.1.1"
 
-kobweb = "0.17.0"
+kobweb = "0.17.1"
 
 pdvrieze-xmlutil = "0.86.2"
 
