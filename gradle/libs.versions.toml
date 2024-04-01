@@ -83,7 +83,7 @@ ktoml = "0.5.0"
 
 kotlinresult = "2.0.0"
 
-hibernate = "6.4.3.Final"
+hibernate = "6.4.4.Final"
 
 agp = "8.1.0"
 
