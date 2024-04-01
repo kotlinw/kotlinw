@@ -43,7 +43,7 @@ huxiSulky = "8.3.0"
 keycloak = "20.0.0"
 
 # https://github.com/JetBrains/skiko/releases
-skiko = "0.7.93"
+skiko = "0.7.99"
 
 # https://github.com/mipt-npm/kmath/releases
 kmath = "0.3.1"
@@ -300,7 +300,7 @@ devsrsouza-compose-icons-erikflowersweathericons = { module = "br.com.devsrsouza
 devsrsouza-compose-icons-cssgg = { module = "br.com.devsrsouza.compose.icons.jetbrains:css-gg", version.ref = "devsrsouzaComposeIcons" }
 
 # https://jdbc.postgresql.org/
-postgresql-driver = { module = "org.postgresql:postgresql", version = "42.7.2" }
+postgresql-driver = { module = "org.postgresql:postgresql", version = "42.7.3" }
 
 # https://github.com/vladmihalcea/hibernate-types/tags
 # vladmihalcea-hibernatetypes = { module = "com.vladmihalcea:hibernate-types-60", version = "2.19.0" }
