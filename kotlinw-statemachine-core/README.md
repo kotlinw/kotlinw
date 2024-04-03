@@ -35,7 +35,7 @@ A classic state machine example simulates the operation of a ["coin-operated tur
 >
 > Considered as a state machine, the turnstile has two possible states: Locked and Unlocked. There are two possible inputs that affect its state: putting a coin in the slot (coin) and pushing the arm (push).
 
-![Turnstile state machine](doc/TurnstileStateMachine.png)
+![Turnstile state machine](doc/TurnstileStateMachine.svg)
 
 # Usage and example
 
@@ -136,7 +136,7 @@ fun main() {
 
 The generated image is:
 
-![Turnstile state machine](doc/TurnstileStateMachine.png)
+![Turnstile state machine](doc/TurnstileStateMachine.svg)
 
 ## Configure
 

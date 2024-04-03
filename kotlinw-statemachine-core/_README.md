@@ -13,7 +13,7 @@ Additionally it has an initial state where the execution starts and optionally t
 
 An example state machine for fetching data:
 
-![Data fetch state machine](doc/DataFetchStateMachine.png)
+![Data fetch state machine](doc/DataFetchStateMachine.svg)
 
 ## Why use state machines
 
