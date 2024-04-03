@@ -27,6 +27,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+                api(libs.kotlinx.coroutines.test)
             }
         }
         val jvmMain by getting {
