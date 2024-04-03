@@ -11,7 +11,7 @@ class TurnstileStateMachineTest {
     @Test
     fun test() {
         runBlocking {
-            val configuredStateMachine = TurnstileStateMachineDefinition.configure(this)
+            val configuredStateMachine = TurnstileStateMachineDefinition.configure()
 
             val loggerJob = launch(start = CoroutineStart.UNDISPATCHED) {
                 configuredStateMachine.stateFlow.collect { println("New state: ${it.definition.name}") }

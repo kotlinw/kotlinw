@@ -18,7 +18,7 @@ class DataFetchStateMachineTest {
         val smd = DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
 
         val configuredStateMachine =
-            smd.configure(this) {
+            smd.configure {
                 inState(smd.inProgress) {
                     println(it)
                     try {
@@ -43,9 +43,10 @@ class DataFetchStateMachineTest {
             }
         }
 
-        val executor = configuredStateMachine.execute {
-            smd.start(FilteringData("a"))
-        }
+        val executor =
+            configuredStateMachine.execute {
+                smd.start(FilteringData("a"))
+            }
 
         assertEquals(smd.inProgress.name, executor.currentState.definition.name)
 

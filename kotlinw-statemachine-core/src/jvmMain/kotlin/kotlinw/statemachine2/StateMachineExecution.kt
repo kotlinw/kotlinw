@@ -130,7 +130,6 @@ sealed interface ExecutionDefinitionContext<StateDataBaseType, SMD : StateMachin
 }
 
 private class ExecutionDefinitionContextImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>>(
-    private val coroutineScope: CoroutineScope,
     override val smd: SMD
 ) :
     ExecutionDefinitionContext<StateDataBaseType, SMD> {
@@ -144,7 +143,7 @@ private class ExecutionDefinitionContextImpl<StateDataBaseType, SMD : StateMachi
         block: InStateTask<StateDataBaseType, SMD, StateDataType>
     ) {
         check(!inStateTasks.containsKey(state))
-        inStateTasks[state] = InStateTaskDefinitionImpl(coroutineScope, block)
+        inStateTasks[state] = InStateTaskDefinitionImpl(block)
     }
 
     override fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> onTransition(
@@ -208,13 +207,10 @@ internal sealed interface ExecutionConfiguration<StateDataBaseType, SMD : StateM
 
 sealed interface InStateTaskDefinition<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>, StateDataType : StateDataBaseType> {
 
-    val coroutineScope: CoroutineScope
-
     val task: InStateTask<StateDataBaseType, SMD, StateDataType>
 }
 
 data class InStateTaskDefinitionImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>, StateDataType : StateDataBaseType>(
-    override val coroutineScope: CoroutineScope,
     override val task: InStateTask<StateDataBaseType, SMD, StateDataType>
 ) :
     InStateTaskDefinition<StateDataBaseType, SMD, StateDataType>
@@ -257,6 +253,7 @@ private class InitialTransitionProviderContextImpl<StateDataBaseType, SMD : Stat
 sealed interface ConfiguredStateMachine<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> :
     StateMachineStateFlowProvider<StateDataBaseType> {
 
+    context(CoroutineScope)
     suspend fun <ToStateDataType : StateDataBaseType> execute(initialTransitionProvider: /* TODO context(SMD) */ InitialTransitionProviderContext<StateDataBaseType, SMD>.() -> InitialExecutableTransition<*, StateDataBaseType, ToStateDataType>): StateMachineExecutor<StateDataBaseType, SMD>
 }
 
@@ -270,11 +267,13 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
 
     override val stateFlow = mutableStateFlow.asSharedFlow()
 
+    context(CoroutineScope)
     override suspend fun <ToStateDataType : StateDataBaseType> execute(initialTransitionProvider: /* context(SMD) */ InitialTransitionProviderContext<StateDataBaseType, SMD>.() -> InitialExecutableTransition<*, StateDataBaseType, ToStateDataType>): StateMachineExecutor<StateDataBaseType, SMD> {
         val initialTransition =
             initialTransitionProvider(InitialTransitionProviderContextImpl(stateMachineDefinition))
         val executor =
             StateMachineExecutorImpl(
+                this@CoroutineScope,
                 stateMachineDefinition,
                 mutableStateFlow,
                 stateFlow,
@@ -286,12 +285,11 @@ private class ConfiguredStateMachineImpl<StateDataBaseType, SMD : StateMachineDe
 }
 
 fun <StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>> SMD.configure(
-    coroutineScope: CoroutineScope,
     executionDefinitionBuilder: /* TODO context(SMD) */ ExecutionDefinitionContext<StateDataBaseType, SMD>.() -> Unit = {}
 ): ConfiguredStateMachine<StateDataBaseType, SMD> =
     ConfiguredStateMachineImpl(
         this,
-        ExecutionDefinitionContextImpl<StateDataBaseType, SMD>(coroutineScope, this).also {
+        ExecutionDefinitionContextImpl<StateDataBaseType, SMD>(this).also {
             executionDefinitionBuilder(
                 it
             )
@@ -318,6 +316,7 @@ sealed interface DispatchContext<StateDataBaseType, SMD : StateMachineDefinition
 typealias StateFinalizerTask<T> = suspend (T) -> Unit
 
 internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>>(
+    private val coroutineScope: CoroutineScope,
     override val stateMachineDefinition: SMD,
     private val mutableStateFlow: MutableSharedFlow<State<StateDataBaseType, out StateDataBaseType>>,
     override val stateFlow: SharedFlow<State<StateDataBaseType, out StateDataBaseType>>,
@@ -338,8 +337,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
             executeNormalTransition(
                 currentState.definition as StateDefinition<StateDataBaseType, FromStateDataType>, // TODO cast irtás?
                 currentState.data as FromStateDataType, // TODO cast irtás?
-                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider),
-                false
+                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider)
             )
     }
 
@@ -361,8 +359,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
             executeNormalTransition(
                 executedInState.definition,
                 executedInState.data,
-                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider),
-                true
+                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider)
             )
             check(currentCoroutineContext().job.isCancelled) // It should have been cancelled by the above executeNormalTransition() call
             throw CancellationException()
@@ -423,8 +420,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                 transition.targetStateDefinition,
                 transition.targetDataProvider(
                     InitialTransitionTargetStateDataProviderContextImpl(transition.transitionParameter)
-                ),
-                false
+                )
             )
         }
 
@@ -443,8 +439,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     internal suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> executeNormalTransition(
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,
         fromStateData: FromStateDataType,
-        transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>,
-        isTransitionInitiatedByInStateTask: Boolean
+        transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>
     ): ToStateDataType =
         lock.withReentrantLock {
             validateNormalTransition(transition)
@@ -457,8 +452,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                         fromStateData,
                         transition.transitionParameter
                     )
-                ),
-                isTransitionInitiatedByInStateTask
+                )
             )
         }
 
@@ -480,8 +474,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     private suspend fun <FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> executeTransition(
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,
         toStateDefinition: StateDefinition<StateDataBaseType, ToStateDataType>,
-        toStateData: ToStateDataType,
-        isTransitionInitiatedByInStateTask: Boolean
+        toStateData: ToStateDataType
     ): ToStateDataType =
         lock.withReentrantLock {
 
@@ -492,12 +485,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                     val context = it.context
 
                     context.cancellationByStateChange.value = true
-                    it.job.also { job ->
-                        job.cancel()
-                        if (!isTransitionInitiatedByInStateTask) {
-                            job.join()
-                        }
-                    }
+                    it.job.cancelAndJoin()
 
                     context.runFinalizersBeforeStateChange()
                 }
@@ -511,7 +499,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
             executionConfiguration.inStateTasks[toStateDefinition]?.also { inStateTaskDefinition ->
                 val context = InStateExecutionContextImpl(newState)
-                val job = inStateTaskDefinition.coroutineScope.launch(start = CoroutineStart.LAZY) {
+                val job = coroutineScope.launch(start = CoroutineStart.LAZY) {
                     try {
                         (inStateTaskDefinition.task as InStateTask<StateDataBaseType, SMD, ToStateDataType>)(
                             context,
