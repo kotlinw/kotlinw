@@ -517,8 +517,10 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                             toStateData
                         ) // TODO cast irtás?
                     } catch (e: CancellationException) {
-                        if (!context.cancellationByStateChange.value) {
-                            context.runFinalizersOnCancellation()
+                        withContext(NonCancellable) {
+                            if (!context.cancellationByStateChange.value) {
+                                context.runFinalizersOnCancellation()
+                            }
                         }
                         throw e
                     }
