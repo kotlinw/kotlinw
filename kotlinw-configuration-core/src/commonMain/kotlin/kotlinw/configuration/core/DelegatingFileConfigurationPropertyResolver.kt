@@ -1,8 +1,9 @@
 package kotlinw.configuration.core
 
+import arrow.atomic.Atomic
+import arrow.atomic.value
 import arrow.core.continuations.AtomicRef
 import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
-import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -34,7 +35,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
     ) :
             this(resource, delegateFactory, watcherCoroutineScope, eventBus, watchDelay, Unit)
 
-    private val delegateHolder = AtomicRef<EnumerableConfigurationPropertyResolver?>(null)
+    private val delegateHolder = Atomic<EnumerableConfigurationPropertyResolver?>(null)
 
     private val delegate get() = delegateHolder.value
 

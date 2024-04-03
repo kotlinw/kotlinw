@@ -1,13 +1,13 @@
 package kotlinw.configuration.core
 
 import app.cash.turbine.test
-import arrow.core.continuations.AtomicRef
+import arrow.atomic.Atomic
+import arrow.atomic.value
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.stdlib.Priority
-import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -20,7 +20,7 @@ class ConfigurationPropertyChangeTest {
     @Test
     fun testWatchNonEnumerablePropertyValueSource() = runTest {
         val propertyName = "a"
-        val propertyValueHolder = AtomicRef<String?>(null)
+        val propertyValueHolder = Atomic<String?>(null)
 
         val source = object : ConfigurationPropertyLookupSource {
 
@@ -72,7 +72,7 @@ class ConfigurationPropertyChangeTest {
     @Test
     fun testWatchEnumerablePropertyValueSource() = runTest {
         val propertyName = ConfigurationPropertyKey("a")
-        val propertyValueHolder = AtomicRef<String?>(null)
+        val propertyValueHolder = Atomic<String?>(null)
 
         val source = object : EnumerableConfigurationPropertyLookupSource {
 

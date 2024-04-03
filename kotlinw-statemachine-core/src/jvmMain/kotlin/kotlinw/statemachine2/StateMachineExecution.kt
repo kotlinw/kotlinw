@@ -1,16 +1,26 @@
 package kotlinw.statemachine2
 
+import arrow.atomic.Atomic
 import arrow.atomic.AtomicBoolean
+import arrow.atomic.value
 import arrow.core.continuations.AtomicRef
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import kotlinw.util.coroutine.withReentrantLock
-import kotlinw.util.stdlib.concurrent.value
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO StateDataBaseType kell?
@@ -392,7 +402,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
     private val lock = Mutex()
 
-    private val statusHolder = AtomicRef(StateMachineExecutor.Status.Active)
+    private val statusHolder = Atomic(StateMachineExecutor.Status.Active)
 
     override val status: StateMachineExecutor.Status get() = statusHolder.value
 

@@ -1,10 +1,11 @@
 package kotlinw.configuration.core
 
+import arrow.atomic.Atomic
+import arrow.atomic.value
 import arrow.core.continuations.AtomicRef
 import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import xyz.kotlinw.eventbus.inprocess.asyncOn
 import kotlinw.util.stdlib.collection.filterNotNullValues
-import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -52,7 +53,7 @@ private suspend fun pollConfigurationPropertiesImpl(
         val initialValues = resolveConfigurationProperties()
         emit(initialValues)
 
-        val previousValues = AtomicRef(initialValues)
+        val previousValues = Atomic(initialValues)
         val updateLock = Mutex()
 
         suspend fun refresh() {

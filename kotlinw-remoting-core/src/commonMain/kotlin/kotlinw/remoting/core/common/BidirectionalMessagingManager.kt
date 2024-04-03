@@ -1,5 +1,7 @@
 package kotlinw.remoting.core.common
 
+import arrow.atomic.Atomic
+import arrow.atomic.value
 import arrow.core.continuations.AtomicRef
 import arrow.core.continuations.getAndUpdate
 import arrow.core.continuations.update
@@ -16,7 +18,6 @@ import kotlinw.remoting.core.ServiceLocator
 import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.util.stdlib.collection.ConcurrentHashMap
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
-import kotlinw.util.stdlib.concurrent.value
 import kotlinw.util.stdlib.debugName
 import kotlinw.uuid.Uuid.Companion.randomUuid
 import kotlinx.coroutines.CoroutineScope
@@ -73,7 +74,7 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
 
     private class InitiatedConversationData(val callId: ConversationId) {
 
-        val suspendedCoroutineData = AtomicRef<SuspendedCoroutineData<*>?>(null)
+        val suspendedCoroutineData = Atomic<SuspendedCoroutineData<*>?>(null)
     }
 
     private data class SuspendedCoroutineData<T>(

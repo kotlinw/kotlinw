@@ -1,5 +1,7 @@
 package xyz.kotlinw.oauth2.ktor.client
 
+import arrow.atomic.Atomic
+import arrow.atomic.value
 import arrow.core.continuations.AtomicRef
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -11,7 +13,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.Logger
 import kotlinw.util.stdlib.Url
-import kotlinw.util.stdlib.concurrent.value
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
@@ -40,7 +41,7 @@ fun HttpClientConfig<*>.configureTokenAuth(
     clientSecret: String,
     logger: Logger
 ) {
-    val token = AtomicRef(OAuth2AccessTokenData.Expired)
+    val token = Atomic(OAuth2AccessTokenData.Expired)
     val fetchTokenLock = Mutex()
 
     install(
