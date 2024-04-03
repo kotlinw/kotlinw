@@ -20,7 +20,6 @@ class TurnstileStateMachineTest {
             val executor = configuredStateMachine.execute { smd.start() }
             assertEquals(TurnstileStateMachineDefinition.locked, executor.currentState.definition)
 
-            // TODO `smd.` will be omitted when this issue would be fixed: https://youtrack.jetbrains.com/issue/KT-53551/suspend-functional-type-with-context-receiver-causes-ClassCastException
             executor.dispatch { smd.insertCoin() }
             assertEquals(TurnstileStateMachineDefinition.unlocked, executor.currentState.definition)
 

@@ -6,6 +6,7 @@ import arrow.atomic.value
 import arrow.core.continuations.AtomicRef
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
+import kotlinw.statemachine2.StateMachineExecutor.Status.Completed
 import kotlinw.util.coroutine.withReentrantLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -447,9 +448,11 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     ): ToStateDataType =
         lock.withReentrantLock {
             validateNormalTransition(transition)
-            executeTransition(
+
+            val targetStateDefinition = transition.targetStateDefinition
+            val targetStateData = executeTransition(
                 fromStateDefinition,
-                transition.targetStateDefinition,
+                targetStateDefinition,
                 transition.targetDataProvider(
                     NormalTransitionTargetStateDataProviderContextImpl(
                         fromStateDefinition,
@@ -459,6 +462,12 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                 ),
                 isTransitionInitiatedByInStateTask
             )
+
+            if (targetStateDefinition is TerminalStateDefinition) {
+                statusHolder.value = Completed
+            }
+
+            targetStateData
         }
 
     private fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> validateNormalTransition(

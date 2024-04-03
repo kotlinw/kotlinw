@@ -13,18 +13,21 @@ class DataFetchStateMachineTest {
     @Test
     fun test() = runTest {
 
+        val testDataSet = listOf("aaa", "abc", "bbb")
+        println("Data set: $testDataSet")
+
         data class FilteringData(val filterFragment: String)
 
         val smd = DataFetchStateMachineDefinition<FilteringData, List<String>, Exception>()
 
         val configuredStateMachine =
             smd.configure {
-                inState(smd.inProgress) {
-                    println(it)
+                inState(smd.inProgress) { stateData ->
+                    println(stateData)
                     try {
-                        delay(100) // Simulate network call
-                        val result = listOf(it.input.filterFragment)
-                        println("result: $result")
+                        delay(1.seconds) // Simulate network call
+                        val result = testDataSet.filter { it.startsWith(stateData.input.filterFragment) }
+                        println("Result: $result")
                         smd.onReceived(result)
                     } catch (e: Exception) {
                         smd.onFailed(e)
