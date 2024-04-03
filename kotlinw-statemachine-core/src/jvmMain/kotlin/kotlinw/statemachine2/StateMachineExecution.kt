@@ -337,7 +337,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
             executeNormalTransition(
                 currentState.definition as StateDefinition<StateDataBaseType, FromStateDataType>, // TODO cast irtás?
                 currentState.data as FromStateDataType, // TODO cast irtás?
-                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider)
+                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider),
+                false
             )
     }
 
@@ -359,7 +360,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
             executeNormalTransition(
                 executedInState.definition,
                 executedInState.data,
-                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider)
+                NormalExecutableTransitionImpl(transitionParameter, targetStateDefinition, targetStateDataProvider),
+                true
             )
             check(currentCoroutineContext().job.isCancelled) // It should have been cancelled by the above executeNormalTransition() call
             throw CancellationException()
@@ -420,7 +422,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                 transition.targetStateDefinition,
                 transition.targetDataProvider(
                     InitialTransitionTargetStateDataProviderContextImpl(transition.transitionParameter)
-                )
+                ),
+                false
             )
         }
 
@@ -439,7 +442,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     internal suspend fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> executeNormalTransition(
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,
         fromStateData: FromStateDataType,
-        transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>
+        transition: NormalExecutableTransition<TransitionParameter, StateDataBaseType, FromStateDataType, ToStateDataType>,
+        isTransitionInitiatedByInStateTask: Boolean
     ): ToStateDataType =
         lock.withReentrantLock {
             validateNormalTransition(transition)
@@ -452,7 +456,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                         fromStateData,
                         transition.transitionParameter
                     )
-                )
+                ),
+                isTransitionInitiatedByInStateTask
             )
         }
 
@@ -474,7 +479,8 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
     private suspend fun <FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> executeTransition(
         fromStateDefinition: StateDefinition<StateDataBaseType, FromStateDataType>,
         toStateDefinition: StateDefinition<StateDataBaseType, ToStateDataType>,
-        toStateData: ToStateDataType
+        toStateData: ToStateDataType,
+        isTransitionInitiatedByInStateTask: Boolean
     ): ToStateDataType =
         lock.withReentrantLock {
 
@@ -485,7 +491,12 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                     val context = it.context
 
                     context.cancellationByStateChange.value = true
-                    it.job.cancelAndJoin()
+                    it.job.also { job ->
+                        job.cancel()
+                        if (!isTransitionInitiatedByInStateTask) {
+                            job.join()
+                        }
+                    }
 
                     context.runFinalizersBeforeStateChange()
                 }
