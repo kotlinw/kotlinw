@@ -80,6 +80,8 @@ sealed interface StateMachineExecutor<StateDataBaseType, SMD : StateMachineDefin
     val status: Status
 
     suspend fun cancel()
+
+    // TODO suspend fun pause()
 }
 
 sealed interface InStateExecutionContext<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>, StateDataType : StateDataBaseType> {
@@ -108,9 +110,10 @@ sealed interface ExecutionDefinitionContext<StateDataBaseType, SMD : StateMachin
 
     val smd: SMD
 
-    /* TODO context(CoroutineScope) */
     fun <StateDataType : StateDataBaseType> inState(
         state: NonTerminalStateDefinition<StateDataBaseType, StateDataType>,
+        onPause: (suspend (StateDataType) -> StateDataType)? = null,
+        onRestore: (suspend (StateDataType) -> Unit)? = null,
         block: InStateTask<StateDataBaseType, SMD, StateDataType>
     )
 
@@ -141,10 +144,12 @@ private class ExecutionDefinitionContextImpl<StateDataBaseType, SMD : StateMachi
     /* TODO context(CoroutineScope) */
     override fun <StateDataType : StateDataBaseType> inState(
         state: NonTerminalStateDefinition<StateDataBaseType, StateDataType>,
+        onPause: (suspend (StateDataType) -> StateDataType)?,
+        onRestore: (suspend (StateDataType) -> Unit)?,
         block: InStateTask<StateDataBaseType, SMD, StateDataType>
     ) {
         check(!inStateTasks.containsKey(state))
-        inStateTasks[state] = InStateTaskDefinitionImpl(block)
+        inStateTasks[state] = InStateTaskDefinitionImpl(block, onPause, onRestore)
     }
 
     override fun <TransitionParameter, FromStateDataType : StateDataBaseType, ToStateDataType : StateDataBaseType> onTransition(
@@ -209,10 +214,16 @@ internal sealed interface ExecutionConfiguration<StateDataBaseType, SMD : StateM
 sealed interface InStateTaskDefinition<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>, StateDataType : StateDataBaseType> {
 
     val task: InStateTask<StateDataBaseType, SMD, StateDataType>
+
+    val onPause: (suspend (StateDataType) -> StateDataType)?
+
+    val onRestore: (suspend (StateDataType) -> Unit)?
 }
 
 data class InStateTaskDefinitionImpl<StateDataBaseType, SMD : StateMachineDefinitionBase<StateDataBaseType, SMD>, StateDataType : StateDataBaseType>(
-    override val task: InStateTask<StateDataBaseType, SMD, StateDataType>
+    override val task: InStateTask<StateDataBaseType, SMD, StateDataType>,
+    override val onPause: (suspend (StateDataType) -> StateDataType)?, // TODO itt valahogy lehessen transition-t is végezni, azaz ne feltétlenül ugyanabból az állapotból induljon majd újra (pl. a file letöltést megelőzheti egy HTTP proxy kiválasztás)
+    override val onRestore: (suspend (StateDataType) -> Unit)?
 ) :
     InStateTaskDefinition<StateDataBaseType, SMD, StateDataType>
 
