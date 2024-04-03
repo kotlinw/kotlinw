@@ -552,6 +552,7 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
 
     override suspend fun cancel() {
         lock.withReentrantLock {
+            // TODO refactor, ez csúnya
             currentStateExecutionContextHolder.value?.also {
                 withContext(NonCancellable) {
                     currentStateExecutionContextHolder.value?.also {
@@ -565,3 +566,6 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
         }
     }
 }
+
+// TODO állapotonként kezelni kell tudni, hogy mi legyen, ha a coroutine cancel-elődik
+// TODO valamiféle pause-restore mechanizmus beépítése
