@@ -7,51 +7,51 @@ package kotlinw.statemachine2
  * @param DataType type of the data to fetch
  * @param ErrorType describes an error occurred during fetching the data
  */
-sealed interface DataFetchStatus<InputType, DataType, ErrorType> {
+sealed interface DataFetchStatus<InputType> {
 
     val input: InputType
 
     /**
      * Data fetching is in progress.
      */
-    data class InProgress<InputType, DataType, ErrorType>(
+    data class InProgress<InputType>(
         override val input: InputType,
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
+    ) : DataFetchStatus<InputType>
 
     /**
      * Data has been received.
      */
-    data class Received<InputType, DataType, ErrorType>(
+    data class Received<InputType, DataType>(
         override val input: InputType,
         val data: DataType
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
+    ) : DataFetchStatus<InputType>
 
     /**
      * Data fetch has been cancelled.
      */
-    data class Cancelled<InputType, DataType, ErrorType>(
+    data class Cancelled<InputType>(
         override val input: InputType
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
+    ) : DataFetchStatus<InputType>
 
     /**
      * Data fetch has failed.
      */
-    data class Failed<InputType, DataType, ErrorType>(
+    data class Failed<InputType, ErrorType>(
         override val input: InputType,
         val error: ErrorType
-    ) : DataFetchStatus<InputType, DataType, ErrorType>
+    ) : DataFetchStatus<InputType>
 }
 
 class DataFetchStateMachineDefinition<InputType, DataType, ErrorType> :
-    StateMachineDefinition<DataFetchStatus<InputType, DataType, ErrorType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
+    StateMachineDefinition<DataFetchStatus<InputType>, DataFetchStateMachineDefinition<InputType, DataType, ErrorType>>() {
 
-    val inProgress by state<DataFetchStatus.InProgress<InputType, DataType, ErrorType>>()
+    val inProgress by state<DataFetchStatus.InProgress<InputType>>()
 
-    val received by state<DataFetchStatus.Received<InputType, DataType, ErrorType>>()
+    val received by state<DataFetchStatus.Received<InputType, DataType>>()
 
-    val cancelled by state<DataFetchStatus.Cancelled<InputType, DataType, ErrorType>>()
+    val cancelled by state<DataFetchStatus.Cancelled<InputType>>()
 
-    val failed by state<DataFetchStatus.Failed<InputType, DataType, ErrorType>>()
+    val failed by state<DataFetchStatus.Failed<InputType, ErrorType>>()
 
     val start by initialTransitionTo(inProgress) {
         DataFetchStatus.InProgress(it.transitionParameter)
