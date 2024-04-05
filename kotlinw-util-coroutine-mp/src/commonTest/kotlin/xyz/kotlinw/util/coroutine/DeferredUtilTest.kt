@@ -11,8 +11,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.completeWith
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 
@@ -65,32 +68,43 @@ class DeferredUtilTest {
 
     @Test
     fun testAwaitSafelyWithCancelledCaller() = runTest {
-        val deferred = async(start = UNDISPATCHED) { delay(Long.MAX_VALUE) }
-        val callerJob = launch(start = UNDISPATCHED) {
-            recover({
-                deferred.awaitSafely()
-                fail()
-            }, {
-                fail()
-            }, {
-                assertTrue(it is CancellationException)
-            })
+        val deferred = async(start = UNDISPATCHED) {
+            delay(Long.MAX_VALUE)
+            1
+        }
+        val callerJob = async(start = UNDISPATCHED) {
+            try {
+                recover<_, Int>({
+                    deferred.awaitSafely()
+                    fail()
+                }, {
+                    fail()
+                })
+            } catch (e: Exception) {
+                assertTrue(e is CancellationException)
+                assertTrue(!currentCoroutineContext().isActive)
+                throw e
+            }
         }
 
         delay(1.seconds)
-        callerJob.cancel()
-        assertTrue(deferred.isActive)
+        callerJob.cancelAndJoin()
+
         assertTrue(callerJob.isCancelled)
+        assertTrue(callerJob.getCompletionExceptionOrNull() is CancellationException)
+
+        assertTrue(deferred.isActive)
         deferred.cancel()
     }
 
     @Test
     fun testAwaitSafelyWithCancelledDeferred() = runTest {
         val deferred = async(start = UNDISPATCHED) {
+            println(1)
             delay(Long.MAX_VALUE)
             1
         }
-        val callerJob = launch(start = UNDISPATCHED) {
+        val callerJob = async (start = UNDISPATCHED) {
             val result = recover<_, Int>({
                 deferred.awaitSafely()
             }, {
@@ -104,8 +118,11 @@ class DeferredUtilTest {
         }
 
         delay(1.seconds)
-        deferred.cancel()
+        deferred.cancelAndJoin()
+
         assertTrue(deferred.isCancelled)
+        assertTrue(deferred.getCompletionExceptionOrNull() is CancellationException)
+
         assertTrue(callerJob.isActive)
         callerJob.cancel()
     }
