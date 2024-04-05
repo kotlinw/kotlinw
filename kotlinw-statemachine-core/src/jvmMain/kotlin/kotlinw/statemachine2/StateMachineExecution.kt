@@ -511,11 +511,9 @@ internal class StateMachineExecutorImpl<StateDataBaseType, SMD : StateMachineDef
                     val context = it.context
 
                     context.cancellationByStateChange.value = true
-                    it.job.also { job ->
-                        job.cancel()
-                        if (!isTransitionInitiatedByInStateTask) {
-                            job.join()
-                        }
+                    it.job.cancel()
+                    if (!isTransitionInitiatedByInStateTask) {
+                        it.job.join()
                     }
 
                     context.runFinalizersBeforeStateChange()
