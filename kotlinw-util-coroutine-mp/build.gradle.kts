@@ -5,6 +5,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.set(freeCompilerArgs.get() + "-Xcontext-receivers") // TODO why is this necessary? theoretically this is in the root build file as well...
+    }
+
     targetHierarchy.default()
     jvm { }
     js(IR) {

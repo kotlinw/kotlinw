@@ -6,7 +6,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 
-object AwaitedCoroutineCancellation
+data object AwaitedCoroutineCancellation
 
 /**
  * Awaits for completion of this `Deferred` without blocking the thread.
