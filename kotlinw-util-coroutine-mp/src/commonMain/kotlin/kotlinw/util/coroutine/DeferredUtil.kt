@@ -4,7 +4,6 @@ import arrow.core.raise.Raise
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 
 object AwaitedCoroutineCancellation
@@ -18,7 +17,7 @@ object AwaitedCoroutineCancellation
  * - if the `Deferred` completed exceptionally, the given exception is thrown.
  *
  * There is a special case when both this coroutine and the coroutine this coroutine was waiting for were cancelled.
- * In this case the current coroutine's cancellation is preferred to be reported to the caller.
+ * In this case the current coroutine's cancellation is reported to the caller (and the `Deferred`'s cancellation is "shadowed").
  *
  * @see [Deferred.await]
  * @see [https://github.com/Kotlin/kotlinx.coroutines/issues/3658]
