@@ -43,7 +43,7 @@ huxiSulky = "8.3.0"
 keycloak = "20.0.0"
 
 # https://github.com/JetBrains/skiko/releases
-skiko = "0.7.99"
+skiko = "0.8.0"
 
 # https://github.com/mipt-npm/kmath/releases
 kmath = "0.3.1"
@@ -73,7 +73,7 @@ flowredux = "1.0.2"
 
 mina = "2.9.2"
 
-ksp = "1.9.23-1.0.19"
+ksp = "1.9.23-1.0.20"
 
 kotlinpoet = "1.15.3"
 
