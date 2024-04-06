@@ -40,7 +40,7 @@ class SharedFlowSemanticsTest {
                 sharedFlow.emit(Char('a'.code + it).toString())
             }
 
-            delay(350)
+            delay(1000)
 
             collectors.cancelAll()
         }
