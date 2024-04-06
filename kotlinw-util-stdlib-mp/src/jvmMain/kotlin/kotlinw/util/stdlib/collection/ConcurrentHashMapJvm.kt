@@ -1,13 +1,16 @@
 package kotlinw.util.stdlib.collection
 
-actual class ConcurrentHashMap<K: Any, V: Any> private constructor(
+actual class ConcurrentHashMap<K: Any, V> private constructor(
     private val wrapped: java.util.concurrent.ConcurrentMap<K, V>
 ) : ConcurrentMutableMap<K, V>, MutableMap<K, V> by wrapped {
+
     actual constructor() : this(java.util.concurrent.ConcurrentHashMap())
 
     actual constructor(map: Map<K, V>) : this() {
         putAll(map)
     }
+
+    actual constructor(initialCapacity: Int): this(java.util.concurrent.ConcurrentHashMap(initialCapacity))
 
     override fun getOrDefault(key: K, defaultValue: V): V = wrapped.getOrDefault(key, defaultValue)
 
@@ -28,16 +31,20 @@ actual class ConcurrentHashMap<K: Any, V: Any> private constructor(
 
     override fun compute(key: K, remappingFunction: (K, V?) -> V?): V? = wrapped.compute(key, remappingFunction)
 
-    override fun merge(key: K, value: V, remappingFunction: (V, V) -> V): V? = wrapped.merge(key, value, remappingFunction)
+    override fun merge(key: K, value: V & Any, remappingFunction: (V, V) -> V): V? = wrapped.merge(key, value, remappingFunction)
 
-    override fun equals(other: Any?): Boolean =
-        if (other is ConcurrentHashMap<*, *>) {
-            wrapped == other.wrapped
-        } else {
-            false
-        }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ConcurrentHashMap<*, *>) return false
 
-    override fun hashCode(): Int = wrapped.hashCode()
+        if (wrapped != other.wrapped) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return wrapped.hashCode()
+    }
 
     override fun toString(): String = wrapped.toString()
 }

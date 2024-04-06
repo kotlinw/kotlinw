@@ -6,13 +6,13 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 
-data object AwaitedCoroutineCancellation
+data class AwaitedCoroutineCancelled(val exception: CancellationException)
 
 /**
  * Awaits for completion of this `Deferred` without blocking the thread.
  * Behaviour details:
  * - if the caller coroutine is cancelled then normal cancellation happens (no matter the awaited `Deferred`'s state)
- * - if the `Deferred` is cancelled then `AwaitedCoroutineCancellation` is raised
+ * - if the `Deferred` is cancelled then `AwaitedCoroutineCancelled` is raised
  * - if the `Deferred` completed successfully then its returned value is returned on every call to `awaitSafely()`
  * - if the `Deferred` completed exceptionally, the given exception is thrown.
  *
@@ -24,13 +24,13 @@ data object AwaitedCoroutineCancellation
  * @see [https://betterprogramming.pub/the-silent-killer-thats-crashing-your-coroutines-9171d1e8f79b]
  * @see [https://stackoverflow.com/a/76261124/306047]
  */
-context(Raise<AwaitedCoroutineCancellation>)
+context(Raise<AwaitedCoroutineCancelled>)
 suspend fun <T> Deferred<T>.awaitSafely(): T =
     try {
         await()
     } catch (e: CancellationException) {
         if (currentCoroutineContext().isActive) {
-            raise(AwaitedCoroutineCancellation)
+            raise(AwaitedCoroutineCancelled(e))
         } else {
             throw e
         }

@@ -2,11 +2,10 @@ package kotlinw.collection
 
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 
-// TODO szebb implementációkat
-internal class ConcurrentHashMapInternalImpl<K: Any, V: Any>
+internal class ConcurrentHashMapInternalImpl<K : Any, V>
 private constructor(
     private val wrapped: MutableMap<K, V>,
-    constructorDiscriminator: Unit
+    @Suppress("UNUSED_PARAMETER") constructorDiscriminator: Unit
 ) : ConcurrentMutableMap<K, V>, MutableMap<K, V> by wrapped {
 
     constructor() : this(HashMap(), Unit)
@@ -14,6 +13,8 @@ private constructor(
     constructor(map: Map<K, V>) : this() {
         putAll(map)
     }
+
+    constructor(initialCapacity: Int) : this(HashMap(initialCapacity), Unit)
 
     override fun getOrDefault(key: K, defaultValue: V): V = get(key) ?: defaultValue
 
@@ -83,7 +84,7 @@ private constructor(
         }
     }
 
-    override fun merge(key: K, value: V, remappingFunction: (V, V) -> V): V? {
+    override fun merge(key: K, value: V & Any, remappingFunction: (V, V) -> V): V? {
         while (true) {
             val oldValue = get(key)
             if (oldValue != null) {
@@ -99,14 +100,18 @@ private constructor(
         }
     }
 
-    override fun equals(other: Any?): Boolean =
-        if (other is ConcurrentHashMapInternalImpl<*, *>) {
-            wrapped == other.wrapped
-        } else {
-            false
-        }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ConcurrentHashMapInternalImpl<*, *>) return false
 
-    override fun hashCode(): Int = wrapped.hashCode()
+        if (wrapped != other.wrapped) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return wrapped.hashCode()
+    }
 
     override fun toString(): String = wrapped.toString()
 }

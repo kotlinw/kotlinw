@@ -1,6 +1,7 @@
 package kotlinw.util.stdlib.collection
 
-interface ConcurrentMutableMap<K: Any, V: Any> : MutableMap<K, V> {
+interface ConcurrentMutableMap<K: Any, V> : MutableMap<K, V> {
+
     fun getOrDefault(key: K, defaultValue: V): V
 
     fun putIfAbsent(key: K, value: V): V?
@@ -29,7 +30,7 @@ interface ConcurrentMutableMap<K: Any, V: Any> : MutableMap<K, V> {
     ): V?
 
     fun merge(
-        key: K, value: V,
+        key: K, value: V & Any,
         remappingFunction: (V, V) -> V
     ): V?
 }
