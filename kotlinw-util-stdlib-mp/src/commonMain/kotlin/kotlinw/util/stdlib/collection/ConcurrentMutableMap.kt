@@ -1,6 +1,6 @@
 package kotlinw.util.stdlib.collection
 
-interface ConcurrentMutableMap<K: Any, V> : MutableMap<K, V> {
+interface ConcurrentMutableMap<K: Any, V: Any> : MutableMap<K, V> {
 
     fun getOrDefault(key: K, defaultValue: V): V
 
@@ -29,8 +29,9 @@ interface ConcurrentMutableMap<K: Any, V> : MutableMap<K, V> {
         remappingFunction: (K, V?) -> V?
     ): V?
 
+    // TODO check signature
     fun merge(
-        key: K, value: V & Any,
+        key: K, value: V,
         remappingFunction: (V, V) -> V
     ): V?
 }

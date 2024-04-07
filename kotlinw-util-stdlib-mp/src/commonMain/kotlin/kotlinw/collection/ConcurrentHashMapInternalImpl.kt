@@ -2,7 +2,7 @@ package kotlinw.collection
 
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 
-internal class ConcurrentHashMapInternalImpl<K : Any, V>
+internal class ConcurrentHashMapInternalImpl<K : Any, V: Any>
 private constructor(
     private val wrapped: MutableMap<K, V>,
     @Suppress("UNUSED_PARAMETER") constructorDiscriminator: Unit
@@ -84,7 +84,7 @@ private constructor(
         }
     }
 
-    override fun merge(key: K, value: V & Any, remappingFunction: (V, V) -> V): V? {
+    override fun merge(key: K, value: V, remappingFunction: (V, V) -> V): V? {
         while (true) {
             val oldValue = get(key)
             if (oldValue != null) {

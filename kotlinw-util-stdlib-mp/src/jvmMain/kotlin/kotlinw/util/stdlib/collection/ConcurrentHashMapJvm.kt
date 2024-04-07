@@ -1,6 +1,6 @@
 package kotlinw.util.stdlib.collection
 
-actual class ConcurrentHashMap<K: Any, V> private constructor(
+actual class ConcurrentHashMap<K: Any, V: Any> private constructor(
     private val wrapped: java.util.concurrent.ConcurrentMap<K, V>
 ) : ConcurrentMutableMap<K, V>, MutableMap<K, V> by wrapped {
 
@@ -31,7 +31,7 @@ actual class ConcurrentHashMap<K: Any, V> private constructor(
 
     override fun compute(key: K, remappingFunction: (K, V?) -> V?): V? = wrapped.compute(key, remappingFunction)
 
-    override fun merge(key: K, value: V & Any, remappingFunction: (V, V) -> V): V? = wrapped.merge(key, value, remappingFunction)
+    override fun merge(key: K, value: V, remappingFunction: (V, V) -> V): V? = wrapped.merge(key, value, remappingFunction)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
