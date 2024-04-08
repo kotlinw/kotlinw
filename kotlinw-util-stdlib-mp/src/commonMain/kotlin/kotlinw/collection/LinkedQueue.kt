@@ -14,6 +14,12 @@ class LinkedQueue<E : Any> : MutableQueue<E> {
 
     private var currentSize = 0
 
+    constructor()
+
+    constructor(elements: Collection<E>) {
+        addAll(elements)
+    }
+
     override fun enqueue(element: E) {
         val node = Node(element, null)
 

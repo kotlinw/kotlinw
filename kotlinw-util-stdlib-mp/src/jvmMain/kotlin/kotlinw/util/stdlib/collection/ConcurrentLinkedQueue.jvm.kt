@@ -3,9 +3,12 @@ package kotlinw.util.stdlib.collection
 import kotlinw.collection.MutableQueue
 import java.util.concurrent.ConcurrentLinkedQueue
 
-actual class ConcurrentLinkedQueue<E : Any> actual constructor() : MutableQueue<E> {
+actual class ConcurrentLinkedQueue<E : Any> private constructor(private val wrapped: ConcurrentLinkedQueue<E>) :
+    MutableQueue<E> {
 
-    private val wrapped: ConcurrentLinkedQueue<E> = ConcurrentLinkedQueue()
+    actual constructor(): this(ConcurrentLinkedQueue())
+
+    actual constructor(elements: Collection<E>): this(ConcurrentLinkedQueue(elements))
 
     override fun enqueue(element: E) {
         wrapped.add(element)
