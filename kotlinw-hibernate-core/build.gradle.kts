@@ -33,7 +33,8 @@ kotlin {
 dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
     api(projects.kotlinw.kotlinwLoggingPlatform)
-    api(projects.kotlinw.module.kotlinwModuleApi)
     api(projects.kotlinw.kotlinwUlid)
+    api(projects.kotlinw.kotlinwUtilSerializationJson)
+    api(projects.kotlinw.module.kotlinwModuleApi)
     api(libs.arrow.core)
 }
