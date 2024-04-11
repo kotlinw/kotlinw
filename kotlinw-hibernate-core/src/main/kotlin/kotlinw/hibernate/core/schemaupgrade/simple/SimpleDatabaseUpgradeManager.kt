@@ -1,6 +1,7 @@
 package kotlinw.hibernate.core.schemaupgrade.simple
 
 import kotlinw.hibernate.core.api.JpaSessionContext
+import kotlinw.hibernate.core.api.Transactional
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManager
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManagerImpl
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgraderProvider
@@ -10,8 +11,8 @@ import kotlinw.logging.api.LoggerFactory
 import org.hibernate.SessionFactory
 import java.time.Instant
 
-context(JpaSessionContext)
-private fun updateSchemaVersionInfo(schemaVersion: SortableDatabaseUpgraderId) {
+context(Transactional, JpaSessionContext)
+private fun updateSchemaVersionInfoEntity(schemaVersion: SortableDatabaseUpgraderId) {
     entityManager.createQuery("FROM DatabaseSchemaVersionInfoEntity", DatabaseSchemaVersionInfoEntity::class.java)
         .singleResult
         .also {
@@ -32,8 +33,8 @@ fun SimpleDatabaseUpgradeManager(
         loggerFactory,
         sessionFactory,
         databaseUpgraderProviders,
-        ::updateSchemaVersionInfo,
-        ::updateSchemaVersionInfo,
+        ::updateSchemaVersionInfoEntity,
+        ::updateSchemaVersionInfoEntity,
         {
             val tableExists =
                 it.executeSingleResultQuery(checkSchemaVersionTableExistsQueryString) { getBoolean(1) } ?: false

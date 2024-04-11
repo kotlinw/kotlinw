@@ -7,8 +7,3 @@ sealed interface JpaSessionContext {
 
 @JvmInline
 internal value class JpaSessionContextImpl(override val entityManager: TypeSafeEntityManager) : JpaSessionContext
-
-sealed interface TransactionalJpaSessionContext: JpaSessionContext, Transactional
-
-@JvmInline
-internal value class TransactionalJpaSessionContextImpl(override val entityManager: TypeSafeEntityManager) : TransactionalJpaSessionContext

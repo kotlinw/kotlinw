@@ -14,10 +14,10 @@ fun <T> SessionFactory.runJpaTask(block: JpaSessionContext.() -> T): T =
         block(JpaSessionContextImpl(it))
     }
 
-fun <T> SessionFactory.runTransactionalJpaTask(block: TransactionalJpaSessionContext.() -> T): T =
+fun <T> SessionFactory.runTransactionalJpaTask(block: context(Transactional) JpaSessionContext.() -> T): T =
     runJpaTask {
         transactional {
-            block(TransactionalJpaSessionContextImpl(entityManager))
+            block(TransactionalImpl, this@runJpaTask)
         }
     }
 

@@ -2,16 +2,14 @@ package kotlinw.hibernate.core.entity
 
 import kotlin.reflect.KClass
 import kotlinw.hibernate.core.api.JpaSessionContext
-import kotlinw.hibernate.core.api.JpaSessionContextImpl
 import kotlinw.hibernate.core.api.Transactional
-import kotlinw.hibernate.core.api.TransactionalJpaSessionContext
 
 interface BaseEntityRepository<E : BaseEntity> {
 
     context(JpaSessionContext)
     fun findAll(): List<E>
 
-    context(TransactionalJpaSessionContext)
+    context(Transactional, JpaSessionContext)
     fun persist(entity: E): E
 }
 
@@ -24,7 +22,7 @@ abstract class BaseEntityRepositoryImpl<E : BaseEntity>(
     context(JpaSessionContext)
     override fun findAll(): List<E> = query("FROM ${entityClass.simpleName}", entityClass)
 
-    context(TransactionalJpaSessionContext)
+    context(Transactional, JpaSessionContext)
     override fun persist(entity: E): E = entityManager.persistEntity(entity)
 
     context(JpaSessionContext)
