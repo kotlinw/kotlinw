@@ -5,16 +5,16 @@ import org.hibernate.SharedSessionContract
 import org.hibernate.internal.TransactionManagement
 import java.util.function.Function
 
-fun <T> SharedSessionContract.transactional(block: () -> T): T =
+fun <T> SharedSessionContract.transactional(block: context(Transactional) () -> T): T =
     if (isJoinedToTransaction) {
-        block()
+        block(TransactionalImpl)
     } else {
         manageTransaction {
-            block()
+            block(TransactionalImpl)
         }
     }
 
-fun <T> EntityManager.transactional(block: () -> T): T =
+fun <T> EntityManager.transactional(block: context(Transactional) () -> T): T =
     (asHibernateSession as SharedSessionContract).transactional(block)
 
 internal fun <T> SharedSessionContract.manageTransaction(block: () -> T): T =
@@ -24,7 +24,7 @@ internal fun <T> SharedSessionContract.manageTransaction(block: () -> T): T =
         Function { block() }
     )
 
-fun <T> JpaSessionContext.transactional(block: () -> T): T =
+fun <T> JpaSessionContext.transactional(block: context(Transactional) () -> T): T =
     entityManager.transactional {
-        block()
+        block(TransactionalImpl)
     }

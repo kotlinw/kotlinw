@@ -4,6 +4,7 @@ import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.runJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import kotlinw.hibernate.core.api.JpaSessionContext
+import kotlinw.hibernate.core.api.TransactionalJpaSessionContext
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import org.hibernate.SessionFactory
@@ -99,7 +100,7 @@ class DatabaseUpgradeManagerImpl(
         }
     }
 
-    context (JpaSessionContext)
+    context (TransactionalJpaSessionContext)
     private fun applyUpgraders(upgradersToApply: List<Pair<String, DatabaseUpgrader>>) {
         jdbcTask {
             upgradersToApply.forEach {
@@ -108,7 +109,7 @@ class DatabaseUpgradeManagerImpl(
                     logger.debug { "Upgrading structure to " / it.first }
                     try {
                         upgrader.upgradeStructure()
-                        onStructureUpgraded(this@JpaSessionContext, it.first)
+                        onStructureUpgraded(this@TransactionalJpaSessionContext, it.first)
                     } catch (e: Exception) {
                         throw RuntimeException("Structure upgrade failed: ${it.first}", e)
                     }
@@ -124,7 +125,7 @@ class DatabaseUpgradeManagerImpl(
                     with(this) {
                         upgrader.upgradeData()
                     }
-                    onDataUpgraded(this@JpaSessionContext, it.first)
+                    onDataUpgraded(this@TransactionalJpaSessionContext, it.first)
                     entityManager.flush()
                 } catch (e: Exception) {
                     throw RuntimeException("Data upgrade failed: ${it.first}", e)
