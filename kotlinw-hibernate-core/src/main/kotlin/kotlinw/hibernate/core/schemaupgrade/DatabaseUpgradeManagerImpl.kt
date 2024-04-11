@@ -3,8 +3,8 @@ package kotlinw.hibernate.core.schemaupgrade
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.runReadOnlyJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
-import kotlinw.hibernate.core.entity.JpaSessionContext
-import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
+import kotlinw.hibernate.core.api.JpaSessionContext
+import kotlinw.hibernate.core.api.TransactionalJpaSessionContext
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import org.hibernate.SessionFactory

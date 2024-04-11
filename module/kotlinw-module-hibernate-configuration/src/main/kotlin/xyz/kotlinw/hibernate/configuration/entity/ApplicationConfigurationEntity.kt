@@ -6,7 +6,7 @@ import jakarta.persistence.Table
 import kotlinw.hibernate.core.entity.BaseEntity
 import kotlinw.hibernate.core.entity.BaseEntityRepository
 import kotlinw.hibernate.core.entity.BaseEntityRepositoryImpl
-import kotlinw.hibernate.core.entity.JpaSessionContext
+import kotlinw.hibernate.core.api.JpaSessionContext
 import kotlinw.hibernate.core.entity.pgTextType
 import org.hibernate.envers.Audited
 import xyz.kotlinw.di.api.Component

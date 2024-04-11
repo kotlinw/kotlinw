@@ -15,10 +15,9 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.metamodel.Metamodel
 import kotlinw.hibernate.core.annotation.NotTypeSafeJpaApi
-import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
 
 
-interface TypeSafeEntityManager : EntityManager {
+sealed interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `persistEntity()` instead which enforces an existing compile-time transactional context.",

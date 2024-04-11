@@ -1,5 +1,6 @@
 package xyz.kotlinw.di.api
 
+import arrow.core.NonFatal
 import arrow.core.nonFatalOrThrow
 import kotlinw.util.stdlib.DelicateKotlinwApi
 import kotlinx.coroutines.delay
@@ -8,25 +9,28 @@ import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 
 // TODO non-public API
 // TODO hibakezelés
-suspend fun <T : ContainerScope> runApplication(
-    rootScopeFactory: () -> T,
+suspend fun <S : ContainerScope, T> runApplication(
+    rootScopeFactory: () -> S,
     beforeScopeCreated: () -> Unit = {},
-    afterUninitializedScopeCreated: (T) -> Unit = {},
+    afterUninitializedScopeCreated: (S) -> Unit = {},
     shutdown: () -> Unit = {},
-    block: suspend T.() -> Unit = { delay(Long.MAX_VALUE) }
-) {
+    block: suspend S.() -> T = {
+        delay(Long.MAX_VALUE)
+        throw IllegalStateException() // Should not be reached
+    }
+): T {
     beforeScopeCreated()
     val rootScope = rootScopeFactory()
     afterUninitializedScopeCreated(rootScope)
 
-    try {
+    return try {
         with(rootScope) {
             try {
                 // TODO részletes hibakezelést lépésenként
                 try {
                     start()
                 } catch (e: Throwable) {
-                    e.printStackTrace()
+                    e.printStackTrace() // TODO log, tovább dobni?
                 }
 
                 containerLifecycleCoordinator?.apply {
@@ -45,9 +49,6 @@ suspend fun <T : ContainerScope> runApplication(
                 }
 
                 block()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                throw RuntimeException(e.nonFatalOrThrow()) // TODO log
             } finally {
                 try {
                     shutdownApplication(this, containerLifecycleCoordinator)
@@ -57,7 +58,10 @@ suspend fun <T : ContainerScope> runApplication(
             }
         }
     } catch (e: Throwable) {
-        e.nonFatalOrThrow().printStackTrace() // TODO
+        if (NonFatal(e)) {
+            e.printStackTrace() // TODO log
+        }
+        throw e
     } finally {
         shutdown()
     }

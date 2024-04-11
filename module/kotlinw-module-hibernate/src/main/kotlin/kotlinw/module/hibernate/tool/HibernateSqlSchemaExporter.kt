@@ -1,6 +1,7 @@
 package kotlinw.module.hibernate.tool
 
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
+import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType.Update
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporter
 import kotlinw.hibernate.core.schemaexport.HibernateSqlSchemaExporterImpl
 import kotlinw.module.hibernate.core.HibernateModule
@@ -29,10 +30,17 @@ class HibernateSqlSchemaExporterModule {
     ): HibernateSqlSchemaExporter = HibernateSqlSchemaExporterImpl(standardServiceRegistry, metadata)
 }
 
-suspend fun <T : HibernateSqlSchemaExporterScope> exportSqlSchema(rootScopeFactory: () -> T) {
-    runJvmApplication(rootScopeFactory) {
-        println(
-            hibernateSqlSchemaExporter().exportSchema(ExportedSchemaScriptType.Update)
-        )
-    }
+suspend fun <S : HibernateSqlSchemaExporterScope> printExportedSqlSchema(
+    rootScopeFactory: () -> S,
+    scriptType: ExportedSchemaScriptType = Update
+) {
+    println(exportSqlSchema(rootScopeFactory, scriptType))
 }
+
+suspend fun <S : HibernateSqlSchemaExporterScope> exportSqlSchema(
+    rootScopeFactory: () -> S,
+    scriptType: ExportedSchemaScriptType = Update
+) =
+    runJvmApplication(rootScopeFactory) {
+        hibernateSqlSchemaExporter().exportSchema(scriptType)
+    }

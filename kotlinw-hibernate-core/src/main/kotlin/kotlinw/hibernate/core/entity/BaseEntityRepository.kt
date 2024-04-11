@@ -1,6 +1,8 @@
 package kotlinw.hibernate.core.entity
 
 import kotlin.reflect.KClass
+import kotlinw.hibernate.core.api.JpaSessionContext
+import kotlinw.hibernate.core.api.TransactionalJpaSessionContext
 
 interface BaseEntityRepository<E : BaseEntity> {
 

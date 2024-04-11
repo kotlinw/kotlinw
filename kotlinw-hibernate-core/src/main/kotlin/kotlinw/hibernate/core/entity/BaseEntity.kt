@@ -61,12 +61,10 @@ abstract class BaseEntity(
     final override fun hashCode() = ulid.hashCode()
 
     override fun toString(): String {
-        return "BaseEntity(id=$id, uid=$uid)"
+        return "BaseEntity(class=${this::class.simpleName}, id=$id, uid=$uid)"
     }
 }
 
 val previousEntityUlid = AtomicRef(Ulid.randomUlid())
 
 fun generateNextEntityUlid(): Ulid = previousEntityUlid.updateAndGet { Ulid.nextMonotonicUlid(it) }
-
-val BaseEntity.isSaved get() = id != null

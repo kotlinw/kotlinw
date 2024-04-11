@@ -1,19 +1,22 @@
 package kotlinw.hibernate.core.api
 
-import kotlinw.hibernate.core.entity.JpaSessionContext
-import kotlinw.hibernate.core.entity.JpaSessionContextImpl
-import kotlinw.hibernate.core.entity.TransactionalJpaSessionContext
-import kotlinw.hibernate.core.entity.TransactionalJpaSessionContextImpl
+import jakarta.persistence.EntityManager
 import kotlinw.util.stdlib.DelicateKotlinwApi
 import org.hibernate.SessionFactory
+import org.hibernate.SharedSessionContract
+import org.hibernate.Transaction
+import org.hibernate.internal.TransactionManagement.manageTransaction
+import java.sql.Connection
+import java.util.function.Function
 
-internal fun SessionFactory.createTypeSafeEntityManager(): TypeSafeEntityManager =
-    TypeSafeEntityManagerImpl(createEntityManager())
-
-context(JpaSessionContext)
 @DelicateKotlinwApi
-fun <T> SessionFactory.runReadOnlyJpaTask(block: JpaSessionContext.() -> T): T = block(this@JpaSessionContext)
+fun EntityManager.asTypeSafeEntityManager(): TypeSafeEntityManager = TypeSafeEntityManagerImpl(this)
 
+@OptIn(DelicateKotlinwApi::class)
+internal fun SessionFactory.createTypeSafeEntityManager(): TypeSafeEntityManager =
+    createEntityManager().asTypeSafeEntityManager()
+
+// TODO ez nem feltétlenül read-only, csak nem tranzakcionális, ezt a nevének is tükröznie kellene
 fun <T> SessionFactory.runReadOnlyJpaTask(block: JpaSessionContext.() -> T): T =
     createTypeSafeEntityManager().use {
         block(JpaSessionContextImpl(it))
@@ -25,16 +28,38 @@ context(JpaSessionContext)
 fun <T> SessionFactory.runTransactionalJpaTask(block: JpaSessionContext.() -> T): T = throw IllegalStateException()
 
 fun <T> SessionFactory.runTransactionalJpaTask(block: TransactionalJpaSessionContext.() -> T): T =
-    createTypeSafeEntityManager().use { entityManager ->
-        check(!entityManager.transaction.isActive)
-
-        entityManager.transaction.begin()
-        try {
-            val result = block(TransactionalJpaSessionContextImpl(entityManager))
-            entityManager.transaction.commit()
-            result
-        } catch (e: Exception) {
-            entityManager.transaction.rollback()
-            throw e
+    createTypeSafeEntityManager().use {
+        it.asHibernateSession.transactional {
+            block(TransactionalJpaSessionContextImpl(it))
         }
     }
+
+fun <T> SessionFactory.runJdbcTask(isTransactional: Boolean = true, block: Connection.() -> T): T =
+    fromStatelessSession {
+        if (isTransactional) {
+            it.transactional {
+                runJdbcTask {
+                    block()
+                }
+            }
+        } else {
+            runJdbcTask {
+                block()
+            }
+        }
+    }
+
+internal class TransactionalContextImpl(val transaction: Transaction) : TransactionalContext
+
+internal fun <T, S : SharedSessionContract> S.transactional(block: context(TransactionalContext) S.() -> T): T {
+    val transaction = beginTransaction()
+    return manageTransaction(
+        this,
+        transaction,
+        Function {
+            with(TransactionalContextImpl(transaction)) {
+                block(it)
+            }
+        }
+    )
+}

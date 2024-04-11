@@ -1,19 +1,18 @@
 package xyz.kotlinw.di.api
 
+import kotlinw.util.stdlib.DelicateKotlinwApi
 import kotlinw.util.stdlib.createPidFile
 import kotlinw.util.stdlib.deletePidFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
 // TODO ennek inkább az appbase modulban lenne a helye
-suspend fun <T : ContainerScope> runJvmApplication(
-    rootScopeFactory: () -> T,
+@OptIn(DelicateKotlinwApi::class)
+suspend fun <S : ContainerScope, T> runJvmApplication(
+    rootScopeFactory: () -> S,
     args: Array<out String> = emptyArray(), // TODO ezt passzoljuk tovább
-    block: suspend T.() -> Unit = { delay(Long.MAX_VALUE) }
-) {
-    println(System.getProperty("java.vendor")) // TODO remove
-    println(System.getProperty("java.version")) // TODO remove
-
+    block: suspend S.() -> T
+) =
     runApplication(
         rootScopeFactory = rootScopeFactory,
         beforeScopeCreated = ::createPidFile,
@@ -38,4 +37,11 @@ suspend fun <T : ContainerScope> runJvmApplication(
         shutdown = ::deletePidFile,
         block = block
     )
-}
+
+suspend fun <S : ContainerScope> runBackgroundServiceJvmApplication(
+    rootScopeFactory: () -> S,
+    args: Array<out String> = emptyArray() // TODO ezt passzoljuk tovább
+) =
+    runJvmApplication(rootScopeFactory, args) {
+        delay(Long.MAX_VALUE)
+    }
