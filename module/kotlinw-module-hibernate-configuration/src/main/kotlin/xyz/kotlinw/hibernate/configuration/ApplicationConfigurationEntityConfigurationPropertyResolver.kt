@@ -7,7 +7,7 @@ import kotlinw.configuration.core.EnumerableConfigurationPropertyResolver
 import kotlinw.configuration.core.SnapshotConfigurationPropertyLookup
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.runNonTransactionalJpaTask
+import kotlinw.hibernate.core.api.runJpaTask
 import kotlinw.jdbc.util.executeQuery
 import kotlinw.jdbc.util.executeSingleResultQuery
 import kotlinw.util.stdlib.collection.emptyImmutableHashMap
@@ -78,12 +78,12 @@ class ApplicationConfigurationEntityConfigurationPropertyResolverImpl(
         properties =
             if (sessionFactory != null) {
                 if (
-                    sessionFactory.runNonTransactionalJpaTask {
+                    sessionFactory.runJpaTask {
                         jdbcTask { checkTableExists() }
                     }
                 ) {
                     sessionFactory
-                        .runNonTransactionalJpaTask { applicationConfigurationEntityRepository.findAll() }
+                        .runJpaTask { applicationConfigurationEntityRepository.findAll() }
                         .associate {
                             ConfigurationPropertyKey(
                                 it.name,

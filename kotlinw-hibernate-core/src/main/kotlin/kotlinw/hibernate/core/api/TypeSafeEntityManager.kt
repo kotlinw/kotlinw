@@ -29,7 +29,6 @@ sealed interface TypeSafeEntityManager : EntityManager {
     /**
      * @see [EntityManager.persist]
      */
-    context(TransactionalJpaSessionContext)
     fun <T : Any> persistEntity(entity: T): T
 
     @Deprecated(
@@ -42,7 +41,6 @@ sealed interface TypeSafeEntityManager : EntityManager {
     /**
      * @see [EntityManager.merge]
      */
-    context(TransactionalJpaSessionContext)
     fun <T : Any> mergeEntity(entity: T): T
 
     @Deprecated(
@@ -52,7 +50,6 @@ sealed interface TypeSafeEntityManager : EntityManager {
     )
     override fun remove(entity: Any)
 
-    context(TransactionalJpaSessionContext)
     fun removeEntity(entity: Any)
 
     @Deprecated(
@@ -204,17 +201,14 @@ sealed interface TypeSafeEntityManager : EntityManager {
 internal value class TypeSafeEntityManagerImpl(private val delegate: EntityManager) : EntityManager by delegate,
     TypeSafeEntityManager {
 
-    context(TransactionalJpaSessionContext)
     override fun <T : Any> persistEntity(entity: T): T {
         persist(entity)
         return entity
     }
 
-    context(TransactionalJpaSessionContext)
     override fun <T : Any> mergeEntity(entity: T): T =
         merge(entity)
 
-    context(TransactionalJpaSessionContext)
     override fun removeEntity(entity: Any) {
         remove(entity)
     }

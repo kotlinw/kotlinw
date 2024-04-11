@@ -9,7 +9,7 @@ import kotlinw.configuration.core.ConstantConfigurationPropertyResolver
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.runNonTransactionalJpaTask
+import kotlinw.hibernate.core.api.runJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import kotlinw.hibernate.core.api.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
@@ -91,7 +91,7 @@ class HibernateModuleIntegrationTest {
                 fun JpaSessionContext.findAllPersons() =
                     entityManager.createQuery("FROM PersonEntity", PersonEntity::class.java).resultList
 
-                sessionFactory.runNonTransactionalJpaTask {
+                sessionFactory.runJpaTask {
                     assertEquals(emptyList(), findAllPersons())
                 }
 
@@ -100,7 +100,7 @@ class HibernateModuleIntegrationTest {
                     assertEquals(1, findAllPersons().size)
                 }
 
-                sessionFactory.runNonTransactionalJpaTask {
+                sessionFactory.runJpaTask {
                     assertEquals(1, findAllPersons().size)
                 }
             } finally {
