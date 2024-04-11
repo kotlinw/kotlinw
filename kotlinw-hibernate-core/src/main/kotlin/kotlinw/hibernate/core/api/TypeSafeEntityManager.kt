@@ -200,7 +200,8 @@ sealed interface TypeSafeEntityManager : EntityManager {
     override fun <T : Any> getEntityGraphs(entityClass: Class<T>): List<EntityGraph<in T>>
 }
 
-internal class TypeSafeEntityManagerImpl(private val delegate: EntityManager) : EntityManager by delegate,
+@JvmInline
+internal value class TypeSafeEntityManagerImpl(private val delegate: EntityManager) : EntityManager by delegate,
     TypeSafeEntityManager {
 
     context(TransactionalJpaSessionContext)

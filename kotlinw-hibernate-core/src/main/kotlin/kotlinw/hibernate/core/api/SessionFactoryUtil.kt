@@ -1,7 +1,6 @@
 package kotlinw.hibernate.core.api
 
 import jakarta.persistence.EntityManager
-import kotlinw.util.stdlib.DelicateKotlinwApi
 import org.hibernate.SessionFactory
 import org.hibernate.SharedSessionContract
 import org.hibernate.Transaction
@@ -9,20 +8,17 @@ import org.hibernate.internal.TransactionManagement.manageTransaction
 import java.sql.Connection
 import java.util.function.Function
 
-@DelicateKotlinwApi
 fun EntityManager.asTypeSafeEntityManager(): TypeSafeEntityManager = TypeSafeEntityManagerImpl(this)
 
-@OptIn(DelicateKotlinwApi::class)
 internal fun SessionFactory.createTypeSafeEntityManager(): TypeSafeEntityManager =
     createEntityManager().asTypeSafeEntityManager()
 
-// TODO ez nem feltétlenül read-only, csak nem tranzakcionális, ezt a nevének is tükröznie kellene
-fun <T> SessionFactory.runReadOnlyJpaTask(block: JpaSessionContext.() -> T): T =
+fun <T> SessionFactory.runNonTransactionalJpaTask(block: JpaSessionContext.() -> T): T =
     createTypeSafeEntityManager().use {
         block(JpaSessionContextImpl(it))
     }
 
-context(JpaSessionContext)
+context(TransactionalJpaSessionContext)
 @Suppress("DeprecatedCallableAddReplaceWith")
 @Deprecated(message = "Use runInNewTransaction() instead.", level = DeprecationLevel.ERROR)
 fun <T> SessionFactory.runTransactionalJpaTask(block: JpaSessionContext.() -> T): T = throw IllegalStateException()
@@ -33,6 +29,10 @@ fun <T> SessionFactory.runTransactionalJpaTask(block: TransactionalJpaSessionCon
             block(TransactionalJpaSessionContextImpl(it))
         }
     }
+
+context(TransactionalJpaSessionContext)
+fun <T> runInNewTransaction(block: TransactionalJpaSessionContext.() -> T): T =
+    entityManager.asHibernateSession.sessionFactory.runTransactionalJpaTask(block)
 
 fun <T> SessionFactory.runJdbcTask(isTransactional: Boolean = true, block: Connection.() -> T): T =
     fromStatelessSession {
@@ -49,7 +49,7 @@ fun <T> SessionFactory.runJdbcTask(isTransactional: Boolean = true, block: Conne
         }
     }
 
-internal class TransactionalContextImpl(val transaction: Transaction) : TransactionalContext
+internal class TransactionalContextImpl(override val transaction: Transaction) : TransactionalContext
 
 internal fun <T, S : SharedSessionContract> S.transactional(block: context(TransactionalContext) S.() -> T): T {
     val transaction = beginTransaction()

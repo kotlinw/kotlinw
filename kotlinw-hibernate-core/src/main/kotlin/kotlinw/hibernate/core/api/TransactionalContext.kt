@@ -1,3 +1,8 @@
 package kotlinw.hibernate.core.api
 
-sealed interface TransactionalContext
+import org.hibernate.Transaction
+
+sealed interface TransactionalContext {
+
+    val transaction: Transaction
+}

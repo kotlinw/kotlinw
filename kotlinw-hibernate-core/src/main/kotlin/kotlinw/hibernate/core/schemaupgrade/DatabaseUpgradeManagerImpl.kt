@@ -1,7 +1,7 @@
 package kotlinw.hibernate.core.schemaupgrade
 
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.runReadOnlyJpaTask
+import kotlinw.hibernate.core.api.runNonTransactionalJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import kotlinw.hibernate.core.api.JpaSessionContext
 import kotlinw.hibernate.core.api.TransactionalJpaSessionContext
@@ -30,7 +30,7 @@ class DatabaseUpgradeManagerImpl(
     private val logger = loggerFactory.getLogger()
 
     override fun upgradeSchema() {
-        val currentSchemaVersion: String = sessionFactory.runReadOnlyJpaTask {
+        val currentSchemaVersion: String = sessionFactory.runNonTransactionalJpaTask {
             jdbcTask { findCurrentSchemaVersion(this) } ?: emptySchemaVersion
         }
 
@@ -57,7 +57,7 @@ class DatabaseUpgradeManagerImpl(
                 versionsToUpgraders.filter {
                     val schemaVersion = it.first
                     schemaVersion < currentSchemaVersion &&
-                            sessionFactory.runReadOnlyJpaTask {
+                            sessionFactory.runNonTransactionalJpaTask {
                                 !checkDatabaseUpgraderAlreadyApplied.invoke(
                                     this,
                                     schemaVersion

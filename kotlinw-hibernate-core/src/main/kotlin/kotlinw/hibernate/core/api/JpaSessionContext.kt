@@ -1,5 +1,7 @@
 package kotlinw.hibernate.core.api
 
+import org.hibernate.Transaction
+
 sealed interface JpaSessionContext {
 
     val entityManager: TypeSafeEntityManager
@@ -8,8 +10,11 @@ sealed interface JpaSessionContext {
 @JvmInline
 internal value class JpaSessionContextImpl(override val entityManager: TypeSafeEntityManager) : JpaSessionContext
 
-interface TransactionalJpaSessionContext : JpaSessionContext, TransactionalContext
+sealed interface TransactionalJpaSessionContext : JpaSessionContext, TransactionalContext
 
 @JvmInline
 internal value class TransactionalJpaSessionContextImpl(override val entityManager: TypeSafeEntityManager) :
-    TransactionalJpaSessionContext
+    TransactionalJpaSessionContext {
+
+    override val transaction get() = entityManager.transaction as Transaction
+}
