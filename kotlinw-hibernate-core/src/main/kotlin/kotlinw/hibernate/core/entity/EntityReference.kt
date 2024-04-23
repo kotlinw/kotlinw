@@ -8,7 +8,7 @@ data class EntityReference<EntityType : AbstractEntity<IdType>, IdType : Seriali
     val entityClass: KClass<EntityType>
 )
 
-typealias BaseEntityReference<EntityType> = EntityReference<Long, EntityType>
+typealias BaseEntityReference<EntityType> = EntityReference<EntityType, BaseEntityId>
 
 inline fun <reified EntityType : AbstractEntity<IdType>, IdType : Serializable> EntityType.entityReference() =
     EntityReference(
