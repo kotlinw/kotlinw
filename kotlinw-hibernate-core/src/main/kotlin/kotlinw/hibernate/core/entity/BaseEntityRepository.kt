@@ -57,7 +57,7 @@ abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
 
     context(JpaSessionContext)
     override fun findByIdOrNull(id: ID): E? =
-        query("FROM $entityName WHERE id=$1", entityClass, id).firstOrNull()
+        query("FROM $entityName WHERE id=?1", entityClass, id).firstOrNull()
 
     context(JpaSessionContext)
     protected fun <T : Any> query(qlQuery: String, resultType: KClass<T>, vararg arguments: Any?): List<T> {
