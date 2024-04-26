@@ -39,7 +39,9 @@ fun <E : AbstractEntity<ID>, ID : Serializable> EntityRepository<E, ID>.get(enti
     return findByIdOrNull(entityReference.id)
 }
 
-interface BaseEntityRepository<E : BaseEntity> : EntityRepository<E, BaseEntityId>
+interface SimpleBaseEntityRepository<E : SimpleBaseEntity> : EntityRepository<E, BaseEntityId>
+
+interface BaseEntityRepository<E : BaseEntity> : SimpleBaseEntityRepository<E>
 
 abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
     final override val entityClass: KClass<E>
@@ -79,6 +81,10 @@ abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
         singleOrNull<T>(qlQuery, *arguments) ?: throw IllegalStateException() // TODO specifikus hibát
 }
 
-abstract class BaseEntityRepositoryImpl<E : BaseEntity>(entityClass: KClass<E>) :
+abstract class SimpleBaseEntityRepositoryImpl<E : SimpleBaseEntity>(entityClass: KClass<E>) :
     EntityRepositoryImpl<E, BaseEntityId>(entityClass),
+    SimpleBaseEntityRepository<E>
+
+abstract class BaseEntityRepositoryImpl<E : BaseEntity>(entityClass: KClass<E>) :
+    SimpleBaseEntityRepositoryImpl<E>(entityClass),
     BaseEntityRepository<E>

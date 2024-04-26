@@ -21,7 +21,7 @@ const val pgUuidType = "UUID" // TODO remove
 typealias BaseEntityId = Long
 
 @MappedSuperclass
-abstract class BaseEntity(
+abstract class SimpleBaseEntity(
 
     @Id
     @GeneratedValue(
@@ -35,18 +35,44 @@ abstract class BaseEntity(
     )
     override var id: BaseEntityId? = null,
 
+) : AbstractEntity<BaseEntityId>() {
+
+    protected final inline val entityClassForEquals get(): Class<*> = Hibernate.getClass(this)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SimpleBaseEntity) return false
+
+        check(id != null)
+        check(other.id != null)
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        check(id != null)
+        return id.hashCode() ?: 0
+    }
+
+    override fun toString(): String {
+        return "${entityClassForEquals.simpleName}(id=$id)"
+    }
+}
+
+@MappedSuperclass
+abstract class BaseEntity(
+
     @Column(unique = true, nullable = false, updatable = false)
     open var uid: UUID = generateNextEntityUlid().toUuid().asJavaUuid()
 
-) : AbstractEntity<BaseEntityId>() {
+) : SimpleBaseEntity() {
 
     var ulid: Ulid
         get() = uid.toUuid().toUlid()
         set(value) {
             uid = value.toUuid().asJavaUuid()
         }
-
-    private inline val entityClassForEquals get(): Class<*> = Hibernate.getClass(this)
 
     final override fun equals(other: Any?) =
         if (this === other) {
@@ -61,7 +87,7 @@ abstract class BaseEntity(
     final override fun hashCode() = ulid.hashCode()
 
     override fun toString(): String {
-        return "BaseEntity(class=${this::class.simpleName}, id=$id, uid=$uid)"
+        return "${entityClassForEquals.simpleName}(id=$id, uid=$uid)"
     }
 }
 
