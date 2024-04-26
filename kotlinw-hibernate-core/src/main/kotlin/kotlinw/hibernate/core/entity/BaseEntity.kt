@@ -65,6 +65,6 @@ abstract class BaseEntity(
     }
 }
 
-val previousEntityUlid = AtomicRef(Ulid.randomUlid())
+private val previousEntityUlid = AtomicRef(Ulid.randomUlid())
 
 fun generateNextEntityUlid(): Ulid = previousEntityUlid.updateAndGet { Ulid.nextMonotonicUlid(it) }
