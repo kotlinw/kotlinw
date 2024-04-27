@@ -13,14 +13,22 @@ import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 import kotlinw.logging.api.Logger
+import kotlinw.util.stdlib.IncrementalAverageHolder.MutableIncrementalAverageHolder
 import kotlinw.util.stdlib.Url
+import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import xyz.kotlinw.io.FileLocation
 import xyz.kotlinw.io.bufferedSink
 
-data class FileDownloadProgressSnapshot(val sourceUrl: Url, val fileSizeBytes: Long?, val downloadedBytes: Long)
+data class FileDownloadProgressSnapshot(
+    val sourceUrl: Url,
+    val fileSizeBytes: Long?,
+    val downloadedBytes: Long,
+    val downloadSpeedAverageBytesPerSecond: Int?
+)
 
 class LoggingProgressListener(private val logger: Logger) {
 
@@ -44,8 +52,10 @@ suspend fun HttpClient.downloadFile(
     targetFile: FileLocation,
     requestBuilder: HttpRequestBuilder.() -> Unit = {},
     progressListener: (FileDownloadProgressSnapshot) -> Unit = {},
-    downloadChunkSize: Int = 8 * 1024,
-    progressReportInterval: Duration = 1.seconds
+    chunkSize: Int = 16 * 1024,
+    progressReportInterval: Duration = 1.seconds,
+    fileSizeLimit: Long? = null,
+    throttleDownloadSpeed: Int? = null
 ) =
     prepareGet {
         requestBuilder()
@@ -54,28 +64,76 @@ suspend fun HttpClient.downloadFile(
         val httpStatusCode = httpResponse.status
         if (httpStatusCode.isSuccess()) {
             val fileLength = httpResponse.contentLength()
+
+            if (fileSizeLimit != null && fileLength != null && fileLength > fileSizeLimit) {
+                throw RuntimeException("File size limit exceeded: $fileSizeLimit") // TODO raise
+            }
+
             targetFile.bufferedSink().use { sink ->
                 val channel = httpResponse.body<ByteReadChannel>()
                 var downloadedBytes = 0L
                 var lastProgressReport = Instant.DISTANT_PAST
+                val timeSource = TimeSource.Monotonic
+                var downloadedBytesSinceLastProgressReport = 0L
 
-                fun reportProgress() = progressListener(FileDownloadProgressSnapshot(sourceUrl, fileLength, downloadedBytes))
+                fun reportProgress(now: Instant = Clock.System.now()) {
+                    val downloadSpeed =
+                        try {
+                            val downloadDuration = now - lastProgressReport
+                            downloadedBytesSinceLastProgressReport.toDouble() / downloadDuration.inWholeMicroseconds.toDouble() * 1_000_000.0
+                        } catch (e: Exception) {
+                            null
+                        }
+
+                    lastProgressReport = now
+                    downloadedBytesSinceLastProgressReport = 0
+
+                    progressListener(
+                        FileDownloadProgressSnapshot(
+                            sourceUrl,
+                            fileLength,
+                            downloadedBytes,
+                            downloadSpeed?.toInt()
+                        )
+                    )
+                }
 
                 reportProgress()
 
                 while (!channel.isClosedForRead) {
-                    val packet = channel.readRemaining(downloadChunkSize.toLong())
+                    val packetDownloadStart = timeSource.markNow()
+                    val packet = channel.readRemaining(chunkSize.toLong())
+
                     while (!packet.isEmpty) {
                         val bytes = packet.readBytes()
+                        val packetDownloadRealDuration = try {
+                            packetDownloadStart.elapsedNow()
+                        } catch (e: Exception) {
+                            null
+                        }
 
                         sink.write(bytes)
 
-                        downloadedBytes += bytes.size
+                        val packetSize = bytes.size
+                        downloadedBytes += packetSize
+
+                        if (fileSizeLimit != null && downloadedBytes > fileSizeLimit) {
+                            throw RuntimeException("File size limit exceeded: $fileSizeLimit") // TODO raise
+                        }
+
+                        if (throttleDownloadSpeed != null && packetDownloadRealDuration != null) {
+                            val packetDownloadDurationAtMaximumAllowedSpeed =
+                                (packetSize.toDouble() / throttleDownloadSpeed.toDouble()).seconds
+                            if (packetDownloadRealDuration < packetDownloadDurationAtMaximumAllowedSpeed) {
+                                delay(packetDownloadDurationAtMaximumAllowedSpeed - packetDownloadRealDuration)
+                            }
+                        }
+
+                        downloadedBytesSinceLastProgressReport += packetSize
 
                         val now = Clock.System.now()
                         if (lastProgressReport + progressReportInterval < now) {
-                            lastProgressReport = now
-                            reportProgress()
+                            reportProgress(now)
                         }
                     }
                 }
@@ -83,7 +141,6 @@ suspend fun HttpClient.downloadFile(
                 reportProgress()
             }
         } else {
-            // TODO raise()
-            throw RuntimeException("Failed to download '$sourceUrl': received HTTP status code $httpStatusCode.")
+            throw RuntimeException("Failed to download '$sourceUrl': received HTTP status code $httpStatusCode.") // TODO raise()
         }
     }
