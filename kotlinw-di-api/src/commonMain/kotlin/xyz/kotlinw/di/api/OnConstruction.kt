@@ -7,3 +7,5 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 @Target(FUNCTION)
 @MustBeDocumented
 annotation class OnConstruction
+
+// TODO egy ötlet: ha az ezzel annotált metódusnak context(CoroutineScope)-ja van, akkor az ApplicationCoroutineService szkópját adjuk neki át
