@@ -11,8 +11,12 @@ import io.ktor.util.date.getTimeMillis
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinw.logging.api.Logger
 import kotlinw.util.stdlib.Url
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import xyz.kotlinw.io.FileLocation
 import xyz.kotlinw.io.bufferedSink
 
@@ -40,7 +44,8 @@ suspend fun HttpClient.downloadFile(
     targetFile: FileLocation,
     requestBuilder: HttpRequestBuilder.() -> Unit = {},
     progressListener: (FileDownloadProgressSnapshot) -> Unit = {},
-    downloadChunkSize: Int = 1024
+    downloadChunkSize: Int = 8 * 1024,
+    progressReportInterval: Duration = 1.seconds
 ) =
     prepareGet {
         requestBuilder()
@@ -52,6 +57,12 @@ suspend fun HttpClient.downloadFile(
             targetFile.bufferedSink().use { sink ->
                 val channel = httpResponse.body<ByteReadChannel>()
                 var downloadedBytes = 0L
+                var lastProgressReport = Instant.DISTANT_PAST
+
+                fun reportProgress() = progressListener(FileDownloadProgressSnapshot(sourceUrl, fileLength, downloadedBytes))
+
+                reportProgress()
+
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(downloadChunkSize.toLong())
                     while (!packet.isEmpty) {
@@ -60,9 +71,16 @@ suspend fun HttpClient.downloadFile(
                         sink.write(bytes)
 
                         downloadedBytes += bytes.size
-                        progressListener(FileDownloadProgressSnapshot(sourceUrl, fileLength, downloadedBytes))
+
+                        val now = Clock.System.now()
+                        if (lastProgressReport + progressReportInterval < now) {
+                            lastProgressReport = now
+                            reportProgress()
+                        }
                     }
                 }
+
+                reportProgress()
             }
         } else {
             // TODO raise()
