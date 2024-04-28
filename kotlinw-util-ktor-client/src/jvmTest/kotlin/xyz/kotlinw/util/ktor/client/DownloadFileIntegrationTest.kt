@@ -3,18 +3,15 @@ package xyz.kotlinw.util.ktor.client
 import io.ktor.client.HttpClient
 import kotlin.io.path.createTempFile
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.formatByteSize
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Clock.System
-import kotlinx.datetime.Instant
 import xyz.kotlinw.io.FileLocation
 import xyz.kotlinw.io.toKotlinPath
 
 
-class DownloadFileTest {
+class DownloadFileIntegrationTest {
 
     // Test files:
     // - https://www.thinkbroadband.com/download

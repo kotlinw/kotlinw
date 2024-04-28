@@ -2,7 +2,7 @@ package kotlinw.collection
 
 import kotlinw.util.stdlib.collection.ConcurrentMutableMap
 
-internal class ConcurrentHashMapInternalImpl<K : Any, V: Any>
+internal class ConcurrentHashMapInternalImpl<K : Any, V : Any>
 private constructor(
     private val wrapped: MutableMap<K, V>,
     @Suppress("UNUSED_PARAMETER") constructorDiscriminator: Unit
@@ -54,11 +54,8 @@ private constructor(
         return if (oldValue == null) {
             val newValue = mappingFunction(key)
             if (newValue != null) {
-                if (putIfAbsent(key, newValue) == null) {
-                    newValue
-                } else {
-                    oldValue
-                }
+                put(key, newValue)
+                newValue
             } else {
                 oldValue
             }

@@ -3,6 +3,7 @@ package xyz.kotlinw.module.httpclient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.HttpTimeout
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.Module
@@ -26,7 +27,7 @@ class HttpClientModule {
         ) {
             install(HttpTimeout) {
                 connectTimeoutMillis = 3.seconds.inWholeMilliseconds // TODO config
-                requestTimeoutMillis = 10.seconds.inWholeMilliseconds // TODO config
+                requestTimeoutMillis = 1.minutes.inWholeMilliseconds // TODO config
             }
         }
 }

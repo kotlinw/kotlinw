@@ -32,7 +32,7 @@ fun FileLocation.mkdirs(): Boolean {
     return exists()
 }
 
-fun FileLocation.delete() = fileSystem.delete(path)
+fun FileLocation.delete(mustExist: Boolean = true) = fileSystem.delete(path, mustExist)
 
 fun FileLocation.mkdir(): Boolean {
     return mkdirs() // TODO check if parent directory exists
