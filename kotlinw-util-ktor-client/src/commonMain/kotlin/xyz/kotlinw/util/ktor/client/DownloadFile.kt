@@ -54,15 +54,15 @@ val DownloadFileDefaultProgressReportInterval = 1.seconds
 suspend fun HttpClient.downloadFile(
     sourceUrl: Url,
     targetFile: FileLocation,
-    requestBuilder: HttpRequestBuilder.() -> Unit = {},
-    progressListener: (FileDownloadProgressSnapshot) -> Unit = {},
+    requestBuilder: (HttpRequestBuilder.() -> Unit)? = null,
+    progressListener: ((FileDownloadProgressSnapshot) -> Unit)? = null,
     chunkSize: Int? = null,
     progressReportInterval: Duration? = null,
     fileSizeLimit: Long? = null,
     throttleDownloadSpeed: Int? = null
 ) =
     prepareGet {
-        requestBuilder()
+        requestBuilder?.invoke(this)
         url(sourceUrl.value)
     }.execute { httpResponse ->
         val httpStatusCode = httpResponse.status
@@ -80,7 +80,7 @@ suspend fun HttpClient.downloadFile(
                 var lastProgressReport = Clock.System.now()
                 var downloadedBytesSinceLastProgressReport = 0L
 
-                progressListener(
+                progressListener?.invoke(
                     FileDownloadProgressSnapshot(
                         sourceUrl,
                         fileLength,
@@ -90,7 +90,7 @@ suspend fun HttpClient.downloadFile(
                 )
 
                 fun reportProgress(now: Instant = Clock.System.now()) {
-                    if (downloadedBytesSinceLastProgressReport > 0L) {
+                    if (progressListener != null && downloadedBytesSinceLastProgressReport > 0L) {
                         val downloadSpeed =
                             try {
                                 val downloadDuration = now - lastProgressReport
