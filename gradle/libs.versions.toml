@@ -97,7 +97,7 @@ composeImageLoader = "1.6.6"
 napier = "2.6.1"
 buildConfig = "4.1.1"
 
-kobweb = "0.17.1"
+kobweb = "0.17.3"
 
 pdvrieze-xmlutil = "0.86.2"
 
@@ -379,9 +379,23 @@ classgraph = { module = "io.github.classgraph:classgraph", version = "4.8.163" }
 
 net-openhft-zeroAllocationHashing = { module = "net.openhft:zero-allocation-hashing", version = "0.16" }
 
+oshi-core = { module = "com.github.oshi:oshi-core", version = "6.4.12" }
+
+rebugger = { module = "io.github.theapache64:rebugger", version = "1.0.0-rc02" }
+
+softwork-routing = { module = "app.softwork:routing-compose", version = "0.2.14" }
+
 kotunil = { module = "eu.sirotin.kotunil:kotunil", version = "4.2.1" }
 
 semver = { module = "net.swiftzer.semver:semver", version = "2.0.0" }
+
+jsoup = { module = "org.jsoup:jsoup", version = "1.17.2" }
+
+htmlunit = { module = "org.htmlunit:htmlunit", version = "4.0.0" }
+
+selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version = "4.19.1" }
+
+aircompressor = { module = "io.airlift:aircompressor", version = "0.26" }
 
 jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version = "2.17.0" }
 

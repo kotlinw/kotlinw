@@ -18,11 +18,11 @@ plugins {
 //    id("com.google.devtools.ksp") version "1.9.23-1.0.20" apply false
 //    kotlin("plugin.serialization") version "1.9.23" apply false
 //    kotlin("plugin.spring") version "1.9.23" apply false
-    id("org.jetbrains.compose") version "1.6.2" apply false
+//    id("org.jetbrains.compose") version "1.6.2" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
-    id("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("org.jetbrains.kotlinx.kover") version "0.7.6"
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.1" apply false
 }
 
@@ -37,7 +37,8 @@ val notPublishedProjects = listOf(
     projects.kotlinw.kotlinwRemotingProcessorTest,
     projects.kotlinw.kotlinwDiTest,
     projects.kotlinw.kotlinwImmutatorTest,
-    projects.kotlinw.module.kotlinwInternalModuleServerbaseTest
+    // TODO projects.kotlinw.kotlinwImmutatorExampleWebapp,
+    projects.kotlinw.module.kotlinwModuleServerbaseInternalTest
 ).map { it.dependencyProject }
 
 subprojects {

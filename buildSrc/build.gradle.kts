@@ -5,6 +5,7 @@ plugins {
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    google()
 }
 
 kotlin {
@@ -32,4 +33,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-serialization:1.9.23")
     implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:1.9.23-1.0.20")
     implementation("com.github.johnrengelman:shadow:8.1.1")
+    implementation("org.jetbrains.compose:compose-gradle-plugin:1.6.2")
+    // implementation("com.android.tools.build:gradle:8.1.1")
 }

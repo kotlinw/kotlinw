@@ -30,7 +30,7 @@ val Project.buildMode: DevelopmentMode
         val developmentModeSystemPropertyValue = System.getProperty(developmentModeOptionName)
 
         fun determineBuildMode(value: String?): DevelopmentMode =
-            DevelopmentMode.values().firstOrNull { it.name.toLowerCase() == value?.toLowerCase() }
+            DevelopmentMode.values().firstOrNull { it.name.lowercase() == value?.lowercase() }
                 ?: throw IllegalStateException("Invalid build mode: $value")
 
         return if (developmentModeSystemPropertyValue != null) {

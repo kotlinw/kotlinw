@@ -24,10 +24,10 @@ kotlin {
     }
 }
 
-koverReport {
-    filters {
-        includes {
-            classes("kotlinw.eventbus.local.*")
-        }
-    }
-}
+//koverReport {
+//    filters {
+//        includes {
+//            classes("kotlinw.eventbus.local.*")
+//        }
+//    }
+//}
