@@ -4,7 +4,7 @@
 kotlin = "1.9.23"
 
 # https://github.com/spring-projects/spring-boot/releases
-springBoot = "3.2.0"
+#springBoot = "3.2.0"
 
 # https://github.com/ktorio/ktor/releases
 ktor = "3.0.0-beta-1"
@@ -223,14 +223,14 @@ kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.23.
 kotlinx-io-bytestring = { module = "org.jetbrains.kotlinx:kotlinx-io-bytestring", version.ref = "kotlinx-io" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
-spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
-spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
-gradle-plugin-spring-boot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
-spring-boot-starter-oauth2server = { module = "org.springframework.boot:spring-boot-starter-oauth2-authorization-server", version.ref = "springBoot" }
-spring-context = { module = "org.springframework:spring-context" }
-spring-web = { module = "org.springframework:spring-web" }
+#spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+#spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+#spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+#spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
+#gradle-plugin-spring-boot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
+#spring-boot-starter-oauth2server = { module = "org.springframework.boot:spring-boot-starter-oauth2-authorization-server", version.ref = "springBoot" }
+#spring-context = { module = "org.springframework:spring-context" }
+#spring-web = { module = "org.springframework:spring-web" }
 
 projectreactor-blockhound = { module = "io.projectreactor.tools:blockhound", version = "1.0.8.RELEASE" }
 
