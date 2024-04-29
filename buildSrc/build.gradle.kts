@@ -11,19 +11,19 @@ repositories {
 kotlin {
     target {
         attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 19)
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
         }
         compilations.all {
             kotlinOptions {
-                jvmTarget = "19"
+                jvmTarget = "11"
             }
         }
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_19
-    targetCompatibility = JavaVersion.VERSION_19
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 dependencies {

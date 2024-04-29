@@ -5,11 +5,11 @@ plugins {
 kotlin {
     target {
         attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 19)
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
         }
         compilations.all {
             kotlinOptions {
-                jvmTarget = "19"
+                jvmTarget = "11"
             }
         }
     }

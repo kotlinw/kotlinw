@@ -6,7 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val javaVersion = JavaVersion.VERSION_19
+val javaVersion = JavaVersion.VERSION_11
 
 fun JavaVersion.asString() = name.substring(name.lastIndexOf('_') + 1)
 

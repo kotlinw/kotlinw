@@ -8,9 +8,9 @@ kotlin {
     targetHierarchy.default()
 
     jvm {
-        jvmToolchain(19)
+        jvmToolchain(11)
         attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 19)
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
         }
     }
 
