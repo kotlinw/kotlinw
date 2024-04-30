@@ -137,7 +137,7 @@ kmath-core = { module = "space.kscience:kmath-core", version.ref = "kmath" }
 kmath-real = { module = "space.kscience:kmath-real", version.ref = "kmath" }
 
 jetbrains-skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
-jetbrains-markdown = { module = "org.jetbrains:markdown", version = "0.5.0" }
+jetbrains-markdown = { module = "org.jetbrains:markdown", version = "0.7.0" }
 
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
 jetbrains-compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "compose" }
