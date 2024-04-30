@@ -7,7 +7,7 @@ plugins {
 }
 
 kotlin {
-    targetHierarchy.default()
+    applyDefaultHierarchyTemplate()
     jvm { }
     js(IR) {
         browser()

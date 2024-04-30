@@ -9,7 +9,7 @@ kotlin {
         freeCompilerArgs.set(freeCompilerArgs.get() + "-Xcontext-receivers") // TODO why is this necessary? theoretically this is in the root build file as well...
     }
 
-    targetHierarchy.default()
+    applyDefaultHierarchyTemplate()
     jvm { }
     js(IR) {
         browser()

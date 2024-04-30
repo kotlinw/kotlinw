@@ -11,7 +11,7 @@ java {
 }
 
 kotlin {
-    targetHierarchy.default()
+    applyDefaultHierarchyTemplate()
 
     jvm {
         attributes {

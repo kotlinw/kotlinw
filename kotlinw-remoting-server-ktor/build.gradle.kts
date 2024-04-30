@@ -7,7 +7,7 @@ plugins {
 }
 
 kotlin {
-    targetHierarchy.default()
+    applyDefaultHierarchyTemplate()
     jvm { }
     if (isNativeTargetEnabled()) {
         linuxX64()
