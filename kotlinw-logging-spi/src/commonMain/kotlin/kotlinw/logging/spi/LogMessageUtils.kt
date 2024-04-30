@@ -10,7 +10,8 @@ import kotlinw.logging.api.LogMessage.Structured.Segment.Text
 import kotlinw.logging.api.LogMessage.Structured.Segment.Value
 
 fun LogMessage.processPlaceholders(
-    placeholderProvider: (value: Any?) -> String,
+    positionalArgumentPlaceholderProvider: (value: Any?) -> String,
+    namedArgumentPlaceholderProvider: (name: String, value: Any?) -> String,
     onArgument: (value: Any?) -> Unit,
     onNamedArgument: (name: String, value: Any?) -> Unit
 ): String =
@@ -19,7 +20,7 @@ fun LogMessage.processPlaceholders(
 
         is SimpleValue -> {
             onArgument(value)
-            placeholderProvider(value)
+            positionalArgumentPlaceholderProvider(value)
         }
 
         is Structured -> {
@@ -28,14 +29,15 @@ fun LogMessage.processPlaceholders(
             for (segment in segments) {
                 when (segment) {
                     is NamedValue -> {
+                        val name = segment.name
                         val value = segment.value
-                        messageBuilder.append(placeholderProvider(value))
-                        onNamedArgument(segment.name, value)
+                        messageBuilder.append(namedArgumentPlaceholderProvider(name, value))
+                        onNamedArgument(name, value)
                     }
 
                     is Value -> {
                         val value = segment.value
-                        messageBuilder.append(placeholderProvider(value))
+                        messageBuilder.append(positionalArgumentPlaceholderProvider(value)) // TODO ezeknek is lehetne egy generált nevet adni
                         onArgument(value)
                     }
 

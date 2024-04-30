@@ -85,6 +85,7 @@ class Slf4jLoggingIntegrator : LoggingIntegrator {
         builder.setMessage(
             message.processPlaceholders(
                 { ARGUMENT_PLACEHOLDER },
+                { name, _ -> "#{$name}" },
                 { builder.addArgument(it) },
                 { name, value ->
                     builder.addKeyValue(name, value)
