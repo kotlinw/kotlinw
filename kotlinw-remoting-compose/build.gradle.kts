@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlinx.binary-compatibility-validator")
 }
@@ -41,5 +42,5 @@ kotlin {
 
 //compose {
 //    kotlinCompilerPlugin.set(dependencies.compiler.forKotlin("1.9.21"))
-//    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=1.9.23")
+//    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=2.0.0-RC2")
 //}

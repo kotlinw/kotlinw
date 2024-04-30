@@ -13,16 +13,16 @@ buildscript {
 }
 
 plugins {
-//    kotlin("multiplatform") version "1.9.23" apply false
-//    kotlin("plugin.jpa") version "1.9.23" apply false
-//    id("com.google.devtools.ksp") version "1.9.23-1.0.20" apply false
-//    kotlin("plugin.serialization") version "1.9.23" apply false
-//    kotlin("plugin.spring") version "1.9.23" apply false
-//    id("org.jetbrains.compose") version "1.6.2" apply false
+//    kotlin("multiplatform") version "2.0.0-RC2" apply false
+//    kotlin("plugin.jpa") version "2.0.0-RC2" apply false
+//    id("com.google.devtools.ksp") version "2.0.0-RC2-1.0.20" apply false
+//    kotlin("plugin.serialization") version "2.0.0-RC2" apply false
+//    kotlin("plugin.spring") version "2.0.0-RC2" apply false
+//    id("org.jetbrains.compose") version "1.6.10-beta03" apply false
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
-    id("org.jetbrains.kotlinx.kover") version "0.7.6"
+    // TODO kover: id("org.jetbrains.kotlinx.kover") version "0.7.6"
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.1" apply false
 }
 
@@ -51,7 +51,7 @@ subprojects {
     }
 
     apply(plugin = "kotlinx-atomicfu")
-    apply(plugin = "org.jetbrains.kotlinx.kover")
+    // TODO kover: apply(plugin = "org.jetbrains.kotlinx.kover")
 
     fun KotlinCommonOptions.configureCommonOptions() {
         languageVersion = "1.9"

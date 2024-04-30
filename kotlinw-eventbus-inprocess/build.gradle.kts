@@ -1,6 +1,6 @@
 plugins {
     `kotlinw-multiplatform-library`
-    id("org.jetbrains.kotlinx.kover")
+    // TODO kover: id("org.jetbrains.kotlinx.kover")
 }
 
 apply(plugin = "kotlinx-knit")
@@ -24,7 +24,7 @@ kotlin {
     }
 }
 
-//koverReport {
+// TODO kover: koverReport {
 //    filters {
 //        includes {
 //            classes("kotlinw.eventbus.local.*")

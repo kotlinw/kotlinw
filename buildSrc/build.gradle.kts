@@ -27,12 +27,12 @@ java {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
-    implementation("org.jetbrains.kotlin:kotlin-noarg:1.9.23")
-    implementation("org.jetbrains.kotlin:kotlin-allopen:1.9.23")
-    implementation("org.jetbrains.kotlin:kotlin-serialization:1.9.23")
-    implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:1.9.23-1.0.20")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0-RC2")
+    implementation("org.jetbrains.kotlin:kotlin-noarg:2.0.0-RC2")
+    implementation("org.jetbrains.kotlin:kotlin-allopen:2.0.0-RC2")
+    implementation("org.jetbrains.kotlin:kotlin-serialization:2.0.0-RC2")
+    implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.0-RC2-1.0.20")
     implementation("com.github.johnrengelman:shadow:8.1.1")
-    implementation("org.jetbrains.compose:compose-gradle-plugin:1.6.2")
+    implementation("org.jetbrains.compose:compose-gradle-plugin:1.6.10-beta03")
     // implementation("com.android.tools.build:gradle:8.1.1")
 }
