@@ -3,8 +3,6 @@ plugins {
     // TODO kover: id("org.jetbrains.kotlinx.kover")
 }
 
-apply(plugin = "kotlinx-knit")
-
 kotlin {
     sourceSets {
         val commonMain by getting {

@@ -4,11 +4,16 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 kotlin {
     targetHierarchy.default()
 
     jvm {
-        jvmToolchain(11)
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
         }
