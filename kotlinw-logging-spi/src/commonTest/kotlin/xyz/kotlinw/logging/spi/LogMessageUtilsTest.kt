@@ -15,7 +15,8 @@ class LogMessageUtilsTest {
             "Number:{}",
             buildLogMessage { "Number:" / named("number", 5) }
                 .processPlaceholders(
-                    { "{}" },
+                    { throw UnsupportedOperationException() },
+                    { _, _ -> "{}" },
                     { fail() },
                     { name, value -> namedArguments[name] = value}
                 )
@@ -31,6 +32,7 @@ class LogMessageUtilsTest {
             buildLogMessage { "From map: " / mapOf("number" to 5, "string" to "text") }
                 .processPlaceholders(
                     { "{}" },
+                    { _, _ -> "{}" },
                     { fail() },
                     { name, value -> namedArguments[name] = value}
                 )
