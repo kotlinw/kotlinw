@@ -14,10 +14,18 @@ import java.time.Instant
 context(Transactional, JpaSessionContext)
 private fun updateSchemaVersionInfoEntity(schemaVersion: SortableDatabaseUpgraderId) {
     entityManager.createQuery("FROM DatabaseSchemaVersionInfoEntity", DatabaseSchemaVersionInfoEntity::class.java)
-        .singleResult
+        .resultList
         .also {
-            it.currentSchemaVersion = schemaVersion
-            it.timestamp = Instant.now()
+            if (it.isEmpty()) {
+                entityManager.persistEntity(
+                    DatabaseSchemaVersionInfoEntity(schemaVersion, Instant.now())
+                )
+            } else {
+                it.first().apply {
+                    currentSchemaVersion = schemaVersion
+                    timestamp = Instant.now()
+                }
+            }
         }
 }
 
