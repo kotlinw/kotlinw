@@ -13,7 +13,7 @@ suspend fun <S : ContainerScope, T> runApplication(
     rootScopeFactory: () -> S,
     beforeScopeCreated: () -> Unit = {},
     afterUninitializedScopeCreated: (S) -> Unit = {},
-    shutdown: () -> Unit = {},
+    onShutdown: () -> Unit = {},
     block: suspend S.() -> T = {
         delay(Long.MAX_VALUE)
         throw IllegalStateException() // Should not be reached
@@ -63,7 +63,7 @@ suspend fun <S : ContainerScope, T> runApplication(
         }
         throw e
     } finally {
-        shutdown()
+        onShutdown()
     }
 }
 

@@ -115,6 +115,8 @@ private class DelayKspProcessingException() : RuntimeException()
 //at kotlinw.util.stdlib.BloomFilterKt.newMutableBloomFilter$default(BloomFilter.kt:29)
 //at kotlinw.graph.algorithm.TopologicalSortData.<init>(GraphTopologicalSort.kt:39)
 
+// TODO warning, ha interfész típus elrejt a komponens típusa, pl. WorkflowManager a típus, de a WorkflowManagerImpl implementálja a ContainerLifecycleListener-t is
+
 @OptIn(KspExperimental::class)
 class DiSymbolProcessor(
     private val codeGenerator: CodeGenerator,

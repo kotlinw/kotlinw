@@ -70,7 +70,7 @@ class DelegatingFileConfigurationPropertyResolver private constructor(
         try {
             resource.readUtf8String()
         } catch (e: Exception) {
-            // TODO log
+            // FIXME log
             null
         }
 

@@ -34,7 +34,7 @@ suspend fun <S : ContainerScope, T> runJvmApplication(
                 }
             )
         },
-        shutdown = ::deletePidFile,
+        onShutdown = ::deletePidFile,
         block = block
     )
 

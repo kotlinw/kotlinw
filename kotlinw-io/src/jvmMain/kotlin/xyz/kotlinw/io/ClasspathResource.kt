@@ -26,7 +26,7 @@ class ClasspathResource(
             if (it.size == 1) {
                 it.first()
             } else {
-                throw IllegalStateException() // TODO
+                throw IllegalStateException() // FIXME
             }
         }
 

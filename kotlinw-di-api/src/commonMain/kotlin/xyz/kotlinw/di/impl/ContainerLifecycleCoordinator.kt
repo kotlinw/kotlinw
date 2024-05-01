@@ -19,6 +19,8 @@ interface ContainerLifecycleCoordinator {
         onShutdown: suspend (T) -> Unit,
         priority: Priority = Priority.Normal
     )
+
+    fun initiateShutdown()
 }
 
 class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
@@ -74,10 +76,10 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
             try {
                 listener.onContainerStartup()
                 shutdownTasks.add(listener)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.nonFatalOrThrow().also {
                     // TODO log
-                    runShutdownTasks()
+                    runShutdownTasks() // FIXME ez így nem jó, mert ez a this.shutdownTasks-ot használja, ami itt még mindig üres
                     throw RuntimeException("Startup task failed: $listener", it)
                 }
             }
@@ -93,11 +95,16 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
                     withContext(NonCancellable) {
                         it.onContainerShutdown()
                     }
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
+                    // FIXME itt ne dobjunk tovább semmit, mert akkor a teljes shutdown folyamat megszakad
                     e.nonFatalOrThrow() // TODO log
                 }
             }
             shutdownTasks = emptyImmutableList()
         }
+    }
+
+    override fun initiateShutdown() {
+        TODO()
     }
 }

@@ -16,7 +16,7 @@ import kotlin.reflect.KClass
 @Target(CLASS, FUNCTION, VALUE_PARAMETER)
 @MustBeDocumented
 annotation class Component(
-    val type: KClass<out Any> = Any::class,
+    val type: KClass<out Any> = Any::class, // TODO itt még egy olyan fícsör is lehetne, hogy azt adja meg, hogy melyik típust rejti el
     // TODO val types: Array<KClass<out Any>> = [],
     val onConstruction: String = "",
     val onTerminate: String = ""
