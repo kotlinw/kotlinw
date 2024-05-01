@@ -93,6 +93,7 @@ private class DelayKspProcessingException() : RuntimeException()
 // FIXME hiányzó dependency esetén hibás kódot generál, és nem ad hasznos fordítási hibát
 // TODO component query-nél ellenőrizni kellene a metódus elején, hogy el a scope-on meg lett-e már hívva a start()
 // TODO ha az includeModules-ben @Module-lal nem annotált class szerepel, akkor elszáll
+// TODO írja ki, hogy pontosan melyik komponens hiányolja: [ksp] Exactly 1 component instance of type `com.erinors.workflow.api.WorkflowDefinitionLookup` expected but found 0:
 
 // TODO tök üres modulra elszáll
 //@Container

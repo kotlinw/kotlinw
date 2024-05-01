@@ -67,7 +67,10 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
 
         val shutdownTasks = mutableListOf<ContainerLifecycleListener>()
 
-        listeners.sortedBy { it.lifecycleListenerPriority }.forEach { listener ->
+        val startupTasks = listeners.sortedBy { it.lifecycleListenerPriority }
+        // TODO kilogolni startupTasks-ot
+
+        startupTasks.forEach { listener ->
             try {
                 listener.onContainerStartup()
                 shutdownTasks.add(listener)
