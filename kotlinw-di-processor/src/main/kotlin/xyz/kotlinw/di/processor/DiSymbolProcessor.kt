@@ -458,7 +458,6 @@ class DiSymbolProcessor(
                     .keys
                     .mapIndexed { index, moduleId -> moduleId to "m$index" } // TODO beszédes neveket, hogy a generált kód olvashatóbb legyen
                     .toMap(),
-                componentGraph,
                 reverseTopologicalSort
                     .filter { it.data in resolvedScopeModel.components }
                     .mapIndexed { index, componentVertex ->
@@ -972,6 +971,24 @@ class DiSymbolProcessor(
                             }
                     }
             }
+
+            // Make sure that the ComponentLifecycleCoordinator instance will be the first component to be created
+
+            // TODO ezt a fix hivatkozást valami szebb megoldással kiváltani
+            val lifecycleCoordinatorComponentId =
+                ComponentId("xyz.kotlinw.module.core.CoreModule", "containerLifecycleCoordinator")
+            if (components.containsKey(lifecycleCoordinatorComponentId)) {
+                val lifecycleCoordinatorVertex = vertexes.getValue(lifecycleCoordinatorComponentId)
+                components
+                    .filter { it.key != lifecycleCoordinatorComponentId }
+                    .forEach {
+                        val componentId = it.key
+                        val componentVertex = vertexes.getValue(componentId)
+                        if (!hasEdge(componentVertex, lifecycleCoordinatorVertex)) {
+                            edge(componentVertex, lifecycleCoordinatorVertex)
+                        }
+                    }
+            }
         }
 
     // TODO ez használhatná belül a ComponentLookup-ot
@@ -1001,7 +1018,8 @@ class DiSymbolProcessor(
         if (!allModules.contains(moduleType)) {
             allModules.add(moduleType)
 
-            (moduleType.getAnnotationsOfType<Module>().first() // TODO a first() dobott NoSuchElementException-t amikor az egyik tranzitív modul nem volt elérhető, mert hiányzott a hozzá tartozó Gradle dependency
+            (moduleType.getAnnotationsOfType<Module>()
+                .first() // TODO a first() dobott NoSuchElementException-t amikor az egyik tranzitív modul nem volt elérhető, mert hiányzott a hozzá tartozó Gradle dependency
                 .getArgumentValueOrNull("includeModules") as? List<KSType>)
                 ?.forEach {
                     collectTransitiveModules(it.declaration as KSClassDeclaration, allModules)
@@ -1053,6 +1071,7 @@ class DiSymbolProcessor(
         val resolvedScopes = mutableMapOf<String, ResolvedScopeModel>()
         containerModel.scopes
             .sortedWith { o1, o2 ->
+                // TODO ezt nem lehet szebben?
                 if (o1.parentScopeName == o2.name) {
                     1
                 } else if (o1.name == o2.parentScopeName) {
@@ -1113,7 +1132,7 @@ class DiSymbolProcessor(
                                                 SINGLE_OPTIONAL ->
                                                     if (resolvedComponentDependencyModel.candidates.size > 1) {
                                                         kspLogger.error(
-                                                            "0 or 1 component instance of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            "${componentModel.id}: 0 or 1 component instance of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
                                                             resolvedComponentDependencyModel.componentLookup.kspMessageTarget
                                                         )
                                                     }
@@ -1121,7 +1140,7 @@ class DiSymbolProcessor(
                                                 SINGLE_REQUIRED ->
                                                     if (resolvedComponentDependencyModel.candidates.size != 1) {
                                                         kspLogger.error(
-                                                            "Exactly 1 component instance of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            "${componentModel.id}: Exactly 1 component instance of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
                                                             resolvedComponentDependencyModel.componentLookup.kspMessageTarget
                                                         )
                                                     }
@@ -1131,7 +1150,7 @@ class DiSymbolProcessor(
                                                 MULTIPLE_REQUIRED ->
                                                     if (resolvedComponentDependencyModel.candidates.isEmpty()) {
                                                         kspLogger.error(
-                                                            "1 or more component instances of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
+                                                            "${componentModel.id}: 1 or more component instances of type ${resolvedComponentDependencyModel.format()} expected but found ${resolvedComponentDependencyModel.candidates.size}: ${resolvedComponentDependencyModel.candidates.joinToString { it.component.id.toString() }}",
                                                             resolvedComponentDependencyModel.componentLookup.kspMessageTarget
                                                         )
                                                     }
@@ -1209,7 +1228,8 @@ private fun KSAnnotated.extractQualifierOrNull(): String? =
         .firstOrNull()
 
 
-private fun KSAnnotated.getQualifierOrNull(): String? = getAnnotationsOfType<Qualifier>().toList().firstOrNull()?.getArgumentValueOrNull(Qualifier::value.name)
+private fun KSAnnotated.getQualifierOrNull(): String? =
+    getAnnotationsOfType<Qualifier>().toList().firstOrNull()?.getArgumentValueOrNull(Qualifier::value.name)
 
 private fun ResolvedScopeModel.collectComponents(): Map<ComponentId, ResolvedComponentModel> =
     components + (parentScopeModel?.collectComponents() ?: emptyMap())

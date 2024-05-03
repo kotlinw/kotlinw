@@ -12,9 +12,8 @@ inline fun runCatchingCleanup(block: () -> Unit) {
 
     try {
         block()
-    } catch (e: Throwable) {
-        if (!NonFatal(e) /* TODO ez miért kellett ide? && e !is CancellationException */) {
-            throw e
-        }
+    } catch (e: Exception) {
+        // Ignore
+        // TODO log?
     }
 }

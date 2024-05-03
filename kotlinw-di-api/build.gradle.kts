@@ -10,6 +10,7 @@ kotlin {
             dependencies {
                 api(libs.kotlinx.coroutines.core)
                 implementation(projects.kotlinw.kotlinwUtilStdlibMp)
+                implementation(projects.kotlinw.kotlinwUtilCoroutineMp)
             }
         }
         val commonTest by getting {

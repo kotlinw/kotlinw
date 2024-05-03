@@ -16,6 +16,8 @@ sealed interface GraphBuilder<D : Any> {
 
     fun vertex(data: D): Vertex<D>
 
+    fun hasEdge(from: Vertex<D>, to: Vertex<D>): Boolean
+
     fun edge(from: Vertex<D>, to: Vertex<D>)
 }
 
@@ -30,11 +32,16 @@ private abstract class AbstractGraphBuilderImpl<D : Any, G : Graph<D, Vertex<D>>
         return vertex
     }
 
+    override fun hasEdge(from: Vertex<D>, to: Vertex<D>): Boolean =
+        vertices.getValue(from).contains(to)
+
     override fun edge(from: Vertex<D>, to: Vertex<D>) {
         check(vertices.containsKey(from)) { "Foreign 'from' vertex: $from" }
         check(vertices.containsKey(to)) { "Foreign 'to' vertex: $to" }
 
-        vertices.getValue(from).add(to)
+        val edges = vertices.getValue(from)
+        require(!edges.contains(to)) { "Edge already exists: $from -> $to" }
+        edges.add(to)
     }
 
     abstract fun build(): G

@@ -15,9 +15,6 @@ import kotlinw.uuid.toUuid
 import org.hibernate.Hibernate
 import java.util.UUID
 
-const val pgTextType = "TEXT" // TODO remove
-const val pgUuidType = "UUID" // TODO remove
-
 typealias BaseEntityId = Long
 
 @MappedSuperclass

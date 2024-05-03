@@ -3,11 +3,11 @@ package xyz.kotlinw.hibernate.configuration.entity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
+import kotlinw.hibernate.core.api.JpaSessionContext
 import kotlinw.hibernate.core.entity.BaseEntity
 import kotlinw.hibernate.core.entity.BaseEntityRepository
 import kotlinw.hibernate.core.entity.BaseEntityRepositoryImpl
-import kotlinw.hibernate.core.api.JpaSessionContext
-import kotlinw.hibernate.core.entity.pgTextType
+import org.hibernate.Length
 import org.hibernate.envers.Audited
 import xyz.kotlinw.di.api.Component
 
@@ -16,10 +16,10 @@ import xyz.kotlinw.di.api.Component
 @Audited
 class ApplicationConfigurationEntity(
 
-    @Column(nullable = false, columnDefinition = pgTextType, unique = true)
+    @Column(nullable = false, length = Length.LONG32, unique = true)
     var name: String,
 
-    @Column(nullable = false, columnDefinition = pgTextType)
+    @Column(nullable = false, length = Length.LONG32)
     var value: String
 
 ) : BaseEntity() {

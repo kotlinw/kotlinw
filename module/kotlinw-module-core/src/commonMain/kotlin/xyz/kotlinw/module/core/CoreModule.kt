@@ -10,6 +10,7 @@ import xyz.kotlinw.module.configuration.ConfigurationModule
 import xyz.kotlinw.module.logging.LoggingModule
 import xyz.kotlinw.module.serializer.SerializerModule
 
+// TODO a containerLifecycleCoordinator komponensre fix hivatkozás van a DoSymbolProcessor-ban!
 @Module(includeModules = [SerializerModule::class, LoggingModule::class, ConfigurationModule::class])
 class CoreModule {
 
