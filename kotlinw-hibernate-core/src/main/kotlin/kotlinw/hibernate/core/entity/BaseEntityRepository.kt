@@ -3,7 +3,7 @@ package kotlinw.hibernate.core.entity
 import jakarta.persistence.LockModeType
 import java.io.Serializable
 import kotlin.reflect.KClass
-import kotlinw.hibernate.core.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.Transactional
 import xyz.kotlinw.jpa.api.findOrNull
 import xyz.kotlinw.jpa.api.getReference

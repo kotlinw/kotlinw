@@ -11,7 +11,7 @@ import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.runJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask
-import kotlinw.hibernate.core.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
 import kotlinw.jdbc.util.executeStatements
 import kotlinw.module.hibernate.core.HibernateModule

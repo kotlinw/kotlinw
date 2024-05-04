@@ -1,6 +1,6 @@
 package kotlinw.hibernate.core.schemaupgrade.simple
 
-import kotlinw.hibernate.core.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.Transactional
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManager
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManagerImpl

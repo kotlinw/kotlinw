@@ -3,7 +3,7 @@ package xyz.kotlinw.hibernate.configuration.entity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
-import kotlinw.hibernate.core.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.JpaSessionContext
 import kotlinw.hibernate.core.entity.BaseEntity
 import kotlinw.hibernate.core.entity.BaseEntityRepository
 import kotlinw.hibernate.core.entity.BaseEntityRepositoryImpl
