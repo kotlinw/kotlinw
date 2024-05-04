@@ -3,6 +3,7 @@ package kotlinw.hibernate.core.api
 import jakarta.persistence.EntityGraph
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
+import jakarta.persistence.EntityNotFoundException
 import jakarta.persistence.EntityTransaction
 import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
@@ -15,7 +16,6 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.metamodel.Metamodel
 import kotlinw.hibernate.core.annotation.NotTypeSafeJpaApi
-
 
 sealed interface TypeSafeEntityManager : EntityManager {
 
@@ -132,7 +132,7 @@ sealed interface TypeSafeEntityManager : EntityManager {
     @NotTypeSafeJpaApi
     override fun createQuery(qlString: String): Query
 
-    override fun <T : Any> createQuery(criteriaQuery: CriteriaQuery<T>): TypedQuery<T>
+    override fun <T> createQuery(criteriaQuery: CriteriaQuery<T>): TypedQuery<T>
 
     @NotTypeSafeJpaApi
     override fun createQuery(updateQuery: CriteriaUpdate<*>): Query
@@ -140,7 +140,7 @@ sealed interface TypeSafeEntityManager : EntityManager {
     @NotTypeSafeJpaApi
     override fun createQuery(deleteQuery: CriteriaDelete<*>): Query
 
-    override fun <T : Any> createQuery(qlString: String, resultClass: Class<T>): TypedQuery<T>
+    override fun <T> createQuery(qlString: String, resultClass: Class<T>): TypedQuery<T>
 
     @NotTypeSafeJpaApi
     override fun createNamedQuery(name: String): Query
@@ -200,39 +200,9 @@ sealed interface TypeSafeEntityManager : EntityManager {
     override fun <T : Any> getEntityGraphs(entityClass: Class<T>): List<EntityGraph<in T>>
 }
 
-@JvmInline
-internal value class TypeSafeEntityManagerImpl(private val delegate: EntityManager) : EntityManager by delegate,
-    TypeSafeEntityManager {
-
-    context(Transactional)
-    override fun <T : Any> persistEntity(entity: T): T {
-        persist(entity)
-        return entity
+fun <T : Any> TypeSafeEntityManager.getReferenceOrNull(entityClass: Class<T>, primaryKey: Any): T? =
+    try {
+        getReference(entityClass, primaryKey)
+    } catch (e: EntityNotFoundException) {
+        null
     }
-
-    context(Transactional)
-    override fun <T : Any> mergeEntity(entity: T): T =
-        merge(entity)
-
-    context(Transactional)
-    override fun removeEntity(entity: Any) {
-        remove(entity)
-    }
-
-    override fun <T : Any> findOrNull(entityClass: Class<T>, primaryKey: Any): T? =
-        find(entityClass, primaryKey)
-
-    override fun <T : Any> findOrNull(entityClass: Class<T>, primaryKey: Any, properties: Map<String, Any>): T? =
-        find(entityClass, primaryKey, properties)
-
-    override fun <T : Any> findOrNull(entityClass: Class<T>, primaryKey: Any, lockMode: LockModeType): T? =
-        find(entityClass, primaryKey, lockMode)
-
-    override fun <T : Any> findOrNull(
-        entityClass: Class<T>,
-        primaryKey: Any,
-        lockMode: LockModeType,
-        properties: Map<String, Any>
-    ): T? =
-        find(entityClass, primaryKey, lockMode, properties)
-}

@@ -93,10 +93,17 @@ class HibernateModule {
     @Component
     fun persistentClassProviderApplier(persistentClassProviders: List<PersistentClassProvider>) =
         MetadataSourcesCustomizer {
+            val packages = mutableSetOf<String>()
+
             persistentClassProviders.forEach {
                 it.getPersistentClasses().forEach {
                     addAnnotatedClass(it.java)
+                    packages.add(it.java.packageName)
                 }
+            }
+
+            packages.forEach {
+                addPackage(it)
             }
         }
 

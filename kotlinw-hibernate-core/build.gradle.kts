@@ -37,4 +37,6 @@ dependencies {
     api(projects.kotlinw.kotlinwUtilSerializationJson)
     api(projects.kotlinw.module.kotlinwModuleApi)
     api(libs.arrow.core)
+
+    testImplementation(libs.kotlin.test)
 }
