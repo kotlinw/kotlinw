@@ -7,13 +7,12 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.MappedSuperclass
 import jakarta.persistence.SequenceGenerator
+import java.util.*
 import kotlinw.ulid.Ulid
 import kotlinw.ulid.toUlid
 import kotlinw.ulid.toUuid
 import kotlinw.uuid.asJavaUuid
 import kotlinw.uuid.toUuid
-import org.hibernate.Hibernate
-import java.util.UUID
 
 typealias BaseEntityId = Long
 
@@ -32,30 +31,7 @@ abstract class SimpleBaseEntity(
     )
     override var id: BaseEntityId? = null,
 
-) : AbstractEntity<BaseEntityId>() {
-
-    protected final inline val entityClassForEquals get(): Class<*> = Hibernate.getClass(this)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is SimpleBaseEntity) return false
-
-        check(id != null)
-        check(other.id != null)
-        if (id != other.id) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        check(id != null)
-        return id.hashCode() ?: 0
-    }
-
-    override fun toString(): String {
-        return "${entityClassForEquals.simpleName}(id=$id)"
-    }
-}
+    ) : AbstractHibernateEntity<BaseEntityId>()
 
 @MappedSuperclass
 abstract class BaseEntity(
@@ -75,7 +51,7 @@ abstract class BaseEntity(
         if (this === other) {
             true
         } else if (other is BaseEntity && ulid == other.ulid) {
-            assert(entityClassForEquals == other.entityClassForEquals)
+            assert(entityClass == other.entityClass)
             true
         } else {
             false
@@ -84,7 +60,7 @@ abstract class BaseEntity(
     final override fun hashCode() = ulid.hashCode()
 
     override fun toString(): String {
-        return "${entityClassForEquals.simpleName}(id=$id, uid=$uid)"
+        return "${entityClass.simpleName}(id=$id, uid=$uid)"
     }
 }
 
