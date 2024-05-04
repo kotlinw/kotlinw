@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager
 import org.hibernate.SharedSessionContract
 import org.hibernate.internal.TransactionManagement
 import java.util.function.Function
+import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionalImpl
 
 fun <T> SharedSessionContract.transactional(block: context(Transactional) () -> T): T =
     if (isJoinedToTransaction) {

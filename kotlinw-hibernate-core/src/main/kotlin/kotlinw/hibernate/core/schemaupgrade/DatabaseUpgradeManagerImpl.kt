@@ -1,7 +1,7 @@
 package kotlinw.hibernate.core.schemaupgrade
 
 import kotlinw.hibernate.core.api.JpaSessionContext
-import kotlinw.hibernate.core.api.Transactional
+import xyz.kotlinw.jpa.api.Transactional
 import kotlinw.hibernate.core.api.jdbcTask
 import kotlinw.hibernate.core.api.runJpaTask
 import kotlinw.hibernate.core.api.runTransactionalJpaTask

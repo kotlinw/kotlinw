@@ -1,4 +1,4 @@
-package kotlinw.hibernate.core.api
+package xyz.kotlinw.jpa.api
 
 import jakarta.persistence.EntityGraph
 import jakarta.persistence.Subgraph

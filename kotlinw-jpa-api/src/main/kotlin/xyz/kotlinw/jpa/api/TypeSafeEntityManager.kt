@@ -1,9 +1,8 @@
-package kotlinw.hibernate.core.api
+package xyz.kotlinw.jpa.api
 
 import jakarta.persistence.EntityGraph
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
-import jakarta.persistence.EntityNotFoundException
 import jakarta.persistence.EntityTransaction
 import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
@@ -14,14 +13,11 @@ import jakarta.persistence.criteria.CriteriaDelete
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.metamodel.Metamodel
-import kotlin.reflect.KClass
-import kotlinw.hibernate.core.annotation.NotTypeSafeJpaApi
 
-sealed interface TypeSafeEntityManager : EntityManager {
+interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `persistEntity()` instead which enforces an existing compile-time transactional context.",
-        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("persistEntity(entity)")
     )
     override fun persist(entity: Any)
@@ -34,7 +30,6 @@ sealed interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `mergeEntity()` instead which enforces an existing compile-time transactional context.",
-        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("mergeEntity(entity)")
     )
     override fun <T : Any> merge(entity: T): T
@@ -47,7 +42,6 @@ sealed interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `removeEntity()` instead which enforces an existing compile-time transactional context.",
-        level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("removeEntity(entity)")
     )
     override fun remove(entity: Any)
@@ -57,40 +51,27 @@ sealed interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey)")
+        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey)", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
     )
     override fun <T : Any> find(entityClass: Class<T>, primaryKey: Any): T?
 
-    fun <T : Any> findOrNull(entityClass: Class<T>, primaryKey: Any): T?
-
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, properties)")
+        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, properties)", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
     )
     override fun <T : Any> find(entityClass: Class<T>, primaryKey: Any, properties: Map<String, Any>): T?
 
-    fun <T : Any> findOrNull(entityClass: Class<T>, primaryKey: Any, properties: Map<String, Any>): T?
-
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, lockMode)")
+        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, lockMode)", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
     )
     override fun <T : Any> find(entityClass: Class<T>, primaryKey: Any, lockMode: LockModeType): T?
 
-    fun <T : Any> findOrNull(entityClass: Class<T>, primaryKey: Any, lockMode: LockModeType): T?
-
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, lockMode, properties")
+        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, lockMode, properties", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
     )
     override fun <T : Any> find(
-        entityClass: Class<T>,
-        primaryKey: Any,
-        lockMode: LockModeType,
-        properties: Map<String, Any>
-    ): T?
-
-    fun <T : Any> findOrNull(
         entityClass: Class<T>,
         primaryKey: Any,
         lockMode: LockModeType,
@@ -129,42 +110,40 @@ sealed interface TypeSafeEntityManager : EntityManager {
 
     override fun getProperties(): MutableMap<String, Any>
 
-    @NotTypeSafeJpaApi
+    @Deprecated(
+        message = "Use the typed overload.",
+        replaceWith = ReplaceWith("createQuery(qlString, resultClass)")
+    )
     override fun createQuery(qlString: String): Query
 
     override fun <T : Any> createQuery(criteriaQuery: CriteriaQuery<T>): TypeSafeQuery<T>
 
-    @NotTypeSafeJpaApi
     override fun createQuery(updateQuery: CriteriaUpdate<*>): Query
 
-    @NotTypeSafeJpaApi
     override fun createQuery(deleteQuery: CriteriaDelete<*>): Query
 
     override fun <T : Any> createQuery(qlString: String, resultClass: Class<T>): TypeSafeQuery<T>
 
-    @NotTypeSafeJpaApi
+    @Deprecated(
+        message = "Use the typed overload.",
+        replaceWith = ReplaceWith("createNamedQuery(qlString, resultClass)")
+    )
     override fun createNamedQuery(name: String): Query
 
     override fun <T : Any> createNamedQuery(name: String, resultClass: Class<T>): TypeSafeQuery<T>
 
-    @NotTypeSafeJpaApi
     override fun createNativeQuery(sqlString: String): Query
 
     override fun createNativeQuery(sqlString: String, resultClass: Class<*>): Query
 
-    @NotTypeSafeJpaApi
     override fun createNativeQuery(sqlString: String, resultSetMapping: String): Query
 
-    @NotTypeSafeJpaApi
     override fun createNamedStoredProcedureQuery(name: String): StoredProcedureQuery
 
-    @NotTypeSafeJpaApi
     override fun createStoredProcedureQuery(procedureName: String): StoredProcedureQuery
 
-    @NotTypeSafeJpaApi
     override fun createStoredProcedureQuery(procedureName: String, vararg resultClasses: Class<*>): StoredProcedureQuery
 
-    @NotTypeSafeJpaApi
     override fun createStoredProcedureQuery(
         procedureName: String,
         vararg resultSetMappings: String
@@ -193,101 +172,9 @@ sealed interface TypeSafeEntityManager : EntityManager {
 
     override fun <T : Any> createEntityGraph(rootType: Class<T>): EntityGraph<T>
 
-    @NotTypeSafeJpaApi
-    override fun createEntityGraph(graphName: String): EntityGraph<*>
+    override fun createEntityGraph(graphName: String): EntityGraph<*>?
 
     override fun getEntityGraph(graphName: String): EntityGraph<*>
 
     override fun <T : Any> getEntityGraphs(entityClass: Class<T>): List<EntityGraph<in T>>
 }
-
-//
-// EntityManager extensions
-//
-
-fun <T : Any> TypeSafeEntityManager.getReferenceOrNull(entityClass: Class<T>, primaryKey: Any): T? =
-    try {
-        getReference(entityClass, primaryKey)
-    } catch (e: EntityNotFoundException) {
-        null
-    }
-
-//
-// KClass<T> extensions for Class<T> usages
-//
-
-fun <T : Any> TypeSafeEntityManager.findOrNull(entityClass: KClass<T>, primaryKey: Any): T? =
-    findOrNull(entityClass.java, primaryKey)
-
-inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(primaryKey: Any): T? =
-    findOrNull(T::class.java, primaryKey)
-
-fun <T : Any> TypeSafeEntityManager.findOrNull(
-    entityClass: KClass<T>,
-    primaryKey: Any,
-    properties: Map<String, Any>
-): T? =
-    findOrNull(entityClass.java, primaryKey, properties)
-
-inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(
-    primaryKey: Any,
-    properties: Map<String, Any>
-): T? =
-    findOrNull(T::class, primaryKey, properties)
-
-fun <T : Any> TypeSafeEntityManager.findOrNull(entityClass: KClass<T>, primaryKey: Any, lockMode: LockModeType): T? =
-    findOrNull(entityClass.java, primaryKey, lockMode)
-
-inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(primaryKey: Any, lockMode: LockModeType): T? =
-    findOrNull(T::class, primaryKey, lockMode)
-
-fun <T : Any> TypeSafeEntityManager.findOrNull(
-    entityClass: KClass<T>,
-    primaryKey: Any,
-    lockMode: LockModeType,
-    properties: Map<String, Any>
-): T? =
-    findOrNull(entityClass.java, primaryKey, lockMode, properties)
-
-inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(
-    primaryKey: Any,
-    lockMode: LockModeType,
-    properties: Map<String, Any>
-): T? =
-    findOrNull(T::class, primaryKey, lockMode, properties)
-
-fun <T : Any> TypeSafeEntityManager.getReference(entityClass: KClass<T>, primaryKey: Any): T =
-    getReference(entityClass.java, primaryKey)
-
-inline fun <reified T : Any> TypeSafeEntityManager.getReference(primaryKey: Any): T =
-    getReference(T::class, primaryKey)
-
-fun <T : Any> TypeSafeEntityManager.createQuery(qlString: String, resultClass: KClass<T>): TypeSafeQuery<T> =
-    createQuery(qlString, resultClass.java)
-
-inline fun <reified T : Any> TypeSafeEntityManager.createQuery(qlString: String): TypeSafeQuery<T> =
-    createQuery(qlString, T::class)
-
-fun <T : Any> TypeSafeEntityManager.createNamedQuery(name: String, resultClass: KClass<T>): TypeSafeQuery<T> =
-    createNamedQuery(name, resultClass.java)
-
-inline fun <reified T : Any> TypeSafeEntityManager.createNamedQuery(name: String): TypeSafeQuery<T> =
-    createNamedQuery(name, T::class)
-
-fun <T : Any> TypeSafeEntityManager.createEntityGraph(rootType: KClass<T>): EntityGraph<T> =
-    createEntityGraph(rootType.java)
-
-inline fun <reified T : Any> TypeSafeEntityManager.createEntityGraph(): EntityGraph<T> =
-    createEntityGraph(T::class)
-
-fun <T : Any> TypeSafeEntityManager.getEntityGraphs(entityClass: KClass<T>): List<EntityGraph<in T>> =
-    getEntityGraphs(entityClass.java)
-
-inline fun <reified T : Any> TypeSafeEntityManager.getEntityGraphs(): List<EntityGraph<in T>> =
-    getEntityGraphs(T::class)
-
-fun <T : Any> TypeSafeEntityManager.getReferenceOrNull(entityClass: KClass<T>, primaryKey: Any): T? =
-    getReferenceOrNull(entityClass.java, primaryKey)
-
-inline fun <reified T : Any> TypeSafeEntityManager.getReferenceOrNull(primaryKey: Any): T? =
-    getReferenceOrNull(T::class, primaryKey)

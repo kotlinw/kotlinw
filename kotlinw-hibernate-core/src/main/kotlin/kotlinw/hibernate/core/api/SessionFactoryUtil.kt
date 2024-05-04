@@ -1,10 +1,11 @@
 package kotlinw.hibernate.core.api
 
-import jakarta.persistence.EntityManager
 import org.hibernate.SessionFactory
 import java.sql.Connection
-
-fun EntityManager.asTypeSafeEntityManager(): TypeSafeEntityManager = TypeSafeEntityManagerImpl(this)
+import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionalImpl
+import xyz.kotlinw.jpa.api.TypeSafeEntityManager
+import xyz.kotlinw.jpa.core.asTypeSafeEntityManager
 
 internal fun SessionFactory.createTypeSafeEntityManager(): TypeSafeEntityManager =
     createEntityManager().asTypeSafeEntityManager()

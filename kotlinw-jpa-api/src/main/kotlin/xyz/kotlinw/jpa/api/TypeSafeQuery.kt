@@ -1,4 +1,4 @@
-package kotlinw.hibernate.core.api
+package xyz.kotlinw.jpa.api
 
 import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
@@ -6,7 +6,6 @@ import jakarta.persistence.NoResultException
 import jakarta.persistence.Parameter
 import jakarta.persistence.TemporalType
 import jakarta.persistence.TypedQuery
-import kotlin.reflect.KClass
 import java.util.*
 import java.util.stream.Stream
 
@@ -75,6 +74,12 @@ interface TypeSafeQuery<R : Any> : TypedQuery<R> {
     override fun setMaxResults(maxResult: Int): TypeSafeQuery<R>
 
     override fun setFirstResult(startPosition: Int): TypeSafeQuery<R>
+
+    override fun executeUpdate(): Int
+
+    override fun getMaxResults(): Int
+
+    override fun getFirstResult(): Int
 }
 
 fun <R : Any> TypeSafeQuery<R>.getSingleResultOrNull(): R? =
@@ -83,30 +88,3 @@ fun <R : Any> TypeSafeQuery<R>.getSingleResultOrNull(): R? =
     } catch (e: NoResultException) {
         null
     }
-
-fun <R : Any> TypeSafeEntityManager.createTypeSafeQuery(
-    qlString: String,
-    resultType: KClass<R>,
-    vararg arguments: Any?
-): TypeSafeQuery<R> =
-    TypeSafeQueryImpl(createQuery(qlString, resultType.java)).also {
-        arguments.forEachIndexed { index, value ->
-            it.setParameter(index + 1, value)
-        }
-    }
-
-inline fun <reified R : Any> TypeSafeEntityManager.createTypeSafeQuery(qlString: String, vararg arguments: Any?) =
-    createTypeSafeQuery(qlString, R::class, *arguments)
-
-fun <R : Any> TypeSafeEntityManager.query(
-    qlString: String,
-    resultType: KClass<R>,
-    vararg arguments: Any?
-): List<R> =
-    createTypeSafeQuery(qlString, resultType, *arguments).resultList
-
-inline fun <reified R : Any> TypeSafeEntityManager.query(
-    qlString: String,
-    vararg arguments: Any?
-): List<R> =
-    query(qlString, R::class, *arguments)

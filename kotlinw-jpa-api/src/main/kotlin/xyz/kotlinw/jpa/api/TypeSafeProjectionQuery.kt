@@ -1,4 +1,4 @@
-package kotlinw.hibernate.core.api
+package xyz.kotlinw.jpa.api
 
 import arrow.core.Tuple10
 import arrow.core.Tuple11
@@ -189,10 +189,6 @@ sealed class AbstractTypeSafeProjectionQuery<R : Any, Q : AbstractTypeSafeProjec
     override fun getFirstResult(): Int = query.firstResult
 }
 
-//
-// 2-element projection
-//
-
 class TypeSafeProjectionQuery2<R1, R2>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Pair<R1, R2>,
             TypeSafeProjectionQuery2<R1, R2>>(query, 2) {
@@ -201,13 +197,6 @@ class TypeSafeProjectionQuery2<R1, R2>(query: TypeSafeQuery<Array<*>>) :
         Pair(mapResultElement<R1>(it, 0), mapResultElement<R2>(it, 1))
 }
 
-fun <R1, R2> TypeSafeEntityManager.createProjectionQuery2(qlString: String) =
-    TypeSafeProjectionQuery2<R1, R2>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 3-element projection
-//
-
 class TypeSafeProjectionQuery3<R1, R2, R3>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Triple<R1, R2, R3>,
             TypeSafeProjectionQuery3<R1, R2, R3>>(query, 3) {
@@ -215,13 +204,6 @@ class TypeSafeProjectionQuery3<R1, R2, R3>(query: TypeSafeQuery<Array<*>>) :
     override fun mapRow(it: Array<*>) =
         Triple(mapResultElement<R1>(it, 0), mapResultElement<R2>(it, 1), mapResultElement<R3>(it, 2))
 }
-
-fun <R1, R2, R3> TypeSafeEntityManager.createProjectionQuery3(qlString: String) =
-    TypeSafeProjectionQuery3<R1, R2, R3>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 4-element projection
-//
 
 class TypeSafeProjectionQuery4<R1, R2, R3, R4>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple4<R1, R2, R3, R4>,
@@ -235,13 +217,6 @@ class TypeSafeProjectionQuery4<R1, R2, R3, R4>(query: TypeSafeQuery<Array<*>>) :
             mapResultElement<R4>(it, 3)
         )
 }
-
-fun <R1, R2, R3, R4> TypeSafeEntityManager.createProjectionQuery4(qlString: String) =
-    TypeSafeProjectionQuery4<R1, R2, R3, R4>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 5-element projection
-//
 
 class TypeSafeProjectionQuery5<R1, R2, R3, R4, R5>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple5<R1, R2, R3, R4, R5>,
@@ -257,13 +232,6 @@ class TypeSafeProjectionQuery5<R1, R2, R3, R4, R5>(query: TypeSafeQuery<Array<*>
         )
 }
 
-fun <R1, R2, R3, R4, R5> TypeSafeEntityManager.createProjectionQuery5(qlString: String) =
-    TypeSafeProjectionQuery5<R1, R2, R3, R4, R5>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 6-element projection
-//
-
 class TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple6<R1, R2, R3, R4, R5, R6>,
             TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>>(query, 6) {
@@ -278,13 +246,6 @@ class TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>(query: TypeSafeQuery<Arra
             mapResultElement<R6>(it, 5)
         )
 }
-
-fun <R1, R2, R3, R4, R5, R6> TypeSafeEntityManager.createProjectionQuery6(qlString: String) =
-    TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 7-element projection
-//
 
 class TypeSafeProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple7<R1, R2, R3, R4, R5, R6, R7>,
@@ -302,13 +263,6 @@ class TypeSafeProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>(query: TypeSafeQuery<
         )
 }
 
-fun <R1, R2, R3, R4, R5, R6, R7> TypeSafeEntityManager.createProjectionQuery7(qlString: String) =
-    TypeSafeProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 8-element projection
-//
-
 class TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple8<R1, R2, R3, R4, R5, R6, R7, R8>,
             TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>>(query, 8) {
@@ -325,13 +279,6 @@ class TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>(query: TypeSafeQu
             mapResultElement<R8>(it, 7)
         )
 }
-
-fun <R1, R2, R3, R4, R5, R6, R7, R8> TypeSafeEntityManager.createProjectionQuery8(qlString: String) =
-    TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 9-element projection
-//
 
 class TypeSafeProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple9<R1, R2, R3, R4, R5, R6, R7, R8, R9>,
@@ -351,13 +298,6 @@ class TypeSafeProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>(query: TypeSa
         )
 }
 
-fun <R1, R2, R3, R4, R5, R6, R7, R8, R9> TypeSafeEntityManager.createProjectionQuery9(qlString: String) =
-    TypeSafeProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 10-element projection
-//
-
 class TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>,
             TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>>(query, 10) {
@@ -376,13 +316,6 @@ class TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(query: 
             mapResultElement<R10>(it, 9)
         )
 }
-
-fun <R1, R2, R3, R4, R5, R6, R7, R8, R9, R10> TypeSafeEntityManager.createProjectionQuery10(qlString: String) =
-    TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 11-element projection
-//
 
 class TypeSafeProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>,
@@ -404,13 +337,6 @@ class TypeSafeProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(qu
         )
 }
 
-fun <R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11> TypeSafeEntityManager.createProjectionQuery11(qlString: String) =
-    TypeSafeProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 12-element projection
-//
-
 class TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>,
             TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>>(query, 12) {
@@ -431,13 +357,6 @@ class TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R1
             mapResultElement<R12>(it, 11)
         )
 }
-
-fun <R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12> TypeSafeEntityManager.createProjectionQuery12(qlString: String) =
-    TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(createTypeSafeQuery<Array<*>>(qlString))
-
-//
-// 13-element projection
-//
 
 class TypeSafeProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>,
@@ -461,15 +380,6 @@ class TypeSafeProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R1
         )
 }
 
-fun <R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13> TypeSafeEntityManager.createProjectionQuery13(qlString: String) =
-    TypeSafeProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(
-        createTypeSafeQuery<Array<*>>(qlString)
-    )
-
-//
-// 14-element projection
-//
-
 class TypeSafeProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(query: TypeSafeQuery<Array<*>>) :
     AbstractTypeSafeProjectionQuery<Tuple14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>,
             TypeSafeProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>>(query, 14) {
@@ -492,10 +402,5 @@ class TypeSafeProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R1
             mapResultElement<R14>(it, 13),
         )
 }
-
-fun <R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14> TypeSafeEntityManager.createProjectionQuery14(qlString: String) =
-    TypeSafeProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(
-        createTypeSafeQuery<Array<*>>(qlString)
-    )
 
 // TODO ... Tuple22

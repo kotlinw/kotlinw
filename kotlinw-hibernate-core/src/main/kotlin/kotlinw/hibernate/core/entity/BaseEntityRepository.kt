@@ -4,12 +4,12 @@ import jakarta.persistence.LockModeType
 import java.io.Serializable
 import kotlin.reflect.KClass
 import kotlinw.hibernate.core.api.JpaSessionContext
-import kotlinw.hibernate.core.api.Transactional
-import kotlinw.hibernate.core.api.createTypeSafeQuery
-import kotlinw.hibernate.core.api.findOrNull
-import kotlinw.hibernate.core.api.getReference
-import kotlinw.hibernate.core.api.getSingleResultOrNull
-import kotlinw.hibernate.core.api.query
+import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.findOrNull
+import xyz.kotlinw.jpa.api.getReference
+import xyz.kotlinw.jpa.api.getSingleResultOrNull
+import xyz.kotlinw.jpa.core.createTypeSafeQuery
+import xyz.kotlinw.jpa.core.executeQuery
 
 interface EntityRepository<E : AbstractEntity<ID>, ID : Serializable> {
 
@@ -17,10 +17,10 @@ interface EntityRepository<E : AbstractEntity<ID>, ID : Serializable> {
     fun persist(entity: E): E
 
     context(Transactional, JpaSessionContext)
-    fun mergeEntity(entity: E): E
+    fun merge(entity: E): E
 
     context(Transactional, JpaSessionContext)
-    fun removeEntity(entity: E)
+    fun remove(entity: E)
 
     context(JpaSessionContext)
     fun findOrNull(id: ID): E?
@@ -66,10 +66,10 @@ abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
     override fun persist(entity: E): E = entityManager.persistEntity(entity)
 
     context(Transactional, JpaSessionContext)
-    override fun mergeEntity(entity: E): E = entityManager.mergeEntity(entity)
+    override fun merge(entity: E): E = entityManager.merge(entity)
 
     context(Transactional, JpaSessionContext)
-    override fun removeEntity(entity: E) = entityManager.removeEntity(entity)
+    override fun remove(entity: E) = entityManager.remove(entity)
 
     context(JpaSessionContext)
     override fun findOrNull(id: ID): E? = entityManager.findOrNull(entityClass, id)
@@ -101,7 +101,7 @@ abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
 
     context(JpaSessionContext)
     protected fun <T : Any> query(qlQuery: String, resultType: KClass<T>, vararg arguments: Any?): List<T> =
-        entityManager.query(qlQuery, resultType, *arguments)
+        entityManager.executeQuery(qlQuery, resultType, *arguments)
 
     context(JpaSessionContext)
     protected inline fun <reified T : Any> query(qlQuery: String, vararg arguments: Any?): List<T> =

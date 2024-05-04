@@ -32,6 +32,8 @@ kotlin {
 
 dependencies {
     api(projects.kotlinw.kotlinwHibernateApi)
+    api(projects.kotlinw.kotlinwJpaCore)
+    implementation(projects.kotlinw.kotlinwJpaInternal)
     api(projects.kotlinw.kotlinwLoggingPlatform)
     api(projects.kotlinw.kotlinwUlid)
     api(projects.kotlinw.kotlinwUtilSerializationJson)

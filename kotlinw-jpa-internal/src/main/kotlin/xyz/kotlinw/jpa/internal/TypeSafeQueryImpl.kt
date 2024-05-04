@@ -1,4 +1,4 @@
-package kotlinw.hibernate.core.api
+package xyz.kotlinw.jpa.internal
 
 import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
@@ -7,9 +7,10 @@ import jakarta.persistence.TemporalType
 import jakarta.persistence.TypedQuery
 import java.util.*
 import java.util.stream.Stream
+import xyz.kotlinw.jpa.api.TypeSafeQuery
 
 @JvmInline
-internal value class TypeSafeQueryImpl<R : Any>(private val query: TypedQuery<R>) : TypeSafeQuery<R>,
+value class TypeSafeQueryImpl<R : Any>(private val query: TypedQuery<R>) : TypeSafeQuery<R>,
     TypedQuery<R> by query {
 
     override fun setHint(hintName: String, value: Any): TypeSafeQuery<R> =

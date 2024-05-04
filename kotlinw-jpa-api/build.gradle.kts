@@ -16,8 +16,8 @@ kotlin {
 }
 
 dependencies {
-    api(projects.kotlinw.kotlinwJpaCore)
-    api(projects.kotlinw.kotlinwJdbcUtil)
-    api(libs.hibernate.core)
-    api(libs.hibernate.envers)
+    api("jakarta.persistence:jakarta.persistence-api:3.1.0") {
+        exclude(group = "xml-apis", module = "xml-apis")
+    }
+    api(libs.arrow.core)
 }

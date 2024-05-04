@@ -16,8 +16,6 @@ kotlin {
 }
 
 dependencies {
-    api(projects.kotlinw.kotlinwJpaCore)
-    api(projects.kotlinw.kotlinwJdbcUtil)
-    api(libs.hibernate.core)
-    api(libs.hibernate.envers)
+    api(projects.kotlinw.kotlinwJpaApi)
+    implementation(projects.kotlinw.kotlinwJpaInternal)
 }
