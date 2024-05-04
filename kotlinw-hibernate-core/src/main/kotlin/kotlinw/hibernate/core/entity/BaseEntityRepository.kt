@@ -1,43 +1,51 @@
 package kotlinw.hibernate.core.entity
 
-import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.LockModeType
+import java.io.Serializable
 import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
 import kotlinw.hibernate.core.api.JpaSessionContext
 import kotlinw.hibernate.core.api.Transactional
 import kotlinw.hibernate.core.api.createTypeSafeQuery
-import java.io.Serializable
+import kotlinw.hibernate.core.api.findOrNull
+import kotlinw.hibernate.core.api.getReference
+import kotlinw.hibernate.core.api.getSingleResultOrNull
+import kotlinw.hibernate.core.api.query
 
 interface EntityRepository<E : AbstractEntity<ID>, ID : Serializable> {
-
-    val entityName: String
-
-    val entityClass: KClass<E>
-
-    context(JpaSessionContext)
-    fun findAll(): List<E>
 
     context(Transactional, JpaSessionContext)
     fun persist(entity: E): E
 
+    context(Transactional, JpaSessionContext)
+    fun mergeEntity(entity: E): E
+
+    context(Transactional, JpaSessionContext)
+    fun removeEntity(entity: E)
+
     context(JpaSessionContext)
-    fun findByIdOrNull(id: ID): E?
-}
+    fun findOrNull(id: ID): E?
 
-context(JpaSessionContext)
-fun <E : AbstractEntity<ID>, ID : Serializable> EntityRepository<E, ID>.findById(id: ID): E =
-    findByIdOrNull(id) ?: throw EntityNotFoundException("Entity of type '$entityName' with id=$id not found")
+    context(JpaSessionContext)
+    fun findOrNull(id: ID, properties: Map<String, Any>): E?
 
-context(JpaSessionContext)
-fun <E : AbstractEntity<ID>, ID : Serializable> EntityRepository<E, ID>.getOrNull(entityReference: EntityReference<E, ID>): E? {
-    check(entityReference.entityClass.isSubclassOf(entityClass))
-    return findByIdOrNull(entityReference.id)
-}
+    context(JpaSessionContext)
+    fun findOrNull(id: ID, lockMode: LockModeType): E?
 
-context(JpaSessionContext)
-fun <E : AbstractEntity<ID>, ID : Serializable> EntityRepository<E, ID>.get(entityReference: EntityReference<E, ID>): E? {
-    check(entityReference.entityClass.isSubclassOf(entityClass))
-    return findByIdOrNull(entityReference.id)
+    context(JpaSessionContext)
+    fun findOrNull(
+        id: ID,
+        lockMode: LockModeType,
+        properties: Map<String, Any>
+    ): E?
+
+    context(JpaSessionContext)
+    fun getReference(id: ID): E
+
+    context(JpaSessionContext)
+    fun getReferenceOrNull(id: ID): E?
+
+    context(JpaSessionContext)
+    fun findAll(): List<E>
 }
 
 interface SimpleBaseEntityRepository<E : SimpleBaseEntity> : EntityRepository<E, BaseEntityId>
@@ -45,41 +53,71 @@ interface SimpleBaseEntityRepository<E : SimpleBaseEntity> : EntityRepository<E,
 interface BaseEntityRepository<E : BaseEntity> : SimpleBaseEntityRepository<E>
 
 abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
-    final override val entityClass: KClass<E>
+    protected val entityClass: KClass<E>
 ) : EntityRepository<E, ID> {
 
-    final override val entityName = entityClass.simpleName!! // TODO ez lehet más is, a persistence provider-től kellene lekérdezni
+    protected val entityName =
+        entityClass.simpleName!! // TODO ez lehet más is, a persistence provider-től kellene lekérdezni
 
     context(JpaSessionContext)
-    override fun findAll(): List<E> = query("FROM ${entityClass.simpleName}", entityClass)
+    override fun findAll(): List<E> = query("FROM $entityName", entityClass)
 
     context(Transactional, JpaSessionContext)
     override fun persist(entity: E): E = entityManager.persistEntity(entity)
 
-    context(JpaSessionContext)
-    override fun findByIdOrNull(id: ID): E? =
-        query("FROM $entityName WHERE id=?1", entityClass, id).firstOrNull()
+    context(Transactional, JpaSessionContext)
+    override fun mergeEntity(entity: E): E = entityManager.mergeEntity(entity)
+
+    context(Transactional, JpaSessionContext)
+    override fun removeEntity(entity: E) = entityManager.removeEntity(entity)
 
     context(JpaSessionContext)
-    protected fun <T : Any> query(qlQuery: String, resultType: KClass<T>, vararg arguments: Any?): List<T> {
-        val query = entityManager.createTypeSafeQuery(qlQuery, resultType)
-        arguments.forEachIndexed { index, value ->
-            query.setParameter(index + 1, value)
-        }
-        return query.resultList
-    }
+    override fun findOrNull(id: ID): E? = entityManager.findOrNull(entityClass, id)
+
+    context(JpaSessionContext)
+    override fun findOrNull(id: ID, properties: Map<String, Any>): E? =
+        entityManager.findOrNull(entityClass, id, properties)
+
+    context(JpaSessionContext)
+    override fun findOrNull(id: ID, lockMode: LockModeType): E? = entityManager.findOrNull(entityClass, id, lockMode)
+
+    context(JpaSessionContext)
+    override fun findOrNull(
+        id: ID,
+        lockMode: LockModeType,
+        properties: Map<String, Any>
+    ): E? =
+        entityManager.findOrNull(entityClass, id, lockMode, properties)
+
+    context(JpaSessionContext)
+    override fun getReferenceOrNull(id: ID): E? = entityManager.findOrNull(entityClass, id)
+
+    context(JpaSessionContext)
+    override fun getReference(id: ID): E = entityManager.getReference(entityClass, id)
+
+    //
+    // Methods for subclasses
+    //
+
+    context(JpaSessionContext)
+    protected fun <T : Any> query(qlQuery: String, resultType: KClass<T>, vararg arguments: Any?): List<T> =
+        entityManager.query(qlQuery, resultType, *arguments)
 
     context(JpaSessionContext)
     protected inline fun <reified T : Any> query(qlQuery: String, vararg arguments: Any?): List<T> =
         query(qlQuery, T::class, *arguments)
 
     context(JpaSessionContext)
-    protected inline fun <reified T : Any> singleOrNull(qlQuery: String, vararg arguments: Any?): T? =
-        query<T>(qlQuery, *arguments).firstOrNull()
+    protected fun queryEntity(qlQuery: String, vararg arguments: Any?): List<E> =
+        query(qlQuery, entityClass, *arguments)
 
     context(JpaSessionContext)
-    protected inline fun <reified T : Any> single(qlQuery: String, vararg arguments: Any?): T =
-        singleOrNull<T>(qlQuery, *arguments) ?: throw IllegalStateException() // TODO specifikus hibát
+    protected inline fun <reified T : Any> querySingleOrNull(qlQuery: String, vararg arguments: Any?): T? =
+        entityManager.createTypeSafeQuery<T>(qlQuery, *arguments).getSingleResultOrNull()
+
+    context(JpaSessionContext)
+    protected inline fun <reified T : Any> querySingle(qlQuery: String, vararg arguments: Any?): T =
+        querySingleOrNull<T>(qlQuery, *arguments) ?: throw IllegalStateException() // TODO specifikus hibát
 }
 
 abstract class SimpleBaseEntityRepositoryImpl<E : SimpleBaseEntity>(entityClass: KClass<E>) :

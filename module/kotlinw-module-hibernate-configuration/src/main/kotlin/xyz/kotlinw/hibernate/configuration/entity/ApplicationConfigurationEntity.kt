@@ -47,5 +47,5 @@ class ApplicationConfigurationEntityRepositoryImpl :
 
     context(JpaSessionContext)
     override fun findByName(name: String): ApplicationConfigurationEntity? =
-        singleOrNull("FROM $entityName WHERE name=?1", name)
+        querySingleOrNull("FROM $entityName WHERE name=?1", name)
 }

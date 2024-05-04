@@ -9,12 +9,12 @@ import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
 import jakarta.persistence.Query
 import jakarta.persistence.StoredProcedureQuery
-import jakarta.persistence.TypedQuery
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaDelete
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.metamodel.Metamodel
+import kotlin.reflect.KClass
 import kotlinw.hibernate.core.annotation.NotTypeSafeJpaApi
 
 sealed interface TypeSafeEntityManager : EntityManager {
@@ -132,7 +132,7 @@ sealed interface TypeSafeEntityManager : EntityManager {
     @NotTypeSafeJpaApi
     override fun createQuery(qlString: String): Query
 
-    override fun <T> createQuery(criteriaQuery: CriteriaQuery<T>): TypedQuery<T>
+    override fun <T : Any> createQuery(criteriaQuery: CriteriaQuery<T>): TypeSafeQuery<T>
 
     @NotTypeSafeJpaApi
     override fun createQuery(updateQuery: CriteriaUpdate<*>): Query
@@ -140,12 +140,12 @@ sealed interface TypeSafeEntityManager : EntityManager {
     @NotTypeSafeJpaApi
     override fun createQuery(deleteQuery: CriteriaDelete<*>): Query
 
-    override fun <T> createQuery(qlString: String, resultClass: Class<T>): TypedQuery<T>
+    override fun <T : Any> createQuery(qlString: String, resultClass: Class<T>): TypeSafeQuery<T>
 
     @NotTypeSafeJpaApi
     override fun createNamedQuery(name: String): Query
 
-    override fun <T> createNamedQuery(name: String, resultClass: Class<T>): TypedQuery<T>
+    override fun <T : Any> createNamedQuery(name: String, resultClass: Class<T>): TypeSafeQuery<T>
 
     @NotTypeSafeJpaApi
     override fun createNativeQuery(sqlString: String): Query
@@ -193,6 +193,7 @@ sealed interface TypeSafeEntityManager : EntityManager {
 
     override fun <T : Any> createEntityGraph(rootType: Class<T>): EntityGraph<T>
 
+    @NotTypeSafeJpaApi
     override fun createEntityGraph(graphName: String): EntityGraph<*>
 
     override fun getEntityGraph(graphName: String): EntityGraph<*>
@@ -200,9 +201,93 @@ sealed interface TypeSafeEntityManager : EntityManager {
     override fun <T : Any> getEntityGraphs(entityClass: Class<T>): List<EntityGraph<in T>>
 }
 
+//
+// EntityManager extensions
+//
+
 fun <T : Any> TypeSafeEntityManager.getReferenceOrNull(entityClass: Class<T>, primaryKey: Any): T? =
     try {
         getReference(entityClass, primaryKey)
     } catch (e: EntityNotFoundException) {
         null
     }
+
+//
+// KClass<T> extensions for Class<T> usages
+//
+
+fun <T : Any> TypeSafeEntityManager.findOrNull(entityClass: KClass<T>, primaryKey: Any): T? =
+    findOrNull(entityClass.java, primaryKey)
+
+inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(primaryKey: Any): T? =
+    findOrNull(T::class.java, primaryKey)
+
+fun <T : Any> TypeSafeEntityManager.findOrNull(
+    entityClass: KClass<T>,
+    primaryKey: Any,
+    properties: Map<String, Any>
+): T? =
+    findOrNull(entityClass.java, primaryKey, properties)
+
+inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(
+    primaryKey: Any,
+    properties: Map<String, Any>
+): T? =
+    findOrNull(T::class, primaryKey, properties)
+
+fun <T : Any> TypeSafeEntityManager.findOrNull(entityClass: KClass<T>, primaryKey: Any, lockMode: LockModeType): T? =
+    findOrNull(entityClass.java, primaryKey, lockMode)
+
+inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(primaryKey: Any, lockMode: LockModeType): T? =
+    findOrNull(T::class, primaryKey, lockMode)
+
+fun <T : Any> TypeSafeEntityManager.findOrNull(
+    entityClass: KClass<T>,
+    primaryKey: Any,
+    lockMode: LockModeType,
+    properties: Map<String, Any>
+): T? =
+    findOrNull(entityClass.java, primaryKey, lockMode, properties)
+
+inline fun <reified T : Any> TypeSafeEntityManager.findOrNull(
+    primaryKey: Any,
+    lockMode: LockModeType,
+    properties: Map<String, Any>
+): T? =
+    findOrNull(T::class, primaryKey, lockMode, properties)
+
+fun <T : Any> TypeSafeEntityManager.getReference(entityClass: KClass<T>, primaryKey: Any): T =
+    getReference(entityClass.java, primaryKey)
+
+inline fun <reified T : Any> TypeSafeEntityManager.getReference(primaryKey: Any): T =
+    getReference(T::class, primaryKey)
+
+fun <T : Any> TypeSafeEntityManager.createQuery(qlString: String, resultClass: KClass<T>): TypeSafeQuery<T> =
+    createQuery(qlString, resultClass.java)
+
+inline fun <reified T : Any> TypeSafeEntityManager.createQuery(qlString: String): TypeSafeQuery<T> =
+    createQuery(qlString, T::class)
+
+fun <T : Any> TypeSafeEntityManager.createNamedQuery(name: String, resultClass: KClass<T>): TypeSafeQuery<T> =
+    createNamedQuery(name, resultClass.java)
+
+inline fun <reified T : Any> TypeSafeEntityManager.createNamedQuery(name: String): TypeSafeQuery<T> =
+    createNamedQuery(name, T::class)
+
+fun <T : Any> TypeSafeEntityManager.createEntityGraph(rootType: KClass<T>): EntityGraph<T> =
+    createEntityGraph(rootType.java)
+
+inline fun <reified T : Any> TypeSafeEntityManager.createEntityGraph(): EntityGraph<T> =
+    createEntityGraph(T::class)
+
+fun <T : Any> TypeSafeEntityManager.getEntityGraphs(entityClass: KClass<T>): List<EntityGraph<in T>> =
+    getEntityGraphs(entityClass.java)
+
+inline fun <reified T : Any> TypeSafeEntityManager.getEntityGraphs(): List<EntityGraph<in T>> =
+    getEntityGraphs(T::class)
+
+fun <T : Any> TypeSafeEntityManager.getReferenceOrNull(entityClass: KClass<T>, primaryKey: Any): T? =
+    getReferenceOrNull(entityClass.java, primaryKey)
+
+inline fun <reified T : Any> TypeSafeEntityManager.getReferenceOrNull(primaryKey: Any): T? =
+    getReferenceOrNull(T::class, primaryKey)
