@@ -24,6 +24,7 @@ import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.Container
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.jpa.core.createTypeSafeQuery
 
 @Entity
 @Table(name = "Person")
@@ -89,7 +90,7 @@ class HibernateModuleIntegrationTest {
                 }
 
                 fun JpaSessionContext.findAllPersons() =
-                    entityManager.createQuery("FROM PersonEntity", PersonEntity::class.java).resultList
+                    entityManager.createTypeSafeQuery("FROM PersonEntity", PersonEntity::class.java).resultList
 
                 sessionFactory.runJpaTask {
                     assertEquals(emptyList(), findAllPersons())

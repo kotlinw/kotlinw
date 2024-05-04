@@ -5,6 +5,7 @@ import xyz.kotlinw.jpa.api.TypeSafeEntityManager
 import xyz.kotlinw.jpa.api.TypeSafeQuery
 import xyz.kotlinw.jpa.api.createNamedQuery
 import xyz.kotlinw.jpa.api.createQuery
+import xyz.kotlinw.jpa.api.setParameters
 
 //
 // Type-safe query (query string)
@@ -12,14 +13,17 @@ import xyz.kotlinw.jpa.api.createQuery
 
 fun <R : Any> TypeSafeEntityManager.createTypeSafeQuery(
     qlString: String,
+    resultClass: Class<R>,
+    vararg arguments: Any?
+): TypeSafeQuery<R> =
+    createQuery(qlString, resultClass).setParameters(arguments)
+
+fun <R : Any> TypeSafeEntityManager.createTypeSafeQuery(
+    qlString: String,
     resultType: KClass<R>,
     vararg arguments: Any?
 ): TypeSafeQuery<R> =
-    createQuery(qlString, resultType).also {
-        arguments.forEachIndexed { index, value ->
-            it.setParameter(index + 1, value)
-        }
-    }
+    createQuery(qlString, resultType).setParameters(arguments)
 
 inline fun <reified R : Any> TypeSafeEntityManager.createTypeSafeQuery(qlString: String, vararg arguments: Any?) =
     createTypeSafeQuery(qlString, R::class, *arguments)
@@ -43,14 +47,17 @@ inline fun <reified R : Any> TypeSafeEntityManager.executeQuery(
 
 fun <R : Any> TypeSafeEntityManager.createTypeSafeNamedQuery(
     name: String,
+    resultClass: Class<R>,
+    vararg arguments: Any?
+): TypeSafeQuery<R> =
+    createNamedQuery(name, resultClass).setParameters(arguments)
+
+fun <R : Any> TypeSafeEntityManager.createTypeSafeNamedQuery(
+    name: String,
     resultType: KClass<R>,
     vararg arguments: Any?
 ): TypeSafeQuery<R> =
-    createNamedQuery(name, resultType).also {
-        arguments.forEachIndexed { index, value ->
-            it.setParameter(index + 1, value)
-        }
-    }
+    createNamedQuery(name, resultType).setParameters(arguments)
 
 inline fun <reified R : Any> TypeSafeEntityManager.createTypeSafeNamedQuery(name: String, vararg arguments: Any?) =
     createTypeSafeNamedQuery(name, R::class, *arguments)

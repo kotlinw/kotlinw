@@ -18,7 +18,7 @@ interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `persistEntity()` instead which enforces an existing compile-time transactional context.",
-        replaceWith = ReplaceWith("persistEntity(entity)")
+        replaceWith = ReplaceWith("this.persistEntity(entity)")
     )
     override fun persist(entity: Any)
 
@@ -30,7 +30,7 @@ interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `mergeEntity()` instead which enforces an existing compile-time transactional context.",
-        replaceWith = ReplaceWith("mergeEntity(entity)")
+        replaceWith = ReplaceWith("this.mergeEntity(entity)")
     )
     override fun <T : Any> merge(entity: T): T
 
@@ -42,7 +42,7 @@ interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `removeEntity()` instead which enforces an existing compile-time transactional context.",
-        replaceWith = ReplaceWith("removeEntity(entity)")
+        replaceWith = ReplaceWith("this.removeEntity(entity)")
     )
     override fun remove(entity: Any)
 
@@ -51,25 +51,37 @@ interface TypeSafeEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey)", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
+        replaceWith = ReplaceWith(
+            "this.findOrNull(entityClass, primaryKey)",
+            imports = ["xyz.kotlinw.jpa.api.findOrNull"]
+        )
     )
     override fun <T : Any> find(entityClass: Class<T>, primaryKey: Any): T?
 
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, properties)", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
+        replaceWith = ReplaceWith(
+            "this.findOrNull(entityClass, primaryKey, properties)",
+            imports = ["xyz.kotlinw.jpa.api.findOrNull"]
+        )
     )
     override fun <T : Any> find(entityClass: Class<T>, primaryKey: Any, properties: Map<String, Any>): T?
 
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, lockMode)", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
+        replaceWith = ReplaceWith(
+            "this.findOrNull(entityClass, primaryKey, lockMode)",
+            imports = ["xyz.kotlinw.jpa.api.findOrNull"]
+        )
     )
     override fun <T : Any> find(entityClass: Class<T>, primaryKey: Any, lockMode: LockModeType): T?
 
     @Deprecated(
         message = "Use `findOrNull()` instead which has a better naming convention.",
-        replaceWith = ReplaceWith("findOrNull(entityClass, primaryKey, lockMode, properties", imports = ["xyz.kotlinw.jpa.api.findOrNull"])
+        replaceWith = ReplaceWith(
+            "this.findOrNull(entityClass, primaryKey, lockMode, properties",
+            imports = ["xyz.kotlinw.jpa.api.findOrNull"]
+        )
     )
     override fun <T : Any> find(
         entityClass: Class<T>,
@@ -111,8 +123,11 @@ interface TypeSafeEntityManager : EntityManager {
     override fun getProperties(): MutableMap<String, Any>
 
     @Deprecated(
-        message = "Use the typed overload.",
-        replaceWith = ReplaceWith("createQuery(qlString, resultClass)")
+        message = "Use the type-safe query creation functions.",
+        replaceWith = ReplaceWith(
+            "this.createTypeSafeQuery(qlString, TODO())",
+            imports = ["xyz.kotlinw.jpa.core.createTypeSafeQuery"]
+        )
     )
     override fun createQuery(qlString: String): Query
 
@@ -122,14 +137,31 @@ interface TypeSafeEntityManager : EntityManager {
 
     override fun createQuery(deleteQuery: CriteriaDelete<*>): Query
 
+    @Deprecated(
+        message = "Use the type-safe query creation functions.",
+        replaceWith = ReplaceWith(
+            "this.createTypeSafeQuery(qlString, resultClass)",
+            imports = ["xyz.kotlinw.jpa.core.createTypeSafeQuery"]
+        )
+    )
     override fun <T : Any> createQuery(qlString: String, resultClass: Class<T>): TypeSafeQuery<T>
 
     @Deprecated(
-        message = "Use the typed overload.",
-        replaceWith = ReplaceWith("createNamedQuery(qlString, resultClass)")
+        message = "Use the type-safe query creation functions.",
+        replaceWith = ReplaceWith(
+            "this.createTypeSafeNamedQuery(name, TODO())",
+            imports = ["xyz.kotlinw.jpa.core.createTypeSafeNamedQuery"]
+        )
     )
     override fun createNamedQuery(name: String): Query
 
+    @Deprecated(
+        message = "Use the type-safe query creation functions.",
+        replaceWith = ReplaceWith(
+            "this.createTypeSafeNamedQuery(name, resultClass)",
+            imports = ["xyz.kotlinw.jpa.core.createTypeSafeNamedQuery"]
+        )
+    )
     override fun <T : Any> createNamedQuery(name: String, resultClass: Class<T>): TypeSafeQuery<T>
 
     override fun createNativeQuery(sqlString: String): Query
@@ -155,7 +187,7 @@ interface TypeSafeEntityManager : EntityManager {
 
     override fun <T : Any> unwrap(cls: Class<T>): T
 
-    @Deprecated(message = "Use `unwrap()` instead.", replaceWith = ReplaceWith("unwrap()"))
+    @Deprecated(message = "Use `unwrap()` instead.", replaceWith = ReplaceWith("this.unwrap()"))
     override fun getDelegate(): Any
 
     override fun close()
