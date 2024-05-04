@@ -12,7 +12,7 @@ fun <T, Q : TypedQuery<T>> Q.setParameters(arguments: Array<*>): Q {
 
 fun <R : Any> TypedQuery<R>.getSingleResultOrNull(): R? =
     try {
-        singleResult
+        getSingleResult()
     } catch (e: NoResultException) {
         null
     }
