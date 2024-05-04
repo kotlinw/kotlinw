@@ -5,6 +5,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlinw.hibernate.core.api.JpaSessionContext
 import kotlinw.hibernate.core.api.Transactional
+import kotlinw.hibernate.core.api.createTypeSafeQuery
 import java.io.Serializable
 
 interface EntityRepository<E : AbstractEntity<ID>, ID : Serializable> {
@@ -61,7 +62,7 @@ abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
 
     context(JpaSessionContext)
     protected fun <T : Any> query(qlQuery: String, resultType: KClass<T>, vararg arguments: Any?): List<T> {
-        val query = entityManager.createQuery(qlQuery, resultType.java)
+        val query = entityManager.createTypeSafeQuery(qlQuery, resultType)
         arguments.forEachIndexed { index, value ->
             query.setParameter(index + 1, value)
         }

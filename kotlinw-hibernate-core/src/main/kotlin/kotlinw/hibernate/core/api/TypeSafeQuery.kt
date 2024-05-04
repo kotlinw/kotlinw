@@ -2,13 +2,15 @@ package kotlinw.hibernate.core.api
 
 import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
+import jakarta.persistence.NoResultException
 import jakarta.persistence.Parameter
 import jakarta.persistence.TemporalType
 import jakarta.persistence.TypedQuery
+import kotlin.reflect.KClass
 import java.util.*
 import java.util.stream.Stream
 
-interface TypeSafeQuery<R> : TypedQuery<R> {
+interface TypeSafeQuery<R : Any> : TypedQuery<R> {
 
     override fun setHint(hintName: String, value: Any): TypeSafeQuery<R>
 
@@ -75,11 +77,21 @@ interface TypeSafeQuery<R> : TypedQuery<R> {
     override fun setFirstResult(startPosition: Int): TypeSafeQuery<R>
 }
 
-inline fun <reified R> TypeSafeEntityManager.createTypeSafeQuery(qlString: String) =
-    TypeSafeQueryImpl(createQuery(qlString, R::class.java))
+fun <R : Any> TypeSafeQuery<R>.getSingleResultOrNull(): R? =
+    try {
+        getSingleResult()
+    } catch (e: NoResultException) {
+        null
+    }
+
+fun <R : Any> TypeSafeEntityManager.createTypeSafeQuery(qlString: String, resultType: KClass<R>): TypeSafeQuery<R> =
+    TypeSafeQueryImpl(createQuery(qlString, resultType.java))
+
+inline fun <reified R : Any> TypeSafeEntityManager.createTypeSafeQuery(qlString: String) =
+    createTypeSafeQuery(qlString, R::class)
 
 @JvmInline
-value class TypeSafeQueryImpl<R>(private val query: TypedQuery<R>) : TypeSafeQuery<R>, TypedQuery<R> by query {
+value class TypeSafeQueryImpl<R : Any>(private val query: TypedQuery<R>) : TypeSafeQuery<R>, TypedQuery<R> by query {
 
     override fun setHint(hintName: String, value: Any): TypeSafeQuery<R> =
         TypeSafeQueryImpl(query.setHint(hintName, value))
