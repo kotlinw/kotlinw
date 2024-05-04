@@ -8,7 +8,7 @@ import xyz.kotlinw.jpa.api.Transactional
 import xyz.kotlinw.jpa.api.findOrNull
 import xyz.kotlinw.jpa.api.getReference
 import xyz.kotlinw.jpa.api.getSingleResultOrNull
-import xyz.kotlinw.jpa.core.createTypeSafeQuery
+import xyz.kotlinw.jpa.core.createTypedQuery
 import xyz.kotlinw.jpa.core.executeQuery
 
 interface EntityRepository<E : AbstractEntity<ID>, ID : Serializable> {
@@ -113,7 +113,7 @@ abstract class EntityRepositoryImpl<E : AbstractEntity<ID>, ID : Serializable>(
 
     context(JpaSessionContext)
     protected inline fun <reified T : Any> querySingleOrNull(qlQuery: String, vararg arguments: Any?): T? =
-        entityManager.createTypeSafeQuery<T>(qlQuery, *arguments).getSingleResultOrNull()
+        entityManager.createTypedQuery<T>(qlQuery, *arguments).getSingleResultOrNull()
 
     context(JpaSessionContext)
     protected inline fun <reified T : Any> querySingle(qlQuery: String, vararg arguments: Any?): T =

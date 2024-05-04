@@ -1,7 +1,7 @@
 package xyz.kotlinw.jpa.core
 
 import jakarta.persistence.EntityManager
-import xyz.kotlinw.jpa.api.TypeSafeEntityManager
-import xyz.kotlinw.jpa.internal.TypeSafeEntityManagerImpl
+import xyz.kotlinw.jpa.api.TypedEntityManager
+import xyz.kotlinw.jpa.internal.TypedEntityManagerImpl
 
-fun EntityManager.asTypeSafeEntityManager(): TypeSafeEntityManager = TypeSafeEntityManagerImpl(this)
+fun EntityManager.asTypedEntityManager(): TypedEntityManager = TypedEntityManagerImpl(this)

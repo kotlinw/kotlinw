@@ -5,15 +5,15 @@ import java.sql.Connection
 import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.Transactional
 import xyz.kotlinw.jpa.api.TransactionalImpl
-import xyz.kotlinw.jpa.api.TypeSafeEntityManager
-import xyz.kotlinw.jpa.core.asTypeSafeEntityManager
+import xyz.kotlinw.jpa.api.TypedEntityManager
+import xyz.kotlinw.jpa.core.asTypedEntityManager
 import xyz.kotlinw.jpa.internal.JpaSessionContextImpl
 
-internal fun SessionFactory.createTypeSafeEntityManager(): TypeSafeEntityManager =
-    createEntityManager().asTypeSafeEntityManager()
+internal fun SessionFactory.createTypedEntityManager(): TypedEntityManager =
+    createEntityManager().asTypedEntityManager()
 
 fun <T> SessionFactory.runJpaTask(block: JpaSessionContext.() -> T): T =
-    createTypeSafeEntityManager().use {
+    createTypedEntityManager().use {
         block(JpaSessionContextImpl(it))
     }
 

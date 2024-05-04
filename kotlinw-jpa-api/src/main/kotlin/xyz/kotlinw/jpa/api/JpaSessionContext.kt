@@ -2,8 +2,8 @@ package xyz.kotlinw.jpa.api
 
 interface JpaSessionContext {
 
-    val entityManager: TypeSafeEntityManager
+    val entityManager: TypedEntityManager
 }
 
-inline fun <T> JpaSessionContext.withEntityManager(block: TypeSafeEntityManager.() -> T): T =
+inline fun <T> JpaSessionContext.withEntityManager(block: TypedEntityManager.() -> T): T =
     block(entityManager)

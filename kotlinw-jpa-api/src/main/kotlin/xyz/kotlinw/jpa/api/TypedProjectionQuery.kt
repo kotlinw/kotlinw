@@ -32,45 +32,45 @@ private fun <R> mapResultElement(row: Array<*>, index: Int): R =
         throw IllegalStateException("Invalid result element type: ${row[index]}")
     }
 
-interface TypeSafeProjectionQuery<R : Any> : TypeSafeQuery<R> {
+interface TypedProjectionQuery<R : Any> : TypedQuery<R> {
 
-    override fun setHint(hintName: String, value: Any): TypeSafeProjectionQuery<R>
+    override fun setHint(hintName: String, value: Any): TypedProjectionQuery<R>
 
-    override fun <T : Any?> setParameter(param: Parameter<T>, value: T): TypeSafeProjectionQuery<R>
+    override fun <T : Any?> setParameter(param: Parameter<T>, value: T): TypedProjectionQuery<R>
 
     override fun setParameter(
         param: Parameter<Calendar>,
         value: Calendar?,
         temporalType: TemporalType
-    ): TypeSafeProjectionQuery<R>
+    ): TypedProjectionQuery<R>
 
     override fun setParameter(
         param: Parameter<Date>,
         value: Date?,
         temporalType: TemporalType
-    ): TypeSafeProjectionQuery<R>
+    ): TypedProjectionQuery<R>
 
-    override fun setParameter(name: String, value: Any?): TypeSafeProjectionQuery<R>
+    override fun setParameter(name: String, value: Any?): TypedProjectionQuery<R>
 
-    override fun setParameter(name: String, value: Calendar?, temporalType: TemporalType): TypeSafeProjectionQuery<R>
+    override fun setParameter(name: String, value: Calendar?, temporalType: TemporalType): TypedProjectionQuery<R>
 
-    override fun setParameter(name: String, value: Date?, temporalType: TemporalType): TypeSafeProjectionQuery<R>
+    override fun setParameter(name: String, value: Date?, temporalType: TemporalType): TypedProjectionQuery<R>
 
-    override fun setParameter(position: Int, value: Any?): TypeSafeProjectionQuery<R>
+    override fun setParameter(position: Int, value: Any?): TypedProjectionQuery<R>
 
-    override fun setParameter(position: Int, value: Calendar?, temporalType: TemporalType): TypeSafeProjectionQuery<R>
+    override fun setParameter(position: Int, value: Calendar?, temporalType: TemporalType): TypedProjectionQuery<R>
 
-    override fun setParameter(position: Int, value: Date?, temporalType: TemporalType): TypeSafeProjectionQuery<R>
+    override fun setParameter(position: Int, value: Date?, temporalType: TemporalType): TypedProjectionQuery<R>
 
-    override fun setFlushMode(flushMode: FlushModeType): TypeSafeProjectionQuery<R>
+    override fun setFlushMode(flushMode: FlushModeType): TypedProjectionQuery<R>
 
-    override fun setLockMode(lockMode: LockModeType): TypeSafeProjectionQuery<R>
+    override fun setLockMode(lockMode: LockModeType): TypedProjectionQuery<R>
 }
 
-sealed class AbstractTypeSafeProjectionQuery<R : Any, Q : AbstractTypeSafeProjectionQuery<R, Q>>(
-    private val query: TypeSafeQuery<Array<*>>,
+sealed class AbstractTypedProjectionQuery<R : Any, Q : AbstractTypedProjectionQuery<R, Q>>(
+    private val query: TypedQuery<Array<*>>,
     private val tupleSize: Int
-) : TypeSafeProjectionQuery<R> {
+) : TypedProjectionQuery<R> {
 
     protected abstract fun mapRow(it: Array<*>): R
 
@@ -189,25 +189,25 @@ sealed class AbstractTypeSafeProjectionQuery<R : Any, Q : AbstractTypeSafeProjec
     override fun getFirstResult(): Int = query.firstResult
 }
 
-class TypeSafeProjectionQuery2<R1, R2>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Pair<R1, R2>,
-            TypeSafeProjectionQuery2<R1, R2>>(query, 2) {
+class TypedProjectionQuery2<R1, R2>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Pair<R1, R2>,
+            TypedProjectionQuery2<R1, R2>>(query, 2) {
 
     override fun mapRow(it: Array<*>) =
         Pair(mapResultElement<R1>(it, 0), mapResultElement<R2>(it, 1))
 }
 
-class TypeSafeProjectionQuery3<R1, R2, R3>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Triple<R1, R2, R3>,
-            TypeSafeProjectionQuery3<R1, R2, R3>>(query, 3) {
+class TypedProjectionQuery3<R1, R2, R3>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Triple<R1, R2, R3>,
+            TypedProjectionQuery3<R1, R2, R3>>(query, 3) {
 
     override fun mapRow(it: Array<*>) =
         Triple(mapResultElement<R1>(it, 0), mapResultElement<R2>(it, 1), mapResultElement<R3>(it, 2))
 }
 
-class TypeSafeProjectionQuery4<R1, R2, R3, R4>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple4<R1, R2, R3, R4>,
-            TypeSafeProjectionQuery4<R1, R2, R3, R4>>(query, 4) {
+class TypedProjectionQuery4<R1, R2, R3, R4>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple4<R1, R2, R3, R4>,
+            TypedProjectionQuery4<R1, R2, R3, R4>>(query, 4) {
 
     override fun mapRow(it: Array<*>) =
         Tuple4(
@@ -218,9 +218,9 @@ class TypeSafeProjectionQuery4<R1, R2, R3, R4>(query: TypeSafeQuery<Array<*>>) :
         )
 }
 
-class TypeSafeProjectionQuery5<R1, R2, R3, R4, R5>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple5<R1, R2, R3, R4, R5>,
-            TypeSafeProjectionQuery5<R1, R2, R3, R4, R5>>(query, 5) {
+class TypedProjectionQuery5<R1, R2, R3, R4, R5>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple5<R1, R2, R3, R4, R5>,
+            TypedProjectionQuery5<R1, R2, R3, R4, R5>>(query, 5) {
 
     override fun mapRow(it: Array<*>) =
         Tuple5(
@@ -232,9 +232,9 @@ class TypeSafeProjectionQuery5<R1, R2, R3, R4, R5>(query: TypeSafeQuery<Array<*>
         )
 }
 
-class TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple6<R1, R2, R3, R4, R5, R6>,
-            TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>>(query, 6) {
+class TypedProjectionQuery6<R1, R2, R3, R4, R5, R6>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple6<R1, R2, R3, R4, R5, R6>,
+            TypedProjectionQuery6<R1, R2, R3, R4, R5, R6>>(query, 6) {
 
     override fun mapRow(it: Array<*>) =
         Tuple6(
@@ -247,9 +247,9 @@ class TypeSafeProjectionQuery6<R1, R2, R3, R4, R5, R6>(query: TypeSafeQuery<Arra
         )
 }
 
-class TypeSafeProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple7<R1, R2, R3, R4, R5, R6, R7>,
-            TypeSafeProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>>(query, 7) {
+class TypedProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple7<R1, R2, R3, R4, R5, R6, R7>,
+            TypedProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>>(query, 7) {
 
     override fun mapRow(it: Array<*>) =
         Tuple7(
@@ -263,9 +263,9 @@ class TypeSafeProjectionQuery7<R1, R2, R3, R4, R5, R6, R7>(query: TypeSafeQuery<
         )
 }
 
-class TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple8<R1, R2, R3, R4, R5, R6, R7, R8>,
-            TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>>(query, 8) {
+class TypedProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple8<R1, R2, R3, R4, R5, R6, R7, R8>,
+            TypedProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>>(query, 8) {
 
     override fun mapRow(it: Array<*>) =
         Tuple8(
@@ -280,9 +280,9 @@ class TypeSafeProjectionQuery8<R1, R2, R3, R4, R5, R6, R7, R8>(query: TypeSafeQu
         )
 }
 
-class TypeSafeProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple9<R1, R2, R3, R4, R5, R6, R7, R8, R9>,
-            TypeSafeProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>>(query, 9) {
+class TypedProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple9<R1, R2, R3, R4, R5, R6, R7, R8, R9>,
+            TypedProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>>(query, 9) {
 
     override fun mapRow(it: Array<*>) =
         Tuple9(
@@ -298,9 +298,9 @@ class TypeSafeProjectionQuery9<R1, R2, R3, R4, R5, R6, R7, R8, R9>(query: TypeSa
         )
 }
 
-class TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>,
-            TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>>(query, 10) {
+class TypedProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>,
+            TypedProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>>(query, 10) {
 
     override fun mapRow(it: Array<*>) =
         Tuple10(
@@ -317,9 +317,9 @@ class TypeSafeProjectionQuery10<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(query: 
         )
 }
 
-class TypeSafeProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>,
-            TypeSafeProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>>(query, 11) {
+class TypedProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>,
+            TypedProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>>(query, 11) {
 
     override fun mapRow(it: Array<*>) =
         Tuple11(
@@ -337,9 +337,9 @@ class TypeSafeProjectionQuery11<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(qu
         )
 }
 
-class TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>,
-            TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>>(query, 12) {
+class TypedProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>,
+            TypedProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>>(query, 12) {
 
     override fun mapRow(it: Array<*>) =
         Tuple12(
@@ -358,9 +358,9 @@ class TypeSafeProjectionQuery12<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R1
         )
 }
 
-class TypeSafeProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>,
-            TypeSafeProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>>(query, 13) {
+class TypedProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>,
+            TypedProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>>(query, 13) {
 
     override fun mapRow(it: Array<*>) =
         Tuple13(
@@ -380,9 +380,9 @@ class TypeSafeProjectionQuery13<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R1
         )
 }
 
-class TypeSafeProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(query: TypeSafeQuery<Array<*>>) :
-    AbstractTypeSafeProjectionQuery<Tuple14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>,
-            TypeSafeProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>>(query, 14) {
+class TypedProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(query: TypedQuery<Array<*>>) :
+    AbstractTypedProjectionQuery<Tuple14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>,
+            TypedProjectionQuery14<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>>(query, 14) {
 
     override fun mapRow(it: Array<*>) =
         Tuple14(

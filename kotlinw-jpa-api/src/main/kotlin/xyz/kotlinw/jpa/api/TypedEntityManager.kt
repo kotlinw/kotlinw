@@ -14,7 +14,7 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.metamodel.Metamodel
 
-interface TypeSafeEntityManager : EntityManager {
+interface TypedEntityManager : EntityManager {
 
     @Deprecated(
         message = "Use `persistEntity()` instead which enforces an existing compile-time transactional context.",
@@ -125,13 +125,13 @@ interface TypeSafeEntityManager : EntityManager {
     @Deprecated(
         message = "Use the type-safe query creation functions.",
         replaceWith = ReplaceWith(
-            "this.createTypeSafeQuery(qlString, TODO())",
-            imports = ["xyz.kotlinw.jpa.core.createTypeSafeQuery"]
+            "this.createTypedQuery(qlString, TODO())",
+            imports = ["xyz.kotlinw.jpa.core.createTypedQuery"]
         )
     )
     override fun createQuery(qlString: String): Query
 
-    override fun <T : Any> createQuery(criteriaQuery: CriteriaQuery<T>): TypeSafeQuery<T>
+    override fun <T : Any> createQuery(criteriaQuery: CriteriaQuery<T>): TypedQuery<T>
 
     override fun createQuery(updateQuery: CriteriaUpdate<*>): Query
 
@@ -140,17 +140,17 @@ interface TypeSafeEntityManager : EntityManager {
     @Deprecated(
         message = "Use the type-safe query creation functions.",
         replaceWith = ReplaceWith(
-            "this.createTypeSafeQuery(qlString, resultClass)",
-            imports = ["xyz.kotlinw.jpa.core.createTypeSafeQuery"]
+            "this.createTypedQuery(qlString, resultClass)",
+            imports = ["xyz.kotlinw.jpa.core.createTypedQuery"]
         )
     )
-    override fun <T : Any> createQuery(qlString: String, resultClass: Class<T>): TypeSafeQuery<T>
+    override fun <T : Any> createQuery(qlString: String, resultClass: Class<T>): TypedQuery<T>
 
     @Deprecated(
         message = "Use the type-safe query creation functions.",
         replaceWith = ReplaceWith(
-            "this.createTypeSafeNamedQuery(name, TODO())",
-            imports = ["xyz.kotlinw.jpa.core.createTypeSafeNamedQuery"]
+            "this.createTypedNamedQuery(name, TODO())",
+            imports = ["xyz.kotlinw.jpa.core.createTypedNamedQuery"]
         )
     )
     override fun createNamedQuery(name: String): Query
@@ -158,11 +158,11 @@ interface TypeSafeEntityManager : EntityManager {
     @Deprecated(
         message = "Use the type-safe query creation functions.",
         replaceWith = ReplaceWith(
-            "this.createTypeSafeNamedQuery(name, resultClass)",
-            imports = ["xyz.kotlinw.jpa.core.createTypeSafeNamedQuery"]
+            "this.createTypedNamedQuery(name, resultClass)",
+            imports = ["xyz.kotlinw.jpa.core.createTypedNamedQuery"]
         )
     )
-    override fun <T : Any> createNamedQuery(name: String, resultClass: Class<T>): TypeSafeQuery<T>
+    override fun <T : Any> createNamedQuery(name: String, resultClass: Class<T>): TypedQuery<T>
 
     override fun createNativeQuery(sqlString: String): Query
 

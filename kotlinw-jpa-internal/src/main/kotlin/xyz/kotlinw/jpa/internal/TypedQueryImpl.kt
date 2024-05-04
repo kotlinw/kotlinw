@@ -4,21 +4,20 @@ import jakarta.persistence.FlushModeType
 import jakarta.persistence.LockModeType
 import jakarta.persistence.Parameter
 import jakarta.persistence.TemporalType
-import jakarta.persistence.TypedQuery
 import java.util.*
 import java.util.stream.Stream
-import xyz.kotlinw.jpa.api.TypeSafeQuery
+import xyz.kotlinw.jpa.api.TypedQuery
 
 @JvmInline
-value class TypeSafeQueryImpl<R : Any>(private val delegate: TypedQuery<R>) :
-    TypeSafeQuery<R>, TypedQuery<R> by delegate {
+value class TypedQueryImpl<R : Any>(private val delegate: jakarta.persistence.TypedQuery<R>) :
+    TypedQuery<R>, jakarta.persistence.TypedQuery<R> by delegate {
 
-    override fun setHint(hintName: String, value: Any): TypeSafeQuery<R> {
+    override fun setHint(hintName: String, value: Any): TypedQuery<R> {
         delegate.setHint(hintName, value)
         return this
     }
 
-    override fun <T : Any?> setParameter(param: Parameter<T>, value: T): TypeSafeQuery<R> {
+    override fun <T : Any?> setParameter(param: Parameter<T>, value: T): TypedQuery<R> {
         delegate.setParameter(param, value)
         return this
     }
@@ -27,52 +26,52 @@ value class TypeSafeQueryImpl<R : Any>(private val delegate: TypedQuery<R>) :
         param: Parameter<Calendar>,
         value: Calendar?,
         temporalType: TemporalType
-    ): TypeSafeQuery<R> {
+    ): TypedQuery<R> {
         delegate.setParameter(param, value, temporalType)
         return this
     }
 
-    override fun setParameter(param: Parameter<Date>, value: Date?, temporalType: TemporalType): TypeSafeQuery<R> {
+    override fun setParameter(param: Parameter<Date>, value: Date?, temporalType: TemporalType): TypedQuery<R> {
         delegate.setParameter(param, value, temporalType)
         return this
     }
 
-    override fun setParameter(name: String, value: Any?): TypeSafeQuery<R> {
+    override fun setParameter(name: String, value: Any?): TypedQuery<R> {
         delegate.setParameter(name, value)
         return this
     }
 
-    override fun setParameter(name: String, value: Calendar?, temporalType: TemporalType): TypeSafeQuery<R> {
+    override fun setParameter(name: String, value: Calendar?, temporalType: TemporalType): TypedQuery<R> {
         delegate.setParameter(name, value, temporalType)
         return this
     }
 
-    override fun setParameter(name: String, value: Date?, temporalType: TemporalType): TypeSafeQuery<R> {
+    override fun setParameter(name: String, value: Date?, temporalType: TemporalType): TypedQuery<R> {
         delegate.setParameter(name, value, temporalType)
         return this
     }
 
-    override fun setParameter(position: Int, value: Any?): TypeSafeQuery<R> {
+    override fun setParameter(position: Int, value: Any?): TypedQuery<R> {
         delegate.setParameter(position, value)
         return this
     }
 
-    override fun setParameter(position: Int, value: Calendar?, temporalType: TemporalType): TypeSafeQuery<R> {
+    override fun setParameter(position: Int, value: Calendar?, temporalType: TemporalType): TypedQuery<R> {
         delegate.setParameter(position, value, temporalType)
         return this
     }
 
-    override fun setParameter(position: Int, value: Date?, temporalType: TemporalType): TypeSafeQuery<R> {
+    override fun setParameter(position: Int, value: Date?, temporalType: TemporalType): TypedQuery<R> {
         delegate.setParameter(position, value, temporalType)
         return this
     }
 
-    override fun setFlushMode(flushMode: FlushModeType): TypeSafeQuery<R> {
+    override fun setFlushMode(flushMode: FlushModeType): TypedQuery<R> {
         delegate.setFlushMode(flushMode)
         return this
     }
 
-    override fun setLockMode(lockMode: LockModeType): TypeSafeQuery<R> {
+    override fun setLockMode(lockMode: LockModeType): TypedQuery<R> {
         delegate.setLockMode(lockMode)
         return this
     }
@@ -109,12 +108,12 @@ value class TypeSafeQueryImpl<R : Any>(private val delegate: TypedQuery<R>) :
 
     override fun getSingleResult(): R = delegate.singleResult
 
-    override fun setMaxResults(maxResult: Int): TypeSafeQuery<R> {
+    override fun setMaxResults(maxResult: Int): TypedQuery<R> {
         delegate.setMaxResults(maxResult)
         return this
     }
 
-    override fun setFirstResult(startPosition: Int): TypeSafeQuery<R> {
+    override fun setFirstResult(startPosition: Int): TypedQuery<R> {
         delegate.setFirstResult(startPosition)
         return this
     }
