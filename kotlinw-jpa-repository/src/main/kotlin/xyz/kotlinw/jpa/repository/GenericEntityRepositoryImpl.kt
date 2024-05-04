@@ -76,5 +76,5 @@ abstract class GenericEntityRepositoryImpl<E : Any, ID : Serializable>(
 
     context(JpaSessionContext)
     protected inline fun <reified T : Any> querySingle(qlQuery: String, vararg arguments: Any?): T =
-        querySingleOrNull<T>(qlQuery, *arguments) ?: throw IllegalStateException() // TODO specifikus hibát
+        entityManager.createTypedQuery<T>(qlQuery, *arguments).getSingleResult()
 }

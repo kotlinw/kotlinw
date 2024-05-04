@@ -5,39 +5,39 @@ import jakarta.persistence.LockModeType
 import jakarta.persistence.NoResultException
 import jakarta.persistence.Parameter
 import jakarta.persistence.TemporalType
-import jakarta.persistence.TypedQuery
 import java.util.*
 import java.util.stream.Stream
+import jakarta.persistence.TypedQuery as JpaTypedQuery
 
-interface TypedQuery<R : Any> : TypedQuery<R> {
+interface TypedQuery<R : Any> : JpaTypedQuery<R> {
 
-    override fun setHint(hintName: String, value: Any): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setHint(hintName: String, value: Any): TypedQuery<R>
 
-    override fun <T : Any?> setParameter(param: Parameter<T>, value: T): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun <T : Any?> setParameter(param: Parameter<T>, value: T): TypedQuery<R>
 
     override fun setParameter(
         param: Parameter<Calendar>,
         value: Calendar?,
         temporalType: TemporalType
-    ): xyz.kotlinw.jpa.api.TypedQuery<R>
+    ): TypedQuery<R>
 
-    override fun setParameter(param: Parameter<Date>, value: Date?, temporalType: TemporalType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(param: Parameter<Date>, value: Date?, temporalType: TemporalType): TypedQuery<R>
 
-    override fun setParameter(name: String, value: Any?): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(name: String, value: Any?): TypedQuery<R>
 
-    override fun setParameter(name: String, value: Calendar?, temporalType: TemporalType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(name: String, value: Calendar?, temporalType: TemporalType): TypedQuery<R>
 
-    override fun setParameter(name: String, value: Date?, temporalType: TemporalType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(name: String, value: Date?, temporalType: TemporalType): TypedQuery<R>
 
-    override fun setParameter(position: Int, value: Any?): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(position: Int, value: Any?): TypedQuery<R>
 
-    override fun setParameter(position: Int, value: Calendar?, temporalType: TemporalType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(position: Int, value: Calendar?, temporalType: TemporalType): TypedQuery<R>
 
-    override fun setParameter(position: Int, value: Date?, temporalType: TemporalType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setParameter(position: Int, value: Date?, temporalType: TemporalType): TypedQuery<R>
 
-    override fun setFlushMode(flushMode: FlushModeType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setFlushMode(flushMode: FlushModeType): TypedQuery<R>
 
-    override fun setLockMode(lockMode: LockModeType): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setLockMode(lockMode: LockModeType): TypedQuery<R>
 
     override fun <T : Any> unwrap(cls: Class<T>): T
 
@@ -71,9 +71,9 @@ interface TypedQuery<R : Any> : TypedQuery<R> {
 
     override fun getSingleResult(): R
 
-    override fun setMaxResults(maxResult: Int): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setMaxResults(maxResult: Int): TypedQuery<R>
 
-    override fun setFirstResult(startPosition: Int): xyz.kotlinw.jpa.api.TypedQuery<R>
+    override fun setFirstResult(startPosition: Int): TypedQuery<R>
 
     override fun executeUpdate(): Int
 
@@ -81,10 +81,3 @@ interface TypedQuery<R : Any> : TypedQuery<R> {
 
     override fun getFirstResult(): Int
 }
-
-fun <R : Any> xyz.kotlinw.jpa.api.TypedQuery<R>.getSingleResultOrNull(): R? =
-    try {
-        getSingleResult()
-    } catch (e: NoResultException) {
-        null
-    }
