@@ -7,12 +7,12 @@ import org.hibernate.Length
 import org.hibernate.envers.Audited
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.jpa.api.JpaSessionContext
-import xyz.kotlinw.jpa.repository.SimpleBaseEntity
-import xyz.kotlinw.jpa.repository.SimpleBaseEntityRepository
-import xyz.kotlinw.jpa.repository.SimpleBaseEntityRepositoryImpl
+import xyz.kotlinw.jpa.repository.BaseEntity
+import xyz.kotlinw.jpa.repository.BaseEntityRepository
+import xyz.kotlinw.jpa.repository.BaseEntityRepositoryImpl
 
 @Entity(name = ApplicationConfigurationEntity.TableName)
-@Table
+@Table(name = ApplicationConfigurationEntity.TableName)
 @Audited
 class ApplicationConfigurationEntity(
 
@@ -22,7 +22,7 @@ class ApplicationConfigurationEntity(
     @Column(nullable = false, length = Length.LONG32)
     var value: String
 
-) : SimpleBaseEntity() {
+) : BaseEntity() {
 
     companion object {
 
@@ -34,7 +34,7 @@ class ApplicationConfigurationEntity(
     }
 }
 
-interface ApplicationConfigurationEntityRepository : SimpleBaseEntityRepository<ApplicationConfigurationEntity> {
+interface ApplicationConfigurationEntityRepository : BaseEntityRepository<ApplicationConfigurationEntity> {
 
     context(JpaSessionContext)
     fun findByName(name: String): ApplicationConfigurationEntity?
@@ -42,7 +42,7 @@ interface ApplicationConfigurationEntityRepository : SimpleBaseEntityRepository<
 
 @Component
 class ApplicationConfigurationEntityRepositoryImpl :
-    SimpleBaseEntityRepositoryImpl<ApplicationConfigurationEntity>(ApplicationConfigurationEntity::class),
+    BaseEntityRepositoryImpl<ApplicationConfigurationEntity>(ApplicationConfigurationEntity::class),
     ApplicationConfigurationEntityRepository {
 
     context(JpaSessionContext)

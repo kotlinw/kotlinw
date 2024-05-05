@@ -76,6 +76,13 @@ class HibernateModule {
                     .forEach {
                         applySetting(it.key.name, it.value)
                     }
+                    .also {
+                        applySetting("hibernate.id.optimizer.pooled.preferred", "pooled-lo") // TODO make configurable
+                        applySetting("hibernate.jdbc.batch_size", "10") // TODO make configurable
+                        applySetting("hibernate.order_inserts", "true") // TODO make configurable
+                        applySetting("hibernate.order_updates", "true") // TODO make configurable
+                        applySetting("hibernate.jdbc.fetch_size", "100") // TODO make configurable
+                    }
 
                 customizers.forEach { it.customize() }
             }

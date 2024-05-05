@@ -2,14 +2,14 @@ package xyz.kotlinw.jpa.repository
 
 import kotlin.reflect.KClass
 
-interface SimpleBaseEntityRepository<E : SimpleBaseEntity> : AbstractEntityRepository<E, BaseEntityId>
+interface BaseEntityRepository<E : BaseEntity> : AbstractEntityRepository<E, BaseEntityId>
 
-abstract class SimpleBaseEntityRepositoryImpl<E : SimpleBaseEntity>(entityClass: KClass<E>) :
+abstract class BaseEntityRepositoryImpl<E : BaseEntity>(entityClass: KClass<E>) :
     AbstractEntityRepositoryImpl<E, BaseEntityId>(entityClass),
-    SimpleBaseEntityRepository<E>
+    BaseEntityRepository<E>
 
-interface BaseIdentityEntityRepository<E : BaseIdentityEntity> : SimpleBaseEntityRepository<E>
+interface BaseIdentityEntityRepository<E : BaseIdentityEntity> : BaseEntityRepository<E>
 
 abstract class BaseIdentityEntityRepositoryImpl<E : BaseIdentityEntity>(entityClass: KClass<E>) :
-    SimpleBaseEntityRepositoryImpl<E>(entityClass),
+    BaseEntityRepositoryImpl<E>(entityClass),
     BaseIdentityEntityRepository<E>

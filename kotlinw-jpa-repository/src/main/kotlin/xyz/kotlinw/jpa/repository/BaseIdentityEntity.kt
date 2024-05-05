@@ -17,17 +17,17 @@ import kotlinw.uuid.toUuid
 typealias BaseEntityId = Long
 
 @MappedSuperclass
-abstract class SimpleBaseEntity(
+abstract class BaseEntity(
 
     @Id
+    @SequenceGenerator(
+        name = "BaseEntityGenerator",
+        sequenceName = "bseq", // TODO rename? BaseEntitySequence
+        allocationSize = 20
+    )
     @GeneratedValue(
         strategy = GenerationType.SEQUENCE,
         generator = "BaseEntityGenerator"
-    )
-    @SequenceGenerator(
-        name = "BaseEntityGenerator",
-        sequenceName = "bseq", // TODO rename: entity_sequence
-        allocationSize = 50
     )
     override var id: BaseEntityId? = null
 
@@ -39,7 +39,7 @@ abstract class BaseIdentityEntity(
     @Column(unique = true, nullable = false, updatable = false)
     open var uid: UUID = generateNextEntityUlid().toUuid().asJavaUuid()
 
-) : SimpleBaseEntity() {
+) : BaseEntity() {
 
     var ulid: Ulid
         get() = uid.toUuid().toUlid()
