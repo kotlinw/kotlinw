@@ -17,7 +17,7 @@ import kotlinw.uuid.toUuid
 typealias BaseEntityId = Long
 
 @MappedSuperclass
-abstract class SimpleBaseEntity( // TODO rename to BaseEntity
+abstract class SimpleBaseEntity(
 
     @Id
     @GeneratedValue(
@@ -34,7 +34,7 @@ abstract class SimpleBaseEntity( // TODO rename to BaseEntity
 ) : AbstractEntity<BaseEntityId>()
 
 @MappedSuperclass
-abstract class BaseEntity( // TODO rename to BaseEntityWithIdentity
+abstract class BaseIdentityEntity(
 
     @Column(unique = true, nullable = false, updatable = false)
     open var uid: UUID = generateNextEntityUlid().toUuid().asJavaUuid()
@@ -50,7 +50,7 @@ abstract class BaseEntity( // TODO rename to BaseEntityWithIdentity
     final override fun equals(other: Any?) =
         if (this === other) {
             true
-        } else if (other is BaseEntity && ulid == other.ulid) {
+        } else if (other is BaseIdentityEntity && ulid == other.ulid) {
             assert(resolveEntityClass() == other.resolveEntityClass())
             true
         } else {
