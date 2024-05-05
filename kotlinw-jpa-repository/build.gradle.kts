@@ -17,4 +17,5 @@ kotlin {
 
 dependencies {
     api(projects.kotlinw.kotlinwJpaCore)
+    api(projects.kotlinw.kotlinwUlid) // TODO UUIDv4
 }

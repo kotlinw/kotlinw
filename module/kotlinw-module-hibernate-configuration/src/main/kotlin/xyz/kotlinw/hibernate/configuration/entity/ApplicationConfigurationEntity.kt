@@ -3,16 +3,16 @@ package xyz.kotlinw.hibernate.configuration.entity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
-import xyz.kotlinw.jpa.api.JpaSessionContext
-import kotlinw.hibernate.core.entity.BaseEntity
-import kotlinw.hibernate.core.entity.BaseEntityRepository
-import kotlinw.hibernate.core.entity.BaseEntityRepositoryImpl
 import org.hibernate.Length
 import org.hibernate.envers.Audited
 import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.jpa.api.JpaSessionContext
+import xyz.kotlinw.jpa.repository.SimpleBaseEntity
+import xyz.kotlinw.jpa.repository.SimpleBaseEntityRepository
+import xyz.kotlinw.jpa.repository.SimpleBaseEntityRepositoryImpl
 
-@Entity
-@Table(name = ApplicationConfigurationEntity.TableName)
+@Entity(name = ApplicationConfigurationEntity.TableName)
+@Table
 @Audited
 class ApplicationConfigurationEntity(
 
@@ -22,7 +22,7 @@ class ApplicationConfigurationEntity(
     @Column(nullable = false, length = Length.LONG32)
     var value: String
 
-) : BaseEntity() {
+) : SimpleBaseEntity() {
 
     companion object {
 
@@ -34,7 +34,7 @@ class ApplicationConfigurationEntity(
     }
 }
 
-interface ApplicationConfigurationEntityRepository : BaseEntityRepository<ApplicationConfigurationEntity> {
+interface ApplicationConfigurationEntityRepository : SimpleBaseEntityRepository<ApplicationConfigurationEntity> {
 
     context(JpaSessionContext)
     fun findByName(name: String): ApplicationConfigurationEntity?
@@ -42,7 +42,7 @@ interface ApplicationConfigurationEntityRepository : BaseEntityRepository<Applic
 
 @Component
 class ApplicationConfigurationEntityRepositoryImpl :
-    BaseEntityRepositoryImpl<ApplicationConfigurationEntity>(ApplicationConfigurationEntity::class),
+    SimpleBaseEntityRepositoryImpl<ApplicationConfigurationEntity>(ApplicationConfigurationEntity::class),
     ApplicationConfigurationEntityRepository {
 
     context(JpaSessionContext)

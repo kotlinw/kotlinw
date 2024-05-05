@@ -99,8 +99,8 @@ inline fun <reified T : Any> createNamedQuery(name: String): TypedQuery<T> =
 fun <T : Any> EntityManager.createEntityGraph(rootType: KClass<T>): EntityGraph<T> =
     createEntityGraph(rootType.java)
 
-inline fun <reified T : Any> EntityManager.createEntityGraph(): EntityGraph<T> =
-    createEntityGraph(T::class)
+inline fun <reified T : Any> EntityManager.createEntityGraph(block: EntityGraph<T>.() -> Unit = {}): EntityGraph<T> =
+    createEntityGraph(T::class).apply(block)
 
 fun <T : Any> EntityManager.getEntityGraphs(entityClass: KClass<T>): List<EntityGraph<in T>> =
     getEntityGraphs(entityClass.java)

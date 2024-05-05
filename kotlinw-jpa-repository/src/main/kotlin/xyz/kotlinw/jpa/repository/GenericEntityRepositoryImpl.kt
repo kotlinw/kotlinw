@@ -1,6 +1,8 @@
 package xyz.kotlinw.jpa.repository
 
+import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
+import jakarta.persistence.metamodel.EntityType
 import java.io.Serializable
 import kotlin.reflect.KClass
 import xyz.kotlinw.jpa.api.JpaSessionContext
@@ -11,12 +13,13 @@ import xyz.kotlinw.jpa.api.getSingleResultOrNull
 import xyz.kotlinw.jpa.core.createTypedQuery
 import xyz.kotlinw.jpa.core.executeQuery
 
-abstract class GenericEntityRepositoryImpl<E : Any, ID : Serializable>(
-    protected val entityClass: KClass<E>
-) : GenericEntityRepository<E, ID> {
+abstract class GenericEntityRepositoryImpl<E : Any, ID : Serializable>(protected val entityClass: KClass<E>) :
+    GenericEntityRepository<E, ID> {
 
-    protected val entityName =
-        entityClass.simpleName!! // TODO ez lehet más is, a persistence provider-től kellene lekérdezni
+    context(JpaSessionContext)
+    protected val entityName
+        get() = (entityManager.metamodel.managedType(entityClass.java) as? EntityType<*>)?.name
+            ?: throw IllegalStateException("Cannot resolve entity name for class: $entityClass")
 
     context(JpaSessionContext)
     override fun findAll(): List<E> = query("FROM $entityName", entityClass)

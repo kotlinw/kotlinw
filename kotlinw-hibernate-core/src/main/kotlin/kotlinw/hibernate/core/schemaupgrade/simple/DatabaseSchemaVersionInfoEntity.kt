@@ -2,10 +2,13 @@ package kotlinw.hibernate.core.schemaupgrade.simple
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kotlinw.hibernate.core.entity.BaseEntity
-import org.hibernate.Length
 import java.time.Instant
+import org.hibernate.Length
+import xyz.kotlinw.jpa.repository.AbstractEntity
 
 @Entity
 @Table(name = "DatabaseSchemaVersionInfo")
@@ -15,9 +18,13 @@ class DatabaseSchemaVersionInfoEntity(
     var currentSchemaVersion: String,
 
     @Column(nullable = false)
-    var timestamp: Instant
+    var timestamp: Instant,
 
-) : BaseEntity() {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    override var id: Long? = null
+
+) : AbstractEntity<Long>() {
 
     override fun toString(): String {
         return "DatabaseSchemaVersionInfoEntity(currentSchemaVersion='$currentSchemaVersion', timestamp=$timestamp)"

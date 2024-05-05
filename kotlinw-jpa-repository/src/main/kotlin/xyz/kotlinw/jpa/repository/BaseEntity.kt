@@ -1,4 +1,4 @@
-package kotlinw.hibernate.core.entity
+package xyz.kotlinw.jpa.repository
 
 import arrow.core.continuations.AtomicRef
 import jakarta.persistence.Column
@@ -17,24 +17,24 @@ import kotlinw.uuid.toUuid
 typealias BaseEntityId = Long
 
 @MappedSuperclass
-abstract class SimpleBaseEntity(
+abstract class SimpleBaseEntity( // TODO rename to BaseEntity
 
     @Id
     @GeneratedValue(
         strategy = GenerationType.SEQUENCE,
-        generator = "BaseEntitySequenceGenerator"
+        generator = "BaseEntityGenerator"
     )
     @SequenceGenerator(
-        name = "BaseEntitySequenceGenerator",
-        sequenceName = "bseq",
+        name = "BaseEntityGenerator",
+        sequenceName = "bseq", // TODO rename: entity_sequence
         allocationSize = 50
     )
-    override var id: BaseEntityId? = null,
+    override var id: BaseEntityId? = null
 
-    ) : AbstractHibernateEntity<BaseEntityId>()
+) : AbstractEntity<BaseEntityId>()
 
 @MappedSuperclass
-abstract class BaseEntity(
+abstract class BaseEntity( // TODO rename to BaseEntityWithIdentity
 
     @Column(unique = true, nullable = false, updatable = false)
     open var uid: UUID = generateNextEntityUlid().toUuid().asJavaUuid()
@@ -51,7 +51,7 @@ abstract class BaseEntity(
         if (this === other) {
             true
         } else if (other is BaseEntity && ulid == other.ulid) {
-            assert(entityClass == other.entityClass)
+            assert(resolveEntityClass() == other.resolveEntityClass())
             true
         } else {
             false
@@ -60,7 +60,7 @@ abstract class BaseEntity(
     final override fun hashCode() = ulid.hashCode()
 
     override fun toString(): String {
-        return "${entityClass.simpleName}(id=$id, uid=$uid)"
+        return "${resolveEntityClass().simpleName}(id=$id, uid=$uid)"
     }
 }
 
