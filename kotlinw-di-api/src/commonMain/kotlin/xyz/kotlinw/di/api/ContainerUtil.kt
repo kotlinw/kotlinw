@@ -13,6 +13,8 @@ suspend fun <S : ContainerScope, T> runApplication(
     rootScopeFactory: () -> S,
     beforeScopeCreated: () -> Unit = {},
     afterUninitializedScopeCreated: (S) -> Unit = {},
+    afterScopeStarted: (S) -> Unit = {},
+    startupTaskFilter: (String) -> Boolean = { true },
     onShutdown: () -> Unit = {},
     block: suspend S.() -> T = {
         delay(Long.MAX_VALUE)
@@ -33,19 +35,22 @@ suspend fun <S : ContainerScope, T> runApplication(
                     throw RuntimeException("Application start failed.", e.nonFatalOrThrow())
                 }
 
-                containerLifecycleCoordinator?.apply {
-                    check(this is ContainerLifecycleCoordinatorImpl)
+                val coordinator = containerLifecycleCoordinator as ContainerLifecycleCoordinatorImpl?
 
+                if (coordinator != null) {
                     containerLifecycleStaticListeners.forEach { listener ->
-                        registerListener(
+                        coordinator.registerListener(
+                            listener.getLifecycleListenerId(),
                             listener::onContainerStartup,
                             { listener.onContainerShutdown() },
                             listener.lifecycleListenerPriority
                         )
                     }
-
-                    runStartupTasks()
                 }
+
+                afterScopeStarted(rootScope)
+
+                coordinator?.runStartupTasks(startupTaskFilter)
 
                 block(rootScope)
             } finally {

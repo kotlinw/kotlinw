@@ -2,6 +2,9 @@ package xyz.kotlinw.di.impl
 
 import arrow.core.nonFatalOrThrow
 import kotlin.concurrent.Volatile
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KFunction1
 import kotlinw.collection.LinkedQueue
 import kotlinw.collection.MutableQueue
 import kotlinw.util.stdlib.Priority
@@ -14,7 +17,9 @@ import xyz.kotlinw.di.api.ContainerLifecycleListener
 
 interface ContainerLifecycleCoordinator {
 
-    fun <T : Any> registerListener(
+    // TODO végignézni a hivatkozásokat, hogy jogosak-e, nem lehetne-e ContainerLifecycleListener-rel helyettesíteni őket
+    fun <T : Any> registerListener( // TODO miért kell a :Any
+        listenerId: String,
         onStartup: suspend () -> T,
         onShutdown: suspend (T) -> Unit,
         priority: Priority = Priority.Normal
@@ -23,14 +28,29 @@ interface ContainerLifecycleCoordinator {
     fun initiateShutdown()
 }
 
+fun <T : Any> ContainerLifecycleCoordinator.registerListener(
+    inlineComponentFactory: KFunction<*>, // TODO ehelyett a ComponentId-t kellene használni
+    onStartup: suspend () -> T,
+    onShutdown: suspend (T) -> Unit,
+    priority: Priority = Priority.Normal
+) =
+    registerListener(
+        inlineComponentFactory.name,
+        onStartup,
+        onShutdown,
+        priority
+    )
+
 interface ContainerLifecycleCoordinatorInternal {
 
-    suspend fun runStartupTasks()
+    suspend fun runStartupTasks(startupTaskFilter: (String) -> Boolean)
 }
 
 class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, ContainerLifecycleCoordinatorInternal {
 
     private val listeners = mutableListOf<ContainerLifecycleListener>()
+
+    val lifecycleListeners: List<ContainerLifecycleListener> get() = listeners
 
     private val runStartupTasksInvoked = atomic(false)
 
@@ -41,6 +61,7 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, Contain
     private val listenersLock = reentrantLock()
 
     override fun <T : Any> registerListener(
+        listenerId: String,
         onStartup: suspend () -> T,
         onShutdown: suspend (T) -> Unit,
         priority: Priority
@@ -53,6 +74,8 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, Contain
                 object : ContainerLifecycleListener {
 
                     override val lifecycleListenerPriority get() = priority
+
+                    override fun getLifecycleListenerId(): String = listenerId
 
                     @Volatile
                     private var startupResult: T? = null
@@ -69,7 +92,7 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, Contain
         }
     }
 
-    override suspend fun runStartupTasks() {
+    override suspend fun runStartupTasks(startupTaskFilter: (String) -> Boolean) {
         listenersLock.withLock {
             if (!runStartupTasksInvoked.compareAndSet(false, true)) {
                 throw IllegalStateException("runStartupTasks() has already been called.")
@@ -78,17 +101,26 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, Contain
 
         try {
             val startupTasks = listeners.sortedBy { it.lifecycleListenerPriority }
-            // TODO kilogolni startupTasks-ot
+            println("Startup tasks:") // TODO log
+            startupTasks.forEach {
+                val lifecycleListenerId = it.getLifecycleListenerId()
+                val isEnabled = startupTaskFilter(lifecycleListenerId)
+                println("  - ${if (isEnabled) "" else "IGNORED "}$lifecycleListenerId (${it.lifecycleListenerPriority.value})")
+            }
 
             startupTasks.forEach { listener ->
-                try {
-                    listener.onContainerStartup()
-                    shutdownTasks.add(listener)
-                } catch (e: Throwable) {
-                    e.nonFatalOrThrow().also {
-                        // TODO log
-                        runShutdownTasks()
-                        throw RuntimeException("Startup task failed: $listener", it)
+                val lifecycleListenerId = listener.getLifecycleListenerId()
+                val isEnabled = startupTaskFilter(lifecycleListenerId)
+                if (isEnabled) {
+                    try {
+                        listener.onContainerStartup()// TODO log
+                        shutdownTasks.add(listener)
+                    } catch (e: Throwable) {
+                        e.nonFatalOrThrow().also {
+                            // TODO log
+                            runShutdownTasks()
+                            throw RuntimeException("Startup task failed: $listener", it)
+                        }
                     }
                 }
             }
@@ -104,7 +136,7 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, Contain
                 shutdownTasks.forEach {
                     try {
                         withContext(NonCancellable) {
-                            it.onContainerShutdown()
+                            it.onContainerShutdown()// TODO log
                         }
                     } catch (e: Throwable) {
                         // FIXME itt ne dobjunk tovább semmit, mert akkor a teljes shutdown folyamat megszakad

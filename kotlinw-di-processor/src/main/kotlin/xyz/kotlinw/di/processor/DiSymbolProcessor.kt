@@ -119,6 +119,14 @@ private class DelayKspProcessingException() : RuntimeException()
 
 // TODO warning, ha interfész típus elrejt a komponens típusa, pl. WorkflowManager a típus, de a WorkflowManagerImpl implementálja a ContainerLifecycleListener-t is
 
+// TODO
+//  context(ComponentInstantiationContext)
+//  @Component
+//  fun xyz() = SomeComponentImpl(componentId) // ComponentInstantiationContext.componentId
+//  +
+//  @Component
+//  class SomeComponentClass(componentId: ComponentId) { ... }
+
 @OptIn(KspExperimental::class)
 class DiSymbolProcessor(
     private val codeGenerator: CodeGenerator,
