@@ -6,7 +6,6 @@ import kotlinw.util.stdlib.deletePidFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
-// TODO ennek inkább az appbase modulban lenne a helye
 @OptIn(DelicateKotlinwApi::class)
 suspend fun <S : ContainerScope, T> runJvmApplication(
     rootScopeFactory: () -> S,
@@ -22,7 +21,7 @@ suspend fun <S : ContainerScope, T> runJvmApplication(
                     // TODO log
                     try {
                         runBlocking {
-                            shutdownApplication(it, it.containerLifecycleCoordinator)
+                            shutdownApplication(it)
                         }
                     } finally {
                         deletePidFile()

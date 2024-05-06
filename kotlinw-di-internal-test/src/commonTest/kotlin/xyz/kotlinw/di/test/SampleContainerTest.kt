@@ -3,6 +3,7 @@ package xyz.kotlinw.di.test
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
 import xyz.kotlinw.di.api.ContainerScope
+import xyz.kotlinw.di.api.close
 
 class SampleContainerTest {
 

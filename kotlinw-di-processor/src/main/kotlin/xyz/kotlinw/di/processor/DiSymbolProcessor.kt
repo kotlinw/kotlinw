@@ -39,6 +39,7 @@ import com.squareup.kotlinpoet.KModifier.SUSPEND
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
@@ -57,6 +58,7 @@ import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Container
 import xyz.kotlinw.di.api.ContainerScope
+import xyz.kotlinw.di.api.ContainerScopeInternal
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.OnConstruction
 import xyz.kotlinw.di.api.OnTerminate
@@ -261,17 +263,17 @@ class DiSymbolProcessor(
                                                     ?: emptySet()
 
                                             ScopeModel(
-                                                parentScopeName,
-                                                scopeDeclarationFunction.simpleName.asString(),
-                                                scopeDeclarationFunction,
-                                                scopeInterfaceDeclaration,
-                                                declaredModules.map {
+                                                parentScopeName = parentScopeName,
+                                                name = scopeDeclarationFunction.simpleName.asString(),
+                                                scopeDeclarationFunction = scopeDeclarationFunction,
+                                                scopeInterfaceDeclaration = scopeInterfaceDeclaration,
+                                                declaredModules = declaredModules.map {
                                                     ModuleReference(
                                                         it.declaration as KSClassDeclaration,
                                                         (it.declaration as KSClassDeclaration).getModuleId()
                                                     )
                                                 },
-                                                collectAllModules(declaredModules)
+                                                allModules = collectAllModules(declaredModules)
                                                     .map {
                                                         ModuleReference(
                                                             it,
@@ -282,8 +284,9 @@ class DiSymbolProcessor(
                                                         processModuleReference(it, resolver, ignoredComponents)
                                                     }
                                                     .toSet(),
-                                                collectComponentQueries(scopeInterfaceDeclaration),
-                                                scopeDeclarationFunction
+                                                componentQueries = collectComponentQueries(scopeInterfaceDeclaration) +
+                                                        collectComponentQueries(resolver.getClassDeclarationByName<ContainerScopeInternal>()!!),
+                                                externalComponents = scopeDeclarationFunction
                                                     .parameters
                                                     .drop(if (parentScopeName != null) 1 else 0)
                                                     .map {
@@ -293,7 +296,7 @@ class DiSymbolProcessor(
                                                             it.type.extractQualifierOrNull()
                                                         )
                                                     },
-                                                ignoredComponents
+                                                ignoredComponents = ignoredComponents
                                             )
                                         } else {
                                             val invalidReferences =
@@ -621,7 +624,9 @@ class DiSymbolProcessor(
         }
 
         return TypeSpec.classBuilder(scopeCodeGenerationModel.implementationClassName)
+            // TODO el lett kezdve, hogy ezeknek legyen egy közös ScopeInternal őse
             .addSuperinterface(resolvedScopeModel.scopeModel.scopeInterfaceDeclaration.toClassName())
+            .addSuperinterface(ContainerScopeInternal::class.asClassName())
             .addModifiers(PRIVATE)
             .apply {
                 val hasParentScope = scopeCodeGenerationModel.parentScopeCodeGenerationModel != null

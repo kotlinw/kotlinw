@@ -2,12 +2,12 @@ package xyz.kotlinw.di.impl
 
 import arrow.core.nonFatalOrThrow
 import kotlin.concurrent.Volatile
+import kotlinw.collection.LinkedQueue
+import kotlinw.collection.MutableQueue
 import kotlinw.util.stdlib.Priority
-import kotlinw.util.stdlib.collection.emptyImmutableList
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import xyz.kotlinw.di.api.ContainerLifecycleListener
@@ -23,13 +23,18 @@ interface ContainerLifecycleCoordinator {
     fun initiateShutdown()
 }
 
-class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
+interface ContainerLifecycleCoordinatorInternal {
+
+    suspend fun runStartupTasks()
+}
+
+class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator, ContainerLifecycleCoordinatorInternal {
 
     private val listeners = mutableListOf<ContainerLifecycleListener>()
 
-    private var runStartupTasksInvoked by atomic(false)
+    private val runStartupTasksInvoked = atomic(false)
 
-    private var shutdownTasks by atomic(emptyImmutableList<ContainerLifecycleListener>())
+    private var shutdownTasks: MutableQueue<ContainerLifecycleListener> = LinkedQueue()
 
     private val runShutdownTasksInvoked = atomic(false)
 
@@ -41,7 +46,9 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
         priority: Priority
     ) {
         listenersLock.withLock {
-            check(!runStartupTasksInvoked)
+            // TODO it could be possible to run the startup listener immediately
+            check(!runStartupTasksInvoked.value) { "Container lifecycle listener registration is not allowed because container bootstrap is already completed." }
+
             listeners.add(
                 object : ContainerLifecycleListener {
 
@@ -62,45 +69,51 @@ class ContainerLifecycleCoordinatorImpl : ContainerLifecycleCoordinator {
         }
     }
 
-    suspend fun runStartupTasks() {
+    override suspend fun runStartupTasks() {
         listenersLock.withLock {
-            runStartupTasksInvoked = true
-        }
-
-        val shutdownTasks = mutableListOf<ContainerLifecycleListener>()
-
-        val startupTasks = listeners.sortedBy { it.lifecycleListenerPriority }
-        // TODO kilogolni startupTasks-ot
-
-        startupTasks.forEach { listener ->
-            try {
-                listener.onContainerStartup()
-                shutdownTasks.add(listener)
-            } catch (e: Throwable) {
-                e.nonFatalOrThrow().also {
-                    // TODO log
-                    runShutdownTasks() // FIXME ez így nem jó, mert ez a this.shutdownTasks-ot használja, ami itt még mindig üres
-                    throw RuntimeException("Startup task failed: $listener", it)
-                }
+            if (!runStartupTasksInvoked.compareAndSet(false, true)) {
+                throw IllegalStateException("runStartupTasks() has already been called.")
             }
         }
 
-        this.shutdownTasks = shutdownTasks.toImmutableList()
+        try {
+            val startupTasks = listeners.sortedBy { it.lifecycleListenerPriority }
+            // TODO kilogolni startupTasks-ot
+
+            startupTasks.forEach { listener ->
+                try {
+                    listener.onContainerStartup()
+                    shutdownTasks.add(listener)
+                } catch (e: Throwable) {
+                    e.nonFatalOrThrow().also {
+                        // TODO log
+                        runShutdownTasks()
+                        throw RuntimeException("Startup task failed: $listener", it)
+                    }
+                }
+            }
+        } finally {
+            listeners.clear()
+        }
     }
 
     suspend fun runShutdownTasks() {
+        check(runStartupTasksInvoked.value)
         if (runShutdownTasksInvoked.compareAndSet(false, true)) {
-            shutdownTasks.forEach {
-                try {
-                    withContext(NonCancellable) {
-                        it.onContainerShutdown()
+            try {
+                shutdownTasks.forEach {
+                    try {
+                        withContext(NonCancellable) {
+                            it.onContainerShutdown()
+                        }
+                    } catch (e: Throwable) {
+                        // FIXME itt ne dobjunk tovább semmit, mert akkor a teljes shutdown folyamat megszakad
+                        e.nonFatalOrThrow() // TODO log
                     }
-                } catch (e: Throwable) {
-                    // FIXME itt ne dobjunk tovább semmit, mert akkor a teljes shutdown folyamat megszakad
-                    e.nonFatalOrThrow() // TODO log
                 }
+            } finally {
+                shutdownTasks.clear()
             }
-            shutdownTasks = emptyImmutableList()
         }
     }
 

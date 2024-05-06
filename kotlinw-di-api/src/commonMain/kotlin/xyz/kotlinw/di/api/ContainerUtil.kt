@@ -4,12 +4,11 @@ import arrow.core.nonFatalOrThrow
 import kotlinw.util.coroutine.runCatchingNonCancellableCleanup
 import kotlinw.util.stdlib.DelicateKotlinwApi
 import kotlinx.coroutines.delay
-import xyz.kotlinw.di.impl.ContainerLifecycleCoordinator
 import xyz.kotlinw.di.impl.ContainerLifecycleCoordinatorImpl
 import xyz.kotlinw.util.stdlib.runCatchingCleanup
 
-// TODO non-public API
 // TODO hibakezelés
+@DelicateKotlinwApi
 suspend fun <S : ContainerScope, T> runApplication(
     rootScopeFactory: () -> S,
     beforeScopeCreated: () -> Unit = {},
@@ -25,7 +24,7 @@ suspend fun <S : ContainerScope, T> runApplication(
     afterUninitializedScopeCreated(rootScope)
 
     return try {
-        with(rootScope) {
+        with(rootScope as ContainerScopeInternal) {
             try {
                 // TODO részletes hibakezelést lépésenként
                 try {
@@ -45,13 +44,12 @@ suspend fun <S : ContainerScope, T> runApplication(
                         )
                     }
 
-                    // TODO nem szép, hogy az implementációtól függünk
-                    (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runStartupTasks()
+                    runStartupTasks()
                 }
 
-                block()
+                block(rootScope)
             } finally {
-                shutdownApplication(this, containerLifecycleCoordinator)
+                shutdownApplication(this)
             }
         }
     } catch (e: Throwable) {
@@ -65,12 +63,11 @@ suspend fun <S : ContainerScope, T> runApplication(
 }
 
 @DelicateKotlinwApi
-suspend fun shutdownApplication(
-    containerScope: ContainerScope,
-    containerLifecycleCoordinator: ContainerLifecycleCoordinator?
-) {
+suspend fun shutdownApplication(containerScope: ContainerScope) {
+    check(containerScope is ContainerScopeInternal)
+
     runCatchingNonCancellableCleanup {
-        (containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runShutdownTasks()
+        (containerScope.containerLifecycleCoordinator as? ContainerLifecycleCoordinatorImpl)?.runShutdownTasks()
     }
     runCatchingNonCancellableCleanup {
         containerScope.close()

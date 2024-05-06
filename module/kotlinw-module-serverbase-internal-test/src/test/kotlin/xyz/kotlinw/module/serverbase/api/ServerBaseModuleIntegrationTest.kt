@@ -19,6 +19,8 @@ import xyz.kotlinw.di.api.Container
 import xyz.kotlinw.di.api.ContainerScope
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.di.api.close
+import xyz.kotlinw.di.api.start
 import xyz.kotlinw.module.ktor.server.KtorServerApplicationConfigurer
 import xyz.kotlinw.remoting.api.MessagingPeerId
 

@@ -10,5 +10,5 @@ import org.hibernate.annotations.IdGeneratorType
 annotation class HibernateBaseEntityId(
     val sequenceName: String = "HibernateBaseEntitySequence",
     val startWith: Int = 1,
-    val incrementBy: Int = 100
+    val incrementBy: Int = 50
 )

@@ -23,7 +23,7 @@ abstract class BaseEntity(
     @SequenceGenerator(
         name = "BaseEntityGenerator",
         sequenceName = "bseq", // TODO rename? BaseEntitySequence
-        allocationSize = 20
+        allocationSize = 50
     )
     @GeneratedValue(
         strategy = GenerationType.SEQUENCE,

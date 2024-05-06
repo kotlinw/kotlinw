@@ -1,13 +1,9 @@
 package xyz.kotlinw.di.api.internal
 
 import xyz.kotlinw.di.api.ContainerScope
+import xyz.kotlinw.di.api.ContainerScopeInternal
 
-abstract class ScopeInternal(private val parentScope: ScopeInternal?) : ContainerScope {
-
-    override suspend fun close() {
-        TODO("Not yet implemented")
-    }
-}
+abstract class ScopeInternal(private val parentScope: ScopeInternal?) : ContainerScope, ContainerScopeInternal
 
 sealed interface ScopeBuilder {
 

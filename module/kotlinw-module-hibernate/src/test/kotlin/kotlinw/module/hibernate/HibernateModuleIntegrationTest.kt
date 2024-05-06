@@ -24,6 +24,8 @@ import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.Container
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.Scope
+import xyz.kotlinw.di.api.close
+import xyz.kotlinw.di.api.start
 import xyz.kotlinw.jpa.core.createTypedQuery
 
 @Entity

@@ -8,9 +8,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.kotlinx.coroutines.core)
+                api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 implementation(projects.kotlinw.kotlinwUtilStdlibMp)
-                implementation(projects.kotlinw.kotlinwUtilCoroutineMp)
             }
         }
         val commonTest by getting {
