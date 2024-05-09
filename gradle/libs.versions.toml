@@ -19,7 +19,7 @@ serialization = "1.6.3"
 coroutines = "1.8.0"
 
 # https://github.com/Kotlin/kotlinx-io/releases
-kotlinx-io = "0.3.3"
+kotlinx-io = "0.3.4"
 
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.4"
