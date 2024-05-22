@@ -1,7 +1,7 @@
 [versions]
 
 # https://github.com/JetBrains/kotlin
-kotlin = "2.0.0-RC2"
+kotlin = "2.0.0"
 
 # https://github.com/spring-projects/spring-boot/releases
 #springBoot = "3.2.0"
@@ -13,13 +13,13 @@ ktor = "3.0.0-beta-1"
 junit = "5.10.0"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
-serialization = "1.6.3"
+serialization = "1.7.0-RC"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.8.0"
 
 # https://github.com/Kotlin/kotlinx-io/releases
-kotlinx-io = "0.3.4"
+kotlinx-io = "0.3.5"
 
 # https://github.com/arrow-kt/arrow/releases
 arrow = "1.2.4"
@@ -34,7 +34,7 @@ arrowGradleConfig = "0.12.0-rc.5"
 devsrsouzaComposeIcons = "1.0.0"
 
 # https://github.com/JetBrains/compose-jb/releases
-compose = "1.6.10-beta03"
+compose = "1.6.10"
 
 # https://github.com/huxi/sulky/tags
 huxiSulky = "8.3.0"
@@ -58,7 +58,7 @@ jaxws = "4.0.2"
 mockk = "1.12.7"
 
 # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinWrappers = "1.0.0-pre.734"
+kotlinWrappers = "1.0.0-pre.751"
 
 # https://github.com/testcontainers/testcontainers-java/releases
 testcontainers = "1.19.7"
@@ -73,7 +73,7 @@ flowredux = "1.0.2"
 
 mina = "2.9.2"
 
-ksp = "2.0.0-RC2-1.0.20"
+ksp = "2.0.0-1.0.21"
 
 kotlinpoet = "1.15.3"
 
@@ -89,7 +89,7 @@ agp = "8.1.0"
 
 androidx-appcompat = "1.6.2"
 androidx-activityCompose = "1.7.2"
-compose-uitooling = "1.6.10-beta03"
+compose-uitooling = "1.6.10"
 
 libres = "1.1.8"
 voyager = "1.0.0-rc07"
@@ -97,7 +97,7 @@ composeImageLoader = "1.6.6"
 napier = "2.6.1"
 buildConfig = "4.1.1"
 
-kobweb = "0.17.3"
+kobweb = "0.18.0"
 
 pdvrieze-xmlutil = "0.86.2"
 
