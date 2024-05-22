@@ -16,7 +16,7 @@ junit = "5.10.0"
 serialization = "1.7.0-RC"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
-coroutines = "1.8.0"
+coroutines = "1.8.1"
 
 # https://github.com/Kotlin/kotlinx-io/releases
 kotlinx-io = "0.3.5"
@@ -61,7 +61,7 @@ mockk = "1.12.7"
 kotlinWrappers = "1.0.0-pre.751"
 
 # https://github.com/testcontainers/testcontainers-java/releases
-testcontainers = "1.19.7"
+testcontainers = "1.19.8"
 
 cache4k = "0.9.0"
 
