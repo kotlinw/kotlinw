@@ -12,5 +12,5 @@ interface WebAppClientEnvironmentProvider {
 
     val networkConnectionState: StateFlow<NetworkConnectionStatus>
 
-    suspend fun getClientEnvironmentStatus(afterCommunicationError: Boolean)
+    suspend fun getClientEnvironmentStatus(afterCommunicationError: Boolean) // TODO rename to updateWebAppEnvironmentStatus()
 }
