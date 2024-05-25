@@ -35,11 +35,11 @@ class Oauth2UtilsIntegrationTest {
     @Test
     fun testGetOpenidConfigurationMetadata(): TestResult {
         return runTest {
-            createHttpClient().fetchOpenidConnectProviderMetadata(Url("https://sso.erinors.com/realms/erinors"))
+            createHttpClient().fetchOpenidConnectProviderMetadata(Url("https://id.erinors.com/realms/erinors"))
                 .also {
                     println(it)
                     assertEquals(
-                        Url("https://sso.erinors.com/realms/erinors/protocol/openid-connect/auth"),
+                        Url("https://id.erinors.com/realms/erinors/protocol/openid-connect/auth"),
                         it.authorizationEndpoint
                     )
                 }
@@ -56,7 +56,7 @@ class Oauth2UtilsIntegrationTest {
             val httpClient = createHttpClient()
 
             val providerMetadata =
-                httpClient.fetchOpenidConnectProviderMetadata(Url("https://sso.erinors.com/realms/erinors"))
+                httpClient.fetchOpenidConnectProviderMetadata(Url("https://id.erinors.com/realms/erinors"))
             val tokenEndpoint = providerMetadata.tokenEndpoint ?: fail()
             val deviceAuthorizationEndpoint = providerMetadata.deviceAuthorizationEndpoint
                 ?: fail("OpenID provider does not support Device Authorization Grant")
@@ -90,7 +90,7 @@ class Oauth2UtilsIntegrationTest {
             recover({
                 ClientCredentialsGrant.requestToken(
                     httpClient,
-                    Url("https://sso.erinors.com/realms/erinors/protocol/openid-connect/token"),
+                    Url("https://id.erinors.com/realms/erinors/protocol/openid-connect/token"),
                     "",
                     ""
                 )
