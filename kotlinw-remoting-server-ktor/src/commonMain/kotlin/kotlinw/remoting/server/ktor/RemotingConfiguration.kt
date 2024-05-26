@@ -20,11 +20,13 @@ interface RemotingConfiguration {
 
     val remoteCallHandlers: Collection<RemoteCallHandler<*>>
 
-    val authenticationProviderName: String?
+    val authenticationProviderName: String? // TODO ez az authenticationOptional és az extractPrincipal összevonandó egy class-ba
+
+    val authenticationOptional: Boolean
 
     val extractPrincipal: ApplicationCall.() -> Principal?
 
-    val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId
+    val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId?
 
     val identifyConnection: ApplicationCall.() -> MessagingConnectionId
 }
@@ -34,8 +36,9 @@ data class WebRequestRemotingConfiguration(
     override val remotingProvider: WebRequestRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler<*>>,
     override val authenticationProviderName: String?,
+    override val authenticationOptional: Boolean = authenticationProviderName == null,
     override val extractPrincipal: ApplicationCall.() -> Principal?,
-    override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
+    override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId?,
     override val identifyConnection: ApplicationCall.() -> MessagingConnectionId,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration
@@ -45,8 +48,9 @@ data class WebSocketRemotingConfiguration(
     override val remotingProvider: WebSocketRemotingProvider,
     override val remoteCallHandlers: Collection<RemoteCallHandler<*>>,
     override val authenticationProviderName: String?,
+    override val authenticationOptional: Boolean = authenticationProviderName == null,
     override val extractPrincipal: ApplicationCall.() -> Principal?,
-    override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId,
+    override val identifyClient: ApplicationCall.(Principal?) -> MessagingPeerId?,
     override val identifyConnection: ApplicationCall.() -> MessagingConnectionId = { Uuid.randomUuid() },
     val wsEndpointName: String = id,
     val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,

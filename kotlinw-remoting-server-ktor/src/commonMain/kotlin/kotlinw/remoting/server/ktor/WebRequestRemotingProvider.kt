@@ -69,7 +69,10 @@ class WebRequestRemotingProvider(
                 }
 
                 if (remotingConfiguration.authenticationProviderName != null) {
-                    authenticate(remotingConfiguration.authenticationProviderName) {
+                    authenticate(
+                        remotingConfiguration.authenticationProviderName,
+                        optional = remotingConfiguration.authenticationOptional
+                    ) {
                         logger.info { "Remote call handlers (authorization by '" / remotingConfiguration.authenticationProviderName / "'): " / delegators.mapValues { it.value.serviceId } }
                         configureRouting()
                     }

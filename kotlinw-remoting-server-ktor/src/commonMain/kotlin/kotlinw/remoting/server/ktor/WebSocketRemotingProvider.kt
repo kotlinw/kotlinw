@@ -168,7 +168,10 @@ class WebSocketRemotingProvider(
             route("/remoting") {
                 if (remotingConfiguration.authenticationProviderName != null) {
                     logger.info { "Remote call handlers (authorization by '${webSocketRemotingConfiguration.authenticationProviderName}'): " / delegators.mapValues { it.value.serviceId } }
-                    authenticate(remotingConfiguration.authenticationProviderName) {
+                    authenticate(
+                        remotingConfiguration.authenticationProviderName,
+                        optional = remotingConfiguration.authenticationOptional
+                    ) {
                         configureRouting()
                     }
                 } else {

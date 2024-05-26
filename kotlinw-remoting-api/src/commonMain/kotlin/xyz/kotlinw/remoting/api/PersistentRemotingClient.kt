@@ -19,7 +19,8 @@ interface PersistentRemotingClient {
      * @param communicationCircuitBreaker if specified, then the given flow should emit `false` to pause the message loop, and `true` to resume it again
      */
     suspend fun connectAndRunMessageLoop(
-        handleException: suspend (Throwable) -> Unit = {},
+        onConnected: () -> Unit = {},
+        handleException: suspend (Throwable) -> Unit = {}, // TODO rename to onDisconnected ?
         beforeAutomaticReconnect: suspend () -> Unit = { delay(5.seconds) },
         communicationCircuitBreaker: Flow<Boolean>? = null
     ): Nothing

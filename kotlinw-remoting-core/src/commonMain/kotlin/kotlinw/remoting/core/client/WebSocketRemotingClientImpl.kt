@@ -149,6 +149,7 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
     }
 
     override suspend fun connectAndRunMessageLoop(
+        onConnected: () -> Unit,
         handleException: suspend (Throwable) -> Unit,
         beforeAutomaticReconnect: suspend () -> Unit,
         communicationCircuitBreaker: Flow<Boolean>?
@@ -221,10 +222,13 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
                                     it.resume(Unit)
                                 }
 
+                                // TODO a kliensenkénti PeerRegistry hasznosabb lenne, mint az egy nagy globális
                                 peerRegistry.addConnection(
                                     remoteConnectionId,
                                     RemoteConnectionData(remoteConnectionId, DelegatingRemotingClient(messagingManager))
                                 )
+
+                                onConnected()
 
                                 messagingManager.processIncomingMessages()
                             }

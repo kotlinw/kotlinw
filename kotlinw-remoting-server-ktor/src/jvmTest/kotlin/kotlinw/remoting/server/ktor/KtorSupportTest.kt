@@ -45,13 +45,13 @@ class KtorSupportTest {
             this.defaultMessageCodec = JsonMessageCodec(standardLongTermJson())
             this.remotingConfigurations = listOf(
                 WebRequestRemotingConfiguration(
-                    "test",
-                    WebRequestRemotingProvider(PlatformLogging),
-                    listOf(ExampleService.remoteCallHandler(service)),
-                    null,
-                    { null }, // TODO
-                    { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
-                    { Uuid.randomUuid() }
+                    id = "test",
+                    remotingProvider = WebRequestRemotingProvider(PlatformLogging),
+                    remoteCallHandlers = listOf(ExampleService.remoteCallHandler(service)),
+                    authenticationProviderName = null,
+                    extractPrincipal = { null }, // TODO
+                    identifyClient = { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    identifyConnection = { Uuid.randomUuid() }
                 )
             )
         }
@@ -97,13 +97,13 @@ class KtorSupportTest {
             this.defaultMessageCodec = JsonMessageCodec(standardLongTermJson())
             this.remotingConfigurations = listOf(
                 WebSocketRemotingConfiguration(
-                    "test",
-                    WebSocketRemotingProvider(PlatformLogging, null, null),
-                    listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
-                    null,
-                    { null }, // TODO
-                    { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
-                    { Uuid.randomUuid() }
+                    id = "test",
+                    remotingProvider = WebSocketRemotingProvider(PlatformLogging, null, null),
+                    remoteCallHandlers = listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
+                    authenticationProviderName = null,
+                    extractPrincipal = { null }, // TODO
+                    identifyClient = { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    identifyConnection = { Uuid.randomUuid() }
                 )
             )
         }
