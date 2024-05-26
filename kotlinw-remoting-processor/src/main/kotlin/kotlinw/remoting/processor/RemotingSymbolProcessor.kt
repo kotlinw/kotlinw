@@ -20,6 +20,7 @@ import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.symbol.Variance
+import com.google.devtools.ksp.symbol.impl.binary.KSFunctionDeclarationDescriptorImpl
 import com.google.devtools.ksp.symbol.impl.kotlin.KSFunctionDeclarationImpl
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
@@ -42,6 +43,7 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.squareup.kotlinpoet.typeNameOf
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlinw.ksp.util.filterAnnotations
 import kotlinw.ksp.util.hasCompanionObject
@@ -62,7 +64,6 @@ import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingClientCallSupport
 import xyz.kotlinw.remoting.api.internal.RemotingClientFlowSupport
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
-import java.util.concurrent.atomic.AtomicInteger
 
 // TODO ne generáljunk paraméter osztályt, ha 0 paramétere van a metódusnak
 // TODO a @Serializable annotation-ök nem mennek át a metódus paraméterből a generált paraméter class property-jeibe
@@ -208,12 +209,18 @@ class RemotingSymbolProcessor(
         fun KSFunctionDeclaration.raisedErrors() =
             with(resolver) {
                 try {
-                    getContextReceivers()
+                    when (this@raisedErrors) {
+                        is KSFunctionDeclarationImpl -> ktFunction.contextReceivers
+                        is KSFunctionDeclarationDescriptorImpl -> {
+                            // TODO W-17
+                            logger.warn("Context receivers are ignored (if any): ${this@raisedErrors}")
+                            emptyList()
+                        }
+                        else -> throw IllegalStateException("Failed to extract context receivers: $this")
+                    }
+                        .map { it.toTypeName() }
                 } catch (e: Exception) {
-                    logger.error(
-                        e.message ?: "Context receiver processing failed: ${e::class.qualifiedName}",
-                        this@raisedErrors
-                    )
+                    logger.error("Context receiver processing failed: $e", this@raisedErrors)
                     throw StopKspProcessingException()
                 }
             }
@@ -765,11 +772,6 @@ private fun KSTypeReference.isSerializable(ksNodeDescription: String, depth: Int
 //
 
 private class ContextReceiverException(message: String) : RuntimeException(message)
-
-context(Resolver)
-private fun KSFunctionDeclaration.getContextReceivers() =
-    (this as KSFunctionDeclarationImpl).ktFunction.contextReceivers
-        .map { it.toTypeName() }
 
 context(Resolver)
 private fun KtContextReceiver.toTypeName() = try {
