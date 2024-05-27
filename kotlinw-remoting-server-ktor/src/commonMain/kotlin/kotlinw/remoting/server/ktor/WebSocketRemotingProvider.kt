@@ -116,14 +116,13 @@ class WebSocketRemotingProvider(
             fun Route.configureRouting() {
                 // TODO fix path
                 webSocket("/websocket/${webSocketRemotingConfiguration.id}") {
-                    val principal = remotingConfiguration.extractPrincipal(call)
-                    val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
+                    val messagingPeerId = extractMessagingPeerId(remotingConfiguration.authenticationConfiguration, call)
                     val messagingConnectionId: MessagingConnectionId =
                         remotingConfiguration.identifyConnection(call) // TODO hibaell.
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)
 
                     // TODO ezt a WebRequestRemotingProvider-be is
-                    logger.withLoggingContext(mapOf("kotlinw.principal" to principal.toString())) {
+                    logger.withLoggingContext(mapOf("kotlinw.principal" to messagingPeerId.toString())) { // TODO megtévesztő a kotlinw.principal MDC név, hisz a messagingpeerid kerül bele valójában
                         logger.debug { "Connected WS client: " / mapOf("remoteConnectionId" to remoteConnectionId) }
 
                         val connection =
@@ -165,12 +164,14 @@ class WebSocketRemotingProvider(
                 }
             }
 
+            val authenticationConfiguration = remotingConfiguration.authenticationConfiguration
+
             route("/remoting") {
-                if (remotingConfiguration.authenticationProviderName != null) {
-                    logger.info { "Remote call handlers (authorization by '${webSocketRemotingConfiguration.authenticationProviderName}'): " / delegators.mapValues { it.value.serviceId } }
+                if (authenticationConfiguration != null) {
+                    logger.info { "Remote call handlers (authorization by '${authenticationConfiguration.authenticationProviderName}'): " / delegators.mapValues { it.value.serviceId } }
                     authenticate(
-                        remotingConfiguration.authenticationProviderName,
-                        optional = remotingConfiguration.authenticationOptional
+                        authenticationConfiguration.authenticationProviderName,
+                        optional = authenticationConfiguration.isAuthenticationOptional
                     ) {
                         configureRouting()
                     }

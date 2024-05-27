@@ -25,7 +25,7 @@ interface InProcessEventBus<E : LocalEvent> {
     /**
      * Returns a flow of events published to this event bus.
      */
-    suspend fun events(): Flow<E>
+    fun events(): Flow<E>
 
     /**
      * Publishes an [E] event to the event bus, suspending if the event handlers are too slow and are still handling previously published events.
@@ -38,7 +38,9 @@ interface InProcessEventBus<E : LocalEvent> {
 inline fun <reified E : B, B : LocalEvent> InProcessEventBus<B>.constrain() =
     object : InProcessEventBus<E> {
 
-        override suspend fun events(): Flow<E> = this@constrain.events().filterIsInstance<E>()
+        private val constrainedEvents = this@constrain.events().filterIsInstance<E>()
+
+        override fun events(): Flow<E> = constrainedEvents
 
         override suspend fun publish(event: E) = this@constrain.publish(event)
     }

@@ -48,9 +48,7 @@ class KtorSupportTest {
                     id = "test",
                     remotingProvider = WebRequestRemotingProvider(PlatformLogging),
                     remoteCallHandlers = listOf(ExampleService.remoteCallHandler(service)),
-                    authenticationProviderName = null,
-                    extractPrincipal = { null }, // TODO
-                    identifyClient = { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    authenticationConfiguration = null,
                     identifyConnection = { Uuid.randomUuid() }
                 )
             )
@@ -100,9 +98,7 @@ class KtorSupportTest {
                     id = "test",
                     remotingProvider = WebSocketRemotingProvider(PlatformLogging, null, null),
                     remoteCallHandlers = listOf(ExampleServiceWithDownstreamFlows.remoteCallHandler(service)),
-                    authenticationProviderName = null,
-                    extractPrincipal = { null }, // TODO
-                    identifyClient = { 1 }, // TODO ezt ne kelljen már megadni, ha nincs authentikáció - külön class-ba kellene tenni ezeket
+                    authenticationConfiguration = null,
                     identifyConnection = { Uuid.randomUuid() }
                 )
             )

@@ -24,6 +24,9 @@ import kotlinw.remoting.core.RawMessage.Binary
 import kotlinw.remoting.core.RawMessage.Text
 import kotlinw.remoting.core.RemotingMessage
 import kotlinw.remoting.core.codec.MessageCodec
+import kotlinw.remoting.server.ktor.RemotingConfiguration.AuthenticationConfiguration
+import kotlinw.remoting.server.ktor.RemotingConfiguration.AuthenticationConfiguration.OptionalAuthenticationConfiguration
+import kotlinw.remoting.server.ktor.RemotingConfiguration.AuthenticationConfiguration.RequiredAuthenticationConfiguration
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
@@ -56,24 +59,26 @@ class WebRequestRemotingProvider(
                 }
             }
 
-        if (remotingConfiguration.authenticationProviderName != null && ktorApplication.pluginOrNull(Authentication) == null) {
+        val authenticationConfiguration = remotingConfiguration.authenticationConfiguration
+
+        if (authenticationConfiguration != null && ktorApplication.pluginOrNull(Authentication) == null) {
             // TODO install automatically instead of the error message
-            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}. It should be installed to support authentication provider '${remotingConfiguration.authenticationProviderName}' required by remoting provider '${remotingConfiguration.id}'.")
+            throw IllegalStateException("Required Ktor plugin is not installed: ${Authentication.key.name}. It should be installed to support authentication provider '${authenticationConfiguration.authenticationProviderName}' required by remoting provider '${remotingConfiguration.id}'.")
         }
 
         ktorApplication.routing {
-            route("/remoting/${remotingConfiguration.id}") {// TODO lehessen testre szabni
+            route("/remoting/${remotingConfiguration.id}") {// TODO lehessen testre szabni + websocket esetén benne van a /websocket is a path-ban
 
                 fun Route.configureRouting() {
                     setupRouting(messageCodec, delegators, remotingConfiguration as WebRequestRemotingConfiguration)
                 }
 
-                if (remotingConfiguration.authenticationProviderName != null) {
+                if (authenticationConfiguration != null) {
                     authenticate(
-                        remotingConfiguration.authenticationProviderName,
-                        optional = remotingConfiguration.authenticationOptional
+                        authenticationConfiguration.authenticationProviderName,
+                        optional = authenticationConfiguration.isAuthenticationOptional
                     ) {
-                        logger.info { "Remote call handlers (authorization by '" / remotingConfiguration.authenticationProviderName / "'): " / delegators.mapValues { it.value.serviceId } }
+                        logger.info { "Remote call handlers (authorization by '" / authenticationConfiguration.authenticationProviderName / "'): " / delegators.mapValues { it.value.serviceId } }
                         configureRouting()
                     }
                 } else {
@@ -141,9 +146,11 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
         callDescriptor.parameterSerializer
     ).payload
 
-    val principal = remotingConfiguration.extractPrincipal(call)
-    val messagingPeerId = remotingConfiguration.identifyClient(call, principal) // TODO hibaell.
     val messagingConnectionId: MessagingConnectionId = Uuid.randomUuid().toString() // TODO customizable
+
+    val authenticationConfiguration = remotingConfiguration.authenticationConfiguration
+
+    val messagingPeerId = extractMessagingPeerId(authenticationConfiguration, call)
 
     val result =
         withContext(
@@ -157,7 +164,7 @@ private suspend fun <M : RawMessage> handleSynchronousCall(
                 )
             )
         ) {
-            delegator.processCall(callDescriptor.memberId, parameter)
+            delegator.processCall(callDescriptor.memberId, parameter) // FIXME try-catch
         }
 
     val responseMessage = RemotingMessage(result, null) // TODO metadata
