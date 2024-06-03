@@ -8,8 +8,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import xyz.kotlinw.stdlib.internal.ReplaceWithContextReceiver
 
@@ -25,7 +27,7 @@ interface InProcessEventBus<E : LocalEvent> {
     /**
      * Returns a flow of events published to this event bus.
      */
-    fun events(): Flow<E>
+    fun events(): SharedFlow<E>
 
     /**
      * Publishes an [E] event to the event bus, suspending if the event handlers are too slow and are still handling previously published events.
@@ -35,12 +37,14 @@ interface InProcessEventBus<E : LocalEvent> {
     suspend fun publish(event: E)
 }
 
+context(CoroutineScope)
 inline fun <reified E : B, B : LocalEvent> InProcessEventBus<B>.constrain() =
     object : InProcessEventBus<E> {
 
-        private val constrainedEvents = this@constrain.events().filterIsInstance<E>()
+        private val constrainedEvents =
+            this@constrain.events().filterIsInstance<E>().shareIn(this@CoroutineScope, SharingStarted.Eagerly)
 
-        override fun events(): Flow<E> = constrainedEvents
+        override fun events(): SharedFlow<E> = constrainedEvents
 
         override suspend fun publish(event: E) = this@constrain.publish(event)
     }

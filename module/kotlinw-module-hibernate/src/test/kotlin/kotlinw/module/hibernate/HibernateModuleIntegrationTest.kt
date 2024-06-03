@@ -26,6 +26,7 @@ import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.Scope
 import xyz.kotlinw.di.api.close
 import xyz.kotlinw.di.api.start
+import xyz.kotlinw.jpa.api.findOrNull
 import xyz.kotlinw.jpa.core.createTypedQuery
 
 @Entity

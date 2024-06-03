@@ -1,15 +1,17 @@
 package xyz.kotlinw.jpa.repository
 
-import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
 import jakarta.persistence.metamodel.EntityType
 import java.io.Serializable
 import kotlin.reflect.KClass
+import kotlinx.coroutines.flow.Flow
 import xyz.kotlinw.jpa.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.ReactiveJpaContext
 import xyz.kotlinw.jpa.api.Transactional
 import xyz.kotlinw.jpa.api.findOrNull
 import xyz.kotlinw.jpa.api.getReference
 import xyz.kotlinw.jpa.api.getSingleResultOrNull
+import xyz.kotlinw.jpa.api.watchEntities
 import xyz.kotlinw.jpa.core.createTypedQuery
 import xyz.kotlinw.jpa.core.executeQuery
 
@@ -23,6 +25,9 @@ abstract class GenericEntityRepositoryImpl<E : Any, ID : Serializable>(protected
 
     context(JpaSessionContext)
     override fun findAll(): List<E> = query("FROM $entityName", entityClass)
+
+    context(ReactiveJpaContext)
+    override fun subscribeFindAll(): Flow<List<E>> = watchEntities(entityClass) { findAll() }
 
     context(Transactional, JpaSessionContext)
     override fun persist(entity: E): E = entityManager.persistEntity(entity)
@@ -72,6 +77,10 @@ abstract class GenericEntityRepositoryImpl<E : Any, ID : Serializable>(protected
     context(JpaSessionContext)
     protected fun queryEntity(qlQuery: String, vararg arguments: Any?): List<E> =
         query(qlQuery, entityClass, *arguments)
+
+    context(JpaSessionContext)
+    protected fun queryEntitySingleOrNull(qlQuery: String, vararg arguments: Any?): E? =
+        entityManager.createTypedQuery(qlQuery, entityClass, *arguments).getSingleResultOrNull()
 
     context(JpaSessionContext)
     protected inline fun <reified T : Any> querySingleOrNull(qlQuery: String, vararg arguments: Any?): T? =

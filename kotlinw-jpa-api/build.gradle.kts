@@ -19,5 +19,6 @@ dependencies {
     api("jakarta.persistence:jakarta.persistence-api:3.1.0") {
         exclude(group = "xml-apis", module = "xml-apis")
     }
+    api(libs.kotlinx.coroutines.core)
     api(libs.arrow.core)
 }

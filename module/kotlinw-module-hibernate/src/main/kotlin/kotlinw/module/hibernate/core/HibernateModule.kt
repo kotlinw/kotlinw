@@ -15,6 +15,7 @@ import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder
 import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import xyz.kotlinw.di.api.Component
+import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.module.core.CoreModule
 
@@ -49,6 +50,7 @@ fun interface SessionFactoryCustomizer {
 }
 
 @Module(includeModules = [CoreModule::class])
+@ComponentScan
 class HibernateModule {
 
     @Component(onTerminate = "close")
@@ -126,10 +128,12 @@ class HibernateModule {
 
     @Component(onTerminate = "close")
     fun sessionFactory(metadata: Metadata, customizers: List<SessionFactoryCustomizer>): SessionFactory =
-        metadata
-            .sessionFactoryBuilder
-            .apply {
-                customizers.forEach { it.customize() }
-            }
-            .build()
+        SessionFactoryImpl(
+            metadata
+                .sessionFactoryBuilder
+                .apply {
+                    customizers.forEach { it.customize() }
+                }
+                .build()
+        )
 }

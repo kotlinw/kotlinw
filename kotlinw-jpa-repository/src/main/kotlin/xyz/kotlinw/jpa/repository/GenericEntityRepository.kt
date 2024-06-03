@@ -2,7 +2,9 @@ package xyz.kotlinw.jpa.repository
 
 import jakarta.persistence.LockModeType
 import java.io.Serializable
+import kotlinx.coroutines.flow.Flow
 import xyz.kotlinw.jpa.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.ReactiveJpaContext
 import xyz.kotlinw.jpa.api.Transactional
 
 interface GenericEntityRepository<E, ID : Serializable> {
@@ -36,4 +38,7 @@ interface GenericEntityRepository<E, ID : Serializable> {
 
     context(JpaSessionContext)
     fun findAll(): List<E>
+
+    context(ReactiveJpaContext)
+    fun subscribeFindAll(): Flow<List<E>>
 }

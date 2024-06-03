@@ -1,7 +1,8 @@
 package kotlinw.hibernate.core.api
 
-import org.hibernate.SessionFactory
 import java.sql.Connection
+import org.hibernate.SessionFactory
+import org.hibernate.engine.spi.SharedSessionContractImplementor
 import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.Transactional
 import xyz.kotlinw.jpa.api.TransactionalImpl
@@ -33,7 +34,7 @@ fun <T> SessionFactory.runJdbcTask(block: Connection.() -> T): T =
 
 fun <T> SessionFactory.runTransactionalJdbcTask(block: Connection.() -> T): T =
     fromStatelessSession {
-        it.transactional {
+        (it as SharedSessionContractImplementor).transactional {
             it.runJdbcTask {
                 block()
             }
