@@ -3,6 +3,7 @@ package xyz.kotlinw.module.pwa.server
 import io.ktor.http.ContentType.Text
 import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.RootRoute
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
@@ -26,30 +27,24 @@ class WebAppMainHttpController(
         ktorApplication.routing {
             if (authenticationProviderId != null) {
                 authenticate(authenticationProviderId) {
-                    setupRouting(this, this@WebAppMainHttpController)
+                    setupRouting()
                 }
             } else {
-                setupRouting(this, this@WebAppMainHttpController)
+                setupRouting()
             }
         }
     }
 
-    private fun setupRouting(
-        route: Route,
-        webAppMainHttpController: WebAppMainHttpController // TODO ez miért is kell?
-    ) {
-        with(route)
-        {
-            route("/") { // FIXME
-                serveMainHtmlPage(webAppMainHttpController)
-            }
-            route(Regex("admin/.+")) { // FIXME
-                serveMainHtmlPage(webAppMainHttpController)
-            }
+    private fun RootRoute.setupRouting() {
+        route("/") { // FIXME WHOCOS-77
+            serveMainHtmlPage()
+        }
+        route(Regex("admin/.+")) { // FIXME WHOCOS-77
+            serveMainHtmlPage()
         }
     }
 
-    private fun Route.serveMainHtmlPage(webAppMainHttpController: WebAppMainHttpController) {
+    private fun Route.serveMainHtmlPage() {
         // TODO további oldalakat is kiszolgálni, ne csak a root-ot
         // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
         val title = "PWA" // TODO paraméterként + i18n
@@ -61,8 +56,8 @@ class WebAppMainHttpController(
         get {
             val initialWebAppClientEnvironmentData = with(call) {
                 InitialWebAppClientEnvironmentData(
-                    webAppMainHttpController.webAppServerEnvironmentProvider.localeId,
-                    webAppMainHttpController.webAppServerEnvironmentProvider.authenticationStatus
+                    webAppServerEnvironmentProvider.localeId,
+                    webAppServerEnvironmentProvider.authenticationStatus
                 )
             }
 
