@@ -3,16 +3,15 @@ package kotlinw.hibernate.core.schemaupgrade
 import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.Transactional
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.runJpaTask
-import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import org.hibernate.SessionFactory
 import java.sql.Connection
+import kotlinw.hibernate.core.service.JpaPersistenceService
 
 class DatabaseUpgradeManagerImpl(
     loggerFactory: LoggerFactory,
-    private val sessionFactory: SessionFactory,
+    private val jpaPersistenceService: JpaPersistenceService,
     private val databaseUpgraderProviders: Collection<DatabaseUpgraderProvider>,
     private val onStructureUpgraded: context(Transactional) JpaSessionContext.(SortableDatabaseUpgraderId) -> Unit,
     private val onDataUpgraded: context(Transactional) JpaSessionContext.(SortableDatabaseUpgraderId) -> Unit,
@@ -30,7 +29,7 @@ class DatabaseUpgradeManagerImpl(
     private val logger = loggerFactory.getLogger()
 
     override fun upgradeSchema() {
-        val currentSchemaVersion: String = sessionFactory.runJpaTask {
+        val currentSchemaVersion: String = jpaPersistenceService.runJpaTask {
             jdbcTask { findCurrentSchemaVersion(this) } ?: emptySchemaVersion
         }
 
@@ -57,7 +56,7 @@ class DatabaseUpgradeManagerImpl(
                 versionsToUpgraders.filter {
                     val schemaVersion = it.first
                     schemaVersion < currentSchemaVersion &&
-                            sessionFactory.runJpaTask {
+                            jpaPersistenceService.runJpaTask {
                                 !checkDatabaseUpgraderAlreadyApplied.invoke(
                                     this,
                                     schemaVersion
@@ -79,7 +78,7 @@ class DatabaseUpgradeManagerImpl(
                 logger.info { "Database schema is up-to-date: " / currentSchemaVersion }
 
                 if (outOfOrderUpgraders.isNotEmpty()) {
-                    sessionFactory.runTransactionalJpaTask {
+                    jpaPersistenceService.runTransactionalJpaTask {
                         applyUpgraders(outOfOrderUpgraders)
                     }
                 }
@@ -92,7 +91,7 @@ class DatabaseUpgradeManagerImpl(
             else -> {
                 logger.info { "Upgrading database schema version from " / currentSchemaVersion / " to " / applicationVersion }
 
-                sessionFactory.runTransactionalJpaTask {
+                jpaPersistenceService.runTransactionalJpaTask {
                     applyUpgraders(outOfOrderUpgraders)
                     applyUpgraders(normalUpgraders)
                 }

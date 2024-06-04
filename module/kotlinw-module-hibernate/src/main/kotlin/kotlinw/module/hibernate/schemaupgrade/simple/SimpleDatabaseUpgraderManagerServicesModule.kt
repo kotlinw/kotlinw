@@ -5,6 +5,7 @@ import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManager
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgraderProvider
 import kotlinw.hibernate.core.schemaupgrade.simple.SimpleDatabaseUpgradeManager
+import kotlinw.hibernate.core.service.JpaPersistenceService
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.util.stdlib.Priority
 import kotlinw.util.stdlib.Priority.Companion.lowerBy
@@ -20,12 +21,12 @@ class SimpleDatabaseUpgraderManagerServicesModule {
     @Component
     fun databaseUpgradeManager(
         loggerFactory: LoggerFactory,
-        sessionFactory: SessionFactory,
+        jpaPersistenceService: JpaPersistenceService,
         databaseUpgraderProviders: List<DatabaseUpgraderProvider>,
         lifecycleCoordinator: ContainerLifecycleCoordinator,
         configurationPropertyLookup: ConfigurationPropertyLookup
     ): DatabaseUpgradeManager =
-        SimpleDatabaseUpgradeManager(loggerFactory, sessionFactory, databaseUpgraderProviders)
+        SimpleDatabaseUpgradeManager(loggerFactory, jpaPersistenceService, databaseUpgraderProviders)
             .apply {
                 lifecycleCoordinator.registerListener(
                     SimpleDatabaseUpgraderManagerServicesModule::databaseUpgradeManager,

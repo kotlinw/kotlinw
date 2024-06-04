@@ -3,6 +3,7 @@ package kotlinw.module.hibernate.core
 import kotlinw.configuration.core.ConfigurationPropertyLookup
 import kotlinw.configuration.core.startsWith
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
+import kotlinw.hibernate.core.service.JpaPersistenceServiceImpl
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
 import kotlinw.logging.platform.PlatformLogging
 import org.hibernate.SessionFactory
@@ -17,6 +18,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ComponentScan
 import xyz.kotlinw.di.api.Module
+import xyz.kotlinw.eventbus.inprocess.InProcessEventBus
 import xyz.kotlinw.module.core.CoreModule
 
 fun interface BootstrapServiceRegistryCustomizer {
@@ -136,4 +138,8 @@ class HibernateModule {
                 }
                 .build()
         )
+
+    @Component
+    fun jpaPersistenceService(sessionFactory: SessionFactory) =
+        JpaPersistenceServiceImpl(sessionFactory)
 }

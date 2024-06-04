@@ -1,7 +1,7 @@
 package kotlinw.module.hibernate.core
 
 import kotlin.reflect.KClass
-import kotlinw.hibernate.core.api.runJpaTask
+import kotlinw.hibernate.core.service.JpaPersistenceService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -42,7 +42,7 @@ interface ReactiveQuerySupportService {
 
 @Component
 class ReactiveQuerySupportServiceImpl(
-    private val sessionFactory: SessionFactory,
+    private val jpaPersistenceService: JpaPersistenceService,
     private val eventBus: InProcessEventBus<*>
 ) : ReactiveQuerySupportService {
 
@@ -91,14 +91,14 @@ class ReactiveQuerySupportServiceImpl(
         // TODO debounce?
         override fun <T> watchEntities(watchedEntityTypes: List<KClass<*>>, block: JpaSessionContext.() -> T): Flow<T> =
             flow {
-                emit(sessionFactory.runJpaTask(block))
+                emit(jpaPersistenceService.runJpaTask(block))
 
                 eventBus.events()
                     .filterIsInstance<EntityChangeEvent>()
                     .filter { it.entityTypes.any { watchedEntityTypes.contains(it) } }
                     .collect {
                         emit(
-                            sessionFactory.runJpaTask(block)
+                            jpaPersistenceService.runJpaTask(block)
                         )
                     }
             }
@@ -107,7 +107,7 @@ class ReactiveQuerySupportServiceImpl(
     @OnConstruction
     fun initialize() {
         with(
-            sessionFactory.unwrap(SessionFactoryImplementor::class.java).serviceRegistry.getService(
+            jpaPersistenceService.sessionFactory.unwrap(SessionFactoryImplementor::class.java).serviceRegistry.getService(
                 EventListenerRegistry::class.java
             )!!
         ) {
