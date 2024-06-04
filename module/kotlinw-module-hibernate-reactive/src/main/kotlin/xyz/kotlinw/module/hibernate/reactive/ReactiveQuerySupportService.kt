@@ -1,4 +1,4 @@
-package kotlinw.module.hibernate.core
+package xyz.kotlinw.module.hibernate.reactive
 
 import kotlin.reflect.KClass
 import kotlinw.hibernate.core.service.JpaPersistenceService
@@ -6,8 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import org.hibernate.SessionFactory
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.event.service.spi.EventListenerRegistry
 import org.hibernate.event.spi.EventType
