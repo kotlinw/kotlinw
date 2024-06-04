@@ -25,7 +25,7 @@ interface TypedEntityManager : EntityManager {
     /**
      * @see [EntityManager.persist]
      */
-    context(Transactional)
+    context(TransactionContext)
     fun <T : Any> persistEntity(entity: T): T
 
     @Deprecated(
@@ -37,7 +37,7 @@ interface TypedEntityManager : EntityManager {
     /**
      * @see [EntityManager.merge]
      */
-    context(Transactional)
+    context(TransactionContext)
     fun <T : Any> mergeEntity(entity: T): T
 
     @Deprecated(
@@ -46,7 +46,7 @@ interface TypedEntityManager : EntityManager {
     )
     override fun remove(entity: Any)
 
-    context(Transactional)
+    context(TransactionContext)
     fun removeEntity(entity: Any)
 
     @Deprecated(

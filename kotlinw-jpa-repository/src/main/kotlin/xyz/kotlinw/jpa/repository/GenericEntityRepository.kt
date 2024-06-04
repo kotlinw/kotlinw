@@ -5,17 +5,17 @@ import java.io.Serializable
 import kotlinx.coroutines.flow.Flow
 import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.ReactiveJpaContext
-import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionContext
 
 interface GenericEntityRepository<E, ID : Serializable> {
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     fun persist(entity: E): E
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     fun merge(entity: E): E
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     fun remove(entity: E)
 
     context(JpaSessionContext)

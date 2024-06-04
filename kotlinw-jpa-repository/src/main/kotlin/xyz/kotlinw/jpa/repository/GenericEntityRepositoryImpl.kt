@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.Flow
 import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.api.ReactiveJpaContext
-import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionContext
 import xyz.kotlinw.jpa.api.findOrNull
 import xyz.kotlinw.jpa.api.getReference
 import xyz.kotlinw.jpa.api.getSingleResultOrNull
@@ -29,13 +29,13 @@ abstract class GenericEntityRepositoryImpl<E : Any, ID : Serializable>(protected
     context(ReactiveJpaContext)
     override fun subscribeFindAll(): Flow<List<E>> = watchEntities(entityClass) { findAll() }
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     override fun persist(entity: E): E = entityManager.persistEntity(entity)
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     override fun merge(entity: E): E = entityManager.merge(entity)
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     override fun remove(entity: E) = entityManager.remove(entity)
 
     context(JpaSessionContext)

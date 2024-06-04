@@ -1,20 +1,19 @@
 package kotlinw.hibernate.core.schemaupgrade
 
-import xyz.kotlinw.jpa.api.JpaSessionContext
-import xyz.kotlinw.jpa.api.Transactional
+import java.sql.Connection
 import kotlinw.hibernate.core.api.jdbcTask
+import kotlinw.hibernate.core.service.JpaPersistenceService
 import kotlinw.logging.api.LoggerFactory
 import kotlinw.logging.api.LoggerFactory.Companion.getLogger
-import org.hibernate.SessionFactory
-import java.sql.Connection
-import kotlinw.hibernate.core.service.JpaPersistenceService
+import xyz.kotlinw.jpa.api.JpaSessionContext
+import xyz.kotlinw.jpa.api.TransactionContext
 
 class DatabaseUpgradeManagerImpl(
     loggerFactory: LoggerFactory,
     private val jpaPersistenceService: JpaPersistenceService,
     private val databaseUpgraderProviders: Collection<DatabaseUpgraderProvider>,
-    private val onStructureUpgraded: context(Transactional) JpaSessionContext.(SortableDatabaseUpgraderId) -> Unit,
-    private val onDataUpgraded: context(Transactional) JpaSessionContext.(SortableDatabaseUpgraderId) -> Unit,
+    private val onStructureUpgraded: context(TransactionContext) JpaSessionContext.(SortableDatabaseUpgraderId) -> Unit,
+    private val onDataUpgraded: context(TransactionContext) JpaSessionContext.(SortableDatabaseUpgraderId) -> Unit,
     private val findCurrentSchemaVersion: (Connection) -> SortableDatabaseUpgraderId?,
     private val checkDatabaseUpgraderAlreadyApplied: (context(JpaSessionContext) (SortableDatabaseUpgraderId) -> Boolean)?
 ) : DatabaseUpgradeManager {
@@ -99,7 +98,7 @@ class DatabaseUpgradeManagerImpl(
         }
     }
 
-    context (Transactional, JpaSessionContext)
+    context (TransactionContext, JpaSessionContext)
     private fun applyUpgraders(upgradersToApply: List<Pair<String, DatabaseUpgrader>>) {
         jdbcTask {
             upgradersToApply.forEach {
@@ -108,7 +107,7 @@ class DatabaseUpgradeManagerImpl(
                     logger.debug { "Upgrading structure to " / it.first }
                     try {
                         upgrader.upgradeStructure()
-                        with(this@Transactional) {
+                        with(this@TransactionContext) {
                             onStructureUpgraded(this@JpaSessionContext, it.first)
                         }
                     } catch (e: Exception) {
@@ -124,7 +123,7 @@ class DatabaseUpgradeManagerImpl(
                 logger.debug { "Upgrading data to " / it.first }
                 try {
                     upgrader.upgradeData()
-                    with(this@Transactional) {
+                    with(this@TransactionContext) {
                         onDataUpgraded(this@JpaSessionContext, it.first)
                     }
                     entityManager.flush()
