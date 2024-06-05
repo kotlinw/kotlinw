@@ -11,7 +11,7 @@ import java.util.*
 import kotlinw.ulid.Ulid
 import kotlinw.ulid.toUlid
 import kotlinw.ulid.toUuid
-import kotlinw.uuid.asJavaUuid
+import kotlinw.uuid.toJavaUuid
 import kotlinw.uuid.toUuid
 
 typealias BaseEntityId = Long
@@ -37,14 +37,14 @@ abstract class BaseEntity(
 abstract class BaseIdentityEntity(
 
     @Column(unique = true, nullable = false, updatable = false)
-    open var uid: UUID = generateNextEntityUlid().toUuid().asJavaUuid()
+    open var uid: UUID = generateNextEntityUlid().toUuid().toJavaUuid()
 
 ) : BaseEntity() {
 
     var ulid: Ulid
         get() = uid.toUuid().toUlid()
         set(value) {
-            uid = value.toUuid().asJavaUuid()
+            uid = value.toUuid().toJavaUuid()
         }
 
     final override fun equals(other: Any?) =

@@ -1,7 +1,7 @@
 package kotlinw.hibernate.core.schemaupgrade
 
 import xyz.kotlinw.jpa.api.JpaSessionContext
-import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionContext
 import java.sql.Connection
 
 sealed interface DatabaseUpgrader
@@ -14,6 +14,6 @@ fun interface DatabaseStructureUpgrader : DatabaseUpgrader {
 
 fun interface DatabaseDataUpgrader : DatabaseUpgrader {
 
-    context(Transactional, JpaSessionContext)
+    context(TransactionContext, JpaSessionContext)
     fun upgradeData()
 }

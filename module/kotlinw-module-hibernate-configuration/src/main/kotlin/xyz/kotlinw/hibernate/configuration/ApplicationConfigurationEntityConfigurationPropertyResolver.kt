@@ -7,7 +7,6 @@ import kotlinw.configuration.core.EnumerableConfigurationPropertyResolver
 import kotlinw.configuration.core.SnapshotConfigurationPropertyLookup
 import kotlinw.configuration.core.getConfigurationPropertyTypedValue
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.runJpaTask
 import kotlinw.jdbc.util.executeQuery
 import kotlinw.jdbc.util.executeSingleResultQuery
 import kotlinw.util.stdlib.collection.emptyImmutableHashMap
@@ -77,23 +76,24 @@ class ApplicationConfigurationEntityConfigurationPropertyResolverImpl(
         val sessionFactory = _sessionFactory.value
         properties =
             if (sessionFactory != null) {
-                if (
-                    sessionFactory.runJpaTask {
-                        jdbcTask { checkTableExists() }
-                    }
-                ) {
-                    sessionFactory
-                        .runJpaTask { applicationConfigurationEntityRepository.findAll() }
-                        .associate {
-                            ConfigurationPropertyKey(
-                                it.name,
-                                "Database entity: ${ApplicationConfigurationEntity::class.simpleName}"
-                            ) to it.value
-                        }
-                        .toImmutableMap()
-                } else {
-                    emptyImmutableHashMap()
-                }
+                TODO("a jelek szerint ez mindig null lesz")
+//                if (
+//                    sessionFactory.runJpaTask {
+//                        jdbcTask { checkTableExists() }
+//                    }
+//                ) {
+//                    sessionFactory
+//                        .runJpaTask { applicationConfigurationEntityRepository.findAll() }
+//                        .associate {
+//                            ConfigurationPropertyKey(
+//                                it.name,
+//                                "Database entity: ${ApplicationConfigurationEntity::class.simpleName}"
+//                            ) to it.value
+//                        }
+//                        .toImmutableMap()
+//                } else {
+//                    emptyImmutableHashMap()
+//                }
             } else {
                 executeDirectPostgresqlOperation(
                     hibernateConnectionUrl,

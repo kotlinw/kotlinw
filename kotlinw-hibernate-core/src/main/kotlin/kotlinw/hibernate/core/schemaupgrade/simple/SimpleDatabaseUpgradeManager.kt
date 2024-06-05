@@ -1,17 +1,17 @@
 package kotlinw.hibernate.core.schemaupgrade.simple
 
 import xyz.kotlinw.jpa.api.JpaSessionContext
-import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionContext
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManager
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgradeManagerImpl
 import kotlinw.hibernate.core.schemaupgrade.DatabaseUpgraderProvider
 import kotlinw.hibernate.core.schemaupgrade.SortableDatabaseUpgraderId
 import kotlinw.jdbc.util.executeSingleResultQuery
 import kotlinw.logging.api.LoggerFactory
-import org.hibernate.SessionFactory
 import java.time.Instant
+import kotlinw.hibernate.core.service.JpaPersistenceService
 
-context(Transactional, JpaSessionContext)
+context(TransactionContext, JpaSessionContext)
 private fun updateSchemaVersionInfoEntity(schemaVersion: SortableDatabaseUpgraderId) {
     entityManager.createQuery("FROM DatabaseSchemaVersionInfoEntity", DatabaseSchemaVersionInfoEntity::class.java)
         .resultList
@@ -31,7 +31,7 @@ private fun updateSchemaVersionInfoEntity(schemaVersion: SortableDatabaseUpgrade
 
 fun SimpleDatabaseUpgradeManager(
     loggerFactory: LoggerFactory,
-    sessionFactory: SessionFactory,
+    jpaPersistenceService: JpaPersistenceService,
     databaseUpgraderProviders: Collection<DatabaseUpgraderProvider>,
     checkSchemaVersionTableExistsQueryString: String = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE LOWER(table_name)=LOWER('DatabaseSchemaVersionInfo'))",
     selectSchemaVersionQueryString: String = "SELECT currentSchemaVersion FROM DatabaseSchemaVersionInfo"
@@ -39,7 +39,7 @@ fun SimpleDatabaseUpgradeManager(
 
     return DatabaseUpgradeManagerImpl(
         loggerFactory,
-        sessionFactory,
+        jpaPersistenceService,
         databaseUpgraderProviders,
         ::updateSchemaVersionInfoEntity,
         ::updateSchemaVersionInfoEntity,

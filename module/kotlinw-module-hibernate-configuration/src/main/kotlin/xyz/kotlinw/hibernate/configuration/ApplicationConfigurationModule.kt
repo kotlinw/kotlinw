@@ -2,7 +2,6 @@ package xyz.kotlinw.hibernate.configuration
 
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSource
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
-import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.module.hibernate.core.BootstrapServiceRegistryCustomizer
 import kotlinw.module.hibernate.core.HibernateModule
 import org.hibernate.boot.Metadata
@@ -38,6 +37,7 @@ class ApplicationConfigurationModule {
             applyIntegrator(
                 object : Integrator {
 
+                    // TODO legyen úgy megoldva az event listener regisztráció, ahogy a ReactiveQuerySupportServiceImpl is csinálja
                     override fun integrate(
                         metadata: Metadata,
                         bootstrapContext: BootstrapContext,
@@ -45,30 +45,33 @@ class ApplicationConfigurationModule {
                     ) {
                         val insertListener = object : PostInsertEventListener {
 
-                            override fun requiresPostCommitHandling(persister: EntityPersister): Boolean =
-                                persister.mappedClass == ApplicationConfigurationEntity::class.java
+                            override fun requiresPostCommitHandling(persister: EntityPersister): Boolean = true
 
-                            override fun onPostInsert(event: PostInsertEvent?) {
-                                notifier.notifyListener()
+                            override fun onPostInsert(event: PostInsertEvent) {
+                                if (event.persister.mappedClass == ApplicationConfigurationEntity::class.java) {
+                                    notifier.notifyListener()
+                                }
                             }
                         }
 
                         val updateListener = object : PostUpdateEventListener {
 
-                            override fun requiresPostCommitHandling(persister: EntityPersister): Boolean =
-                                persister.mappedClass == ApplicationConfigurationEntity::class.java
+                            override fun requiresPostCommitHandling(persister: EntityPersister): Boolean = true
 
                             override fun onPostUpdate(event: PostUpdateEvent) {
-                                notifier.notifyListener()
+                                if (event.persister.mappedClass == ApplicationConfigurationEntity::class.java) {
+                                    notifier.notifyListener()
+                                }
                             }
                         }
 
                         val deleteListener = object : PostDeleteEventListener {
-                            override fun requiresPostCommitHandling(persister: EntityPersister): Boolean =
-                                persister.mappedClass == ApplicationConfigurationEntity::class.java
+                            override fun requiresPostCommitHandling(persister: EntityPersister): Boolean = true
 
                             override fun onPostDelete(event: PostDeleteEvent) {
-                                notifier.notifyListener()
+                                if (event.persister.mappedClass == ApplicationConfigurationEntity::class.java) {
+                                    notifier.notifyListener()
+                                }
                             }
                         }
 

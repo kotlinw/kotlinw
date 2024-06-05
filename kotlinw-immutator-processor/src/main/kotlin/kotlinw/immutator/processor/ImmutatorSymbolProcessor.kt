@@ -179,7 +179,7 @@ class ImmutatorSymbolProcessor(
         classDeclaration.abstractProperties.forEach {
             if (it.type.resolve().typeCategory is TypeCategory.Unsupported) {
                 hasInvalidPropertyType = true
-                logger.error("Property has type that is not supported by $annotationDisplayName.", it)
+                logger.error("Property has type that is not supported by $annotationDisplayName: '${it.simpleName.asString()}'", it)
             }
         }
 

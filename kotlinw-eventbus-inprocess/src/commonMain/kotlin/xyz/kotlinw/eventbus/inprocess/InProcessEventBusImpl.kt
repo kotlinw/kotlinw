@@ -80,7 +80,7 @@ internal class InProcessEventBusImpl<E: LocalEvent>(
         }
     }
 
-    override fun events(): Flow<E> = events
+    override fun events(): SharedFlow<E> = events
 }
 
 /**

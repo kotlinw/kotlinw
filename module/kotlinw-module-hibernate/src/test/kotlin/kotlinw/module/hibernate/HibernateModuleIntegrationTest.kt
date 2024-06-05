@@ -9,16 +9,14 @@ import kotlinw.configuration.core.ConstantConfigurationPropertyResolver
 import kotlinw.configuration.core.EnumerableConfigurationPropertyLookupSourceImpl
 import kotlinw.hibernate.api.configuration.PersistentClassProvider
 import kotlinw.hibernate.core.api.jdbcTask
-import kotlinw.hibernate.core.api.runJpaTask
-import kotlinw.hibernate.core.api.runTransactionalJpaTask
 import xyz.kotlinw.jpa.api.JpaSessionContext
 import kotlinw.hibernate.core.schemaexport.ExportedSchemaScriptType
+import kotlinw.hibernate.core.service.JpaPersistenceService
 import kotlinw.jdbc.util.executeStatements
 import kotlinw.module.hibernate.core.HibernateModule
 import kotlinw.module.hibernate.tool.HibernateSqlSchemaExporterModule
 import kotlinw.module.hibernate.tool.HibernateSqlSchemaExporterScope
 import kotlinx.coroutines.test.runTest
-import org.hibernate.SessionFactory
 import xyz.kotlinw.di.api.Component
 import xyz.kotlinw.di.api.ComponentQuery
 import xyz.kotlinw.di.api.Container
@@ -59,7 +57,7 @@ interface TestContainer {
     interface TestScope : HibernateSqlSchemaExporterScope {
 
         @ComponentQuery
-        fun sessionFactory(): SessionFactory
+        fun jpaPersistenceService(): JpaPersistenceService
     }
 
     @Scope(modules = [TestModule::class])
@@ -83,9 +81,9 @@ class HibernateModuleIntegrationTest {
                     createSchemaScript
                 )
 
-                val sessionFactory = sessionFactory()
+                val jpaPersistenceService = jpaPersistenceService()
 
-                sessionFactory.runTransactionalJpaTask {
+                jpaPersistenceService.runTransactionalJpaTask {
                     jdbcTask {
                         executeStatements(createSchemaScript)
                     }
@@ -94,16 +92,16 @@ class HibernateModuleIntegrationTest {
                 fun JpaSessionContext.findAllPersons() =
                     entityManager.createTypedQuery("FROM PersonEntity", PersonEntity::class.java).resultList
 
-                sessionFactory.runJpaTask {
+                jpaPersistenceService.runJpaTask {
                     assertEquals(emptyList(), findAllPersons())
                 }
 
-                sessionFactory.runTransactionalJpaTask {
+                jpaPersistenceService.runTransactionalJpaTask {
                     entityManager.persistEntity(PersonEntity(1, "Joe"))
                     assertEquals(1, findAllPersons().size)
                 }
 
-                sessionFactory.runJpaTask {
+                jpaPersistenceService.runJpaTask {
                     assertEquals(1, findAllPersons().size)
                 }
             } finally {

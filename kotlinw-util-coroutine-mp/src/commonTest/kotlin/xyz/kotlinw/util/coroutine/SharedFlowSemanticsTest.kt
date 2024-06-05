@@ -76,7 +76,7 @@ class SharedFlowSemanticsTest {
         withContext(Dispatchers.Default) {
             val stateFlow = MutableStateFlow("x")
 
-            launch(start = UNDISPATCHED) {
+            val job = launch(start = UNDISPATCHED) {
                 stateFlow.collect {
                     println("start: $it")
                     delay(100.milliseconds)
@@ -92,6 +92,7 @@ class SharedFlowSemanticsTest {
             delay(50.milliseconds)
 
             delay(200.milliseconds)
+            job.cancel()
         }
     }
 

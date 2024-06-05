@@ -2,7 +2,7 @@ package xyz.kotlinw.jpa.internal
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
-import xyz.kotlinw.jpa.api.Transactional
+import xyz.kotlinw.jpa.api.TransactionContext
 import xyz.kotlinw.jpa.api.TypedEntityManager
 import xyz.kotlinw.jpa.api.TypedQuery
 
@@ -10,17 +10,17 @@ import xyz.kotlinw.jpa.api.TypedQuery
 value class TypedEntityManagerImpl(private val delegate: EntityManager) : EntityManager by delegate,
     TypedEntityManager {
 
-    context(Transactional)
+    context(TransactionContext)
     override fun <T : Any> persistEntity(entity: T): T {
         persist(entity)
         return entity
     }
 
-    context(Transactional)
+    context(TransactionContext)
     override fun <T : Any> mergeEntity(entity: T): T =
         merge(entity)
 
-    context(Transactional)
+    context(TransactionContext)
     override fun removeEntity(entity: Any) {
         remove(entity)
     }
