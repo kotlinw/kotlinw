@@ -25,6 +25,7 @@ interface PersistentRemotingClient {
         communicationCircuitBreaker: Flow<Boolean>? = null
     ): Nothing
 
+    // TODO doc felülvizsgálat
     /**
      * Runs the given `block` of code in the context of a remote connection in a separate coroutine.
      * If the server is not connected yet (or [connectAndRunMessageLoop] has not been called yet) then suspends the current coroutine until the connection is established.
