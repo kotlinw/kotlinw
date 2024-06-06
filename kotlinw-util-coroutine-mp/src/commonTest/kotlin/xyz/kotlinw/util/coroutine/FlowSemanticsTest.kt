@@ -6,7 +6,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -16,7 +19,7 @@ class FlowSemanticsTest {
 
     @Test
     fun testFlowCompletedWithStateIn() = runTest {
-        val testScope = CoroutineScope(coroutineContext + SupervisorJob(coroutineContext.job))
+        val sourceCoroutineScope = CoroutineScope(coroutineContext + SupervisorJob(coroutineContext.job))
 
         val stateFlow = flow {
             emit(1)
@@ -26,16 +29,29 @@ class FlowSemanticsTest {
             emit(3)
             delay(1.seconds)
         }
-            .stateIn(testScope)
+            .onStart { println(">> start: original") }
+            .onCompletion { println(">> completion: original") }
+            .stateIn(sourceCoroutineScope)
+            .onStart { println(">> start: stateIn()") }
+            .onCompletion { println(">> completion: stateIn()") }
 
-        testScope.launch {
-            stateFlow.collect { println("a: $it") }
-        }
-        testScope.launch {
-            stateFlow.collect { println("b: $it") }
+        listOf("a", "b").forEach { executor ->
+            launch {
+                channelFlow {
+                    sourceCoroutineScope.launch {
+                        stateFlow.collect {
+                            send(it)
+                        }
+                    }.join()
+                }
+                    .collect {
+                        println("$executor: $it")
+                    }
+            }
         }
 
         delay(5.seconds)
-        testScope.cancel()
+        println(">> shutdown")
+        sourceCoroutineScope.cancel()
     }
 }
