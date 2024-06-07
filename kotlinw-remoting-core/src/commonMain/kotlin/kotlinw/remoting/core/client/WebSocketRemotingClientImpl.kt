@@ -1,6 +1,7 @@
 package kotlinw.remoting.core.client
 
 import arrow.core.nonFatalOrThrow
+import arrow.core.raise.recover
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlinw.logging.api.LoggerFactory
@@ -20,6 +21,10 @@ import kotlinw.remoting.core.common.DelegatingRemotingClient
 import kotlinw.remoting.core.common.MutableRemotePeerRegistry
 import kotlinw.remoting.core.common.RemoteConnectionData
 import kotlinw.remoting.core.common.SynchronousCallSupport
+import kotlinw.util.coroutine.AwaitSafelyResult.Cancelled
+import kotlinw.util.coroutine.AwaitSafelyResult.Failure
+import kotlinw.util.coroutine.AwaitSafelyResult.Success
+import kotlinw.util.coroutine.awaitSafely
 import kotlinw.util.stdlib.Url
 import kotlinw.util.stdlib.infiniteLoop
 import kotlinx.atomicfu.atomic
@@ -30,7 +35,6 @@ import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -288,8 +292,6 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
         }
     }
 
-    // FIXME ezt átnézni, hogy tényleg jól működik-e, és util-ba kitenni a "corutine scope crossing" részt
-    @OptIn(InternalCoroutinesApi::class)
     override suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> {
         val deferred = withMessagingManager {
             async(start = UNDISPATCHED) {
@@ -297,20 +299,10 @@ class WebSocketRemotingClientImpl<M : RawMessage>(
             }
         }
 
-        return try {
-            deferred.join()
-            if (deferred.isCancelled) {
-                Result.failure(deferred.getCancellationException())
-            } else {
-                Result.success(deferred.getCompleted())
-            }
-        } catch (e: CancellationException) {
-            withContext(NonCancellable) {
-                deferred.cancelAndJoin()
-            }
-            throw e
-        } catch (e: Throwable) {
-            Result.failure(e.nonFatalOrThrow())
+        return when (val result = deferred.awaitSafely()) {
+            is Cancelled -> Result.failure(result.cancellationException)
+            is Failure -> Result.failure(result.throwable)
+            is Success -> Result.success(result.value)
         }
     }
 }

@@ -1,5 +1,6 @@
 package kotlinw.util.coroutine
 
+import arrow.core.nonFatalOrThrow
 import arrow.core.raise.Raise
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
@@ -34,4 +35,26 @@ suspend fun <T> Deferred<T>.awaitSafely(): T =
         } else {
             throw e
         }
+    }
+
+sealed interface AwaitSafelyResult<T> {
+
+    data class Success<T>(val value: T) : AwaitSafelyResult<T>
+
+    data class Failure<T>(val throwable: Throwable) : AwaitSafelyResult<T>
+
+    data class Cancelled<T>(val cancellationException: CancellationException) : AwaitSafelyResult<T>
+}
+
+suspend fun <T> Deferred<T>.awaitSafely(): AwaitSafelyResult<T> =
+    try {
+        AwaitSafelyResult.Success(await())
+    } catch (e: CancellationException) {
+        if (currentCoroutineContext().isActive) {
+            AwaitSafelyResult.Cancelled(e)
+        } else {
+            throw e
+        }
+    } catch (e: Throwable) {
+        AwaitSafelyResult.Failure(e.nonFatalOrThrow())
     }

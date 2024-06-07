@@ -23,6 +23,7 @@ kotlin {
             dependencies {
                 api(projects.kotlinw.kotlinwRemotingApi)
                 api(projects.kotlinw.kotlinwUtilSerializationJson)
+                api(projects.kotlinw.kotlinwUtilCoroutineMp)
                 api(projects.kotlinw.kotlinwUtilStdlibMp)
                 api(projects.kotlinw.kotlinwLoggingPlatform)
                 api(libs.kotlinx.datetime)

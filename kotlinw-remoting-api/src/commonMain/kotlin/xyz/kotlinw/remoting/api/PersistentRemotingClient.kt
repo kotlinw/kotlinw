@@ -25,13 +25,12 @@ interface PersistentRemotingClient {
         communicationCircuitBreaker: Flow<Boolean>? = null
     ): Nothing
 
-    // TODO doc felülvizsgálat
     /**
-     * Runs the given `block` of code in the context of a remote connection in a separate coroutine.
+     * Runs the given `block` of code in the context of a remote connection established by this client.
      * If the server is not connected yet (or [connectAndRunMessageLoop] has not been called yet) then suspends the current coroutine until the connection is established.
      * If the server is disconnected before [block] is completed then the coroutine running [block] is cancelled but the current coroutine running [withConnection] is not cancelled, instead it returns with a failure.
      */
-    suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T>
+    suspend fun <T> withConnection(block: suspend (PersistentRemotingConnection) -> T): Result<T> // TODO ez dobja tovább az exception-t!
 }
 
 interface PersistentRemotingConnection :

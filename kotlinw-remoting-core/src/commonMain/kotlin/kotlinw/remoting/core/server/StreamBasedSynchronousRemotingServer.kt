@@ -43,6 +43,8 @@ class StreamBasedSynchronousRemotingServer(
             check(methodDescriptor is RemotingMethodDescriptor.SynchronousCall<*, *>)
 
             val parameter = extractedMetadata.decodePayload(methodDescriptor.parameterSerializer)
+
+            // TODO try-catch, hiba jelzése
             val result = delegator.processCall(methodId, parameter) // TODO apply RemoteCallContextElement
             println("called $serviceLocator: $parameter returned $result")
 

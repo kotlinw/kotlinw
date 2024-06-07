@@ -8,7 +8,7 @@ sealed interface RemotingMethodDescriptor {
 
     data class SynchronousCall<P : Any, R>(
         override val memberId: String,
-        val parameterSerializer: KSerializer<P>,
+        val parameterSerializer: KSerializer<P>, // TODO WHOCOS-82: menjen az ős-interface-be
         val resultSerializer: KSerializer<R>
     ) : RemotingMethodDescriptor
 

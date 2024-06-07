@@ -54,4 +54,15 @@ class FlowSemanticsTest {
         println(">> shutdown")
         sourceCoroutineScope.cancel()
     }
+
+    @Test
+    fun channelFlowCompleted() = runTest {
+        val flow = channelFlow {
+            send(1)
+        }
+
+        flow.collect {
+            println(it)
+        }
+    }
 }

@@ -15,12 +15,12 @@ fun <T> PersistentRemotingClient.produceStateWithConnection(
     initialValue: T,
     disconnectedValueProvider: (() -> T)? = null,
     onAfterDisconnection: suspend () -> Unit = { delay(1.seconds) },
-    onFailure: (Throwable) -> Unit = { },
+    onFailure: (Throwable) -> Unit = { }, // TODO log?
     producer: suspend ProduceStateScope<T>.(PersistentRemotingConnection) -> Unit
 ): State<T> =
     produceState(initialValue) {
         infiniteLoop {
-            val result = this@produceStateWithConnection.withConnection {
+            val result = withConnection {
                 producer(it)
             }
 
