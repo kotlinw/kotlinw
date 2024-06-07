@@ -55,7 +55,7 @@ class JpaPersistenceServiceImpl(
     private val globalTransactionListeners: MutableCollection<GlobalTransactionListener> = ConcurrentLinkedQueue()
 
     override fun addGlobalTransactionListener(listener: GlobalTransactionListener): ListenerRemovalHandle {
-        require(!globalTransactionListeners.contains(listener)) { "Listener is already added." }
+        require(!globalTransactionListeners.contains(listener)) { "Listener is already added: $listener" }
         globalTransactionListeners.add(listener)
         return ListenerRemovalHandle {
             globalTransactionListeners.remove(listener)
