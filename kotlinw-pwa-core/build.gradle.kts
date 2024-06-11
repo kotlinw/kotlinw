@@ -32,7 +32,7 @@ kotlin {
 
 val jvmProcessResources by tasks.named("jvmProcessResources")
 
-// TODO ehhez van issue valahol felvéve?
+// TODO https://youtrack.jetbrains.com/issue/KTIJ-16582/Consumer-Kotlin-JVM-library-cannot-access-a-Kotlin-Multiplatform-JVM-target-resources-in-multi-module-Gradle-project
 val fixMissingResources by tasks.registering(Copy::class) {
     dependsOn(jvmProcessResources)
 
