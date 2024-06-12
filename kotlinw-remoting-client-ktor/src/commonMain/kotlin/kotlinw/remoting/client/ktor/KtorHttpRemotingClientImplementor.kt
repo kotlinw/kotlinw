@@ -119,7 +119,7 @@ class KtorHttpRemotingClientImplementor(
                         clientWebSocketSession.close()
                     }
 
-                    logger.debug { "Disconnected from WebSocket server: " / url }
+                    logger.debug { "Disconnected from WebSocket server normally: " / url }
                 } catch (e: Throwable) {
                     if (NonFatal(e)) {
                         if (logger.isTraceEnabled) {

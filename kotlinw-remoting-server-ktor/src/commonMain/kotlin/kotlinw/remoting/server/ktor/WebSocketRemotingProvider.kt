@@ -16,7 +16,7 @@ import kotlinw.remoting.core.codec.MessageCodecWithMetadataPrefetchSupport
 import kotlinw.remoting.core.common.BidirectionalMessagingManager
 import kotlinw.remoting.core.common.BidirectionalMessagingManagerImpl
 import kotlinw.remoting.core.common.DelegatingRemotingClient
-import kotlinw.remoting.core.common.NewConnectionData
+import kotlinw.remoting.core.common.ActiveConnectionData
 import kotlinw.remoting.core.common.RemovedConnectionData
 import kotlinw.remoting.core.ktor.SingleSessionBidirectionalWebSocketConnection
 import kotlinw.remoting.server.ktor.RemotingProvider.InstallationContext
@@ -33,7 +33,7 @@ import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 
 class WebSocketRemotingProvider(
     loggerFactory: LoggerFactory,
-    private val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,
+    private val onConnectionAdded: (suspend (ActiveConnectionData) -> Unit)? = null,
     private val onConnectionRemoved: (suspend (RemovedConnectionData) -> Unit)? = null
 ) : RemotingProvider {
 
@@ -66,17 +66,25 @@ class WebSocketRemotingProvider(
 
             if (onConnectionAdded != null || webSocketRemotingConfiguration.onConnectionAdded != null) {
                 val reverseRemotingClient = DelegatingRemotingClient(messagingManager)
-                val newConnectionData =
-                    NewConnectionData(remoteConnectionId, reverseRemotingClient, messagingManager)
+                val activeConnectionData =
+                    ActiveConnectionData(
+                        remoteConnectionId,
+                        reverseRemotingClient,
+                        messagingManager,
+                        {
+                            logger.debug { "Explicitly closing websocket connection: " / remoteConnectionId.connectionId }
+                            messagingManager.close()
+                        }
+                    )
 
                 try {
-                    onConnectionAdded?.invoke(newConnectionData)
+                    onConnectionAdded?.invoke(activeConnectionData)
                 } catch (e: Throwable) {
                     logger.error(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
                 }
 
                 try {
-                    webSocketRemotingConfiguration.onConnectionAdded?.invoke(newConnectionData)
+                    webSocketRemotingConfiguration.onConnectionAdded?.invoke(activeConnectionData)
                 } catch (e: Throwable) {
                     logger.warning(e.nonFatalOrThrow()) { "onConnectionAdded() has thrown an exception." }
                 }
@@ -116,7 +124,8 @@ class WebSocketRemotingProvider(
             fun Route.configureRouting() {
                 // TODO fix path
                 webSocket("/websocket/${webSocketRemotingConfiguration.id}") {
-                    val messagingPeerId = extractMessagingPeerId(remotingConfiguration.authenticationConfiguration, call)
+                    val messagingPeerId =
+                        extractMessagingPeerId(remotingConfiguration.authenticationConfiguration, call)
                     val messagingConnectionId: MessagingConnectionId =
                         remotingConfiguration.identifyConnection(call) // TODO hibaell.
                     val remoteConnectionId = RemoteConnectionId(messagingPeerId, messagingConnectionId)

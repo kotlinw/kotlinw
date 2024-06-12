@@ -3,7 +3,7 @@ package kotlinw.remoting.server.ktor
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.Principal
 import kotlinw.remoting.core.codec.MessageCodec
-import kotlinw.remoting.core.common.NewConnectionData
+import kotlinw.remoting.core.common.ActiveConnectionData
 import kotlinw.remoting.core.common.RemovedConnectionData
 import kotlinw.remoting.server.ktor.RemotingConfiguration.AuthenticationConfiguration
 import kotlinw.uuid.Uuid
@@ -67,7 +67,7 @@ data class WebSocketRemotingConfiguration(
     override val authenticationConfiguration: AuthenticationConfiguration<*>?,
     override val identifyConnection: ApplicationCall.() -> MessagingConnectionId = { Uuid.randomUuid() },
     val wsEndpointName: String = id,
-    val onConnectionAdded: (suspend (NewConnectionData) -> Unit)? = null,
+    val onConnectionAdded: (suspend (ActiveConnectionData) -> Unit)? = null,
     val onConnectionRemoved: (suspend (RemovedConnectionData) -> Unit)? = null,
     override val messageCodec: MessageCodec<*>? = null
 ) : RemotingConfiguration

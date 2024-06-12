@@ -42,6 +42,7 @@ import xyz.kotlinw.remoting.api.RemotingInvocationTargetCancellationException
 import xyz.kotlinw.remoting.api.RemotingInvocationTargetException
 import xyz.kotlinw.remoting.api.internal.RemoteCallHandlerImplementor
 import xyz.kotlinw.remoting.api.internal.RemotingMethodDescriptor
+import xyz.kotlinw.util.stdlib.runCatchingCleanup
 
 interface BidirectionalMessagingManager : CoroutineScope {
 
@@ -514,10 +515,8 @@ class BidirectionalMessagingManagerImpl<M : RawMessage>(
     override suspend fun close() {
         // TODO kellene valami lock, hogy close() közben ne lehessen más metódusokat hívni
 
-        try {
-            incomingMessageProcessorCoroutineScope.cancel()
-        } catch (e: Throwable) {
-            logger.warning(e.nonFatalOrThrow()) { "Failed to cancel supervisor scope of messaging manager." }
+        runCatchingCleanup {
+            bidirectionalConnection.close()
         }
 
         initiatedConversations.values.forEach {

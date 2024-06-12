@@ -13,7 +13,8 @@ inline fun runCatchingCleanup(block: () -> Unit) {
     try {
         block()
     } catch (e: Exception) {
-        // Ignore
+        // Ignore even `CancellationException`s
         // TODO log?
+        // TODO suppressed exception hozzáadása?
     }
 }

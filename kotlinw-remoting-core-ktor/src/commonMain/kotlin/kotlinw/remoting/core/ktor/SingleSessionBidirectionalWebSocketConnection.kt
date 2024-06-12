@@ -12,9 +12,11 @@ import kotlinw.remoting.core.common.SingleSessionBidirectionalMessagingConnectio
 import kotlinw.util.stdlib.ByteArrayView.Companion.toReadOnlyByteArray
 import kotlinw.util.stdlib.ByteArrayView.Companion.view
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import xyz.kotlinw.remoting.api.RemoteConnectionId
+import xyz.kotlinw.util.stdlib.runCatchingCleanup
 
 class SingleSessionBidirectionalWebSocketConnection(
     override val remoteConnectionId: RemoteConnectionId,
@@ -48,7 +50,12 @@ class SingleSessionBidirectionalWebSocketConnection(
     }
 
     override suspend fun close() {
-        webSocketSession.close()
+        runCatchingCleanup {
+            webSocketSession.close()
+        }
+        runCatchingCleanup {
+            webSocketSession.cancel() // TODO https://youtrack.jetbrains.com/issue/KTOR-4110
+        }
     }
 
     override fun toString(): String {
