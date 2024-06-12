@@ -13,4 +13,6 @@ interface WebAppClientEnvironmentProvider {
     val networkConnectionState: StateFlow<NetworkConnectionStatus>
 
     fun setNetworkConnectionStatus(status: NetworkConnectionStatus)
+
+    fun setAuthenticationStatus(status: AuthenticationStatus)
 }

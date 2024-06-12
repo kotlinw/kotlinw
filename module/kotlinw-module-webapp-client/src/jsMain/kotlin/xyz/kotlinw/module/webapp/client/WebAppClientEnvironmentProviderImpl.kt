@@ -45,4 +45,8 @@ class WebAppClientEnvironmentProviderImpl(
     override fun setNetworkConnectionStatus(status: NetworkConnectionStatus) {
         _networkConnectionStateFlow.value = status
     }
+
+    override fun setAuthenticationStatus(status: AuthenticationStatus) {
+        _authenticationStateFlow.value = status
+    }
 }
