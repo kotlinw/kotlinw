@@ -48,10 +48,7 @@ class WebAppMainHttpController(
         // TODO további oldalakat is kiszolgálni, ne csak a root-ot
         // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
         val title = "PWA" // TODO paraméterként + i18n
-        val applicationFilePath = if (deploymentMode == Development)
-            "/app.js" // TODO lehetne valami directory is, de eddig nem sikerült úgy bekonfigolni a webapp build-et :\
-        else
-            "/app/pwa/js/app.js" // TODO konfigurálható
+        val applicationFilePath = "/app/pwa/js/app.js" // TODO konfigurálható
 
         get {
             val initialWebAppClientEnvironmentData = with(call) {
@@ -96,17 +93,17 @@ class WebAppMainHttpController(
                         initialWebAppClientEnvironmentData
                     )
                 }`;
-                                    </script>
-                                    <style>
-                                    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-                                    </style>                                        
-                                    </head>
-                                    <body>
-                                        <div id="root"></div>
-                                        <script src="$applicationFilePath"></script>
-                                    </body>
-                                </html>
-                            """.trimIndent(),
+                                </script>
+                                <style>
+                                @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+                                </style>                                        
+                                </head>
+                                <body>
+                                    <div id="root"></div>
+                                    <script src="$applicationFilePath"></script>
+                                </body>
+                            </html>
+                        """.trimIndent(),
                 Text.Html
             )
         }
