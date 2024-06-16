@@ -47,6 +47,7 @@ class WebAppMainHttpController(
     private fun Route.serveMainHtmlPage() {
         // TODO további oldalakat is kiszolgálni, ne csak a root-ot
         // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
+        // TODO fontawesome CSS beégetve
         val title = "PWA" // TODO paraméterként + i18n
         val applicationFilePath = "/app/pwa/js/app.js" // TODO konfigurálható
 
@@ -73,7 +74,7 @@ class WebAppMainHttpController(
                     <html lang="hu">
                         <head>
                             <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
                             <meta name="theme-color" content="#000000" />
                             <meta http-equiv="X-UA-Compatible" content="ie=edge">
                             <link rel="manifest" href="/manifest.webmanifest">
@@ -96,7 +97,8 @@ class WebAppMainHttpController(
                                 </script>
                                 <style>
                                 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-                                </style>                                        
+                                </style>
+                                    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
                                 </head>
                                 <body>
                                     <div id="root"></div>
