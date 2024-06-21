@@ -160,6 +160,8 @@ suspend fun HttpClient.downloadFile(
                 }
             }
         } else {
+            // TODO rendesen visszaadni a hiba okát, HTTP státuszt, response header-öket
+            // TODO kezelni az exception-öket is, pl. ha már a connect sem sikerül: java.net.ConnectException
             throw RuntimeException("Failed to download '$sourceUrl': received HTTP status code $httpStatusCode.") // TODO raise()
         }
     }
