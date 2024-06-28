@@ -10,6 +10,7 @@ import xyz.kotlinw.pwa.model.WebManifest.Display.Standalone
 import xyz.kotlinw.pwa.model.WebManifest.ExternalApplicationResource
 import xyz.kotlinw.pwa.model.WebManifest.ImageResource
 import xyz.kotlinw.pwa.model.WebManifest.Orientation
+import xyz.kotlinw.pwa.model.WebManifest.ScreenShot
 import xyz.kotlinw.pwa.model.WebManifest.ShareTarget
 import xyz.kotlinw.pwa.model.WebManifest.ShortcutItem
 
@@ -77,7 +78,7 @@ interface WebManifestAttributeProvider {
 
     fun description(localeId: LocaleId): String? = null
 
-    fun screenshots(): List<ImageResource>? = null
+    fun screenshots(): List<ScreenShot>? = null
 
     fun categories(): List<String>? = null
 

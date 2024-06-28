@@ -105,7 +105,7 @@ data class WebManifest(
     /**
      * The screenshots member is an array of image objects represent the web application in common usage scenarios.
      */
-    val screenshots: List<ImageResource>? = null,
+    val screenshots: List<ScreenShot>? = null,
 
     /**
      * Describes the expected application categories to which the web application belongs.
@@ -295,6 +295,31 @@ data class WebManifest(
     }
 
     @Serializable
+    data class ScreenShot(
+        val src: String,
+
+        val type: String? = null,
+
+        val sizes: ImageResourceSizes? = null,
+
+        @SerialName("form_factor")
+        val formFactor: String? = null
+    ) {
+        init {
+            if (type != null) {
+                require(cg_regex1.containsMatchIn(type)) { "type does not match pattern $cg_regex1 - $type" }
+            }
+            if (formFactor != null) {
+                require(formFactor in formFactors) { "Invalid 'formFactor': $formFactor" }
+            }
+        }
+
+        @JvmOverloads
+        constructor(src: String, type: String, size: ImageResourceSize, purpose: String = "any") :
+                this(src, type, ImageResourceSizes(size), purpose)
+    }
+
+    @Serializable
     data class ExternalApplicationResource(
         /**
          * The platform it is associated to.
@@ -465,5 +490,7 @@ data class WebManifest(
             "APPLICATION/X-WWW-FORM-URLENCODED",
             "MULTIPART/FORM-DATA"
         )
+
+        private val formFactors = setOf("narrow", "wide")
     }
 }
