@@ -75,7 +75,7 @@ mina = "2.9.2"
 
 ksp = "2.0.0-1.0.24"
 
-kotlinpoet = "1.15.3"
+kotlinpoet = "1.18.1"
 
 okio = "3.5.0"
 
