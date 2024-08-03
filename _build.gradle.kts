@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 buildscript {
     dependencies {
         // TODO classpath("org.jetbrains.dokka:kotlin-as-java-plugin:1.7.20")
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.23.1")
+        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.25.0")
     }
 }
 
@@ -49,7 +49,7 @@ subprojects {
         apply(plugin = "maven-publish")
     }
 
-    apply(plugin = "kotlinx-atomicfu")
+    apply(plugin = "org.jetbrains.kotlinx.atomicfu")
     // TODO kover: apply(plugin = "org.jetbrains.kotlinx.kover")
 
     fun KotlinCommonOptions.configureCommonOptions() {
