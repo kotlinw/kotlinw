@@ -21,7 +21,7 @@ plugins {
     // TODO id("org.jetbrains.dokka") version "1.7.20" apply false
     `maven-publish`
     signing
-    // TODO kover: id("org.jetbrains.kotlinx.kover") version "0.8.0"
+    // TODO kover: id("org.jetbrains.kotlinx.kover") version "0.8.3"
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.1" apply false
 }
 
