@@ -13,7 +13,7 @@ ktor = "3.0.0-beta-2"
 junit = "5.10.0"
 
 # https://github.com/Kotlin/kotlinx.serialization/releases
-serialization = "1.7.0"
+serialization = "1.7.1"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.8.1"
@@ -99,7 +99,7 @@ buildConfig = "4.1.1"
 
 kobweb = "0.18.0"
 
-pdvrieze-xmlutil = "0.86.2"
+pdvrieze-xmlutil = "0.90.1"
 
 # https://github.com/johnrengelman/shadow/releases
 shadow = "8.1.1"
