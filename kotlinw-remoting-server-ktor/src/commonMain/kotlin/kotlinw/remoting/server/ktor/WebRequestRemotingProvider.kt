@@ -12,7 +12,7 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.header
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.Route
+import io.ktor.server.routing.Routing
 import io.ktor.server.routing.contentType
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -69,7 +69,7 @@ class WebRequestRemotingProvider(
         ktorApplication.routing {
             route("/remoting/${remotingConfiguration.id}") {// TODO lehessen testre szabni + websocket esetén benne van a /websocket is a path-ban
 
-                fun Route.configureRouting() {
+                fun Routing.configureRouting() {
                     setupRouting(messageCodec, delegators, remotingConfiguration as WebRequestRemotingConfiguration)
                 }
 
@@ -89,7 +89,7 @@ class WebRequestRemotingProvider(
         }
     }
 
-    private fun Route.setupRouting(
+    private fun Routing.setupRouting(
         messageCodec: MessageCodec<out RawMessage>,
         remoteCallHandlers: Map<String, RemoteCallHandlerImplementor<*>>,
         remotingConfiguration: WebRequestRemotingConfiguration

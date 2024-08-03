@@ -11,6 +11,7 @@ import io.ktor.util.date.getTimeMillis
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
+import io.ktor.utils.io.readRemaining
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
@@ -117,7 +118,7 @@ suspend fun HttpClient.downloadFile(
                     val packetDownloadStart = TimeSource.Monotonic.markNow()
                     val packet = channel.readRemaining(chunkSize?.toLong() ?: DownloadFileDefaultChunkSize)
 
-                    if (!packet.isEmpty) {
+                    if (!packet.exhausted()) {
                         val bytes = packet.readBytes()
                         val packetDownloadRealDuration = try {
                             packetDownloadStart.elapsedNow()

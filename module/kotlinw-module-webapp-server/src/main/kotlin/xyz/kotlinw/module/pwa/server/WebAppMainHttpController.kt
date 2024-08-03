@@ -3,8 +3,8 @@ package xyz.kotlinw.module.pwa.server
 import io.ktor.http.ContentType.Text
 import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.RootRoute
-import io.ktor.server.routing.Route
+import io.ktor.server.routing.RootRouting
+import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
@@ -35,7 +35,7 @@ class WebAppMainHttpController(
         }
     }
 
-    private fun RootRoute.setupRouting() {
+    private fun RootRouting.setupRouting() {
         route("/") { // FIXME WHOCOS-77
             serveMainHtmlPage()
         }
@@ -44,7 +44,7 @@ class WebAppMainHttpController(
         }
     }
 
-    private fun Route.serveMainHtmlPage() {
+    private fun Routing.serveMainHtmlPage() {
         // TODO további oldalakat is kiszolgálni, ne csak a root-ot
         // TODO átnézni: https://gist.github.com/hal0gen/5852bd9db240c477f20c
         // TODO fontawesome CSS beégetve

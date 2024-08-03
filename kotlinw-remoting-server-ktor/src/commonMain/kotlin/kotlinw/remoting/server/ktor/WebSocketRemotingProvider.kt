@@ -3,7 +3,7 @@ package kotlinw.remoting.server.ktor
 import arrow.core.nonFatalOrThrow
 import io.ktor.server.application.pluginOrNull
 import io.ktor.server.auth.authenticate
-import io.ktor.server.routing.Route
+import io.ktor.server.routing.Routing
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.WebSockets
@@ -121,7 +121,7 @@ class WebSocketRemotingProvider(
 
         ktorApplication.routing {
 
-            fun Route.configureRouting() {
+            fun Routing.configureRouting() {
                 // TODO fix path
                 webSocket("/websocket/${webSocketRemotingConfiguration.id}") {
                     val messagingPeerId =
