@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.immutator.processor
 
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -15,6 +17,7 @@ import kotlinw.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 class TestProcessorUtils {
     @Test

@@ -1,9 +1,12 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package xyz.kotlinw.di.processor
 
 import kotlin.test.Test
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import xyz.kotlinw.di.api.Module
 import xyz.kotlinw.di.api.Component
 

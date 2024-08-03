@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.immutator.processor
 
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.checkCompilationResult
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 
 class TestValidCases {

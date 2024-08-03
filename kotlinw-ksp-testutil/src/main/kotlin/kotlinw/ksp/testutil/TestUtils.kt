@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.ksp.testutil
 
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
@@ -10,6 +12,7 @@ import com.tschuchort.compiletesting.symbolProcessorProviders
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 fun Result.assertCompilationFailed() {
     assertEquals(COMPILATION_ERROR, exitCode)

@@ -1,9 +1,12 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.remoting.client.processor
 
 import kotlin.test.Test
 import kotlinw.ksp.testutil.assertCompilationSucceeded
 import kotlinw.ksp.testutil.checkCompilationResult
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 class Test {
 

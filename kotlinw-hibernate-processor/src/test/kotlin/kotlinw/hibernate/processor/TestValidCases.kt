@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.hibernate.processor
 
 import kotlinw.ksp.testutil.assertCompilationSucceeded
@@ -6,6 +8,7 @@ import kotlinw.ksp.testutil.kspGeneratedSources
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 class TestValidCases {
 

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.remoting.client.processor
 
 import kotlin.test.Test
@@ -7,6 +9,7 @@ import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
 import kotlinw.remoting.processor.RemotingSymbolProcessorProvider
 import kotlinx.serialization.Serializable
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import xyz.kotlinw.remoting.api.SupportsRemoting
 
 class CompilationValidationsTest {

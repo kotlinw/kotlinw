@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package kotlinw.immutator.processor
 
 import com.tschuchort.compiletesting.SourceFile
@@ -5,6 +7,7 @@ import kotlinw.ksp.testutil.assertCompilationFailed
 import kotlinw.ksp.testutil.assertHasKspError
 import kotlinw.ksp.testutil.checkCompilationResult
 import kotlin.test.Test
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 class TestInvalidCases {
     @Test
