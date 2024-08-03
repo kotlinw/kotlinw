@@ -97,7 +97,7 @@ composeImageLoader = "1.6.6"
 napier = "2.6.1"
 buildConfig = "4.1.1"
 
-kobweb = "0.18.0"
+kobweb = "0.18.2"
 
 pdvrieze-xmlutil = "0.90.1"
 
