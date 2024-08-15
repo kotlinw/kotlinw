@@ -16,7 +16,7 @@ junit = "5.10.3"
 serialization = "1.7.1"
 
 # https://github.com/Kotlin/kotlinx.coroutines/releases
-coroutines = "1.9.0-RC"
+coroutines = "1.9.0-RC.2"
 
 # https://github.com/Kotlin/kotlinx-io/releases
 kotlinx-io = "0.5.1"
