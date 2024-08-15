@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     compileOnly(libs.ksp.impl) // TODO temporary
-    compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0") // TODO temporary
+    compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.10") // TODO temporary
 
     testImplementation(projects.kotlinw.kotlinwKspTestutil)
     testImplementation(libs.arrow.core)
