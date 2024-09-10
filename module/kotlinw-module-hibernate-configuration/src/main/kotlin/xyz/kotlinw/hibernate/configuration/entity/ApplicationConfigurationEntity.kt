@@ -10,6 +10,7 @@ import xyz.kotlinw.jpa.api.JpaSessionContext
 import xyz.kotlinw.jpa.repository.BaseEntity
 import xyz.kotlinw.jpa.repository.BaseEntityRepository
 import xyz.kotlinw.jpa.repository.BaseEntityRepositoryImpl
+import xyz.kotlinw.jpa.repository.BaseIdentityEntity
 
 @Entity(name = ApplicationConfigurationEntity.TableName)
 @Table(name = ApplicationConfigurationEntity.TableName)
@@ -22,7 +23,7 @@ class ApplicationConfigurationEntity(
     @Column(nullable = false, length = Length.LONG32)
     var value: String
 
-) : BaseEntity() {
+) : BaseIdentityEntity() {
 
     companion object {
 
