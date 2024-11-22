@@ -31,11 +31,11 @@ interface Logger {
     fun error(cause: Throwable? = null, messageProvider: LogMessageProvider) = log(LogLevel.Error,cause, messageProvider)
 }
 
-private fun Logger.log(logLevel: LogLevel, cause: Throwable?, messageProvider: LogMessageProvider) {
+fun Logger.log(logLevel: LogLevel, cause: Throwable? = null, messageProvider: LogMessageProvider) {
     log(logLevel, cause, buildLogMessage(messageProvider), emptyList())
 }
 
-private fun Logger.isLogLevelEnabled(level: LogLevel) = (this as LoggerImplementor).loggingIntegrator.isLogLevelEnabled(this, level)
+fun Logger.isLogLevelEnabled(level: LogLevel) = (this as LoggerImplementor).loggingIntegrator.isLogLevelEnabled(this, level)
 
 internal fun Logger.log(
     level: LogLevel,

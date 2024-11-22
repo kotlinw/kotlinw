@@ -80,6 +80,7 @@ fun ConfigurationPropertyLookup.getMatchingEnumerableConfigurationProperties(key
 fun defaultConfigurationPropertyLoggingFilter(configurationPropertyKey: ConfigurationPropertyKey): Boolean =
     configurationPropertyKey.name.let { key ->
         setOf(
+            "pass",
             "password",
             "secret",
             "passkey",
@@ -89,7 +90,7 @@ fun defaultConfigurationPropertyLoggingFilter(configurationPropertyKey: Configur
             "keycode",
             "passphrase"
         ).any {
-            key.contains(it)
+            key.lowercase().contains(it)
         }
     }
 
@@ -172,8 +173,7 @@ class ConfigurationPropertyLookupImpl(
             source.reload()
         }
 
-        // TODO log changes at info level
-        logger.debug {
+        logger.info {
             "Enumerable configuration properties: " /
                     filterEnumerableConfigurationProperties { true }
                         .mapValues {
